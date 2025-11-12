@@ -9,15 +9,15 @@ A modern, glassmorphic component library inspired by Apple's design language, bu
 
 ## ✨ Features
 
-- 🎨 **40+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
-- 🌈 **Apple-Inspired Design** - Glassmorphism effects following Apple's design standards
-- 🎭 **Theme Support** - Built-in light/dark mode with automatic theme switching
-- ⚡ **Enhanced Effects** - Glow, shimmer, ripple, and gradient animations
-- 🎯 **Fully Customizable** - Per-component glass effect customization
-- 📦 **Package Manager Support** - Install with pnpm, yarn, npm, or bun
-- 🔧 **TypeScript** - Fully typed components for better developer experience
-- ♿ **Accessible** - Built on Radix UI primitives for accessibility
-- 🎨 **Tailwind CSS** - Utility-first styling with CSS variables
+- **40+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
+- **Apple-Inspired Design** - Glassmorphism effects following Apple's design standards
+- **Theme Support** - Built-in light/dark mode with automatic theme switching
+- **Enhanced Effects** - Glow, shimmer, ripple, and gradient animations
+- **Fully Customizable** - Per-component glass effect customization
+- **Package Manager Support** - Install with pnpm, yarn, npm, or bun
+- **TypeScript** - Fully typed components for better developer experience
+- **Accessible** - Built on Radix UI primitives for accessibility
+- **Tailwind CSS** - Utility-first styling with CSS variables
 
 ## 🚀 Quick Start
 
