@@ -1,0 +1,135 @@
+"use client"
+
+import { use } from "react"
+import { notFound } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
+import { Badge } from "@/registry/ui/badge"
+import { Button } from "@/registry/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Copy, Check } from "lucide-react"
+import * as React from "react"
+import { getComponent } from "@/lib/registry"
+import { ComponentPreview } from "@/components/component-preview"
+import { getComponentExampleCode } from "@/lib/component-examples"
+
+function CodeBlock({ code }: { code: string }) {
+  const [copied, setCopied] = React.useState(false)
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="relative">
+      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm">
+        <code className="text-foreground font-mono whitespace-pre break-words">{code}</code>
+      </pre>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
+        onClick={copyToClipboard}
+      >
+        {copied ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </Button>
+    </div>
+  )
+}
+
+export default function ComponentPage({
+  params,
+}: {
+  params: Promise<{ component: string }>
+}) {
+  const { component: componentName } = use(params)
+  const component = getComponent(componentName)
+
+  if (!component) {
+    notFound()
+  }
+
+  const exampleCode = getComponentExampleCode(component.name)
+
+  return (
+    <div className="text-foreground">
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
+          <Badge variant="glass" className="w-fit">Component</Badge>
+        </div>
+        <p className="text-base sm:text-lg text-muted-foreground">{component.description || "No description available"}</p>
+      </div>
+
+      <div className="space-y-8">
+        <Card variant="glass" className="text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Installation</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Install this component using the shadcn CLI
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CodeBlock code={`npx shadcn@latest add ${component.name} --registry https://ui.crenspire.com/glass-ui/r/registry.json`} />
+          </CardContent>
+        </Card>
+
+        <Card variant="glass" className="text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Usage</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Example code for using this component
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="example" className="w-full">
+              <TabsList variant="glass" className="mb-4">
+                <TabsTrigger value="example">Example</TabsTrigger>
+                <TabsTrigger value="code">Code</TabsTrigger>
+              </TabsList>
+              <TabsContent value="example" className="space-y-4">
+                <div className="p-4 border border-border rounded-lg bg-muted/20">
+                  <ComponentPreview componentName={component.name} />
+                </div>
+              </TabsContent>
+              <TabsContent value="code">
+                <CodeBlock code={exampleCode} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        <Card variant="glass" className="text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Props</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Component props and variants
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>This component supports the following variants:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>default - Standard styling</li>
+                <li>glass - Glassmorphism effect (default)</li>
+                {component.name === "button" && (
+                  <>
+                    <li>glassSolid - Solid glass variant</li>
+                    <li>outline - Outline variant</li>
+                    <li>ghost - Ghost variant</li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+

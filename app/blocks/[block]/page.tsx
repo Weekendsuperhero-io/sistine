@@ -1,0 +1,173 @@
+"use client"
+
+import * as React from "react"
+import { use } from "react"
+import { notFound } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
+import { Button } from "@/registry/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Copy, Check, ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { DashboardBlock } from "@/registry/blocks/dashboard"
+import { AuthenticationBlock } from "@/registry/blocks/authentication"
+import { SignupBlock } from "@/registry/blocks/signup"
+import { ForgotPasswordBlock } from "@/registry/blocks/forgot-password"
+import { CalendarBlock } from "@/registry/blocks/calendar"
+import { ChartBlock } from "@/registry/blocks/chart"
+
+const blocks = {
+  dashboard: {
+    title: "Dashboard",
+    description: "Complete dashboard layout with stats, charts, and navigation",
+    component: DashboardBlock,
+    code: `import { DashboardBlock } from "@/registry/blocks/dashboard"
+
+export default function Page() {
+  return <DashboardBlock />
+}`,
+  },
+  authentication: {
+    title: "Authentication",
+    description: "Login form with glassmorphism effects",
+    component: AuthenticationBlock,
+    code: `import { AuthenticationBlock } from "@/registry/blocks/authentication"
+
+export default function Page() {
+  return <AuthenticationBlock />
+}`,
+  },
+  signup: {
+    title: "Sign Up",
+    description: "Registration form with validation",
+    component: SignupBlock,
+    code: `import { SignupBlock } from "@/registry/blocks/signup"
+
+export default function Page() {
+  return <SignupBlock />
+}`,
+  },
+  "forgot-password": {
+    title: "Forgot Password",
+    description: "Password reset form",
+    component: ForgotPasswordBlock,
+    code: `import { ForgotPasswordBlock } from "@/registry/blocks/forgot-password"
+
+export default function Page() {
+  return <ForgotPasswordBlock />
+}`,
+  },
+  calendar: {
+    title: "Calendar",
+    description: "Calendar view with events and scheduling",
+    component: CalendarBlock,
+    code: `import { CalendarBlock } from "@/registry/blocks/calendar"
+
+export default function Page() {
+  return <CalendarBlock />
+}`,
+  },
+  chart: {
+    title: "Chart",
+    description: "Beautiful charts with bar, line, and area visualizations",
+    component: ChartBlock,
+    code: `import { ChartBlock } from "@/registry/blocks/chart"
+
+export default function Page() {
+  return <ChartBlock />
+}`,
+  },
+}
+
+function CodeBlock({ code }: { code: string }) {
+  const [copied, setCopied] = React.useState(false)
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="relative">
+      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-4 overflow-x-auto">
+        <code className="text-foreground text-sm font-mono whitespace-pre">{code}</code>
+      </pre>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
+        onClick={copyToClipboard}
+      >
+        {copied ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </Button>
+    </div>
+  )
+}
+
+export default function BlockPage({
+  params,
+}: {
+  params: Promise<{ block: string }>
+}) {
+  const { block: blockName } = use(params)
+  const block = blocks[blockName as keyof typeof blocks]
+
+  if (!block) {
+    notFound()
+  }
+
+  const Component = block.component
+
+  return (
+    <div
+      className="min-h-screen transition-colors duration-300 relative"
+    >
+      <div className="container mx-auto px-4 pt-4 pb-8 relative z-10">
+        <div className="mb-6">
+          <Button variant="glass" asChild className="mb-4">
+            <Link href="/blocks">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blocks
+            </Link>
+          </Button>
+          <h1 className="text-4xl font-bold text-foreground mb-2">{block.title}</h1>
+          <p className="text-lg text-muted-foreground">{block.description}</p>
+        </div>
+
+        <Tabs defaultValue="preview" className="space-y-6">
+          <TabsList variant="glass">
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+          </TabsList>
+          <TabsContent value="preview" className="space-y-4">
+            <Card variant="glass" className="text-foreground">
+              <CardContent className="p-0">
+                <div className="bg-background/50 backdrop-blur-sm rounded-lg">
+                  <Component />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="code">
+            <Card variant="glass" className="text-foreground">
+              <CardHeader>
+                <CardTitle className="text-foreground">Implementation</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Copy this code to use the block in your project
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CodeBlock code={block.code} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
+
