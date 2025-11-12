@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "badge",
+  "type": "registry:component",
+  "title": "Badge",
+  "description": "Displays a badge or a component that looks like a badge with glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/badge.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Badge as BaseBadge } from \"@/registry/ui/badge\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface BadgeProps extends React.ComponentProps<typeof BaseBadge> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Badge - Enhanced badge with glassy effects and glow option\n */\nexport function Badge({ className, variant = \"glass\", glow = false, ...props }: BadgeProps) {\n  return (\n    <BaseBadge\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tooltip",
+  "type": "registry:component",
+  "title": "Tooltip",
+  "description": "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-tooltip"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/tooltip.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Tooltip as BaseTooltip,\n  TooltipContent as BaseTooltipContent,\n  TooltipProvider,\n  TooltipTrigger,\n} from \"@/registry/ui/tooltip\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface TooltipContentProps extends React.ComponentProps<typeof BaseTooltipContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Tooltip - Enhanced tooltip with glassy effects\n */\nexport const TooltipContent = React.forwardRef<\n  React.ElementRef<typeof BaseTooltipContent>,\n  TooltipContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseTooltipContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nTooltipContent.displayName = \"TooltipContent\"\n\nexport {\n  BaseTooltip as Tooltip,\n  TooltipTrigger,\n  TooltipProvider,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

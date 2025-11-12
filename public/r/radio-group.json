@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "radio-group",
+  "type": "registry:component",
+  "title": "Radio Group",
+  "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-radio-group"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/radio-group.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { RadioGroup as BaseRadioGroup, RadioGroupItem as BaseRadioGroupItem } from \"@/registry/ui/radio-group\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface RadioGroupItemProps extends React.ComponentProps<typeof BaseRadioGroupItem> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Radio Group - Enhanced radio group with glassy effects\n */\nexport const RadioGroupItem = React.forwardRef<\n  React.ElementRef<typeof BaseRadioGroupItem>,\n  RadioGroupItemProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseRadioGroupItem\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"data-[state=checked]:shadow-lg data-[state=checked]:shadow-purple-500/30\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nRadioGroupItem.displayName = \"RadioGroupItem\"\n\nexport {\n  BaseRadioGroup as RadioGroup,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

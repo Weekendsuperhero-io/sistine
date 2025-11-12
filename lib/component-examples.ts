@@ -1,7 +1,7 @@
 export function getComponentExampleCode(componentName: string): string {
   switch (componentName) {
     case "button":
-      return `import { Button } from "@/registry/ui/button"
+      return `import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -16,7 +16,7 @@ export function Example() {
 }`
     
     case "card":
-      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
+      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -33,7 +33,7 @@ export function Example() {
 }`
     
     case "input":
-      return `import { Input } from "@/registry/ui/input"
+      return `import { Input } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -45,7 +45,7 @@ export function Example() {
 }`
     
     case "badge":
-      return `import { Badge } from "@/registry/ui/badge"
+      return `import { Badge } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -59,8 +59,7 @@ export function Example() {
 }`
     
     case "checkbox":
-      return `import { Checkbox } from "@/registry/ui/checkbox"
-import { Label } from "@/registry/ui/label"
+      return `import { Checkbox, Label } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -72,8 +71,7 @@ export function Example() {
 }`
     
     case "switch":
-      return `import { Switch } from "@/registry/ui/switch"
-import { Label } from "@/registry/ui/label"
+      return `import { Switch, Label } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -85,8 +83,7 @@ export function Example() {
 }`
     
     case "tabs":
-      return `import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
+      return `import { Tabs, TabsContent, TabsList, TabsTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -122,7 +119,7 @@ export function Example() {
 }`
     
     case "alert":
-      return `import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/alert"
+      return `import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/glass"
 import { Info } from "lucide-react"
 
 export function Example() {
@@ -138,7 +135,7 @@ export function Example() {
 }`
     
     case "avatar":
-      return `import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/avatar"
+      return `import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -159,7 +156,7 @@ export function Example() {
 }`
     
     case "separator":
-      return `import { Separator } from "@/registry/ui/separator"
+      return `import { Separator } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -181,7 +178,7 @@ export function Example() {
 }`
     
     case "skeleton":
-      return `import { Skeleton } from "@/registry/ui/skeleton"
+      return `import { Skeleton } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -194,7 +191,7 @@ export function Example() {
 }`
     
     case "slider":
-      return `import { Slider } from "@/registry/ui/slider"
+      return `import { Slider } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -205,7 +202,7 @@ export function Example() {
 }`
     
     case "textarea":
-      return `import { Textarea } from "@/registry/ui/textarea"
+      return `import { Textarea } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -214,8 +211,8 @@ export function Example() {
 }`
     
     case "label":
-      return `import { Label } from "@/registry/ui/label"
-import { Input } from "@/registry/ui/input"
+      return `import { Label } from "@/registry/ui/glass"
+import { Input } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -227,8 +224,8 @@ export function Example() {
 }`
     
     case "radio-group":
-      return `import { RadioGroup, RadioGroupItem } from "@/registry/ui/radio-group"
-import { Label } from "@/registry/ui/label"
+      return `import { RadioGroup, RadioGroupItem } from "@/registry/ui/glass"
+import { Label } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -250,7 +247,7 @@ export function Example() {
 }`
     
     case "select":
-      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/registry/ui/select"
+      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -268,7 +265,7 @@ export function Example() {
 }`
     
     case "accordion":
-      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/registry/ui/accordion"
+      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -290,8 +287,8 @@ export function Example() {
 }`
     
     case "tooltip":
-      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/registry/ui/tooltip"
-import { Button } from "@/registry/ui/button"
+      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -309,8 +306,8 @@ export function Example() {
 }`
     
     case "popover":
-      return `import { Popover, PopoverContent, PopoverTrigger } from "@/registry/ui/popover"
-import { Button } from "@/registry/ui/button"
+      return `import { Popover, PopoverContent, PopoverTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -333,8 +330,8 @@ export function Example() {
 }`
     
     case "dialog":
-      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/registry/ui/dialog"
-import { Button } from "@/registry/ui/button"
+      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -356,8 +353,8 @@ export function Example() {
 }`
     
     case "dropdown-menu":
-      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/registry/ui/dropdown-menu"
-import { Button } from "@/registry/ui/button"
+      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -377,7 +374,7 @@ export function Example() {
 }`
     
     case "calendar":
-      return `import { Calendar } from "@/registry/ui/calendar"
+      return `import { Calendar } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -386,7 +383,7 @@ export function Example() {
 }`
     
     case "toggle":
-      return `import { Toggle } from "@/registry/ui/toggle"
+      return `import { Toggle } from "@/registry/ui/glass"
 import { Sparkles } from "lucide-react"
 
 export function Example() {
@@ -403,7 +400,7 @@ export function Example() {
 }`
     
     case "toggle-group":
-      return `import { ToggleGroup, ToggleGroupItem } from "@/registry/ui/toggle-group"
+      return `import { ToggleGroup, ToggleGroupItem } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -416,7 +413,7 @@ export function Example() {
 }`
     
     case "table":
-      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/registry/ui/table"
+      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -445,7 +442,7 @@ export function Example() {
 }`
     
     case "breadcrumb":
-      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/registry/ui/breadcrumb"
+      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -468,8 +465,8 @@ export function Example() {
 }`
     
     case "collapsible":
-      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/registry/ui/collapsible"
-import { Button } from "@/registry/ui/button"
+      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -487,7 +484,7 @@ export function Example() {
 }`
     
     case "command":
-      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/registry/ui/command"
+      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -506,7 +503,7 @@ export function Example() {
 }`
     
     case "scroll-area":
-      return `import { ScrollArea } from "@/registry/ui/scroll-area"
+      return `import { ScrollArea } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -521,8 +518,8 @@ export function Example() {
 }`
     
     case "sheet":
-      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/registry/ui/sheet"
-import { Button } from "@/registry/ui/button"
+      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -543,7 +540,7 @@ export function Example() {
 }`
     
     case "navigation-menu":
-      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/registry/ui/navigation-menu"
+      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -575,7 +572,7 @@ export function Example() {
 }`
     
     case "pagination":
-      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/registry/ui/pagination"
+      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -605,8 +602,8 @@ export function Example() {
 }`
     
     case "hover-card":
-      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/registry/ui/hover-card"
-import { Button } from "@/registry/ui/button"
+      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -629,8 +626,8 @@ export function Example() {
 }`
     
     case "drawer":
-      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/registry/ui/drawer"
-import { Button } from "@/registry/ui/button"
+      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -655,8 +652,8 @@ export function Example() {
 }`
     
     case "alert-dialog":
-      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/registry/ui/alert-dialog"
-import { Button } from "@/registry/ui/button"
+      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/registry/ui/glass"
+import { Button } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -682,7 +679,7 @@ export function Example() {
 }`
     
     case "sidebar":
-      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/registry/ui/sidebar"
+      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/registry/ui/glass"
 
 export function Example() {
   return (
@@ -702,7 +699,7 @@ export function Example() {
 }`
     
     case "chart":
-      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/registry/ui/chart"
+      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/registry/ui/glass"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 
 const chartData = [
@@ -747,7 +744,7 @@ export function Example() {
 }`
     
     default:
-      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/registry/ui/${componentName}"
+      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/registry/ui/glass"
 
 export function Example() {
   return (

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "pagination",
+  "type": "registry:component",
+  "title": "Pagination",
+  "description": "Pagination with page navigation with optional glassy variant.",
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/pagination.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Pagination as BasePagination,\n  PaginationContent as BasePaginationContent,\n  PaginationEllipsis,\n  PaginationItem,\n  PaginationLink,\n  PaginationNext,\n  PaginationPrevious,\n} from \"@/registry/ui/pagination\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface PaginationContentProps extends React.ComponentProps<typeof BasePaginationContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Pagination - Enhanced pagination with glassy effects\n */\nexport const PaginationContent = React.forwardRef<\n  HTMLUListElement,\n  PaginationContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BasePaginationContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nPaginationContent.displayName = \"PaginationContent\"\n\nexport {\n  BasePagination as Pagination,\n  PaginationItem,\n  PaginationLink,\n  PaginationNext,\n  PaginationPrevious,\n  PaginationEllipsis,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

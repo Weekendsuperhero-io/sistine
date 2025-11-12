@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "cropper",
+  "type": "registry:component",
+  "title": "Cropper",
+  "description": "An image cropper component with optional glassy variant.",
+  "dependencies": [
+    "react-easy-crop"
+  ],
+  "registryDependencies": [
+    "dialog",
+    "slider",
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/cropper.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Cropper as BaseCropper } from \"@/registry/ui/cropper\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface CropperProps {\n  image: string\n  onCropComplete: (croppedArea: { x: number; y: number; width: number; height: number }, croppedAreaPixels: { x: number; y: number; width: number; height: number }) => void\n  aspect?: number\n  variant?: \"default\" | \"glass\"\n  glow?: boolean\n  className?: string\n}\n\n/**\n * Glass UI Cropper - Enhanced image cropper with glassy effects\n */\nexport function Cropper({ className, variant = \"glass\", glow = false, ...props }: CropperProps) {\n  return (\n    <div\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n    >\n      <BaseCropper\n        variant={variant}\n        {...props}\n      />\n    </div>\n  )\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "mode-toggle",
+  "type": "registry:component",
+  "title": "Mode Toggle",
+  "description": "A theme switcher component with optional glassy variant.",
+  "dependencies": [
+    "next-themes"
+  ],
+  "registryDependencies": [
+    "button",
+    "dropdown-menu"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/mode-toggle.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { ModeToggle as BaseModeToggle } from \"@/registry/ui/mode-toggle\"\n\n/**\n * Glass UI Mode Toggle - Re-exported from base with glassy styling\n */\nexport { BaseModeToggle as ModeToggle }\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

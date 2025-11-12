@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "navigation-menu",
+  "type": "registry:component",
+  "title": "Navigation Menu",
+  "description": "A collection of links for navigating websites.",
+  "dependencies": [
+    "@radix-ui/react-navigation-menu"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/navigation-menu.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  NavigationMenu as BaseNavigationMenu,\n  NavigationMenuContent as BaseNavigationMenuContent,\n  NavigationMenuItem,\n  NavigationMenuIndicator,\n  NavigationMenuLink,\n  NavigationMenuList as BaseNavigationMenuList,\n  NavigationMenuTrigger,\n  NavigationMenuViewport as BaseNavigationMenuViewport,\n} from \"@/registry/ui/navigation-menu\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface NavigationMenuListProps extends React.ComponentProps<typeof BaseNavigationMenuList> {\n  glow?: boolean\n}\n\nexport interface NavigationMenuContentProps extends React.ComponentProps<typeof BaseNavigationMenuContent> {\n  glow?: boolean\n}\n\nexport interface NavigationMenuViewportProps extends React.ComponentProps<typeof BaseNavigationMenuViewport> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Navigation Menu - Enhanced navigation menu with glassy effects\n */\nexport const NavigationMenuList = React.forwardRef<\n  React.ElementRef<typeof BaseNavigationMenuList>,\n  NavigationMenuListProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseNavigationMenuList\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nNavigationMenuList.displayName = \"NavigationMenuList\"\n\nexport const NavigationMenuContent = React.forwardRef<\n  React.ElementRef<typeof BaseNavigationMenuContent>,\n  NavigationMenuContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseNavigationMenuContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nNavigationMenuContent.displayName = \"NavigationMenuContent\"\n\nexport const NavigationMenuViewport = React.forwardRef<\n  React.ElementRef<typeof BaseNavigationMenuViewport>,\n  NavigationMenuViewportProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseNavigationMenuViewport\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nNavigationMenuViewport.displayName = \"NavigationMenuViewport\"\n\nexport {\n  BaseNavigationMenu as NavigationMenu,\n  NavigationMenuItem,\n  NavigationMenuLink,\n  NavigationMenuIndicator,\n  NavigationMenuTrigger,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

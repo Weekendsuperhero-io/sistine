@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hover-card",
+  "type": "registry:component",
+  "title": "Hover Card",
+  "description": "For sighted users to preview content available behind a link.",
+  "dependencies": [
+    "@radix-ui/react-hover-card"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/hover-card.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  HoverCard as BaseHoverCard,\n  HoverCardContent as BaseHoverCardContent,\n  HoverCardTrigger,\n} from \"@/registry/ui/hover-card\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface HoverCardContentProps extends React.ComponentProps<typeof BaseHoverCardContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Hover Card - Enhanced hover card with glassy effects\n */\nexport const HoverCardContent = React.forwardRef<\n  React.ElementRef<typeof BaseHoverCardContent>,\n  HoverCardContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseHoverCardContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nHoverCardContent.displayName = \"HoverCardContent\"\n\nexport {\n  BaseHoverCard as HoverCard,\n  HoverCardTrigger,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

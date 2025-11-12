@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "chart",
+  "type": "registry:component",
+  "title": "Chart",
+  "description": "Chart components built with Recharts with optional glassy variant.",
+  "dependencies": [
+    "recharts"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/chart.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  ChartContainer as BaseChartContainer,\n  ChartTooltip,\n  ChartTooltipContent as BaseChartTooltipContent,\n  ChartLegend,\n  ChartLegendContent as BaseChartLegendContent,\n} from \"@/registry/ui/chart\"\nimport { cn } from \"@/lib/utils\"\nimport type { ChartConfig } from \"@/registry/ui/chart\"\n\nexport interface ChartContainerProps extends React.ComponentProps<typeof BaseChartContainer> {\n  glow?: boolean\n}\n\nexport interface ChartTooltipContentProps extends React.ComponentProps<typeof BaseChartTooltipContent> {\n  glow?: boolean\n}\n\nexport interface ChartLegendContentProps extends React.ComponentProps<typeof BaseChartLegendContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Chart - Enhanced chart components with glassy effects\n */\nexport const ChartContainer = React.forwardRef<\n  HTMLDivElement,\n  ChartContainerProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseChartContainer\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nChartContainer.displayName = \"ChartContainer\"\n\nexport const ChartTooltipContent = React.forwardRef<\n  HTMLDivElement,\n  ChartTooltipContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseChartTooltipContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nChartTooltipContent.displayName = \"ChartTooltipContent\"\n\nexport const ChartLegendContent = React.forwardRef<\n  HTMLDivElement,\n  ChartLegendContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseChartLegendContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nChartLegendContent.displayName = \"ChartLegendContent\"\n\nexport {\n  ChartTooltip,\n  ChartLegend,\n}\n\nexport type { ChartConfig }\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "accordion",
+  "type": "registry:component",
+  "title": "Accordion",
+  "description": "A vertically stacked set of interactive headings that each reveal a section of content.",
+  "dependencies": [
+    "@radix-ui/react-accordion"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/accordion.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Accordion as BaseAccordion,\n  AccordionContent,\n  AccordionItem,\n  AccordionTrigger as BaseAccordionTrigger,\n} from \"@/registry/ui/accordion\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface AccordionTriggerProps extends React.ComponentProps<typeof BaseAccordionTrigger> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Accordion - Enhanced accordion with glassy effects\n */\nexport const AccordionTrigger = React.forwardRef<\n  React.ElementRef<typeof BaseAccordionTrigger>,\n  AccordionTriggerProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseAccordionTrigger\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"data-[state=open]:shadow-md data-[state=open]:shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nAccordionTrigger.displayName = \"AccordionTrigger\"\n\nexport {\n  BaseAccordion as Accordion,\n  AccordionItem,\n  AccordionContent,\n}\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "skeleton",
+  "type": "registry:component",
+  "title": "Skeleton",
+  "description": "Use to show a placeholder while content is loading with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/skeleton.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Skeleton as BaseSkeleton } from \"@/registry/ui/skeleton\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SkeletonProps extends React.ComponentProps<typeof BaseSkeleton> {\n  shimmer?: boolean\n}\n\n/**\n * Glass UI Skeleton - Enhanced skeleton with glassy effects and shimmer\n */\nexport function Skeleton({ className, variant = \"glass\", shimmer = true, ...props }: SkeletonProps) {\n  return (\n    <BaseSkeleton\n      variant={variant}\n      className={cn(\n        shimmer && \"relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-[shimmer_2s_infinite]\",\n        className\n      )}\n      {...props}\n    />\n  )\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

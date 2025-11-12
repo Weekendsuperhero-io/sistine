@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "separator",
+  "type": "registry:component",
+  "title": "Separator",
+  "description": "Visually or semantically separates content with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-separator"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/separator.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Separator as BaseSeparator } from \"@/registry/ui/separator\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SeparatorProps extends React.ComponentProps<typeof BaseSeparator> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Separator - Enhanced separator with glassy effects\n */\nexport const Separator = React.forwardRef<\n  React.ElementRef<typeof BaseSeparator>,\n  SeparatorProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSeparator\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-sm shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSeparator.displayName = \"Separator\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "toggle-group",
+  "type": "registry:component",
+  "title": "Toggle Group",
+  "description": "A set of two-state buttons that can be toggled on or off.",
+  "dependencies": [
+    "@radix-ui/react-toggle-group"
+  ],
+  "registryDependencies": [
+    "toggle"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/toggle-group.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { ToggleGroup as BaseToggleGroup, ToggleGroupItem } from \"@/registry/ui/toggle-group\"\nimport { cn } from \"@/lib/utils\"\n\ntype BaseToggleGroupProps = React.ComponentProps<typeof BaseToggleGroup>\n\nexport type ToggleGroupProps = Omit<BaseToggleGroupProps, \"variant\" | \"className\"> & {\n  glow?: boolean\n  variant?: \"default\" | \"glass\"\n  className?: string\n}\n\n/**\n * Glass UI Toggle Group - Enhanced toggle group with glassy effects\n */\nexport const ToggleGroup = React.forwardRef<\n  React.ElementRef<typeof BaseToggleGroup>,\n  ToggleGroupProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseToggleGroup\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...(props as BaseToggleGroupProps)}\n    />\n  )\n})\nToggleGroup.displayName = \"ToggleGroup\"\n\nexport {\n  ToggleGroupItem,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

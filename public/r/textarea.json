@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "textarea",
+  "type": "registry:component",
+  "title": "Textarea",
+  "description": "Displays a form textarea with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/textarea.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Textarea as BaseTextarea } from \"@/registry/ui/textarea\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface TextareaProps extends React.ComponentProps<typeof BaseTextarea> {\n  icon?: React.ReactNode\n  error?: boolean\n}\n\n/**\n * Glass UI Textarea - A beautifully designed textarea component with glassy effects\n * Built on top of the base Textarea component with enhanced visual styling\n */\nexport const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(\n  ({ className, variant = \"glass\", icon, error, ...props }, ref) => {\n    return (\n      <div className=\"relative\">\n        {icon && (\n          <div className=\"absolute left-3 top-3 text-muted-foreground\">\n            {icon}\n          </div>\n        )}\n        <BaseTextarea\n          ref={ref}\n          variant={variant}\n          className={cn(\n            icon && \"pl-10\",\n            error && \"border-destructive focus-visible:ring-destructive\",\n            \"transition-all duration-200 focus-visible:scale-[1.01]\",\n            className\n          )}\n          {...props}\n        />\n      </div>\n    )\n  }\n)\nTextarea.displayName = \"Textarea\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

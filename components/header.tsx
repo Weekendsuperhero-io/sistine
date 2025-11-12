@@ -2,8 +2,10 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Sparkles, Github, Menu } from "lucide-react"
+import { useTheme } from "next-themes"
+import { Github, Menu } from "lucide-react"
 import { ModeToggle } from "@/registry/ui/mode-toggle"
 import { Badge } from "@/registry/ui/badge"
 import { Sheet, SheetContent, SheetTrigger } from "@/registry/ui/sheet"
@@ -19,8 +21,14 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname()
+  const { resolvedTheme } = useTheme()
   const [starCount, setStarCount] = React.useState<number | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   React.useEffect(() => {
     // Fetch GitHub star count
@@ -48,7 +56,19 @@ export function Header() {
         >
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-foreground" />
+              {mounted && (
+                <Image
+                  src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
+                  alt="Glass UI"
+                  width={120}
+                  height={32}
+                  className="h-6 md:h-8 w-auto"
+                  priority
+                />
+              )}
+              {!mounted && (
+                <div className="h-6 md:h-8 w-[120px] bg-muted animate-pulse rounded" />
+              )}
               <span className="text-lg md:text-xl font-bold text-foreground">Glass UI</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
@@ -97,8 +117,18 @@ export function Header() {
               <SheetContent variant="glass" side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col gap-6 mt-8">
                   <div className="flex items-center gap-2 pb-4 border-b border-border">
-                    <Sparkles className="h-6 w-6 text-foreground" />
-                    <span className="text-xl font-bold text-foreground">Glass UI</span>
+                    {mounted && (
+                      <Image
+                        src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
+                        alt="Glass UI"
+                        width={120}
+                        height={32}
+                        className="h-8 w-auto"
+                      />
+                    )}
+                    {!mounted && (
+                      <div className="h-8 w-[120px] bg-muted animate-pulse rounded" />
+                    )}
                   </div>
                   <nav className="flex flex-col gap-4">
                     {navigation.map((item) => (

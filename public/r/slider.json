@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "slider",
+  "type": "registry:component",
+  "title": "Slider",
+  "description": "An input where the user selects a value from within a given range.",
+  "dependencies": [
+    "@radix-ui/react-slider"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/slider.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Slider as BaseSlider } from \"@/registry/ui/slider\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SliderProps extends React.ComponentProps<typeof BaseSlider> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Slider - Enhanced slider with glassy effects\n */\nexport const Slider = React.forwardRef<\n  React.ElementRef<typeof BaseSlider>,\n  SliderProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSlider\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSlider.displayName = \"Slider\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

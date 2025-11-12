@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "label",
+  "type": "registry:component",
+  "title": "Label",
+  "description": "Renders an accessible label associated with controls.",
+  "dependencies": [
+    "@radix-ui/react-label"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/label.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Label as BaseLabel } from \"@/registry/ui/label\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface LabelProps extends React.ComponentProps<typeof BaseLabel> {\n  required?: boolean\n}\n\n/**\n * Glass UI Label - Enhanced label component with glassy styling\n */\nexport const Label = React.forwardRef<\n  React.ElementRef<typeof BaseLabel>,\n  LabelProps\n>(({ className, required, children, ...props }, ref) => {\n  return (\n    <BaseLabel\n      ref={ref}\n      className={cn(\n        \"transition-colors duration-200\",\n        className\n      )}\n      {...props}\n    >\n      {children}\n      {required && <span className=\"text-destructive ml-1\">*</span>}\n    </BaseLabel>\n  )\n})\nLabel.displayName = \"Label\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

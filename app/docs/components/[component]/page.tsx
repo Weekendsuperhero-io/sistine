@@ -11,6 +11,7 @@ import * as React from "react"
 import { getComponent } from "@/lib/registry"
 import { ComponentPreview } from "@/components/component-preview"
 import { getComponentExampleCode } from "@/lib/component-examples"
+import { InstallationInstructions } from "@/components/installation-instructions"
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false)
@@ -71,11 +72,11 @@ export default function ComponentPage({
           <CardHeader>
             <CardTitle className="text-foreground">Installation</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Install this component using the shadcn CLI
+              Install this component using the shadcn CLI with your preferred package manager
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CodeBlock code={`npx shadcn@latest add ${component.name} --registry https://ui.crenspire.com/glass-ui/r/registry.json`} />
+            <InstallationInstructions componentName={component.name} />
           </CardContent>
         </Card>
 

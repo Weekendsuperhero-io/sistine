@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "checkbox",
+  "type": "registry:component",
+  "title": "Checkbox",
+  "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-checkbox"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/checkbox.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Checkbox as BaseCheckbox } from \"@/registry/ui/checkbox\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface CheckboxProps extends React.ComponentProps<typeof BaseCheckbox> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Checkbox - Enhanced checkbox with glassy effects\n */\nexport const Checkbox = React.forwardRef<\n  React.ElementRef<typeof BaseCheckbox>,\n  CheckboxProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseCheckbox\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"data-[state=checked]:shadow-lg data-[state=checked]:shadow-purple-500/30\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nCheckbox.displayName = \"Checkbox\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

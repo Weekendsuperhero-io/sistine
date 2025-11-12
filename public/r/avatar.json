@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "avatar",
+  "type": "registry:component",
+  "title": "Avatar",
+  "description": "An image element with a fallback for representing the user.",
+  "dependencies": [
+    "@radix-ui/react-avatar"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/avatar.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Avatar as BaseAvatar, AvatarImage, AvatarFallback } from \"@/registry/ui/avatar\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface AvatarProps extends React.ComponentProps<typeof BaseAvatar> {\n  glow?: boolean\n  size?: \"sm\" | \"md\" | \"lg\"\n}\n\n/**\n * Glass UI Avatar - Enhanced avatar with glassy effects\n */\nexport const Avatar = React.forwardRef<\n  React.ElementRef<typeof BaseAvatar>,\n  AvatarProps\n>(({ className, glow = false, size = \"md\", ...props }, ref) => {\n  const sizeClasses = {\n    sm: \"h-8 w-8\",\n    md: \"h-10 w-10\",\n    lg: \"h-16 w-16\",\n  }\n  \n  return (\n    <BaseAvatar\n      ref={ref}\n      className={cn(\n        sizeClasses[size],\n        glow && \"ring-2 ring-purple-500/30 shadow-lg shadow-purple-500/20\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nAvatar.displayName = \"Avatar\"\n\nexport { AvatarImage, AvatarFallback }\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

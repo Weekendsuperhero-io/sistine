@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "command",
+  "type": "registry:component",
+  "title": "Command",
+  "description": "Fast, composable, unstyled command menu for React.",
+  "dependencies": [
+    "cmdk"
+  ],
+  "registryDependencies": [
+    "dialog"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/command.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Command as BaseCommand,\n  CommandDialog,\n  CommandEmpty,\n  CommandGroup,\n  CommandInput,\n  CommandItem,\n  CommandList,\n  CommandSeparator,\n  CommandShortcut,\n} from \"@/registry/ui/command\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface CommandProps extends React.ComponentProps<typeof BaseCommand> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Command - Enhanced command menu with glassy effects\n */\nexport const Command = React.forwardRef<\n  React.ElementRef<typeof BaseCommand>,\n  CommandProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseCommand\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nCommand.displayName = \"Command\"\n\nexport {\n  CommandDialog,\n  CommandInput,\n  CommandList,\n  CommandEmpty,\n  CommandGroup,\n  CommandItem,\n  CommandShortcut,\n  CommandSeparator,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

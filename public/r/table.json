@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "table",
+  "type": "registry:component",
+  "title": "Table",
+  "description": "A responsive table component with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/table.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Table as BaseTable,\n  TableBody,\n  TableCaption,\n  TableCell,\n  TableFooter,\n  TableHead,\n  TableHeader,\n  TableRow,\n} from \"@/registry/ui/table\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface TableProps extends React.ComponentProps<typeof BaseTable> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Table - Enhanced table with glassy effects\n */\nexport const Table = React.forwardRef<HTMLTableElement, TableProps>(\n  ({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n    return (\n      <BaseTable\n        ref={ref}\n        variant={variant}\n        className={cn(\n          glow && \"shadow-lg shadow-purple-500/20\",\n          className\n        )}\n        {...props}\n      />\n    )\n  }\n)\nTable.displayName = \"Table\"\n\nexport {\n  TableHeader,\n  TableBody,\n  TableFooter,\n  TableHead,\n  TableRow,\n  TableCell,\n  TableCaption,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

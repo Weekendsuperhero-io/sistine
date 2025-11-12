@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "sidebar",
+  "type": "registry:component",
+  "title": "Sidebar",
+  "description": "A sidebar component with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/sidebar.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Sidebar as BaseSidebar,\n  SidebarContent,\n  SidebarFooter,\n  SidebarHeader,\n  SidebarItem,\n} from \"@/registry/ui/sidebar\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SidebarProps extends React.ComponentProps<typeof BaseSidebar> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Sidebar - Enhanced sidebar with glassy effects\n */\nexport const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(\n  ({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n    return (\n      <BaseSidebar\n        ref={ref}\n        variant={variant}\n        className={cn(\n          glow && \"shadow-lg shadow-purple-500/20\",\n          className\n        )}\n        {...props}\n      />\n    )\n  }\n)\nSidebar.displayName = \"Sidebar\"\n\nexport {\n  SidebarHeader,\n  SidebarContent,\n  SidebarFooter,\n  SidebarItem,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

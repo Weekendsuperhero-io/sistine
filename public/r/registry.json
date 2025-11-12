@@ -1,6 +1,571 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "crenspire/glass-ui",
-  "homepage": "https://ui.crenspire.com/glass-ui",
-  "items": []
+  "homepage": "https://glass-ui.crenspire.com",
+  "items": [
+    {
+      "name": "button",
+      "type": "registry:component",
+      "title": "Button",
+      "description": "Displays a button or a component that looks like a button with glassy variants.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/button.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "card",
+      "type": "registry:component",
+      "title": "Card",
+      "description": "Displays a card with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/card.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:component",
+      "title": "Input",
+      "description": "Displays a form input field with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/input.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "textarea",
+      "type": "registry:component",
+      "title": "Textarea",
+      "description": "Displays a form textarea with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/textarea.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "label",
+      "type": "registry:component",
+      "title": "Label",
+      "description": "Renders an accessible label associated with controls.",
+      "dependencies": ["@radix-ui/react-label"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/label.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "type": "registry:component",
+      "title": "Badge",
+      "description": "Displays a badge or a component that looks like a badge with glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/badge.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "avatar",
+      "type": "registry:component",
+      "title": "Avatar",
+      "description": "An image element with a fallback for representing the user.",
+      "dependencies": ["@radix-ui/react-avatar"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/avatar.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "dialog",
+      "type": "registry:component",
+      "title": "Dialog",
+      "description": "A window overlaid on either the primary window or another dialog window, rendering the content underneath inert.",
+      "dependencies": ["@radix-ui/react-dialog"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/ui/glass/dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "alert-dialog",
+      "type": "registry:component",
+      "title": "Alert Dialog",
+      "description": "A modal dialog that interrupts the user with important content and expects a response.",
+      "dependencies": ["@radix-ui/react-alert-dialog"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/ui/glass/alert-dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "separator",
+      "type": "registry:component",
+      "title": "Separator",
+      "description": "Visually or semantically separates content with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-separator"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/separator.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "registry:component",
+      "title": "Switch",
+      "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-switch"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/switch.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "checkbox",
+      "type": "registry:component",
+      "title": "Checkbox",
+      "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-checkbox"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/checkbox.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:component",
+      "title": "Tabs",
+      "description": "A set of layered sections of content—known as tab panels—that are displayed one at a time with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-tabs"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/tabs.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:component",
+      "title": "Tooltip",
+      "description": "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-tooltip"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/tooltip.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "popover",
+      "type": "registry:component",
+      "title": "Popover",
+      "description": "Displays rich content in a portal, triggered by a button with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-popover"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/popover.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "dropdown-menu",
+      "type": "registry:component",
+      "title": "Dropdown Menu",
+      "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-dropdown-menu"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/dropdown-menu.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "select",
+      "type": "registry:component",
+      "title": "Select",
+      "description": "Displays a list of options for the user to pick from—triggered by a button with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-select"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/select.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "radio-group",
+      "type": "registry:component",
+      "title": "Radio Group",
+      "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glassy variant.",
+      "dependencies": ["@radix-ui/react-radio-group"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/radio-group.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "skeleton",
+      "type": "registry:component",
+      "title": "Skeleton",
+      "description": "Use to show a placeholder while content is loading with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/skeleton.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "alert",
+      "type": "registry:component",
+      "title": "Alert",
+      "description": "Displays a callout for user attention with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/alert.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "accordion",
+      "type": "registry:component",
+      "title": "Accordion",
+      "description": "A vertically stacked set of interactive headings that each reveal a section of content.",
+      "dependencies": ["@radix-ui/react-accordion"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/accordion.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "breadcrumb",
+      "type": "registry:component",
+      "title": "Breadcrumb",
+      "description": "Displays the path to the current resource using a hierarchy of links.",
+      "dependencies": ["@radix-ui/react-slot"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/breadcrumb.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "calendar",
+      "type": "registry:component",
+      "title": "Calendar",
+      "description": "A date field component that allows users to enter and edit date.",
+      "dependencies": ["react-day-picker", "date-fns"],
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/ui/glass/calendar.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:component",
+      "title": "Chart",
+      "description": "Chart components built with Recharts with optional glassy variant.",
+      "dependencies": ["recharts"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/chart.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "collapsible",
+      "type": "registry:component",
+      "title": "Collapsible",
+      "description": "An interactive component which expands/collapses a panel.",
+      "dependencies": ["@radix-ui/react-collapsible"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/collapsible.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "command",
+      "type": "registry:component",
+      "title": "Command",
+      "description": "Fast, composable, unstyled command menu for React.",
+      "dependencies": ["cmdk"],
+      "registryDependencies": ["dialog"],
+      "files": [
+        {
+          "path": "registry/ui/glass/command.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "cropper",
+      "type": "registry:component",
+      "title": "Cropper",
+      "description": "An image cropper component with optional glassy variant.",
+      "dependencies": ["react-easy-crop"],
+      "registryDependencies": ["dialog", "slider", "button"],
+      "files": [
+        {
+          "path": "registry/ui/glass/cropper.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "drawer",
+      "type": "registry:component",
+      "title": "Drawer",
+      "description": "A drawer component for mobile with optional glassy variant.",
+      "dependencies": ["vaul"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/drawer.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "hover-card",
+      "type": "registry:component",
+      "title": "Hover Card",
+      "description": "For sighted users to preview content available behind a link.",
+      "dependencies": ["@radix-ui/react-hover-card"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/hover-card.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "input-otp",
+      "type": "registry:component",
+      "title": "Input OTP",
+      "description": "Accessible one-time password component with copy paste functionality.",
+      "dependencies": ["@onefifteen-z/react-input-otp"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/input-otp.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "navigation-menu",
+      "type": "registry:component",
+      "title": "Navigation Menu",
+      "description": "A collection of links for navigating websites.",
+      "dependencies": ["@radix-ui/react-navigation-menu"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/navigation-menu.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "pagination",
+      "type": "registry:component",
+      "title": "Pagination",
+      "description": "Pagination with page navigation with optional glassy variant.",
+      "registryDependencies": ["button"],
+      "files": [
+        {
+          "path": "registry/ui/glass/pagination.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "scroll-area",
+      "type": "registry:component",
+      "title": "Scroll Area",
+      "description": "Augments native scroll functionality for custom, cross-browser styling.",
+      "dependencies": ["@radix-ui/react-scroll-area"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/scroll-area.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "sheet",
+      "type": "registry:component",
+      "title": "Sheet",
+      "description": "Extends the Dialog component to display content that complements the main content of the screen.",
+      "dependencies": ["@radix-ui/react-dialog"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/sheet.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "sidebar",
+      "type": "registry:component",
+      "title": "Sidebar",
+      "description": "A sidebar component with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/sidebar.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "slider",
+      "type": "registry:component",
+      "title": "Slider",
+      "description": "An input where the user selects a value from within a given range.",
+      "dependencies": ["@radix-ui/react-slider"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/slider.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "sonner",
+      "type": "registry:component",
+      "title": "Sonner",
+      "description": "An opinionated toast component for React.",
+      "dependencies": ["sonner"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/sonner.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:component",
+      "title": "Table",
+      "description": "A responsive table component with optional glassy variant.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/table.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "toggle",
+      "type": "registry:component",
+      "title": "Toggle",
+      "description": "A two-state button that can be either on or off.",
+      "dependencies": ["@radix-ui/react-toggle"],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/glass/toggle.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "toggle-group",
+      "type": "registry:component",
+      "title": "Toggle Group",
+      "description": "A set of two-state buttons that can be toggled on or off.",
+      "dependencies": ["@radix-ui/react-toggle-group"],
+      "registryDependencies": ["toggle"],
+      "files": [
+        {
+          "path": "registry/ui/glass/toggle-group.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "mode-toggle",
+      "type": "registry:component",
+      "title": "Mode Toggle",
+      "description": "A theme switcher component with optional glassy variant.",
+      "dependencies": ["next-themes"],
+      "registryDependencies": ["button", "dropdown-menu"],
+      "files": [
+        {
+          "path": "registry/ui/glass/mode-toggle.tsx",
+          "type": "registry:component"
+        }
+      ]
+    }
+  ]
 }

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "drawer",
+  "type": "registry:component",
+  "title": "Drawer",
+  "description": "A drawer component for mobile with optional glassy variant.",
+  "dependencies": [
+    "vaul"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/drawer.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Drawer as BaseDrawer,\n  DrawerClose,\n  DrawerContent as BaseDrawerContent,\n  DrawerDescription,\n  DrawerFooter,\n  DrawerHeader,\n  DrawerOverlay,\n  DrawerPortal,\n  DrawerTitle,\n  DrawerTrigger,\n} from \"@/registry/ui/drawer\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface DrawerContentProps extends React.ComponentProps<typeof BaseDrawerContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Drawer - Enhanced drawer with glassy effects\n */\nexport const DrawerContent = React.forwardRef<\n  React.ElementRef<typeof BaseDrawerContent>,\n  DrawerContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseDrawerContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nDrawerContent.displayName = \"DrawerContent\"\n\nexport {\n  BaseDrawer as Drawer,\n  DrawerPortal,\n  DrawerOverlay,\n  DrawerTrigger,\n  DrawerClose,\n  DrawerHeader,\n  DrawerFooter,\n  DrawerTitle,\n  DrawerDescription,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

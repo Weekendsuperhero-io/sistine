@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "card",
+  "type": "registry:component",
+  "title": "Card",
+  "description": "Displays a card with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/card.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Card as BaseCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from \"@/registry/ui/card\"\nimport { cn } from \"@/lib/utils\"\nimport type { GlassCustomization } from \"@/lib/glass-utils\"\n\nexport interface CardProps extends React.ComponentProps<typeof BaseCard> {\n  gradient?: boolean\n  animated?: boolean\n  glass?: GlassCustomization\n}\n\n/**\n * Glass UI Card - A beautifully designed card component with glassy effects\n * Built on top of the base Card component with enhanced visual styling\n * \n * @example\n * ```tsx\n * <Card \n *   glass={{\n *     color: \"rgba(139, 92, 246, 0.2)\",\n *     blur: 30,\n *     transparency: 0.3,\n *     outline: \"rgba(139, 92, 246, 0.5)\"\n *   }}\n * >\n *   Content\n * </Card>\n * ```\n */\nexport const Card = React.forwardRef<HTMLDivElement, CardProps>(\n  ({ className, variant = \"glass\", gradient = false, animated = false, glass, children, ...props }, ref) => {\n    return (\n      <BaseCard\n        ref={ref}\n        variant={variant}\n        glass={glass}\n        className={cn(\n          \"relative\",\n          gradient && \"bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-pink-500/10\",\n          animated && \"transition-all duration-300 hover:scale-[1.02] hover:shadow-[var(--glass-shadow-lg)]\",\n          className\n        )}\n        {...props}\n      >\n        {children}\n      </BaseCard>\n    )\n  }\n)\nCard.displayName = \"Card\"\n\nexport {\n  CardContent,\n  CardDescription,\n  CardFooter,\n  CardHeader,\n  CardTitle,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

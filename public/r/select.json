@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "select",
+  "type": "registry:component",
+  "title": "Select",
+  "description": "Displays a list of options for the user to pick from—triggered by a button with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-select"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/select.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Select as BaseSelect,\n  SelectContent as BaseSelectContent,\n  SelectItem,\n  SelectTrigger as BaseSelectTrigger,\n  SelectValue,\n} from \"@/registry/ui/select\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SelectTriggerProps extends React.ComponentProps<typeof BaseSelectTrigger> {\n  glow?: boolean\n}\n\nexport interface SelectContentProps extends React.ComponentProps<typeof BaseSelectContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Select - Enhanced select with glassy effects\n */\nexport const SelectTrigger = React.forwardRef<\n  React.ElementRef<typeof BaseSelectTrigger>,\n  SelectTriggerProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSelectTrigger\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSelectTrigger.displayName = \"SelectTrigger\"\n\nexport const SelectContent = React.forwardRef<\n  React.ElementRef<typeof BaseSelectContent>,\n  SelectContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSelectContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSelectContent.displayName = \"SelectContent\"\n\nexport {\n  BaseSelect as Select,\n  SelectValue,\n  SelectItem,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

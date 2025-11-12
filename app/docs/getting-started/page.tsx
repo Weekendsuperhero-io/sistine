@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/reg
 import { Button } from "@/registry/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
 import { Copy, Check } from "lucide-react"
-
-const installCode = `npx shadcn@latest add button --registry https://ui.crenspire.com/glass-ui/r/registry.json`
+import { InstallationInstructions } from "@/components/installation-instructions"
 
 const mcpCode = `{
   "mcpServers": {
@@ -16,7 +15,7 @@ const mcpCode = `{
         "-y",
         "@shadcn/mcp-server",
         "--registry",
-        "https://ui.crenspire.com/glass-ui/r/registry.json"
+        "https://glass-ui.crenspire.com/r/registry.json"
       ]
     }
   }
@@ -80,9 +79,9 @@ export default function GettingStartedPage() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">2. Install components</h3>
               <p className="text-muted-foreground mb-4">
-                Use the shadcn CLI to add components from the Glass UI registry:
+                Use the shadcn CLI to add components from the Glass UI registry with your preferred package manager:
               </p>
-              <CodeBlock code={installCode} />
+              <InstallationInstructions componentName="button" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">3. Start building</h3>

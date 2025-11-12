@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "alert-dialog",
+  "type": "registry:component",
+  "title": "Alert Dialog",
+  "description": "A modal dialog that interrupts the user with important content and expects a response.",
+  "dependencies": [
+    "@radix-ui/react-alert-dialog"
+  ],
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/alert-dialog.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  AlertDialog as BaseAlertDialog,\n  AlertDialogAction,\n  AlertDialogCancel,\n  AlertDialogContent as BaseAlertDialogContent,\n  AlertDialogDescription,\n  AlertDialogFooter,\n  AlertDialogHeader,\n  AlertDialogTitle,\n  AlertDialogTrigger,\n} from \"@/registry/ui/alert-dialog\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface AlertDialogContentProps extends React.ComponentProps<typeof BaseAlertDialogContent> {\n  animated?: boolean\n}\n\n/**\n * Glass UI Alert Dialog - Enhanced alert dialog with glassy effects\n */\nexport const AlertDialogContent = React.forwardRef<\n  React.ElementRef<typeof BaseAlertDialogContent>,\n  AlertDialogContentProps\n>(({ className, variant = \"glass\", animated = true, ...props }, ref) => {\n  return (\n    <BaseAlertDialogContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        animated && \"backdrop-blur-[var(--blur-lg)]\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nAlertDialogContent.displayName = \"AlertDialogContent\"\n\nexport {\n  BaseAlertDialog as AlertDialog,\n  AlertDialogTrigger,\n  AlertDialogHeader,\n  AlertDialogFooter,\n  AlertDialogTitle,\n  AlertDialogDescription,\n  AlertDialogAction,\n  AlertDialogCancel,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

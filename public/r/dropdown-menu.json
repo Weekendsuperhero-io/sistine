@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "dropdown-menu",
+  "type": "registry:component",
+  "title": "Dropdown Menu",
+  "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-dropdown-menu"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/dropdown-menu.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  DropdownMenu as BaseDropdownMenu,\n  DropdownMenuContent as BaseDropdownMenuContent,\n  DropdownMenuItem,\n  DropdownMenuLabel,\n  DropdownMenuSeparator,\n  DropdownMenuTrigger,\n} from \"@/registry/ui/dropdown-menu\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface DropdownMenuContentProps extends React.ComponentProps<typeof BaseDropdownMenuContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Dropdown Menu - Enhanced dropdown menu with glassy effects\n */\nexport const DropdownMenuContent = React.forwardRef<\n  React.ElementRef<typeof BaseDropdownMenuContent>,\n  DropdownMenuContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseDropdownMenuContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nDropdownMenuContent.displayName = \"DropdownMenuContent\"\n\nexport {\n  BaseDropdownMenu as DropdownMenu,\n  DropdownMenuTrigger,\n  DropdownMenuItem,\n  DropdownMenuLabel,\n  DropdownMenuSeparator,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

@@ -25,7 +25,7 @@ export function Footer() {
               </Link>
               <span>at</span>
               <Link
-                href="https://github.com/crenspire"
+                href="https://crenspire.com"
                 className="text-foreground hover:text-foreground/80 transition-colors"
                 target="_blank"
               >

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "switch",
+  "type": "registry:component",
+  "title": "Switch",
+  "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-switch"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/switch.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Switch as BaseSwitch } from \"@/registry/ui/switch\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SwitchProps extends React.ComponentProps<typeof BaseSwitch> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Switch - Enhanced switch with glassy effects\n */\nexport const Switch = React.forwardRef<\n  React.ElementRef<typeof BaseSwitch>,\n  SwitchProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSwitch\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"data-[state=checked]:shadow-lg data-[state=checked]:shadow-purple-500/30\",\n        \"transition-all duration-200\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSwitch.displayName = \"Switch\"\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

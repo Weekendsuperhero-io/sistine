@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "tabs",
+  "type": "registry:component",
+  "title": "Tabs",
+  "description": "A set of layered sections of content—known as tab panels—that are displayed one at a time with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-tabs"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/tabs.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Tabs as BaseTabs, TabsContent, TabsList as BaseTabsList, TabsTrigger } from \"@/registry/ui/tabs\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface TabsListProps extends React.ComponentProps<typeof BaseTabsList> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Tabs - Enhanced tabs with glassy effects\n */\nexport const TabsList = React.forwardRef<\n  React.ElementRef<typeof BaseTabsList>,\n  TabsListProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseTabsList\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nTabsList.displayName = \"TabsList\"\n\nexport {\n  BaseTabs as Tabs,\n  TabsContent,\n  TabsTrigger,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

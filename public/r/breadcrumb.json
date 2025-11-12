@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "breadcrumb",
+  "type": "registry:component",
+  "title": "Breadcrumb",
+  "description": "Displays the path to the current resource using a hierarchy of links.",
+  "dependencies": [
+    "@radix-ui/react-slot"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/breadcrumb.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Breadcrumb as BaseBreadcrumb,\n  BreadcrumbEllipsis,\n  BreadcrumbItem,\n  BreadcrumbLink,\n  BreadcrumbList as BaseBreadcrumbList,\n  BreadcrumbPage,\n  BreadcrumbSeparator,\n} from \"@/registry/ui/breadcrumb\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface BreadcrumbListProps extends React.ComponentProps<typeof BaseBreadcrumbList> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Breadcrumb - Enhanced breadcrumb with glassy effects\n */\nexport const BreadcrumbList = React.forwardRef<\n  HTMLOListElement,\n  BreadcrumbListProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseBreadcrumbList\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nBreadcrumbList.displayName = \"BreadcrumbList\"\n\nexport {\n  BaseBreadcrumb as Breadcrumb,\n  BreadcrumbItem,\n  BreadcrumbLink,\n  BreadcrumbPage,\n  BreadcrumbSeparator,\n  BreadcrumbEllipsis,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

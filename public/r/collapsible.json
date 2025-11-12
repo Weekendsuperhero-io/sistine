@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "collapsible",
+  "type": "registry:component",
+  "title": "Collapsible",
+  "description": "An interactive component which expands/collapses a panel.",
+  "dependencies": [
+    "@radix-ui/react-collapsible"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/collapsible.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Collapsible as BaseCollapsible,\n  CollapsibleContent,\n  CollapsibleTrigger,\n} from \"@/registry/ui/collapsible\"\n\n/**\n * Glass UI Collapsible - Re-exported from base with glassy styling support\n */\nexport {\n  BaseCollapsible as Collapsible,\n  CollapsibleContent,\n  CollapsibleTrigger,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

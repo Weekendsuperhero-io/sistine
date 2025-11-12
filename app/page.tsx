@@ -2,11 +2,20 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
+import { useTheme } from "next-themes"
 import { Button } from "@/registry/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
 import { Badge } from "@/registry/ui/badge"
-import { Sparkles, ArrowRight, Zap, Palette, Code, Blocks } from "lucide-react"
+import { ArrowRight, Zap, Palette, Code, Blocks } from "lucide-react"
 export default function Home() {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <div
       className="min-h-screen transition-colors duration-300 relative"
@@ -14,8 +23,20 @@ export default function Home() {
       <div className="relative z-10">
         {/* Hero Section */}
         <section className="container mx-auto px-4 pt-4 pb-24 md:pb-32 text-center">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <Sparkles className="h-12 w-12 text-foreground" />
+          <div className="flex items-center justify-center mb-6">
+            {mounted && (
+              <Image
+                src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
+                alt="Glass UI"
+                width={240}
+                height={64}
+                className="h-16 md:h-20 w-auto"
+                priority
+              />
+            )}
+            {!mounted && (
+              <div className="h-16 md:h-20 w-[240px] bg-muted animate-pulse rounded" />
+            )}
             <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-foreground">
               Glass UI
             </h1>

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "alert",
+  "type": "registry:component",
+  "title": "Alert",
+  "description": "Displays a callout for user attention with optional glassy variant.",
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/alert.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Alert as BaseAlert, AlertDescription, AlertTitle } from \"@/registry/ui/alert\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface AlertProps extends React.ComponentProps<typeof BaseAlert> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Alert - Enhanced alert with glassy effects\n */\nexport const Alert = React.forwardRef<HTMLDivElement, AlertProps>(\n  ({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n    return (\n      <BaseAlert\n        ref={ref}\n        variant={variant}\n        className={cn(\n          glow && \"shadow-lg shadow-purple-500/20\",\n          \"transition-all duration-200\",\n          className\n        )}\n        {...props}\n      />\n    )\n  }\n)\nAlert.displayName = \"Alert\"\n\nexport {\n  AlertDescription,\n  AlertTitle,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

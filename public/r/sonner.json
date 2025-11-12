@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "sonner",
+  "type": "registry:component",
+  "title": "Sonner",
+  "description": "An opinionated toast component for React.",
+  "dependencies": [
+    "sonner"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/sonner.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Toaster as BaseToaster } from \"@/registry/ui/sonner\"\n\n/**\n * Glass UI Sonner - Re-exported from base with glassy styling support\n */\nexport { BaseToaster as Toaster }\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

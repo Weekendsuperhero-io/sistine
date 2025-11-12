@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "sheet",
+  "type": "registry:component",
+  "title": "Sheet",
+  "description": "Extends the Dialog component to display content that complements the main content of the screen.",
+  "dependencies": [
+    "@radix-ui/react-dialog"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/sheet.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Sheet as BaseSheet,\n  SheetClose,\n  SheetContent as BaseSheetContent,\n  SheetDescription,\n  SheetFooter,\n  SheetHeader,\n  SheetOverlay,\n  SheetPortal,\n  SheetTitle,\n  SheetTrigger,\n} from \"@/registry/ui/sheet\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface SheetContentProps extends React.ComponentProps<typeof BaseSheetContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Sheet - Enhanced sheet with glassy effects\n */\nexport const SheetContent = React.forwardRef<\n  React.ElementRef<typeof BaseSheetContent>,\n  SheetContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseSheetContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nSheetContent.displayName = \"SheetContent\"\n\nexport {\n  BaseSheet as Sheet,\n  SheetPortal,\n  SheetOverlay,\n  SheetTrigger,\n  SheetClose,\n  SheetHeader,\n  SheetFooter,\n  SheetTitle,\n  SheetDescription,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

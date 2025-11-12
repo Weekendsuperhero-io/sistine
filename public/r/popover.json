@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "popover",
+  "type": "registry:component",
+  "title": "Popover",
+  "description": "Displays rich content in a portal, triggered by a button with optional glassy variant.",
+  "dependencies": [
+    "@radix-ui/react-popover"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/ui/glass/popover.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  Popover as BasePopover,\n  PopoverContent as BasePopoverContent,\n  PopoverTrigger,\n} from \"@/registry/ui/popover\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface PopoverContentProps extends React.ComponentProps<typeof BasePopoverContent> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Popover - Enhanced popover with glassy effects\n */\nexport const PopoverContent = React.forwardRef<\n  React.ElementRef<typeof BasePopoverContent>,\n  PopoverContentProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BasePopoverContent\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/30\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nPopoverContent.displayName = \"PopoverContent\"\n\nexport {\n  BasePopover as Popover,\n  PopoverTrigger,\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}

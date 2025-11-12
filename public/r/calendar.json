@@ -1,0 +1,21 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "calendar",
+  "type": "registry:component",
+  "title": "Calendar",
+  "description": "A date field component that allows users to enter and edit date.",
+  "dependencies": [
+    "react-day-picker",
+    "date-fns"
+  ],
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/ui/glass/calendar.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport { Calendar as BaseCalendar, type CalendarProps as BaseCalendarProps } from \"@/registry/ui/calendar\"\nimport { cn } from \"@/lib/utils\"\n\nexport type CalendarProps = BaseCalendarProps & {\n  glow?: boolean\n}\n\n/**\n * Glass UI Calendar - Enhanced calendar with glassy effects\n */\nexport function Calendar({ className, variant = \"glass\", glow = false, ...props }: CalendarProps) {\n  return (\n    <div\n      className={cn(\n        glow && \"shadow-lg shadow-purple-500/20\",\n        className\n      )}\n    >\n      <BaseCalendar\n        variant={variant}\n        {...props}\n      />\n    </div>\n  )\n}\n\n",
+      "type": "registry:component"
+    }
+  ]
+}
