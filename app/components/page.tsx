@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/reg
 import { Input } from "@/registry/ui/input"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
-import { Search } from "lucide-react"
+import { Search, BookOpen } from "lucide-react"
 import { getComponents } from "@/lib/registry"
+import { getStorybookUrl } from "@/lib/storybook-url"
 
 const components = getComponents()
 
@@ -63,9 +64,28 @@ export default function ComponentsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" size="sm" className="w-full">
-                    View Details
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      View Details
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1"
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <a
+                        href={getStorybookUrl(component.name)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1"
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        Storybook
+                      </a>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </Link>

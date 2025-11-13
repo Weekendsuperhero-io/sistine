@@ -39,6 +39,18 @@ export interface GlassCustomization {
    * Default: uses CSS variable --glass-shadow
    */
   shadow?: string
+  
+  /**
+   * Inner glow color and intensity (e.g., "rgba(255, 255, 255, 0.2)")
+   * Creates an inset shadow for a glowing effect inside the element
+   */
+  innerGlow?: string
+  
+  /**
+   * Inner glow blur/spread radius in pixels
+   * Default: 20px
+   */
+  innerGlowBlur?: number | string
 }
 
 /**
@@ -98,12 +110,27 @@ export function getGlassStyles(customization?: GlassCustomization): React.CSSPro
     styles.borderStyle = 'solid'
   }
   
-  // Handle shadow - add default shadow if glass customization is provided
+  // Handle shadow and inner glow - combine both if provided
+  const shadows: string[] = []
+  
+  // Add outer shadow
   if (customization.shadow !== undefined) {
-    styles.boxShadow = customization.shadow
+    shadows.push(customization.shadow)
   } else if (customization.color || customization.transparency !== undefined || customization.blur !== undefined) {
     // Apply default glass shadow for depth
-    styles.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05)'
+    shadows.push('0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05)')
+  }
+  
+  // Add inner glow as inset shadow
+  if (customization.innerGlow !== undefined) {
+    const glowBlur = customization.innerGlowBlur !== undefined 
+      ? (typeof customization.innerGlowBlur === 'number' ? `${customization.innerGlowBlur}px` : customization.innerGlowBlur)
+      : '20px'
+    shadows.push(`inset 0 0 ${glowBlur} ${customization.innerGlow}`)
+  }
+  
+  if (shadows.length > 0) {
+    styles.boxShadow = shadows.join(', ')
   }
   
   return styles
@@ -158,6 +185,17 @@ export function getGlassCSSVars(customization?: GlassCustomization): Record<stri
   
   if (customization.shadow !== undefined) {
     vars['--glass-shadow-custom'] = customization.shadow
+  }
+  
+  if (customization.innerGlow !== undefined) {
+    vars['--glass-inner-glow-custom'] = customization.innerGlow
+  }
+  
+  if (customization.innerGlowBlur !== undefined) {
+    const blurValue = typeof customization.innerGlowBlur === 'number' 
+      ? `${customization.innerGlowBlur}px` 
+      : customization.innerGlowBlur
+    vars['--glass-inner-glow-blur-custom'] = blurValue
   }
   
   return vars

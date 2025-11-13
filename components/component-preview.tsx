@@ -39,6 +39,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/registry/ui/sidebar"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/registry/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
+import { Toaster } from "@/registry/ui/sonner"
+import { toast } from "sonner"
 import { Info, Sparkles } from "lucide-react"
 
 export function ComponentPreview({ componentName }: { componentName: string }) {
@@ -150,7 +152,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <div className="flex gap-4">
           <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+            <AvatarImage src="https://github.com/akshaypjoshi.png" alt="@akshaypjoshi" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <Avatar>
@@ -624,6 +626,52 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
           </BarChart>
         </ChartContainer>
+      )
+
+    case "sonner":
+      return (
+        <>
+          <Alert variant="glass" className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Glass Effects Enabled</AlertTitle>
+            <AlertDescription>
+              All toasts automatically use glass effects with color-coded borders (green for success, red for error, yellow for warning, blue for info).
+            </AlertDescription>
+          </Alert>
+          <div className="flex flex-col gap-3">
+            <Button
+              variant="glass"
+              onClick={() => toast.success('Success!', {
+                description: 'Your action was completed successfully'
+              })}
+            >
+              Show Success Toast
+            </Button>
+            
+            <Button
+              variant="glass"
+              onClick={() => toast.error('Error!', {
+                description: 'Something went wrong'
+              })}
+            >
+              Show Error Toast
+            </Button>
+            
+            <Button
+              variant="glass"
+              onClick={() => toast('Event Created', {
+                description: 'Your event has been scheduled',
+                action: {
+                  label: 'View',
+                  onClick: () => console.log('View clicked'),
+                },
+              })}
+            >
+              Toast with Action
+            </Button>
+          </div>
+          <Toaster />
+        </>
       )
 
     default:

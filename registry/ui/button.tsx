@@ -14,8 +14,16 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         glass:
           "glass-bg text-foreground hover:opacity-90 transition-all",
+        glassSubtle:
+          "glass-bg text-foreground opacity-50 backdrop-blur-[var(--blur-sm)] hover:opacity-60 transition-all",
         glassSolid:
           "bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-[var(--blur)] border border-white/30 text-foreground shadow-[var(--glass-shadow)] hover:from-purple-500/30 hover:to-blue-500/30 transition-all",
+        frosted:
+          "glass-frosted text-foreground hover:opacity-90 transition-all",
+        fluted:
+          "glass-fluted text-foreground hover:opacity-90 transition-all",
+        crystal:
+          "glass-crystal text-foreground transition-all",
         destructive:
           "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -55,7 +63,12 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button"
   
-  const glassStyles = variant === "glass" || variant === "glassSolid"
+  // Apply glass styles for glass variants when custom glass props are provided
+  const hasCustomGlass = glass !== undefined
+  const isGlassVariant = variant === "glass" || variant === "glassSubtle" || variant === "glassSolid" || 
+                         variant === "frosted" || variant === "fluted" || variant === "crystal"
+  
+  const glassStyles = isGlassVariant && hasCustomGlass
     ? getGlassStyles(glass)
     : {}
 

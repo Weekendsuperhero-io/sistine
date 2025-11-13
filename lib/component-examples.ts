@@ -141,7 +141,7 @@ export function Example() {
   return (
     <div className="flex gap-4">
       <Avatar>
-        <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+        <AvatarImage src="https://github.com/akshaypjoshi.png" alt="@akshaypjoshi" />
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
       <Avatar>
@@ -378,7 +378,7 @@ export function Example() {
 
 export function Example() {
   return (
-    <Calendar mode="single" className="rounded-md border" />
+    <Calendar mode="single" className="rounded-md border" className="[--cell-size:--spacing(12)]" />
   )
 }`
     
@@ -742,6 +742,65 @@ export function Example() {
     </ChartContainer>
   )
 }`
+    
+    case "sonner":
+      return `import { Button } from "@/registry/ui/glass"
+import { toast } from "sonner"
+
+export function Example() {
+  return (
+    <div className="flex flex-col gap-3">
+      <Button
+        variant="glass"
+        onClick={() => toast.success('Success!', {
+          description: 'Your action was completed successfully'
+        })}
+      >
+        Show Success Toast
+      </Button>
+      
+      <Button
+        variant="glass"
+        onClick={() => toast.error('Error!', {
+          description: 'Something went wrong'
+        })}
+      >
+        Show Error Toast
+      </Button>
+      
+      <Button
+        variant="glass"
+        onClick={() => toast('Event Created', {
+          description: 'Your event has been scheduled',
+          action: {
+            label: 'View',
+            onClick: () => console.log('View clicked'),
+          },
+        })}
+      >
+        Toast with Action
+      </Button>
+    </div>
+  )
+}
+
+// Don't forget to add <Toaster /> to your root layout:
+// import { Toaster } from "@/registry/ui/glass"
+// 
+// export default function RootLayout({ children }) {
+//   return (
+//     <html>
+//       <body>
+//         {children}
+//         <Toaster />
+//       </body>
+//     </html>
+//   )
+// }
+//
+// Note: All toasts automatically use glass effects!
+// Success toasts have green borders, errors have red borders,
+// warnings have yellow borders, and info toasts have blue borders.`
     
     default:
       return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/registry/ui/glass"
