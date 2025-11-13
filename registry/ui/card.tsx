@@ -10,16 +10,29 @@ function Card({
   style,
   ...props 
 }: React.ComponentProps<"div"> & {
-  variant?: "default" | "glass" | "glassSubtle"
+  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
   glass?: GlassCustomization
 }) {
-  const variants = {
-    default: "bg-card text-card-foreground border shadow-sm",
-    glass: "glass-bg text-foreground",
-    glassSubtle: "glass-bg text-foreground opacity-50 backdrop-blur-[var(--blur-sm)]",
+  // When custom glass props are provided, use base glass-bg class and apply custom styles
+  // Otherwise use the variant-specific class
+  const hasCustomGlass = glass !== undefined
+  
+  const getVariantClass = () => {
+    if (variant === "default") return "bg-card text-card-foreground border shadow-sm"
+    if (hasCustomGlass) return "glass-bg text-foreground" // Use base glass class when customizing
+    
+    // Use variant-specific classes only when no custom glass props
+    const variants = {
+      glass: "glass-bg text-foreground",
+      glassSubtle: "glass-bg text-foreground opacity-50 backdrop-blur-[var(--blur-sm)]",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
+    }
+    return variants[variant] || variants.glass
   }
   
-  const glassStyles = variant === "glass" || variant === "glassSubtle" 
+  const glassStyles = variant !== "default"
     ? getGlassStyles(glass) 
     : {}
   
@@ -28,7 +41,7 @@ function Card({
       data-slot="card"
       className={cn(
         "flex flex-col gap-6 rounded-xl py-6",
-        variants[variant],
+        getVariantClass(),
         className
       )}
       style={{

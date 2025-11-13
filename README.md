@@ -81,6 +81,28 @@ Visit the [full documentation](https://glass-ui.crenspire.com) for:
 - Theme configuration
 - Glass effect customization
 
+## 🎨 Interactive Playground
+
+Explore and test components interactively with Storybook:
+
+```bash
+# Start Storybook
+pnpm storybook
+
+# Build Storybook (static)
+pnpm build-storybook
+```
+
+Storybook provides:
+- ✨ Live component previews
+- 🎛️ Interactive controls for all props
+- 📖 Auto-generated documentation
+- ♿ Accessibility testing
+- 🌓 Theme switching
+- 📱 Responsive viewport testing
+
+Visit `http://localhost:6006` after starting Storybook.
+
 ## 🏗️ Architecture
 
 Glass UI follows a two-layer component architecture:
@@ -182,6 +204,9 @@ pnpm install
 # Start development server
 pnpm dev
 
+# Start Storybook (interactive playground)
+pnpm storybook
+
 # Build the project
 pnpm build
 
@@ -200,7 +225,40 @@ glass-ui/
 ├── registry/
 │   ├── ui/                # Base components
 │   └── ui/glass/          # Glass UI components
+├── stories/               # Storybook stories
 └── registry.json          # Component registry
+```
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+Deploy both the documentation site and Storybook to Vercel:
+
+**Quick Start:**
+1. Deploy main site: Import your repo at [vercel.com/new](https://vercel.com/new)
+2. Deploy Storybook: Import the same repo again with these settings:
+   - Build Command: `pnpm build-storybook`
+   - Output Directory: `storybook-static`
+3. Set environment variable `NEXT_PUBLIC_STORYBOOK_URL` in main site
+4. Redeploy main site
+
+**Detailed Instructions:**
+- See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment guide
+- See [DEPLOYMENT-QUICKSTART.md](./DEPLOYMENT-QUICKSTART.md) for quick reference
+
+### Build Commands
+
+```bash
+# Build main site
+pnpm build
+
+# Build Storybook
+pnpm build-storybook
+
+# Test builds locally
+pnpm start  # Serves main site on http://localhost:3000
+npx http-server storybook-static  # Serves Storybook on http://localhost:8080
 ```
 
 ## 🤝 Contributing

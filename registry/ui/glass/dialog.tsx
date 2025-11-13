@@ -12,9 +12,12 @@ import {
 } from "@/registry/ui/dialog"
 import { cn } from "@/lib/utils"
 import type { GlassCustomization } from "@/lib/glass-utils"
+import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
 
 export interface DialogContentProps extends Omit<React.ComponentProps<typeof BaseDialogContent>, "glass"> {
+  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
   animated?: boolean
+  hover?: HoverEffect
   glass?: GlassCustomization
 }
 
@@ -37,18 +40,22 @@ export interface DialogContentProps extends Omit<React.ComponentProps<typeof Bas
 export const DialogContent = React.forwardRef<
   React.ElementRef<typeof BaseDialogContent>,
   DialogContentProps
->(({ className, variant = "glass", animated = true, glass, ...props }, ref) => {
+>(({ className, variant = "glass", animated = true, hover = "none", glass, children, ...props }, ref) => {
   return (
     <BaseDialogContent
       ref={ref}
       variant={variant}
       glass={glass}
       className={cn(
+        "relative overflow-hidden",
         animated && "backdrop-blur-[var(--blur-lg)]",
+        hoverEffects({ hover }),
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </BaseDialogContent>
   )
 })
 DialogContent.displayName = "DialogContent"

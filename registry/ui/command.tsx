@@ -11,12 +11,20 @@ import { Dialog, DialogContent } from "@/registry/ui/dialog"
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive> & {
-    variant?: "default" | "glass"
+    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
   }
 >(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "bg-popover text-popover-foreground",
-    glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+  const getVariantClass = () => {
+    if (variant === "default") return "bg-popover text-popover-foreground"
+    
+    const variants = {
+      glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+      glassSubtle: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] opacity-50",
+      frosted: "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] text-foreground shadow-[var(--glass-frosted-shadow)]",
+      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+      crystal: "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
+    }
+    return variants[variant] || variants.glass
   }
   
   return (
@@ -24,7 +32,7 @@ const Command = React.forwardRef<
       ref={ref}
       className={cn(
         "flex h-full w-full flex-col overflow-hidden rounded-md",
-        variants[variant],
+        getVariantClass(),
         className
       )}
       {...props}

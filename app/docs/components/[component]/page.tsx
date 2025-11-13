@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/reg
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, BookOpen } from "lucide-react"
 import * as React from "react"
 import { getComponent } from "@/lib/registry"
 import { ComponentPreview } from "@/components/component-preview"
 import { getComponentExampleCode } from "@/lib/component-examples"
 import { InstallationInstructions } from "@/components/installation-instructions"
+import { getStorybookUrl } from "@/lib/storybook-url"
 
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false)
@@ -60,9 +61,26 @@ export default function ComponentPage({
   return (
     <div className="text-foreground">
       <div className="mb-6 md:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
-          <Badge variant="glass" className="w-fit">Component</Badge>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
+            <Badge variant="glass" className="w-fit">Component</Badge>
+          </div>
+          <Button
+            variant="glass"
+            size="sm"
+            asChild
+          >
+            <a
+              href={getStorybookUrl(component.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 w-fit"
+            >
+              <BookOpen className="h-4 w-4" />
+              View in Storybook
+            </a>
+          </Button>
         </div>
         <p className="text-base sm:text-lg text-muted-foreground">{component.description || "No description available"}</p>
       </div>

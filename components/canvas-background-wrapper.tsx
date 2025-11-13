@@ -13,9 +13,9 @@ export function CanvasBackgroundWrapper() {
   return (
     <CanvasBackground 
       seed={pathname}
-      pattern="gradient" 
-      colorCount={4}
-      opacity={0.6}
+      pattern="artistic" 
+      colorCount={5}
+      opacity={0.5}
       blur={true}
     />
   )

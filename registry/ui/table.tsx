@@ -5,19 +5,27 @@ import { cn } from "@/lib/utils"
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & {
-    variant?: "default" | "glass"
+    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
   }
 >(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "w-full caption-bottom text-sm",
-    glass: "w-full caption-bottom text-sm glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)]",
+  const getVariantClass = () => {
+    if (variant === "default") return "w-full caption-bottom text-sm"
+    
+    const variants = {
+      glass: "w-full caption-bottom text-sm glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)]",
+      glassSubtle: "w-full caption-bottom text-sm glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)] opacity-50",
+      frosted: "w-full caption-bottom text-sm glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] rounded-lg overflow-hidden shadow-[var(--glass-frosted-shadow)]",
+      fluted: "w-full caption-bottom text-sm glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)]",
+      crystal: "w-full caption-bottom text-sm glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] rounded-lg overflow-hidden shadow-[var(--glass-crystal-shadow)]",
+    }
+    return variants[variant] || variants.glass
   }
   
   return (
-    <div className={variant === "glass" ? "rounded-lg overflow-hidden" : ""}>
+    <div className={variant !== "default" ? "rounded-lg overflow-hidden" : ""}>
       <table
         ref={ref}
-        className={cn(variants[variant], className)}
+        className={cn(getVariantClass(), className)}
         {...props}
       />
     </div>

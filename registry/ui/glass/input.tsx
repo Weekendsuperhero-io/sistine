@@ -4,10 +4,12 @@ import * as React from "react"
 import { Input as BaseInput } from "@/registry/ui/input"
 import { cn } from "@/lib/utils"
 import type { GlassCustomization } from "@/lib/glass-utils"
+import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
 
 export interface InputProps extends Omit<React.ComponentProps<typeof BaseInput>, "glass"> {
   icon?: React.ReactNode
   error?: boolean
+  hover?: HoverEffect
   glass?: GlassCustomization
 }
 
@@ -28,11 +30,11 @@ export interface InputProps extends Omit<React.ComponentProps<typeof BaseInput>,
  * ```
  */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant = "glass", icon, error, glass, ...props }, ref) => {
+  ({ className, variant = "glass", icon, error, hover = "none", glass, ...props }, ref) => {
     return (
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-muted-foreground pointer-events-none">
             {icon}
           </div>
         )}
@@ -41,9 +43,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           variant={variant}
           glass={glass}
           className={cn(
+            "relative overflow-hidden",
             icon && "pl-10",
             error && "border-destructive focus-visible:ring-destructive",
             "transition-all duration-200 focus-visible:scale-[1.02]",
+            hoverEffects({ hover }),
             className
           )}
           {...props}

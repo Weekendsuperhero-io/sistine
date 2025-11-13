@@ -1,0 +1,107 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { Popover, PopoverContent, PopoverTrigger } from '../registry/ui/popover';
+import { Button } from '../registry/ui/glass/button';
+import { Input } from '../registry/ui/glass/input';
+import { Label } from '../registry/ui/label';
+
+const meta = {
+  title: 'Glass UI/Popover',
+  component: Popover,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+} satisfies Meta<typeof Popover>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Glass: Story = {
+  render: () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="glass">Open Popover</Button>
+      </PopoverTrigger>
+      <PopoverContent variant="glass" className="w-80">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Dimensions</h4>
+            <p className="text-sm text-muted-foreground">
+              Set the dimensions for the layer.
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="width">Width</Label>
+              <Input id="width" defaultValue="100%" className="col-span-2 h-8" variant="glass" />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="height">Height</Label>
+              <Input id="height" defaultValue="25px" className="col-span-2 h-8" variant="glass" />
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  ),
+};
+
+export const Frosted: Story = {
+  render: () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="frosted">Frosted Popover</Button>
+      </PopoverTrigger>
+      <PopoverContent variant="frosted" className="w-80">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Frosted Glass</h4>
+            <p className="text-sm text-muted-foreground">
+              This popover uses a frosted glass effect with enhanced blur.
+            </p>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  ),
+};
+
+export const Crystal: Story = {
+  render: () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="crystal">Crystal Popover</Button>
+      </PopoverTrigger>
+      <PopoverContent variant="crystal" className="w-80">
+        <div className="grid gap-4">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Crystal Glass</h4>
+            <p className="text-sm text-muted-foreground">
+              Premium crystal glass effect with layered styling.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="crystal" size="sm">Action</Button>
+            <Button variant="outline" size="sm">Cancel</Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  ),
+};
+
+export const SimpleText: Story = {
+  render: () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="glass">Hover Info</Button>
+      </PopoverTrigger>
+      <PopoverContent variant="glass">
+        <p className="text-sm">
+          This is a simple popover with just text content.
+        </p>
+      </PopoverContent>
+    </Popover>
+  ),
+};
+

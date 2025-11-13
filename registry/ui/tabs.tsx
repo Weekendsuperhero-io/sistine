@@ -10,12 +10,20 @@ const Tabs = TabsPrimitive.Root
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
-    variant?: "default" | "glass"
+    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
   }
 >(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "bg-muted",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
+  const getVariantClass = () => {
+    if (variant === "default") return "bg-muted"
+    
+    const variants = {
+      glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
+      glassSubtle: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)] opacity-50",
+      frosted: "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] shadow-[var(--glass-frosted-shadow)]",
+      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
+      crystal: "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] shadow-[var(--glass-crystal-shadow)]",
+    }
+    return variants[variant] || variants.glass
   }
   
   return (
@@ -23,7 +31,7 @@ const TabsList = React.forwardRef<
       ref={ref}
       className={cn(
         "inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground",
-        variants[variant],
+        getVariantClass(),
         className
       )}
       {...props}

@@ -2,31 +2,13 @@
 
 import * as React from "react"
 import { Button as BaseButton } from "@/registry/ui/button"
-import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import type { GlassCustomization } from "@/lib/glass-utils"
-
-const buttonVariants = cva(
-  "relative overflow-hidden transition-all duration-300",
-  {
-    variants: {
-      effect: {
-        none: "",
-        glow: "shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-500/70",
-        shimmer: "before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent hover:before:translate-x-full before:transition-transform before:duration-1000",
-        ripple: "relative overflow-hidden after:absolute after:inset-0 after:scale-0 after:rounded-full after:bg-white/30 after:transition-transform after:duration-500 hover:after:scale-150",
-      },
-    },
-    defaultVariants: {
-      effect: "none",
-    },
-  }
-)
+import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
 
 export interface ButtonProps
-  extends Omit<React.ComponentProps<typeof BaseButton>, "glass">,
-    VariantProps<typeof buttonVariants> {
-  effect?: "none" | "glow" | "shimmer" | "ripple"
+  extends Omit<React.ComponentProps<typeof BaseButton>, "glass"> {
+  effect?: HoverEffect
   glass?: GlassCustomization
 }
 
@@ -56,12 +38,14 @@ export const Button = React.forwardRef<
       ref={ref}
       variant={variant}
       glass={glass}
-      className={cn(buttonVariants({ effect }), className)}
+      className={cn(
+        "relative overflow-hidden",
+        hoverEffects({ hover: effect }),
+        className
+      )}
       {...props}
     />
   )
 })
 Button.displayName = "Button"
-
-export { buttonVariants }
 
