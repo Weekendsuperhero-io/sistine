@@ -4,41 +4,45 @@ import { Github } from "lucide-react"
 export function Footer() {
 
   return (
-    <footer className="w-full pb-4 bg-transparent">
+    <footer className="w-full pb-4 bg-transparent mt-16">
       <div className="container mx-auto px-4">
         <div 
-          className="rounded-xl border border-[var(--glass-border)] backdrop-blur-[var(--blur)] shadow-[var(--glass-shadow)] px-6 py-8"
+          className="rounded-xl border border-[var(--glass-border)] backdrop-blur-[var(--blur)] shadow-[var(--glass-shadow)] px-4 py-6 md:px-6 md:py-8"
           style={{
             backgroundColor: "transparent",
             boxShadow: "var(--glass-shadow)",
           }}
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>Built by</span>
-              <Link
-                href="https://github.com/akshaypjoshi"
-                className="text-foreground hover:text-foreground/80 transition-colors"
-                target="_blank"
-              >
-                Akshay Joshi
-              </Link>
-              <span>at</span>
-              <Link
-                href="https://crenspire.com"
-                className="text-foreground hover:text-foreground/80 transition-colors"
-                target="_blank"
-              >
-                Crenspire Technologies.
-              </Link>
-              <span>Inspired by</span>
-              <Link
-                href="https://ui.shadcn.com/"
-                className="text-foreground hover:text-foreground/80 transition-colors"
-                target="_blank"
-              >
-                ShadCN
-              </Link>
+            <div className="flex flex-col items-center text-center md:items-start md:text-left gap-1 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+                <span>Built by</span>
+                <Link
+                  href="https://github.com/akshaypjoshi"
+                  className="text-foreground hover:text-foreground/80 transition-colors whitespace-nowrap"
+                  target="_blank"
+                >
+                  Akshay Joshi
+                </Link>
+                <span>at</span>
+                <Link
+                  href="https://crenspire.com"
+                  className="text-foreground hover:text-foreground/80 transition-colors whitespace-nowrap"
+                  target="_blank"
+                >
+                  Crenspire Technologies
+                </Link>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+                <span>Inspired by</span>
+                <Link
+                  href="https://ui.shadcn.com/"
+                  className="text-foreground hover:text-foreground/80 transition-colors whitespace-nowrap"
+                  target="_blank"
+                >
+                  ShadCN
+                </Link>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <Link
@@ -50,7 +54,7 @@ export function Footer() {
               >
                 <Github className="h-5 w-5" />
               </Link>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 The source code is available on GitHub.
               </span>
             </div>

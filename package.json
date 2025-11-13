@@ -11,7 +11,8 @@
     "lint": "next lint",
     "registry:build": "shadcn build",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build -o storybook-static",
+    "export-storybook": "rsync -a storybook-static/ public/storybook/"
   },
   "dependencies": {
     "@onefifteen-z/react-input-otp": "^1.0.5",

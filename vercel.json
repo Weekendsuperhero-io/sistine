@@ -1,8 +1,6 @@
 {
-  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build-storybook && pnpm export-storybook && pnpm build",
   "outputDirectory": ".next",
-  "framework": "nextjs",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install"
+  "framework": "nextjs"
 }
-

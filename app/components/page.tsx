@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
-import { Input } from "@/registry/ui/input"
+import { Input } from "@/registry/ui/glass/input"
 import { Badge } from "@/registry/ui/badge"
 import { Button } from "@/registry/ui/button"
 import { Search, BookOpen } from "lucide-react"
@@ -32,14 +32,14 @@ export default function ComponentsPage() {
             Browse our collection of {components.length} beautiful, glassy UI components
           </p>
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search components..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               variant="glass"
-              className="pl-10 text-foreground placeholder:text-muted-foreground"
+              icon={<Search className="h-4 w-4 text-foreground/60" />}
+              className="text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>
