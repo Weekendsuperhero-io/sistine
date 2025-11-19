@@ -17,10 +17,10 @@ export function InstallationInstructions({
   const [copied, setCopied] = React.useState<string | null>(null)
 
   const commands = {
-    pnpm: `pnpm dlx shadcn@latest add @crenspire/${componentName}`,
-    yarn: `yarn dlx shadcn@latest add @crenspire/${componentName}`,
-    npm: `npx shadcn@latest add @crenspire/${componentName}`,
-    bun: `bunx shadcn@latest add @crenspire/${componentName}`,
+    pnpm: `pnpm dlx shadcn@latest add @glass-ui/${componentName}`,
+    yarn: `yarn dlx shadcn@latest add @glass-ui/${componentName}`,
+    npm: `npx shadcn@latest add @glass-ui/${componentName}`,
+    bun: `bunx shadcn@latest add @glass-ui/${componentName}`,
   }
 
   const copyToClipboard = (command: string, key: string) => {
