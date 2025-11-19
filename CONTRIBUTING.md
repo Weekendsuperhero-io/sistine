@@ -39,19 +39,19 @@ Thank you for your interest in contributing to Glass UI! This document provides 
 ### Creating a New Component
 
 1. **Create the base component** (if it doesn't exist)
-   - Location: `registry/ui/[component-name].tsx`
+   - Location: `components/ui/[component-name].tsx`
    - Follow the existing component patterns
    - Include glass variant support
 
 2. **Create the Glass UI component**
-   - Location: `registry/ui/glass/[component-name].tsx`
+   - Location: `components/ui/glass/[component-name].tsx`
    - Import from base component
    - Add enhanced effects and styling
-   - Export from `registry/ui/glass/index.ts`
+   - Export from `components/ui/glass/index.ts`
 
 3. **Update the registry**
    - Add entry to `registry.json`
-   - Update path to point to `registry/ui/glass/[component-name].tsx`
+   - Update path to point to `components/ui/glass/[component-name].tsx`
 
 4. **Add component example**
    - Update `lib/component-examples.ts`
@@ -70,7 +70,7 @@ Thank you for your interest in contributing to Glass UI! This document provides 
 "use client"
 
 import * as React from "react"
-import { BaseComponent as BaseComponent } from "@/registry/ui/base-component"
+import { BaseComponent as BaseComponent } from "@/components/ui/base-component"
 import { cn } from "@/lib/utils"
 import type { GlassCustomization } from "@/lib/glass-utils"
 

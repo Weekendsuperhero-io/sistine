@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Slider } from '../registry/ui/slider';
-import { Label } from '../registry/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 
 const meta = {
   title: 'Glass UI/Slider',

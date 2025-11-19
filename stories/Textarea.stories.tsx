@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Textarea } from '../registry/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 
 const meta = {
   title: 'Glass UI/Textarea',

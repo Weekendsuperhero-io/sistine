@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Label } from '../registry/ui/label';
-import { Input } from '../registry/ui/input';
-import { Checkbox } from '../registry/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const meta = {
   title: 'Glass UI/Label',

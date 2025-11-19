@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Popover, PopoverContent, PopoverTrigger } from '../registry/ui/popover';
-import { Button } from '../registry/ui/glass/button';
-import { Input } from '../registry/ui/glass/input';
-import { Label } from '../registry/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/glass/button';
+import { Input } from '@/components/ui/glass/input';
+import { Label } from '@/components/ui/label';
 
 const meta = {
   title: 'Glass UI/Popover',
@@ -104,4 +104,3 @@ export const SimpleText: Story = {
     </Popover>
   ),
 };
-

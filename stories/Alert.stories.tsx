@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Alert, AlertDescription, AlertTitle } from '../registry/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Terminal, CheckCircle2, XCircle } from 'lucide-react';
 
 const meta = {

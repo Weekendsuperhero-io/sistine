@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { DocsSidebar } from "@/components/docs-sidebar"
-import { Sheet, SheetContent, SheetTrigger } from "@/registry/ui/sheet"
-import { Button } from "@/registry/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 
 export default function DocsLayout({

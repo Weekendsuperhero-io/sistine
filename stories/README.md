@@ -97,7 +97,7 @@ To add a new story, create a file in this directory:
 ```tsx
 // stories/ComponentName.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react';
-import { ComponentName } from '../registry/ui/glass/component-name';
+import { ComponentName } from '@/components/ui/glass/component-name';
 
 const meta = {
   title: 'Glass UI/ComponentName',

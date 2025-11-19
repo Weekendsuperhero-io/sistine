@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
-import { Button } from "@/registry/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy, Check } from "lucide-react"
 import { InstallationInstructions } from "@/components/installation-instructions"
 
@@ -155,8 +155,8 @@ export default function GettingStartedPage() {
                 </Card>
               </TabsContent>
               <TabsContent value="code">
-                <CodeBlock code={`import { Button } from "@/registry/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
+                <CodeBlock code={`import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function Example() {
   return (
@@ -289,7 +289,7 @@ export function Example() {
               <p className="text-muted-foreground mb-4">
                 You can also customize glass effects for individual components using the <code className="bg-muted px-1 rounded">glass</code> prop:
               </p>
-              <CodeBlock code={`import { Card, CardHeader, CardTitle, CardContent } from "@/registry/ui/card"
+              <CodeBlock code={`import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 export function CustomGlassCard() {
   return (

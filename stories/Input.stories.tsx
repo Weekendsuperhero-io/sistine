@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Input } from '../registry/ui/glass/input';
+import { Input } from '@/components/ui/glass/input';
 import { Search, Mail } from 'lucide-react';
 
 const meta = {

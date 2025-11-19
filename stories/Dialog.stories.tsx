@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../registry/ui/glass/dialog';
-import { Button } from '../registry/ui/glass/button';
-import { Input } from '../registry/ui/glass/input';
-import { Label } from '../registry/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/glass/dialog';
+import { Button } from '@/components/ui/glass/button';
+import { Input } from '@/components/ui/glass/input';
+import { Label } from '@/components/ui/label';
 
 const meta = {
   title: 'Glass UI/Dialog',
@@ -134,4 +134,3 @@ export const WithForm: Story = {
     </Dialog>
   ),
 };
-

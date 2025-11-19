@@ -1,7 +1,7 @@
 export function getComponentExampleCode(componentName: string): string {
   switch (componentName) {
     case "button":
-      return `import { Button } from "@/registry/ui/glass"
+      return `import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -16,7 +16,7 @@ export function Example() {
 }`
     
     case "card":
-      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/glass"
+      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -33,7 +33,7 @@ export function Example() {
 }`
     
     case "input":
-      return `import { Input } from "@/registry/ui/glass"
+      return `import { Input } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -45,7 +45,7 @@ export function Example() {
 }`
     
     case "badge":
-      return `import { Badge } from "@/registry/ui/glass"
+      return `import { Badge } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -59,7 +59,7 @@ export function Example() {
 }`
     
     case "checkbox":
-      return `import { Checkbox, Label } from "@/registry/ui/glass"
+      return `import { Checkbox, Label } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -71,7 +71,7 @@ export function Example() {
 }`
     
     case "switch":
-      return `import { Switch, Label } from "@/registry/ui/glass"
+      return `import { Switch, Label } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -83,7 +83,7 @@ export function Example() {
 }`
     
     case "tabs":
-      return `import { Tabs, TabsContent, TabsList, TabsTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/glass"
+      return `import { Tabs, TabsContent, TabsList, TabsTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -119,7 +119,7 @@ export function Example() {
 }`
     
     case "alert":
-      return `import { Alert, AlertDescription, AlertTitle } from "@/registry/ui/glass"
+      return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/glass"
 import { Info } from "lucide-react"
 
 export function Example() {
@@ -135,7 +135,7 @@ export function Example() {
 }`
     
     case "avatar":
-      return `import { Avatar, AvatarFallback, AvatarImage } from "@/registry/ui/glass"
+      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -156,7 +156,7 @@ export function Example() {
 }`
     
     case "separator":
-      return `import { Separator } from "@/registry/ui/glass"
+      return `import { Separator } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -178,7 +178,7 @@ export function Example() {
 }`
     
     case "skeleton":
-      return `import { Skeleton } from "@/registry/ui/glass"
+      return `import { Skeleton } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -191,7 +191,7 @@ export function Example() {
 }`
     
     case "slider":
-      return `import { Slider } from "@/registry/ui/glass"
+      return `import { Slider } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -202,7 +202,7 @@ export function Example() {
 }`
     
     case "textarea":
-      return `import { Textarea } from "@/registry/ui/glass"
+      return `import { Textarea } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -211,8 +211,8 @@ export function Example() {
 }`
     
     case "label":
-      return `import { Label } from "@/registry/ui/glass"
-import { Input } from "@/registry/ui/glass"
+      return `import { Label } from "@/components/ui/glass"
+import { Input } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -224,8 +224,8 @@ export function Example() {
 }`
     
     case "radio-group":
-      return `import { RadioGroup, RadioGroupItem } from "@/registry/ui/glass"
-import { Label } from "@/registry/ui/glass"
+      return `import { RadioGroup, RadioGroupItem } from "@/components/ui/glass"
+import { Label } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -247,7 +247,7 @@ export function Example() {
 }`
     
     case "select":
-      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/registry/ui/glass"
+      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -265,7 +265,7 @@ export function Example() {
 }`
     
     case "accordion":
-      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/registry/ui/glass"
+      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -287,8 +287,8 @@ export function Example() {
 }`
     
     case "tooltip":
-      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -306,8 +306,8 @@ export function Example() {
 }`
     
     case "popover":
-      return `import { Popover, PopoverContent, PopoverTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -330,8 +330,8 @@ export function Example() {
 }`
     
     case "dialog":
-      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -353,8 +353,8 @@ export function Example() {
 }`
     
     case "dropdown-menu":
-      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -374,7 +374,7 @@ export function Example() {
 }`
     
     case "calendar":
-      return `import { Calendar } from "@/registry/ui/glass"
+      return `import { Calendar } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -383,7 +383,7 @@ export function Example() {
 }`
     
     case "toggle":
-      return `import { Toggle } from "@/registry/ui/glass"
+      return `import { Toggle } from "@/components/ui/glass"
 import { Sparkles } from "lucide-react"
 
 export function Example() {
@@ -400,7 +400,7 @@ export function Example() {
 }`
     
     case "toggle-group":
-      return `import { ToggleGroup, ToggleGroupItem } from "@/registry/ui/glass"
+      return `import { ToggleGroup, ToggleGroupItem } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -413,7 +413,7 @@ export function Example() {
 }`
     
     case "table":
-      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/registry/ui/glass"
+      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -442,7 +442,7 @@ export function Example() {
 }`
     
     case "breadcrumb":
-      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/registry/ui/glass"
+      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -465,8 +465,8 @@ export function Example() {
 }`
     
     case "collapsible":
-      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -484,7 +484,7 @@ export function Example() {
 }`
     
     case "command":
-      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/registry/ui/glass"
+      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -503,7 +503,7 @@ export function Example() {
 }`
     
     case "scroll-area":
-      return `import { ScrollArea } from "@/registry/ui/glass"
+      return `import { ScrollArea } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -518,8 +518,8 @@ export function Example() {
 }`
     
     case "sheet":
-      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -540,7 +540,7 @@ export function Example() {
 }`
     
     case "navigation-menu":
-      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/registry/ui/glass"
+      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -572,7 +572,7 @@ export function Example() {
 }`
     
     case "pagination":
-      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/registry/ui/glass"
+      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -602,8 +602,8 @@ export function Example() {
 }`
     
     case "hover-card":
-      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -626,8 +626,8 @@ export function Example() {
 }`
     
     case "drawer":
-      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -652,8 +652,8 @@ export function Example() {
 }`
     
     case "alert-dialog":
-      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/registry/ui/glass"
-import { Button } from "@/registry/ui/glass"
+      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/glass"
+import { Button } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -679,7 +679,7 @@ export function Example() {
 }`
     
     case "sidebar":
-      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/registry/ui/glass"
+      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/glass"
 
 export function Example() {
   return (
@@ -699,7 +699,7 @@ export function Example() {
 }`
     
     case "chart":
-      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/registry/ui/glass"
+      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/glass"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 
 const chartData = [
@@ -744,7 +744,7 @@ export function Example() {
 }`
     
     case "sonner":
-      return `import { Button } from "@/registry/ui/glass"
+      return `import { Button } from "@/components/ui/glass"
 import { toast } from "sonner"
 
 export function Example() {
@@ -785,7 +785,7 @@ export function Example() {
 }
 
 // Don't forget to add <Toaster /> to your root layout:
-// import { Toaster } from "@/registry/ui/glass"
+// import { Toaster } from "@/components/ui/glass"
 // 
 // export default function RootLayout({ children }) {
 //   return (
@@ -803,7 +803,7 @@ export function Example() {
 // warnings have yellow borders, and info toasts have blue borders.`
     
     default:
-      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/registry/ui/glass"
+      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/components/ui/glass"
 
 export function Example() {
   return (

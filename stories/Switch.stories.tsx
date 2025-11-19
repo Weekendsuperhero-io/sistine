@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Switch } from '../registry/ui/switch';
-import { Label } from '../registry/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const meta = {
   title: 'Glass UI/Switch',

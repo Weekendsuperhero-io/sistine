@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy, Check } from "lucide-react"
-import { Button } from "@/registry/ui/button"
+import { Button } from "@/components/ui/button"
 
 interface InstallationInstructionsProps {
   componentName: string
