@@ -75,7 +75,7 @@ export const FAQ: Story = {
       <AccordionItem value="getting-started">
         <AccordionTrigger>How do I get started?</AccordionTrigger>
         <AccordionContent>
-          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @crenspire/component-name</code>
+          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @glass-ui/component-name</code>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="customization">
