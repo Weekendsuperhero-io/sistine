@@ -47,11 +47,11 @@
 :root {
   --radius: 0.625rem;
   /* Base colors - Light mode with dark text */
-  --background: oklch(1 0 0); /* White */
+  --background: transparent;
   --foreground: oklch(0.15 0 0); /* Near black - dark text for light mode */
-  --card: oklch(1 0 0); /* White */
+  --card: transparent;
   --card-foreground: oklch(0.15 0 0); /* Near black - dark text */
-  --popover: oklch(1 0 0); /* White */
+  --popover: transparent;
   --popover-foreground: oklch(0.15 0 0); /* Near black - dark text */
   
   /* Primary colors - Light mode */
@@ -232,11 +232,11 @@
     0 0 35px rgba(255, 255, 255, 0.2);
   
   /* Base colors - Apple-style white text */
-  --background: oklch(0.12 0 0); /* Near black */
+  --background: transparent;
   --foreground: oklch(1 0 0); /* White - Apple-style */
-  --card: oklch(0.18 0 0); /* Dark gray */
+  --card: transparent;
   --card-foreground: oklch(1 0 0); /* White - Apple-style */
-  --popover: oklch(0.18 0 0); /* Dark gray */
+  --popover: transparent;
   --popover-foreground: oklch(1 0 0); /* White - Apple-style */
   
   /* Primary colors - Apple-style white text */
