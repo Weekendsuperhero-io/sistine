@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "registry:build": "shadcn build",
+    "registry:build": "node scripts/update-registry-source.js && shadcn build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
     "export-storybook": "node scripts/export-storybook.js"

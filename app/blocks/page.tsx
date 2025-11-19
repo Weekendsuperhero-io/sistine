@@ -2,10 +2,10 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
-import { Badge } from "@/registry/ui/badge"
-import { Button } from "@/registry/ui/button"
-import { Input } from "@/registry/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 
 const blocks = [

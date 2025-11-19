@@ -27,22 +27,22 @@ Install components using the shadcn CLI with your preferred package manager:
 
 **pnpm:**
 ```bash
-pnpm dlx shadcn@latest add @crenspire/button
+pnpm dlx shadcn@latest add @glass-ui/button
 ```
 
 **yarn:**
 ```bash
-yarn dlx shadcn@latest add @crenspire/button
+yarn dlx shadcn@latest add @glass-ui/button
 ```
 
 **npm:**
 ```bash
-npx shadcn@latest add @crenspire/button
+npx shadcn@latest add @glass-ui/button
 ```
 
 **bun:**
 ```bash
-bunx shadcn@latest add @crenspire/button
+bunx shadcn@latest add @glass-ui/button
 ```
 
 ### Usage

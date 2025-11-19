@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Github, Heart } from "lucide-react"
-import { Button } from "@/registry/ui/glass/button"
+import { Button } from "@/components/ui/glass/button"
 
 export function Footer() {
 

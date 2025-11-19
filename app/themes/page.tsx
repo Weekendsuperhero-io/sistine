@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
-import { Button } from "@/registry/ui/button"
-import { Input } from "@/registry/ui/input"
-import { Label } from "@/registry/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy, Check, Palette } from "lucide-react"
 import { generateThemeCSS, defaultTheme, type ThemeColors } from "@/lib/theme-generator"
 

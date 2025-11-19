@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getComponents } from "@/lib/registry"
-import { Card, CardContent } from "@/registry/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 const components = getComponents()
 

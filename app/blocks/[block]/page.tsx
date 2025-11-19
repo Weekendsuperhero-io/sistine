@@ -3,24 +3,24 @@
 import * as React from "react"
 import { use } from "react"
 import { notFound } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/registry/ui/card"
-import { Button } from "@/registry/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/registry/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Copy, Check, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { DashboardBlock } from "@/registry/blocks/dashboard"
-import { AuthenticationBlock } from "@/registry/blocks/authentication"
-import { SignupBlock } from "@/registry/blocks/signup"
-import { ForgotPasswordBlock } from "@/registry/blocks/forgot-password"
-import { CalendarBlock } from "@/registry/blocks/calendar"
-import { ChartBlock } from "@/registry/blocks/chart"
+import { DashboardBlock } from "@/components/blocks/dashboard"
+import { AuthenticationBlock } from "@/components/blocks/authentication"
+import { SignupBlock } from "@/components/blocks/signup"
+import { ForgotPasswordBlock } from "@/components/blocks/forgot-password"
+import { CalendarBlock } from "@/components/blocks/calendar"
+import { ChartBlock } from "@/components/blocks/chart"
 
 const blocks = {
   dashboard: {
     title: "Dashboard",
     description: "Complete dashboard layout with stats, charts, and navigation",
     component: DashboardBlock,
-    code: `import { DashboardBlock } from "@/registry/blocks/dashboard"
+    code: `import { DashboardBlock } from "@/components/blocks/dashboard"
 
 export default function Page() {
   return <DashboardBlock />
@@ -30,7 +30,7 @@ export default function Page() {
     title: "Authentication",
     description: "Login form with glassmorphism effects",
     component: AuthenticationBlock,
-    code: `import { AuthenticationBlock } from "@/registry/blocks/authentication"
+    code: `import { AuthenticationBlock } from "@/components/blocks/authentication"
 
 export default function Page() {
   return <AuthenticationBlock />
@@ -40,7 +40,7 @@ export default function Page() {
     title: "Sign Up",
     description: "Registration form with validation",
     component: SignupBlock,
-    code: `import { SignupBlock } from "@/registry/blocks/signup"
+    code: `import { SignupBlock } from "@/components/blocks/signup"
 
 export default function Page() {
   return <SignupBlock />
@@ -50,7 +50,7 @@ export default function Page() {
     title: "Forgot Password",
     description: "Password reset form",
     component: ForgotPasswordBlock,
-    code: `import { ForgotPasswordBlock } from "@/registry/blocks/forgot-password"
+    code: `import { ForgotPasswordBlock } from "@/components/blocks/forgot-password"
 
 export default function Page() {
   return <ForgotPasswordBlock />
@@ -60,7 +60,7 @@ export default function Page() {
     title: "Calendar",
     description: "Calendar view with events and scheduling",
     component: CalendarBlock,
-    code: `import { CalendarBlock } from "@/registry/blocks/calendar"
+    code: `import { CalendarBlock } from "@/components/blocks/calendar"
 
 export default function Page() {
   return <CalendarBlock />
@@ -70,7 +70,7 @@ export default function Page() {
     title: "Chart",
     description: "Beautiful charts with bar, line, and area visualizations",
     component: ChartBlock,
-    code: `import { ChartBlock } from "@/registry/blocks/chart"
+    code: `import { ChartBlock } from "@/components/blocks/chart"
 
 export default function Page() {
   return <ChartBlock />
