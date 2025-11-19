@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Button } from '../registry/ui/glass/button';
+import { Button } from '@/components/ui/glass/button';
 
 const meta = {
   title: 'Glass UI/Button',

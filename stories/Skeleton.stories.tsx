@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Skeleton } from '../registry/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const meta = {
   title: 'Glass UI/Skeleton',

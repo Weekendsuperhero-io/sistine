@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Badge } from '../registry/ui/glass/badge';
+import { Badge } from '@/components/ui/glass/badge';
 
 const meta = {
   title: 'Glass UI/Badge',

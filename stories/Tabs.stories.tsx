@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../registry/ui/glass/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../registry/ui/glass/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/glass/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/glass/card';
 
 const meta = {
   title: 'Glass UI/Tabs',

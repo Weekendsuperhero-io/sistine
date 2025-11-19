@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Toaster } from '../registry/ui/glass/sonner';
-import { Button } from '../registry/ui/glass/button';
+import { Toaster } from '@/components/ui/glass/sonner';
+import { Button } from '@/components/ui/glass/button';
 import { toast } from 'sonner';
 
 const meta = {

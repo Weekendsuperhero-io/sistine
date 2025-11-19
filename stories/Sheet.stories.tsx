@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../registry/ui/sheet';
-import { Button } from '../registry/ui/glass/button';
-import { Input } from '../registry/ui/glass/input';
-import { Label } from '../registry/ui/label';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/glass/button';
+import { Input } from '@/components/ui/glass/input';
+import { Label } from '@/components/ui/label';
 
 const meta = {
   title: 'Glass UI/Sheet',
