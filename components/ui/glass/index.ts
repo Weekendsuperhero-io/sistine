@@ -136,3 +136,43 @@ export type { AlertProps } from "./alert"
 // Utility Components
 export { ModeToggle } from "./mode-toggle"
 export { Toaster } from "./sonner"
+
+// New Components
+export { Spinner } from "./spinner"
+export type { SpinnerProps } from "./spinner"
+
+export { ButtonGroup } from "./button-group"
+export type { ButtonGroupProps } from "./button-group"
+
+export { InputGroup } from "./input-group"
+export type { InputGroupProps } from "./input-group"
+
+export { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "./empty-state"
+export type { EmptyStateProps } from "./empty-state"
+
+export { MenuBar, MenuBarItem } from "./menu-bar"
+export type { MenuBarProps, MenuBarItemProps } from "./menu-bar"
+
+export { DatePickerInput } from "./date-picker-input"
+export type { DatePickerInputProps } from "./date-picker-input"
+
+export {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuCheckboxItem,
+  ContextMenuRadioItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuGroup,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+} from "./context-menu"
+
+export { Carousel } from "./carousel"
+export type { CarouselProps } from "./carousel"

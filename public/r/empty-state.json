@@ -1,15 +1,11 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
-  "name": "input-otp",
+  "name": "empty-state",
   "type": "registry:component",
-  "title": "Input OTP",
-  "description": "Accessible one-time password component with copy paste functionality.",
-  "dependencies": [
-    "input-otp",
-    "lucide-react"
-  ],
+  "title": "Empty State",
+  "description": "An empty state component with glassy variants.",
   "registryDependencies": [
-    "input-otp"
+    "empty-state"
   ],
   "files": [
     {
@@ -37,10 +33,10 @@
       "target": "app/globals.css"
     },
     {
-      "path": "components/ui/glass/input-otp.tsx",
-      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  InputOTP as BaseInputOTP,\n  InputOTPGroup as BaseInputOTPGroup,\n  InputOTPSeparator,\n  InputOTPSlot as BaseInputOTPSlot,\n} from \"@/components/ui/input-otp\"\nimport { cn } from \"@/lib/utils\"\n\nexport interface InputOTPProps extends React.ComponentProps<typeof BaseInputOTP> {\n  glow?: boolean\n}\n\nexport interface InputOTPGroupProps extends React.ComponentProps<typeof BaseInputOTPGroup> {\n  glow?: boolean\n}\n\nexport interface InputOTPSlotProps extends React.ComponentProps<typeof BaseInputOTPSlot> {\n  glow?: boolean\n}\n\n/**\n * Glass UI Input OTP - Enhanced OTP input with glassy effects\n */\nexport const InputOTP = React.forwardRef<\n  React.ElementRef<typeof BaseInputOTP>,\n  InputOTPProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseInputOTP\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nInputOTP.displayName = \"InputOTP\"\n\nexport const InputOTPGroup = React.forwardRef<\n  HTMLDivElement,\n  InputOTPGroupProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseInputOTPGroup\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"shadow-md shadow-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nInputOTPGroup.displayName = \"InputOTPGroup\"\n\nexport const InputOTPSlot = React.forwardRef<\n  HTMLDivElement,\n  InputOTPSlotProps\n>(({ className, variant = \"glass\", glow = false, ...props }, ref) => {\n  return (\n    <BaseInputOTPSlot\n      ref={ref}\n      variant={variant}\n      className={cn(\n        glow && \"ring-1 ring-purple-500/20\",\n        className\n      )}\n      {...props}\n    />\n  )\n})\nInputOTPSlot.displayName = \"InputOTPSlot\"\n\nexport {\n  InputOTPSeparator,\n}\n\n",
+      "path": "components/ui/glass/empty-state.tsx",
+      "content": "\"use client\"\n\nimport * as React from \"react\"\nimport {\n  EmptyState as BaseEmptyState,\n  EmptyStateIcon,\n  EmptyStateTitle,\n  EmptyStateDescription,\n} from \"@/components/ui/empty-state\"\nimport { cn } from \"@/lib/utils\"\nimport type { GlassCustomization } from \"@/lib/glass-utils\"\nimport { hoverEffects, type HoverEffect } from \"@/lib/hover-effects\"\n\nexport interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptyState> {\n  effect?: HoverEffect\n  glass?: GlassCustomization\n}\n\n/**\n * Glass UI Empty State - A beautifully designed empty state component with glassy effects\n * Built on top of the base EmptyState component with enhanced visual styling\n */\nexport const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(\n  ({ className, variant = \"glass\", effect = \"none\", glass, ...props }, ref) => {\n    return (\n      <BaseEmptyState\n        ref={ref}\n        variant={variant}\n        glass={glass}\n        className={cn(\n          hoverEffects({ hover: effect }),\n          className\n        )}\n        {...props}\n      />\n    )\n  }\n)\nEmptyState.displayName = \"EmptyState\"\n\nexport { EmptyStateIcon, EmptyStateTitle, EmptyStateDescription }\n\n",
       "type": "registry:component",
-      "target": "components/ui/glass/input-otp.tsx"
+      "target": "components/ui/glass/empty-state.tsx"
     }
   ]
 }

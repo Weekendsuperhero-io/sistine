@@ -82,6 +82,15 @@ export default function Home() {
         <section className="container mx-auto px-4 pt-8 pb-16 md:pb-24">
           {/* Hero Text Section */}
           <div className="text-center mb-12">
+            <Link 
+              href="/docs"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-bg border border-[var(--glass-border)] mb-6 hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">
+                New Components: Spinner, Button Group, Input Group, Empty State, Menu Bar, Date Picker Input, Context Menu, Carousel
+              </span>
+            </Link>
             <p className="text-2xl md:text-3xl text-foreground/90 mb-4 max-w-3xl mx-auto font-medium">
               Build beautiful interfaces with glassmorphism components
             </p>

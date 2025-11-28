@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { OTPInput, OTPInputContext } from "@onefifteen-z/react-input-otp"
+import { OTPInput, type SlotProps } from "input-otp"
 import { Dot } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -11,16 +11,25 @@ const InputOTP = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof OTPInput> & {
     variant?: "default" | "glass"
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", render, ...props }, ref) => {
   const variants = {
     default: "",
     glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
   }
   
+  const defaultRender = ({ slots }: { slots: SlotProps[] }) => (
+    <InputOTPGroup variant={variant}>
+      {slots.map((slot, index) => (
+        <InputOTPSlot key={index} {...slot} variant={variant} />
+      ))}
+    </InputOTPGroup>
+  )
+  
   return (
     <OTPInput
       ref={ref}
       containerClassName={cn("flex items-center gap-2", variants[variant], className)}
+      render={render || defaultRender}
       {...props}
     />
   )
@@ -34,8 +43,8 @@ const InputOTPGroup = React.forwardRef<
   }
 >(({ className, variant = "glass", ...props }, ref) => {
   const variants = {
-    default: "flex items-center",
-    glass: "flex items-center glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-md",
+    default: "flex items-center gap-1",
+    glass: "flex items-center gap-1",
   }
   
   return (
@@ -46,17 +55,13 @@ InputOTPGroup.displayName = "InputOTPGroup"
 
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
-  React.ComponentPropsWithoutRef<"div"> & {
-    index: number
+  SlotProps & React.ComponentPropsWithoutRef<"div"> & {
     variant?: "default" | "glass"
   }
->(({ index, variant = "glass", className, ...props }, ref) => {
-  const inputOTPContext = React.useContext(OTPInputContext)
-  const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index] ?? {}
-
+>(({ variant = "glass", className, char, isActive, hasFakeCaret, placeholderChar = "○", ...props }, ref) => {
   const variants = {
-    default: "relative flex h-10 w-10 items-center justify-center border-y border-r border-input text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
-    glass: "relative flex h-10 w-10 items-center justify-center border-y border-r border-[var(--glass-border)] glass-bg opacity-50 backdrop-blur-[var(--blur-sm)] text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+    default: "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+    glass: "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] glass-bg backdrop-blur-[var(--blur-sm)] text-foreground text-lg font-semibold transition-all first:rounded-l-md first:border-l last:rounded-r-md",
   }
 
   return (
@@ -64,15 +69,21 @@ const InputOTPSlot = React.forwardRef<
       ref={ref}
       className={cn(
         variants[variant],
-        isActive && "z-10 ring-2 ring-ring ring-offset-background",
+        isActive && "z-10 ring-2 ring-ring ring-offset-background opacity-100",
+        !char && !isActive && "opacity-70",
         className
       )}
       {...props}
     >
-      {char}
+      <span className={cn(
+        "text-foreground font-semibold",
+        !char && "text-muted-foreground"
+      )}>
+        {char ?? placeholderChar}
+      </span>
       {hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <Dot className="h-4 w-4 animate-pulse" />
+          <div className="h-6 w-0.5 bg-foreground animate-pulse" />
         </div>
       )}
     </div>

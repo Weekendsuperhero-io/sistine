@@ -1139,7 +1139,7 @@
       "title": "Input OTP",
       "description": "Accessible one-time password component with copy paste functionality.",
       "dependencies": [
-        "@onefifteen-z/react-input-otp",
+        "input-otp",
         "lucide-react"
       ],
       "registryDependencies": [
@@ -1599,6 +1599,312 @@
           "path": "components/ui/glass/mode-toggle.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/mode-toggle.tsx"
+        }
+      ]
+    },
+    {
+      "name": "spinner",
+      "type": "registry:component",
+      "title": "Spinner",
+      "description": "A loading spinner component with glassy variants.",
+      "registryDependencies": [
+        "spinner"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/spinner.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/spinner.tsx"
+        }
+      ]
+    },
+    {
+      "name": "button-group",
+      "type": "registry:component",
+      "title": "Button Group",
+      "description": "A group of buttons with glassy variants.",
+      "registryDependencies": [
+        "button-group"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/button-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/button-group.tsx"
+        }
+      ]
+    },
+    {
+      "name": "input-group",
+      "type": "registry:component",
+      "title": "Input Group",
+      "description": "A group of inputs with glassy variants.",
+      "registryDependencies": [
+        "input-group"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/input-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/input-group.tsx"
+        }
+      ]
+    },
+    {
+      "name": "empty-state",
+      "type": "registry:component",
+      "title": "Empty State",
+      "description": "An empty state component with glassy variants.",
+      "registryDependencies": [
+        "empty-state"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/empty-state.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/empty-state.tsx"
+        }
+      ]
+    },
+    {
+      "name": "menu-bar",
+      "type": "registry:component",
+      "title": "Menu Bar",
+      "description": "A menu bar component with glassy variants.",
+      "registryDependencies": [
+        "button",
+        "menu-bar"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/menu-bar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/menu-bar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "date-picker-input",
+      "type": "registry:component",
+      "title": "Date Picker Input",
+      "description": "A date picker input component with glassy variants.",
+      "dependencies": [
+        "date-fns",
+        "lucide-react",
+        "react-day-picker"
+      ],
+      "registryDependencies": [
+        "button",
+        "calendar",
+        "popover",
+        "input",
+        "date-picker-input"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/date-picker-input.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/date-picker-input.tsx"
+        }
+      ]
+    },
+    {
+      "name": "context-menu",
+      "type": "registry:component",
+      "title": "Context Menu",
+      "description": "A context menu component with glassy variants.",
+      "dependencies": [
+        "@radix-ui/react-context-menu",
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "context-menu"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/context-menu.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/context-menu.tsx"
+        }
+      ]
+    },
+    {
+      "name": "carousel",
+      "type": "registry:component",
+      "title": "Carousel",
+      "description": "A carousel component with glassy variants.",
+      "dependencies": [
+        "lucide-react"
+      ],
+      "registryDependencies": [
+        "button",
+        "carousel"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/glass/carousel.tsx",
+          "type": "registry:component",
+          "target": "components/ui/glass/carousel.tsx"
         }
       ]
     }

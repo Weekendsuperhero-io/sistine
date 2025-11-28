@@ -1,7 +1,7 @@
 export function getComponentExampleCode(componentName: string): string {
   switch (componentName) {
     case "button":
-      return `import { Button } from "@/components/ui/glass"
+      return `import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -16,7 +16,7 @@ export function Example() {
 }`
     
     case "card":
-      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass"
+      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card"
 
 export function Example() {
   return (
@@ -33,7 +33,7 @@ export function Example() {
 }`
     
     case "input":
-      return `import { Input } from "@/components/ui/glass"
+      return `import { Input } from "@/components/ui/glass/input"
 
 export function Example() {
   return (
@@ -45,7 +45,7 @@ export function Example() {
 }`
     
     case "badge":
-      return `import { Badge } from "@/components/ui/glass"
+      return `import { Badge } from "@/components/ui/glass/badge"
 
 export function Example() {
   return (
@@ -59,7 +59,8 @@ export function Example() {
 }`
     
     case "checkbox":
-      return `import { Checkbox, Label } from "@/components/ui/glass"
+      return `import { Checkbox } from "@/components/ui/glass/checkbox"
+import { Label } from "@/components/ui/glass/label"
 
 export function Example() {
   return (
@@ -71,7 +72,8 @@ export function Example() {
 }`
     
     case "switch":
-      return `import { Switch, Label } from "@/components/ui/glass"
+      return `import { Switch } from "@/components/ui/glass/switch"
+import { Label } from "@/components/ui/glass/label"
 
 export function Example() {
   return (
@@ -83,7 +85,8 @@ export function Example() {
 }`
     
     case "tabs":
-      return `import { Tabs, TabsContent, TabsList, TabsTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass"
+      return `import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card"
 
 export function Example() {
   return (
@@ -119,7 +122,7 @@ export function Example() {
 }`
     
     case "alert":
-      return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/glass"
+      return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/glass/alert"
 import { Info } from "lucide-react"
 
 export function Example() {
@@ -135,7 +138,7 @@ export function Example() {
 }`
     
     case "avatar":
-      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/glass"
+      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/glass/avatar"
 
 export function Example() {
   return (
@@ -156,7 +159,7 @@ export function Example() {
 }`
     
     case "separator":
-      return `import { Separator } from "@/components/ui/glass"
+      return `import { Separator } from "@/components/ui/glass/separator"
 
 export function Example() {
   return (
@@ -178,7 +181,7 @@ export function Example() {
 }`
     
     case "skeleton":
-      return `import { Skeleton } from "@/components/ui/glass"
+      return `import { Skeleton } from "@/components/ui/glass/skeleton"
 
 export function Example() {
   return (
@@ -191,7 +194,7 @@ export function Example() {
 }`
     
     case "slider":
-      return `import { Slider } from "@/components/ui/glass"
+      return `import { Slider } from "@/components/ui/glass/slider"
 
 export function Example() {
   return (
@@ -202,7 +205,7 @@ export function Example() {
 }`
     
     case "textarea":
-      return `import { Textarea } from "@/components/ui/glass"
+      return `import { Textarea } from "@/components/ui/glass/textarea"
 
 export function Example() {
   return (
@@ -211,8 +214,8 @@ export function Example() {
 }`
     
     case "label":
-      return `import { Label } from "@/components/ui/glass"
-import { Input } from "@/components/ui/glass"
+      return `import { Label } from "@/components/ui/glass/label"
+import { Input } from "@/components/ui/glass/input"
 
 export function Example() {
   return (
@@ -224,8 +227,8 @@ export function Example() {
 }`
     
     case "radio-group":
-      return `import { RadioGroup, RadioGroupItem } from "@/components/ui/glass"
-import { Label } from "@/components/ui/glass"
+      return `import { RadioGroup, RadioGroupItem } from "@/components/ui/glass/radio-group"
+import { Label } from "@/components/ui/glass/label"
 
 export function Example() {
   return (
@@ -247,7 +250,7 @@ export function Example() {
 }`
     
     case "select":
-      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass"
+      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass/select"
 
 export function Example() {
   return (
@@ -265,7 +268,7 @@ export function Example() {
 }`
     
     case "accordion":
-      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/glass"
+      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/glass/accordion"
 
 export function Example() {
   return (
@@ -287,8 +290,8 @@ export function Example() {
 }`
     
     case "tooltip":
-      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/glass/tooltip"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -306,8 +309,8 @@ export function Example() {
 }`
     
     case "popover":
-      return `import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/glass/popover"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -330,8 +333,8 @@ export function Example() {
 }`
     
     case "dialog":
-      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -353,8 +356,8 @@ export function Example() {
 }`
     
     case "dropdown-menu":
-      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/glass/dropdown-menu"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -374,7 +377,7 @@ export function Example() {
 }`
     
     case "calendar":
-      return `import { Calendar } from "@/components/ui/glass"
+      return `import { Calendar } from "@/components/ui/glass/calendar"
 
 export function Example() {
   return (
@@ -383,7 +386,7 @@ export function Example() {
 }`
     
     case "toggle":
-      return `import { Toggle } from "@/components/ui/glass"
+      return `import { Toggle } from "@/components/ui/glass/toggle"
 import { Sparkles } from "lucide-react"
 
 export function Example() {
@@ -400,7 +403,7 @@ export function Example() {
 }`
     
     case "toggle-group":
-      return `import { ToggleGroup, ToggleGroupItem } from "@/components/ui/glass"
+      return `import { ToggleGroup, ToggleGroupItem } from "@/components/ui/glass/toggle-group"
 
 export function Example() {
   return (
@@ -413,7 +416,7 @@ export function Example() {
 }`
     
     case "table":
-      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/glass"
+      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/glass/table"
 
 export function Example() {
   return (
@@ -442,7 +445,7 @@ export function Example() {
 }`
     
     case "breadcrumb":
-      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/glass"
+      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/glass/breadcrumb"
 
 export function Example() {
   return (
@@ -465,8 +468,8 @@ export function Example() {
 }`
     
     case "collapsible":
-      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/glass/collapsible"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -484,7 +487,7 @@ export function Example() {
 }`
     
     case "command":
-      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/glass"
+      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/glass/command"
 
 export function Example() {
   return (
@@ -503,7 +506,7 @@ export function Example() {
 }`
     
     case "scroll-area":
-      return `import { ScrollArea } from "@/components/ui/glass"
+      return `import { ScrollArea } from "@/components/ui/glass/scroll-area"
 
 export function Example() {
   return (
@@ -518,8 +521,8 @@ export function Example() {
 }`
     
     case "sheet":
-      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/glass/sheet"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -540,7 +543,7 @@ export function Example() {
 }`
     
     case "navigation-menu":
-      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/glass"
+      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/glass/navigation-menu"
 
 export function Example() {
   return (
@@ -572,7 +575,7 @@ export function Example() {
 }`
     
     case "pagination":
-      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/glass"
+      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/glass/pagination"
 
 export function Example() {
   return (
@@ -602,8 +605,8 @@ export function Example() {
 }`
     
     case "hover-card":
-      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/glass/hover-card"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -626,8 +629,8 @@ export function Example() {
 }`
     
     case "drawer":
-      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/glass/drawer"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -652,8 +655,8 @@ export function Example() {
 }`
     
     case "alert-dialog":
-      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/glass"
-import { Button } from "@/components/ui/glass"
+      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/glass/alert-dialog"
+import { Button } from "@/components/ui/glass/button"
 
 export function Example() {
   return (
@@ -679,7 +682,7 @@ export function Example() {
 }`
     
     case "sidebar":
-      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/glass"
+      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/glass/sidebar"
 
 export function Example() {
   return (
@@ -699,7 +702,7 @@ export function Example() {
 }`
     
     case "chart":
-      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/glass"
+      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/glass/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 
 const chartData = [
@@ -744,7 +747,7 @@ export function Example() {
 }`
     
     case "sonner":
-      return `import { Button } from "@/components/ui/glass"
+      return `import { Button } from "@/components/ui/glass/button"
 import { toast } from "sonner"
 
 export function Example() {
@@ -785,7 +788,7 @@ export function Example() {
 }
 
 // Don't forget to add <Toaster /> to your root layout:
-// import { Toaster } from "@/components/ui/glass"
+// import { Toaster } from "@/components/ui/glass/sonner"
 // 
 // export default function RootLayout({ children }) {
 //   return (
@@ -802,8 +805,192 @@ export function Example() {
 // Success toasts have green borders, errors have red borders,
 // warnings have yellow borders, and info toasts have blue borders.`
     
+    case "spinner":
+      return `import { Spinner } from "@/components/ui/glass/spinner"
+
+export function Example() {
+  return (
+    <div className="flex items-center gap-4">
+      <Spinner variant="glass" size="sm" />
+      <Spinner variant="glass" size="md" />
+      <Spinner variant="glass" size="lg" />
+    </div>
+  )
+}`
+    
+    case "button-group":
+      return `import { ButtonGroup } from "@/components/ui/glass/button-group"
+import { Button } from "@/components/ui/glass/button"
+
+export function Example() {
+  return (
+    <ButtonGroup variant="glass" orientation="horizontal">
+      <Button variant="ghost">One</Button>
+      <Button variant="ghost">Two</Button>
+      <Button variant="ghost">Three</Button>
+    </ButtonGroup>
+  )
+}`
+    
+    case "input-group":
+      return `import { InputGroup } from "@/components/ui/glass/input-group"
+import { Input } from "@/components/ui/glass/input"
+import { Button } from "@/components/ui/glass/button"
+import { Search } from "lucide-react"
+
+export function Example() {
+  return (
+    <InputGroup variant="glass">
+      <Input placeholder="Search..." className="border-0 rounded-r-none" />
+      <Button variant="ghost" size="icon" className="rounded-l-none">
+        <Search className="h-4 w-4" />
+      </Button>
+    </InputGroup>
+  )
+}`
+    
+    case "input-otp":
+      return `import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/glass/input-otp"
+
+export function Example() {
+  return (
+    <InputOTP variant="glass" maxLength={6}>
+      <InputOTPGroup variant="glass">
+        <InputOTPSlot index={0} variant="glass" />
+        <InputOTPSlot index={1} variant="glass" />
+        <InputOTPSlot index={2} variant="glass" />
+        <InputOTPSlot index={3} variant="glass" />
+        <InputOTPSlot index={4} variant="glass" />
+        <InputOTPSlot index={5} variant="glass" />
+      </InputOTPGroup>
+    </InputOTP>
+  )
+}`
+    
+    case "empty-state":
+      return `import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/glass/empty-state"
+import { Button } from "@/components/ui/glass/button"
+import { Inbox } from "lucide-react"
+
+export function Example() {
+  return (
+    <EmptyState variant="glass">
+      <EmptyStateIcon>
+        <Inbox className="h-12 w-12" />
+      </EmptyStateIcon>
+      <EmptyStateTitle>No items found</EmptyStateTitle>
+      <EmptyStateDescription>
+        Get started by creating a new item.
+      </EmptyStateDescription>
+      <Button variant="glass" className="mt-4">
+        Create Item
+      </Button>
+    </EmptyState>
+  )
+}`
+    
+    case "menu-bar":
+      return `import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar"
+
+export function Example() {
+  return (
+    <MenuBar variant="glass">
+      <MenuBarItem active>File</MenuBarItem>
+      <MenuBarItem>Edit</MenuBarItem>
+      <MenuBarItem>View</MenuBarItem>
+      <MenuBarItem>Help</MenuBarItem>
+    </MenuBar>
+  )
+}`
+    
+    case "date-picker-input":
+      return `import { DatePickerInput } from "@/components/ui/glass/date-picker-input"
+import { useState } from "react"
+
+export function Example() {
+  const [date, setDate] = useState<Date | undefined>(undefined)
+  
+  return (
+    <DatePickerInput
+      variant="glass"
+      value={date}
+      onChange={setDate}
+      placeholder="Pick a date"
+    />
+  )
+}`
+    
+    case "context-menu":
+      return `import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+} from "@/components/ui/glass/context-menu"
+import { Card, CardContent } from "@/components/ui/glass/card"
+
+export function Example() {
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <Card variant="glass" className="p-8 cursor-pointer">
+          <CardContent>Right click me</CardContent>
+        </Card>
+      </ContextMenuTrigger>
+      <ContextMenuContent variant="glass">
+        <ContextMenuLabel>My Account</ContextMenuLabel>
+        <ContextMenuSeparator />
+        <ContextMenuItem>Profile</ContextMenuItem>
+        <ContextMenuItem>Settings</ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem>Logout</ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  )
+}`
+    
+    case "carousel":
+      return `import { Carousel } from "@/components/ui/glass/carousel"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/glass/card"
+
+export function Example() {
+  return (
+    <Carousel variant="glass" className="w-full max-w-md h-[200px]">
+      <Card variant="glass" className="h-full m-2">
+        <CardHeader>
+          <CardTitle>Slide 1</CardTitle>
+        </CardHeader>
+        <CardContent>Content for slide 1</CardContent>
+      </Card>
+      <Card variant="glass" className="h-full m-2">
+        <CardHeader>
+          <CardTitle>Slide 2</CardTitle>
+        </CardHeader>
+        <CardContent>Content for slide 2</CardContent>
+      </Card>
+      <Card variant="glass" className="h-full m-2">
+        <CardHeader>
+          <CardTitle>Slide 3</CardTitle>
+        </CardHeader>
+        <CardContent>Content for slide 3</CardContent>
+      </Card>
+    </Carousel>
+  )
+}`
+    
+    case "mode-toggle":
+      return `import { ModeToggle } from "@/components/ui/glass/mode-toggle"
+
+export function Example() {
+  return (
+    <ModeToggle variant="glass" />
+  )
+}`
+    
     default:
-      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/components/ui/glass"
+      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/components/ui/glass/${componentName}"
 
 export function Example() {
   return (

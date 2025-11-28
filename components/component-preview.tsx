@@ -41,18 +41,41 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
-import { Info, Sparkles } from "lucide-react"
+import { Info, Sparkles, Inbox, Search, Calendar as CalendarIcon } from "lucide-react"
+import { Spinner } from "@/components/ui/glass/spinner"
+import { ButtonGroup } from "@/components/ui/glass/button-group"
+import { InputGroup } from "@/components/ui/glass/input-group"
+import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/glass/empty-state"
+import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar"
+import { DatePickerInput } from "@/components/ui/glass/date-picker-input"
+import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator } from "@/components/ui/glass/context-menu"
+import { Carousel } from "@/components/ui/glass/carousel"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { Cropper } from "@/components/ui/cropper"
+import { ModeToggle } from "@/components/ui/glass/mode-toggle"
+
+function DatePickerInputPreview() {
+  const [date, setDate] = React.useState<Date | undefined>(undefined)
+  return (
+    <DatePickerInput
+      variant="glass"
+      value={date}
+      onChange={setDate}
+      placeholder="Pick a date"
+    />
+  )
+}
 
 export function ComponentPreview({ componentName }: { componentName: string }) {
   switch (componentName) {
     case "button":
       return (
         <div className="flex flex-wrap gap-2">
-          <Button variant="glass">Glass Button</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="default">Default</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="destructive">Destructive</Button>
+          <Button variant="glass" className="cursor-pointer">Glass Button</Button>
+          <Button variant="outline" className="cursor-pointer">Outline</Button>
+          <Button variant="default" className="cursor-pointer">Default</Button>
+          <Button variant="ghost" className="cursor-pointer">Ghost</Button>
+          <Button variant="destructive" className="cursor-pointer">Destructive</Button>
         </div>
       )
 
@@ -106,11 +129,11 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
     case "tabs":
       return (
         <Tabs defaultValue="account" className="w-full">
-          <TabsList variant="glass">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
+          <TabsList variant="glass" className="glass-bg p-1">
+            <TabsTrigger value="account" className="cursor-pointer">Account</TabsTrigger>
+            <TabsTrigger value="password" className="cursor-pointer">Password</TabsTrigger>
           </TabsList>
-          <TabsContent value="account">
+          <TabsContent value="account" className="mt-4">
             <Card variant="glass">
               <CardHeader>
                 <CardTitle>Account</CardTitle>
@@ -121,7 +144,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="password">
+          <TabsContent value="password" className="mt-4">
             <Card variant="glass">
               <CardHeader>
                 <CardTitle>Password</CardTitle>
@@ -267,7 +290,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline">Hover</Button>
+              <Button variant="outline" className="cursor-pointer">Hover</Button>
             </TooltipTrigger>
             <TooltipContent variant="glass">
               <p>Add to library</p>
@@ -280,7 +303,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline">Open popover</Button>
+            <Button variant="outline" className="cursor-pointer">Open popover</Button>
           </PopoverTrigger>
           <PopoverContent variant="glass" className="w-80">
             <div className="grid gap-4">
@@ -299,7 +322,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">Open Dialog</Button>
+            <Button variant="outline" className="cursor-pointer">Open Dialog</Button>
           </DialogTrigger>
           <DialogContent variant="glass">
             <DialogHeader>
@@ -317,7 +340,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">Open Menu</Button>
+            <Button variant="outline" className="cursor-pointer">Open Menu</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent variant="glass">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -331,7 +354,9 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "calendar":
       return (
-        <Calendar variant="glass" mode="single" />
+        <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
+          <Calendar variant="glass" mode="single" />
+        </div>
       )
 
     case "toggle":
@@ -348,11 +373,13 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "toggle-group":
       return (
-        <ToggleGroup type="single" variant="glass">
-          <ToggleGroupItem value="a">A</ToggleGroupItem>
-          <ToggleGroupItem value="b">B</ToggleGroupItem>
-          <ToggleGroupItem value="c">C</ToggleGroupItem>
-        </ToggleGroup>
+        <div className="p-4 glass-bg rounded-lg inline-block">
+          <ToggleGroup type="single" variant="glass" defaultValue="b">
+            <ToggleGroupItem value="a" className="cursor-pointer">A</ToggleGroupItem>
+            <ToggleGroupItem value="b" className="cursor-pointer">B</ToggleGroupItem>
+            <ToggleGroupItem value="c" className="cursor-pointer">C</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       )
 
     case "table":
@@ -403,7 +430,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <Collapsible>
           <CollapsibleTrigger asChild>
-            <Button variant="outline">Toggle</Button>
+            <Button variant="outline" className="cursor-pointer">Toggle</Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="space-y-2">
@@ -443,7 +470,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline">Open Sheet</Button>
+            <Button variant="outline" className="cursor-pointer">Open Sheet</Button>
           </SheetTrigger>
           <SheetContent variant="glass">
             <SheetHeader>
@@ -514,7 +541,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <HoverCard>
           <HoverCardTrigger asChild>
-            <Button variant="link">@nextjs</Button>
+            <Button variant="link" className="cursor-pointer">@nextjs</Button>
           </HoverCardTrigger>
           <HoverCardContent variant="glass" className="w-80">
             <div className="flex justify-between space-x-4">
@@ -533,7 +560,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <Drawer>
           <DrawerTrigger asChild>
-            <Button variant="outline">Open Drawer</Button>
+            <Button variant="outline" className="cursor-pointer">Open Drawer</Button>
           </DrawerTrigger>
           <DrawerContent variant="glass">
             <DrawerHeader>
@@ -541,9 +568,9 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               <DrawerDescription>This action cannot be undone.</DrawerDescription>
             </DrawerHeader>
             <DrawerFooter>
-              <Button>Submit</Button>
+              <Button className="cursor-pointer">Submit</Button>
               <DrawerClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" className="cursor-pointer">Cancel</Button>
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>
@@ -554,7 +581,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline">Show Dialog</Button>
+            <Button variant="outline" className="cursor-pointer">Show Dialog</Button>
           </AlertDialogTrigger>
           <AlertDialogContent variant="glass">
             <AlertDialogHeader>
@@ -565,8 +592,8 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction>Continue</AlertDialogAction>
+              <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+              <AlertDialogAction className="cursor-pointer">Continue</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -641,6 +668,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <div className="flex flex-col gap-3">
             <Button
               variant="glass"
+              className="cursor-pointer"
               onClick={() => toast.success('Success!', {
                 description: 'Your action was completed successfully'
               })}
@@ -650,6 +678,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             
             <Button
               variant="glass"
+              className="cursor-pointer"
               onClick={() => toast.error('Error!', {
                 description: 'Something went wrong'
               })}
@@ -659,6 +688,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             
             <Button
               variant="glass"
+              className="cursor-pointer"
               onClick={() => toast('Event Created', {
                 description: 'Your event has been scheduled',
                 action: {
@@ -672,6 +702,145 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           </div>
           <Toaster />
         </>
+      )
+
+    case "input-otp":
+      return (
+        <div className="p-4 glass-bg rounded-lg inline-block">
+          <InputOTP variant="glass" maxLength={6} />
+        </div>
+      )
+
+    case "cropper":
+      return (
+        <Cropper
+          image="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=600&fit=crop"
+          onCropComplete={() => {}}
+          variant="glass"
+        />
+      )
+
+    case "spinner":
+      return (
+        <div className="flex items-center gap-4 p-6 glass-bg rounded-lg bg-white/10 dark:bg-white/5">
+          <Spinner variant="glass" size="sm" />
+          <Spinner variant="glass" size="md" />
+          <Spinner variant="glass" size="lg" />
+          <Spinner variant="frosted" size="md" />
+          <Spinner variant="crystal" size="md" />
+        </div>
+      )
+
+    case "button-group":
+      return (
+        <ButtonGroup variant="glass" orientation="horizontal">
+          <Button variant="ghost" className="cursor-pointer">One</Button>
+          <Button variant="ghost" className="cursor-pointer">Two</Button>
+          <Button variant="ghost" className="cursor-pointer">Three</Button>
+        </ButtonGroup>
+      )
+
+    case "input-group":
+      return (
+        <div className="space-y-8">
+          <InputGroup variant="glass">
+            <Input placeholder="Search..." className="border-0 rounded-r-none" />
+            <Button variant="ghost" size="icon" className="rounded-l-none cursor-pointer">
+              <Search className="h-4 w-4" />
+            </Button>
+          </InputGroup>
+          <InputGroup variant="frosted">
+            <Input placeholder="Email" type="email" className="border-0 rounded-r-none" />
+            <Button variant="ghost" size="icon" className="rounded-l-none cursor-pointer">
+              <Info className="h-4 w-4" />
+            </Button>
+          </InputGroup>
+        </div>
+      )
+
+    case "empty-state":
+      return (
+        <div className="space-y-4">
+          <EmptyState variant="glass">
+            <EmptyStateIcon>
+              <Inbox className="h-12 w-12" />
+            </EmptyStateIcon>
+            <EmptyStateTitle>No items found</EmptyStateTitle>
+            <EmptyStateDescription>
+              Get started by creating a new item.
+            </EmptyStateDescription>
+            <Button variant="glass" className="mt-4 cursor-pointer">
+              Create Item
+            </Button>
+          </EmptyState>
+        </div>
+      )
+
+    case "menu-bar":
+      return (
+        <MenuBar variant="glass">
+          <MenuBarItem active>File</MenuBarItem>
+          <MenuBarItem>Edit</MenuBarItem>
+          <MenuBarItem>View</MenuBarItem>
+          <MenuBarItem>Help</MenuBarItem>
+        </MenuBar>
+      )
+
+    case "date-picker-input":
+      return (
+        <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
+          <DatePickerInputPreview />
+        </div>
+      )
+
+    case "context-menu":
+      return (
+        <ContextMenu>
+          <ContextMenuTrigger>
+            <Card variant="glass" className="p-8 cursor-pointer w-fit">
+              <CardContent>Right click me</CardContent>
+            </Card>
+          </ContextMenuTrigger>
+          <ContextMenuContent variant="glass">
+            <ContextMenuLabel>My Account</ContextMenuLabel>
+            <ContextMenuSeparator />
+            <ContextMenuItem>Profile</ContextMenuItem>
+            <ContextMenuItem>Settings</ContextMenuItem>
+            <ContextMenuSeparator />
+            <ContextMenuItem>Logout</ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      )
+
+    case "carousel":
+      return (
+        <Carousel variant="glass" className="w-full max-w-md h-[200px]">
+          <Card variant="glass" className="h-full m-2">
+            <CardHeader>
+              <CardTitle>Slide 1</CardTitle>
+            </CardHeader>
+            <CardContent>Content for slide 1</CardContent>
+          </Card>
+          <Card variant="glass" className="h-full m-2">
+            <CardHeader>
+              <CardTitle>Slide 2</CardTitle>
+            </CardHeader>
+            <CardContent>Content for slide 2</CardContent>
+          </Card>
+          <Card variant="glass" className="h-full m-2">
+            <CardHeader>
+              <CardTitle>Slide 3</CardTitle>
+            </CardHeader>
+            <CardContent>Content for slide 3</CardContent>
+          </Card>
+        </Carousel>
+      )
+
+    case "mode-toggle":
+      return (
+        <div className="p-4 glass-bg rounded-lg inline-block">
+          <ModeToggle variant="glass" />
+        </div>
       )
 
     default:

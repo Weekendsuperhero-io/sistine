@@ -12,6 +12,18 @@ import { getStorybookUrl } from "@/lib/storybook-url"
 
 const components = getComponents()
 
+// New components that should show NEW badge
+const newComponents = new Set([
+  'spinner',
+  'button-group',
+  'input-group',
+  'empty-state',
+  'menu-bar',
+  'date-picker-input',
+  'context-menu',
+  'carousel',
+])
+
 export default function ComponentsPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
 
@@ -57,7 +69,14 @@ export default function ComponentsPage() {
                     <CardTitle className="text-foreground group-hover:text-foreground/80">
                       {component.title || component.name}
                     </CardTitle>
-                    <Badge variant="glass">Component</Badge>
+                    <div className="flex items-center gap-2">
+                      {newComponents.has(component.name) && (
+                        <Badge variant="glass" className="bg-primary/20 text-primary border-primary/30">
+                          NEW
+                        </Badge>
+                      )}
+                      <Badge variant="glass">Component</Badge>
+                    </div>
                   </div>
                   <CardDescription className="text-muted-foreground">
                     {component.description || "No description available"}
