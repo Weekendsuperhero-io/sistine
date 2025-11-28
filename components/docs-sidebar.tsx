@@ -7,8 +7,23 @@ import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getComponents } from "@/lib/registry"
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 const components = getComponents()
+
+// New components that should show NEW badge
+const newComponents = new Set([
+  'spinner',
+  'button-group',
+  'input-group',
+  'empty-state',
+  'menu-bar',
+  'date-picker-input',
+  'context-menu',
+  'carousel',
+])
+
+type NavItem = { title: string; href: string; isNew?: boolean }
 
 const docsNav = [
   {
@@ -17,14 +32,15 @@ const docsNav = [
       { title: "Installation", href: "/docs/getting-started" },
       { title: "MCP Setup", href: "/docs/getting-started#mcp" },
       { title: "Glass Customization", href: "/docs/getting-started#glass-customization" },
-    ],
+    ] as NavItem[],
   },
   {
     title: "Components",
     items: components.map((comp) => ({
       title: comp.title || comp.name,
       href: `/docs/components/${comp.name}`,
-    })),
+      isNew: newComponents.has(comp.name),
+    })) as NavItem[],
   },
 ]
 
@@ -55,7 +71,12 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           )}
                         >
                           {isActive && <ChevronRight className="h-4 w-4" />}
-                          <span className="truncate">{item.title}</span>
+                          <span className="truncate flex-1">{item.title}</span>
+                          {item.isNew === true && (
+                            <Badge variant="glass" className="bg-primary/20 text-primary border-primary/30 text-xs px-1.5 py-0.5">
+                              NEW
+                            </Badge>
+                          )}
                         </Link>
                       </li>
                     )

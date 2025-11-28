@@ -1,38 +1,37 @@
-declare module "@onefifteen-z/react-input-otp" {
+declare module "input-otp" {
   import * as React from "react"
 
-  export interface OTPInputProps extends React.HTMLAttributes<HTMLDivElement> {
+  export interface SlotProps {
+    isActive: boolean
+    char: string | null
+    placeholderChar: string | null
+    hasFakeCaret: boolean
+  }
+
+  export interface RenderProps {
+    slots: SlotProps[]
+    isFocused: boolean
+    isHovering: boolean
+  }
+
+  export interface OTPInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
     value?: string
-    onChange?: (value: string) => void
-    maxLength?: number
+    onChange?: (newValue: string) => unknown
+    maxLength: number
+    textAlign?: "left" | "center" | "right"
+    onComplete?: (...args: any[]) => unknown
+    pushPasswordManagerStrategy?: "increase-width" | "none"
+    pasteTransformer?: (pasted: string) => string
     containerClassName?: string
-    render?: (props: { value: string; index: number }) => React.ReactNode
+    noScriptCSSFallback?: string | null
+    render?: (props: RenderProps) => React.ReactNode
+    children?: React.ReactNode
   }
 
   export const OTPInput: React.ForwardRefExoticComponent<
-    OTPInputProps & React.RefAttributes<HTMLDivElement>
+    OTPInputProps & React.RefAttributes<HTMLInputElement>
   >
 
-  export interface OTPInputContextValue {
-    slots: Array<{
-      char?: string
-      hasFakeCaret?: boolean
-      isActive?: boolean
-    }>
-  }
-
-  export const OTPInputContext: React.Context<OTPInputContextValue>
-
-  export interface Area {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-
-  export interface Point {
-    x: number
-    y: number
-  }
+  export type { SlotProps, RenderProps }
 }
 
