@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
             repo: "crenspire/glass-ui",
             token: process.env.GITHUB_TOKEN,
         },
+        componentsUrl: '/docs/components'
     });
 
     if (!rssXml) {
