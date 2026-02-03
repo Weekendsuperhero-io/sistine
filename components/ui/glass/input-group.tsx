@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { InputGroup as BaseInputGroup } from "@/components/ui/input-group"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import { InputGroup as BaseInputGroup } from "@os-glass/components/ui/input-group";
+import type { GlassCustomization } from "@os-glass/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@os-glass/lib/hover-effects";
+import { cn } from "@os-glass/lib/utils";
+import * as React from "react";
 
 export interface InputGroupProps extends React.ComponentProps<typeof BaseInputGroup> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
@@ -17,19 +17,7 @@ export interface InputGroupProps extends React.ComponentProps<typeof BaseInputGr
  */
 export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
   ({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {
-    return (
-      <BaseInputGroup
-        ref={ref}
-        variant={variant}
-        glass={glass}
-        className={cn(
-          hoverEffects({ hover: effect }),
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-InputGroup.displayName = "InputGroup"
-
+    return <BaseInputGroup ref={ref} variant={variant} glass={glass} className={cn(hoverEffects({ hover: effect }), className)} {...props} />;
+  },
+);
+InputGroup.displayName = "InputGroup";

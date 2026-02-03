@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart"
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@os-glass/components/ui/card";
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@os-glass/components/ui/chart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@os-glass/components/ui/tabs";
+// import * as React from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 const barChartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -13,7 +13,7 @@ const barChartData = [
   { month: "April", desktop: 273, mobile: 190 },
   { month: "May", desktop: 209, mobile: 130 },
   { month: "June", desktop: 214, mobile: 140 },
-]
+];
 
 const lineChartData = [
   { month: "Jan", revenue: 186, profit: 80 },
@@ -22,7 +22,7 @@ const lineChartData = [
   { month: "Apr", revenue: 273, profit: 190 },
   { month: "May", revenue: 209, profit: 130 },
   { month: "Jun", revenue: 214, profit: 140 },
-]
+];
 
 const areaChartData = [
   { month: "Jan", sales: 186, returns: 20 },
@@ -31,7 +31,7 @@ const areaChartData = [
   { month: "Apr", sales: 273, returns: 50 },
   { month: "May", sales: 209, returns: 35 },
   { month: "Jun", sales: 214, returns: 40 },
-]
+];
 
 export function ChartBlock() {
   return (
@@ -52,9 +52,7 @@ export function ChartBlock() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="text-foreground">Bar Chart</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Desktop vs Mobile traffic comparison
-              </CardDescription>
+              <CardDescription className="text-muted-foreground">Desktop vs Mobile traffic comparison</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -73,13 +71,7 @@ export function ChartBlock() {
               >
                 <BarChart data={barChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value.slice(0, 3)} />
                   <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
@@ -95,9 +87,7 @@ export function ChartBlock() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="text-foreground">Line Chart</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Revenue and profit trends over time
-              </CardDescription>
+              <CardDescription className="text-muted-foreground">Revenue and profit trends over time</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -116,29 +106,12 @@ export function ChartBlock() {
               >
                 <LineChart data={lineChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                  />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
                   <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="var(--color-revenue)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="profit"
-                    stroke="var(--color-profit)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
+                  <Line type="monotone" dataKey="revenue" stroke="var(--color-revenue)" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="profit" stroke="var(--color-profit)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ChartContainer>
             </CardContent>
@@ -149,9 +122,7 @@ export function ChartBlock() {
           <Card variant="glass">
             <CardHeader>
               <CardTitle className="text-foreground">Area Chart</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Sales and returns comparison
-              </CardDescription>
+              <CardDescription className="text-muted-foreground">Sales and returns comparison</CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -170,23 +141,11 @@ export function ChartBlock() {
               >
                 <AreaChart data={areaChartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                  />
+                  <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
                   <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="var(--color-sales)"
-                    fill="var(--color-sales)"
-                    fillOpacity={0.2}
-                    strokeWidth={2}
-                  />
+                  <Area type="monotone" dataKey="sales" stroke="var(--color-sales)" fill="var(--color-sales)" fillOpacity={0.2} strokeWidth={2} />
                   <Area
                     type="monotone"
                     dataKey="returns"
@@ -202,6 +161,5 @@ export function ChartBlock() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

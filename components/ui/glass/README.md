@@ -10,7 +10,7 @@ This folder contains the main designed components for Glass UI. These components
 ## Usage
 
 ```tsx
-import { Button, Card, Input, CardHeader, CardTitle } from "@/components/ui/glass"
+import { Button, Card, Input, CardHeader, CardTitle } from "@os-glass/components/ui/glass"
 
 // Use Glass UI components
 <Button effect="glow" variant="glass">
@@ -27,6 +27,7 @@ import { Button, Card, Input, CardHeader, CardTitle } from "@/components/ui/glas
 ## Component Pattern
 
 All Glass UI components:
+
 1. Import base components from parent directory
 2. Add enhanced styling and effects
 3. Maintain the same API as base components
@@ -39,4 +40,3 @@ All Glass UI components:
 - `Input` - Input with icon support and error states
 
 More components coming soon...
-

@@ -1,19 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  EmptyState as BaseEmptyState,
-  EmptyStateIcon,
-  EmptyStateTitle,
-  EmptyStateDescription,
-} from "@/components/ui/empty-state"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import { EmptyState as BaseEmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@os-glass/components/ui/empty-state";
+import type { GlassCustomization } from "@os-glass/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@os-glass/lib/hover-effects";
+import { cn } from "@os-glass/lib/utils";
+import * as React from "react";
 
 export interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptyState> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
@@ -22,21 +17,9 @@ export interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptySt
  */
 export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
   ({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {
-    return (
-      <BaseEmptyState
-        ref={ref}
-        variant={variant}
-        glass={glass}
-        className={cn(
-          hoverEffects({ hover: effect }),
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-EmptyState.displayName = "EmptyState"
+    return <BaseEmptyState ref={ref} variant={variant} glass={glass} className={cn(hoverEffects({ hover: effect }), className)} {...props} />;
+  },
+);
+EmptyState.displayName = "EmptyState";
 
-export { EmptyStateIcon, EmptyStateTitle, EmptyStateDescription }
-
+export { EmptyStateIcon, EmptyStateTitle, EmptyStateDescription };

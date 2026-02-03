@@ -1,14 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts"
-import { BarChart3, TrendingUp, Users, DollarSign, Activity, CreditCard } from "lucide-react"
+import { Badge } from "@os-glass/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@os-glass/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@os-glass/components/ui/chart";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@os-glass/components/ui/table";
+import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 export function DashboardBlock() {
   return (
@@ -121,21 +118,18 @@ export function DashboardBlock() {
               variant="glass"
               className="h-[300px]"
             >
-              <BarChart data={[
-                { month: "Jan", revenue: 186, users: 80 },
-                { month: "Feb", revenue: 305, users: 200 },
-                { month: "Mar", revenue: 237, users: 120 },
-                { month: "Apr", revenue: 273, users: 190 },
-                { month: "May", revenue: 209, users: 130 },
-                { month: "Jun", revenue: 214, users: 140 },
-              ]}>
+              <BarChart
+                data={[
+                  { month: "Jan", revenue: 186, users: 80 },
+                  { month: "Feb", revenue: 305, users: 200 },
+                  { month: "Mar", revenue: 237, users: 120 },
+                  { month: "Apr", revenue: 273, users: 190 },
+                  { month: "May", revenue: 209, users: 130 },
+                  { month: "Jun", revenue: 214, users: 140 },
+                ]}
+              >
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
                 <YAxis tickLine={false} axisLine={false} tickMargin={8} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
@@ -146,6 +140,5 @@ export function DashboardBlock() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ButtonGroup as BaseButtonGroup } from "@/components/ui/button-group"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import { ButtonGroup as BaseButtonGroup } from "@os-glass/components/ui/button-group";
+import type { GlassCustomization } from "@os-glass/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@os-glass/lib/hover-effects";
+import { cn } from "@os-glass/lib/utils";
+import * as React from "react";
 
 export interface ButtonGroupProps extends React.ComponentProps<typeof BaseButtonGroup> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
@@ -17,19 +17,7 @@ export interface ButtonGroupProps extends React.ComponentProps<typeof BaseButton
  */
 export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(
   ({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {
-    return (
-      <BaseButtonGroup
-        ref={ref}
-        variant={variant}
-        glass={glass}
-        className={cn(
-          hoverEffects({ hover: effect }),
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-ButtonGroup.displayName = "ButtonGroup"
-
+    return <BaseButtonGroup ref={ref} variant={variant} glass={glass} className={cn(hoverEffects({ hover: effect }), className)} {...props} />;
+  },
+);
+ButtonGroup.displayName = "ButtonGroup";

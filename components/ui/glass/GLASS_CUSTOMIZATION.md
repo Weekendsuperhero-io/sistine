@@ -10,37 +10,37 @@ interface GlassCustomization {
    * Background color for the glass effect (e.g., "rgba(255, 255, 255, 0.1)" or "#ffffff")
    * Default: uses CSS variable --glass-bg
    */
-  color?: string
-  
+  color?: string;
+
   /**
    * Transparency/opacity for the background (0-1)
    * If provided, will override the alpha channel in color
    */
-  transparency?: number
-  
+  transparency?: number;
+
   /**
    * Blur amount in pixels
    * Default: uses CSS variable --blur (20px)
    */
-  blur?: number | string
-  
+  blur?: number | string;
+
   /**
    * Border/outline color (e.g., "rgba(255, 255, 255, 0.25)" or "#ffffff")
    * Default: uses CSS variable --glass-border
    */
-  outline?: string
-  
+  outline?: string;
+
   /**
    * Border/outline width in pixels
    * Default: 1px
    */
-  outlineWidth?: number | string
-  
+  outlineWidth?: number | string;
+
   /**
    * Shadow for the glass effect
    * Default: uses CSS variable --glass-shadow
    */
-  shadow?: string
+  shadow?: string;
 }
 ```
 
@@ -49,72 +49,70 @@ interface GlassCustomization {
 ### Basic Card with Custom Glass Effect
 
 ```tsx
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/glass"
+import { Card, CardHeader, CardTitle, CardContent } from "@os-glass/components/ui/glass";
 
-<Card 
+<Card
   glass={{
-    color: "rgba(139, 92, 246, 0.2)",  // Purple tint
-    blur: 30,                           // 30px blur
-    transparency: 0.3,                  // 30% opacity
+    color: "rgba(139, 92, 246, 0.2)", // Purple tint
+    blur: 30, // 30px blur
+    transparency: 0.3, // 30% opacity
     outline: "rgba(139, 92, 246, 0.5)", // Purple border
-    outlineWidth: 2                    // 2px border
+    outlineWidth: 2, // 2px border
   }}
 >
   <CardHeader>
     <CardTitle>Custom Glass Card</CardTitle>
   </CardHeader>
-  <CardContent>
-    This card has a custom purple glass effect!
-  </CardContent>
-</Card>
+  <CardContent>This card has a custom purple glass effect!</CardContent>
+</Card>;
 ```
 
 ### Button with Blue Glass Effect
 
 ```tsx
-import { Button } from "@/components/ui/glass"
+import { Button } from "@os-glass/components/ui/glass";
 
-<Button 
+<Button
   glass={{
-    color: "rgba(59, 130, 246, 0.2)",   // Blue tint
-    blur: 25,                           // 25px blur
+    color: "rgba(59, 130, 246, 0.2)", // Blue tint
+    blur: 25, // 25px blur
     outline: "rgba(59, 130, 246, 0.4)", // Blue border
-    shadow: "0 8px 32px rgba(59, 130, 246, 0.3)" // Custom shadow
+    shadow: "0 8px 32px rgba(59, 130, 246, 0.3)", // Custom shadow
   }}
 >
   Click Me
-</Button>
+</Button>;
 ```
 
 ### Input with Subtle Glass Effect
 
 ```tsx
-import { Input } from "@/components/ui/glass"
+import { Input } from "@os-glass/components/ui/glass";
 
-<Input 
+<Input
   glass={{
     color: "rgba(255, 255, 255, 0.15)", // Light white
-    blur: 15,                           // Subtle blur
+    blur: 15, // Subtle blur
     outline: "rgba(255, 255, 255, 0.3)", // Light border
-    transparency: 0.2                    // 20% opacity
+    transparency: 0.2, // 20% opacity
   }}
   placeholder="Enter your email..."
-/>
+/>;
 ```
 
 ### Dialog with Strong Glass Effect
 
 ```tsx
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/glass"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@os-glass/components/ui/glass";
 
 <Dialog>
   <DialogTrigger>Open Dialog</DialogTrigger>
-  <DialogContent 
+  <DialogContent
     glass={{
       color: "rgba(139, 92, 246, 0.15)", // Purple tint
-      blur: 40,                           // Strong blur
+      blur: 40, // Strong blur
       outline: "rgba(139, 92, 246, 0.3)", // Purple border
-      shadow: "0 12px 48px rgba(139, 92, 246, 0.4)" // Custom shadow
+      shadow: "0 12px 48px rgba(139, 92, 246, 0.4)", // Custom shadow
     }}
   >
     <DialogHeader>
@@ -122,18 +120,18 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
     </DialogHeader>
     <p>This dialog has a custom glass effect!</p>
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Using Hex Colors
 
 ```tsx
-<Card 
+<Card
   glass={{
-    color: "#ffffff",      // White in hex
-    transparency: 0.1,    // Will convert to rgba(255, 255, 255, 0.1)
+    color: "#ffffff", // White in hex
+    transparency: 0.1, // Will convert to rgba(255, 255, 255, 0.1)
     blur: 20,
-    outline: "#3b82f6"     // Blue in hex
+    outline: "#3b82f6", // Blue in hex
   }}
 >
   Content
@@ -145,11 +143,11 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 You can also use the `glass` prop directly on base components:
 
 ```tsx
-import { Card, Button, Input } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Card, Button, Input } from "@os-glass/components/ui/card"
+import { Button } from "@os-glass/components/ui/button"
+import { Input } from "@os-glass/components/ui/input"
 
-<Card 
+<Card
   variant="glass"
   glass={{
     color: "rgba(255, 255, 255, 0.1)",
@@ -160,7 +158,7 @@ import { Input } from "@/components/ui/input"
   Content
 </Card>
 
-<Button 
+<Button
   variant="glass"
   glass={{
     blur: 30,
@@ -170,7 +168,7 @@ import { Input } from "@/components/ui/input"
   Button
 </Button>
 
-<Input 
+<Input
   variant="glass"
   glass={{
     color: "#ffffff",
@@ -214,4 +212,3 @@ The following components support glass customization:
 - ✅ And more...
 
 All components with `variant="glass"` support the `glass` prop for customization.
-
