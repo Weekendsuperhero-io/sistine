@@ -7,7 +7,7 @@ Glass UI components support full customization of glassmorphism effects. You can
 ```typescript
 interface GlassCustomization {
   /**
-   * Background color for the glass effect (e.g., "rgba(255, 255, 255, 0.1)" or "#ffffff")
+   * Background color for the glass effect (e.g., "oklch(1 0 0 / 0.1)" or "#ffffff")
    * Default: uses CSS variable --glass-bg
    */
   color?: string;
@@ -25,7 +25,7 @@ interface GlassCustomization {
   blur?: number | string;
 
   /**
-   * Border/outline color (e.g., "rgba(255, 255, 255, 0.25)" or "#ffffff")
+   * Border/outline color (e.g., "oklch(1 0 0 / 0.25)" or "#ffffff")
    * Default: uses CSS variable --glass-border
    */
   outline?: string;
@@ -53,10 +53,10 @@ import { Card, CardHeader, CardTitle, CardContent } from "@os-glass/components/u
 
 <Card
   glass={{
-    color: "rgba(139, 92, 246, 0.2)", // Purple tint
+    color: "oklch(0.56 0.22 293 / 0.2)", // Purple tint
     blur: 30, // 30px blur
     transparency: 0.3, // 30% opacity
-    outline: "rgba(139, 92, 246, 0.5)", // Purple border
+    outline: "oklch(0.56 0.22 293 / 0.5)", // Purple border
     outlineWidth: 2, // 2px border
   }}
 >
@@ -74,10 +74,10 @@ import { Button } from "@os-glass/components/ui/glass";
 
 <Button
   glass={{
-    color: "rgba(59, 130, 246, 0.2)", // Blue tint
+    color: "oklch(0.62 0.19 260 / 0.2)", // Blue tint
     blur: 25, // 25px blur
-    outline: "rgba(59, 130, 246, 0.4)", // Blue border
-    shadow: "0 8px 32px rgba(59, 130, 246, 0.3)", // Custom shadow
+    outline: "oklch(0.62 0.19 260 / 0.4)", // Blue border
+    shadow: "0 8px 32px oklch(0.62 0.19 260 / 0.3)", // Custom shadow
   }}
 >
   Click Me
@@ -91,9 +91,9 @@ import { Input } from "@os-glass/components/ui/glass";
 
 <Input
   glass={{
-    color: "rgba(255, 255, 255, 0.15)", // Light white
+    color: "oklch(1 0 0 / 0.15)", // Light white
     blur: 15, // Subtle blur
-    outline: "rgba(255, 255, 255, 0.3)", // Light border
+    outline: "oklch(1 0 0 / 0.3)", // Light border
     transparency: 0.2, // 20% opacity
   }}
   placeholder="Enter your email..."
@@ -109,10 +109,10 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
   <DialogTrigger>Open Dialog</DialogTrigger>
   <DialogContent
     glass={{
-      color: "rgba(139, 92, 246, 0.15)", // Purple tint
+      color: "oklch(0.56 0.22 293 / 0.15)", // Purple tint
       blur: 40, // Strong blur
-      outline: "rgba(139, 92, 246, 0.3)", // Purple border
-      shadow: "0 12px 48px rgba(139, 92, 246, 0.4)", // Custom shadow
+      outline: "oklch(0.56 0.22 293 / 0.3)", // Purple border
+      shadow: "0 12px 48px oklch(0.56 0.22 293 / 0.4)", // Custom shadow
     }}
   >
     <DialogHeader>
@@ -129,7 +129,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 <Card
   glass={{
     color: "#ffffff", // White in hex
-    transparency: 0.1, // Will convert to rgba(255, 255, 255, 0.1)
+    transparency: 0.1, // Will convert to oklch(1 0 0 / 0.1)
     blur: 20,
     outline: "#3b82f6", // Blue in hex
   }}
@@ -150,9 +150,9 @@ import { Input } from "@os-glass/components/ui/input"
 <Card
   variant="glass"
   glass={{
-    color: "rgba(255, 255, 255, 0.1)",
+    color: "oklch(1 0 0 / 0.1)",
     blur: 25,
-    outline: "rgba(255, 255, 255, 0.25)"
+    outline: "oklch(1 0 0 / 0.25)"
   }}
 >
   Content
@@ -180,7 +180,7 @@ import { Input } from "@os-glass/components/ui/input"
 
 ## Color Formats Supported
 
-- **RGBA**: `"rgba(255, 255, 255, 0.1)"`
+- **OKLCH**: `"oklch(1 0 0 / 0.1)"` (preferred - perceptually uniform)
 - **RGB**: `"rgb(255, 255, 255)"` (use with `transparency` prop)
 - **Hex**: `"#ffffff"` (use with `transparency` prop)
 - **Named colors**: `"white"` (use with `transparency` prop)
@@ -202,13 +202,13 @@ import { Input } from "@os-glass/components/ui/input"
 
 The following components support glass customization:
 
-- ✅ Card (base & glass-ui)
-- ✅ Button (base & glass-ui)
-- ✅ Input (base & glass-ui)
-- ✅ Dialog (base & glass-ui)
-- ✅ Textarea
-- ✅ Badge
-- ✅ Alert
-- ✅ And more...
+- Card (base & glass-ui)
+- Button (base & glass-ui)
+- Input (base & glass-ui)
+- Dialog (base & glass-ui)
+- Textarea
+- Badge
+- Alert
+- And more...
 
 All components with `variant="glass"` support the `glass` prop for customization.

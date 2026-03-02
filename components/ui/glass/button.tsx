@@ -19,9 +19,9 @@ export interface ButtonProps extends Omit<React.ComponentProps<typeof BaseButton
  * ```tsx
  * <Button
  *   glass={{
- *     color: "rgba(59, 130, 246, 0.2)",
+ *     color: "oklch(0.62 0.19 260 / 0.2)",
  *     blur: 25,
- *     outline: "rgba(59, 130, 246, 0.4)"
+ *     outline: "oklch(0.62 0.19 260 / 0.4)"
  *   }}
  * >
  *   Click me

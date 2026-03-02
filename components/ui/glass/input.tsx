@@ -21,9 +21,9 @@ export interface InputProps extends Omit<React.ComponentProps<typeof BaseInput>,
  * ```tsx
  * <Input
  *   glass={{
- *     color: "rgba(255, 255, 255, 0.15)",
+ *     color: "oklch(1 0 0 / 0.15)",
  *     blur: 15,
- *     outline: "rgba(255, 255, 255, 0.3)"
+ *     outline: "oklch(1 0 0 / 0.3)"
  *   }}
  *   placeholder="Enter text..."
  * />
