@@ -47,6 +47,5 @@ export const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendCo
 );
 ChartLegendContent.displayName = "ChartLegendContent";
 
-export { ChartTooltip, ChartLegend };
-
 export type { ChartConfig };
+export { ChartLegend, ChartTooltip };

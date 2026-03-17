@@ -16,4 +16,4 @@ export const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(({ classNa
 });
 Sidebar.displayName = "Sidebar";
 
-export { SidebarHeader, SidebarContent, SidebarFooter, SidebarItem };
+export { SidebarContent, SidebarFooter, SidebarHeader, SidebarItem };

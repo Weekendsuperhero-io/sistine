@@ -54,4 +54,4 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof BaseDialog
 );
 DialogContent.displayName = "DialogContent";
 
-export { BaseDialog as Dialog, DialogTrigger, DialogHeader, DialogFooter, DialogTitle, DialogDescription };
+export { BaseDialog as Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger };

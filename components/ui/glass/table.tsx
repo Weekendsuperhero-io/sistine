@@ -16,4 +16,4 @@ export const Table = React.forwardRef<HTMLTableElement, TableProps>(({ className
 });
 Table.displayName = "Table";
 
-export { TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption };
+export { TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow };

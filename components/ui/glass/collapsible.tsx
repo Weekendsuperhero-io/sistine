@@ -1,6 +1,7 @@
 "use client";
 
 import { Collapsible as BaseCollapsible, CollapsibleContent, CollapsibleTrigger } from "@os-glass/components/ui/collapsible";
+
 // import * as React from "react";
 
 /**

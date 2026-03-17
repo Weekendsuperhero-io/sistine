@@ -29,4 +29,4 @@ export const SheetContent = React.forwardRef<React.ElementRef<typeof BaseSheetCo
 );
 SheetContent.displayName = "SheetContent";
 
-export { BaseSheet as Sheet, SheetPortal, SheetOverlay, SheetTrigger, SheetClose, SheetHeader, SheetFooter, SheetTitle, SheetDescription };
+export { BaseSheet as Sheet, SheetClose, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger };

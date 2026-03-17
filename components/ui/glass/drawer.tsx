@@ -29,4 +29,4 @@ export const DrawerContent = React.forwardRef<React.ElementRef<typeof BaseDrawer
 );
 DrawerContent.displayName = "DrawerContent";
 
-export { BaseDrawer as Drawer, DrawerPortal, DrawerOverlay, DrawerTrigger, DrawerClose, DrawerHeader, DrawerFooter, DrawerTitle, DrawerDescription };
+export { BaseDrawer as Drawer, DrawerClose, DrawerDescription, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerPortal, DrawerTitle, DrawerTrigger };

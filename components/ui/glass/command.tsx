@@ -28,4 +28,4 @@ export const Command = React.forwardRef<React.ElementRef<typeof BaseCommand>, Co
 );
 Command.displayName = "Command";
 
-export { CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandShortcut, CommandSeparator };
+export { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut };

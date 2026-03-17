@@ -22,4 +22,4 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
 );
 EmptyState.displayName = "EmptyState";
 
-export { EmptyStateIcon, EmptyStateTitle, EmptyStateDescription };
+export { EmptyStateDescription, EmptyStateIcon, EmptyStateTitle };

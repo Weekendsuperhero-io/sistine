@@ -42,4 +42,4 @@ export const SelectContent = React.forwardRef<React.ElementRef<typeof BaseSelect
 );
 SelectContent.displayName = "SelectContent";
 
-export { BaseSelect as Select, SelectValue, SelectItem };
+export { BaseSelect as Select, SelectItem, SelectValue };

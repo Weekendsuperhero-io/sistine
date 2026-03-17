@@ -29,12 +29,12 @@ export const AlertDialogContent = React.forwardRef<React.ElementRef<typeof BaseA
 AlertDialogContent.displayName = "AlertDialogContent";
 
 export {
-  BaseAlertDialog as AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
   AlertDialogAction,
   AlertDialogCancel,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  BaseAlertDialog as AlertDialog,
 };

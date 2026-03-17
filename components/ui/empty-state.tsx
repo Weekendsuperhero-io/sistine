@@ -53,4 +53,4 @@ function EmptyStateDescription({ className, ...props }: React.HTMLAttributes<HTM
   return <p className={cn("text-sm text-muted-foreground max-w-sm", className)} {...props} />;
 }
 
-export { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription };
+export { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle };

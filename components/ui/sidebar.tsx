@@ -50,4 +50,4 @@ const SidebarItem = React.forwardRef<
 ));
 SidebarItem.displayName = "SidebarItem";
 
-export { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarItem };
+export { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem };

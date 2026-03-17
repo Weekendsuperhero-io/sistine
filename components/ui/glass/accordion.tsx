@@ -30,4 +30,4 @@ export const AccordionTrigger = React.forwardRef<React.ElementRef<typeof BaseAcc
 );
 AccordionTrigger.displayName = "AccordionTrigger";
 
-export { BaseAccordion as Accordion, AccordionItem, AccordionContent };
+export { AccordionContent, AccordionItem, BaseAccordion as Accordion };

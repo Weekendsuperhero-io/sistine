@@ -26,4 +26,4 @@ export const PaginationContent = React.forwardRef<HTMLUListElement, PaginationCo
 );
 PaginationContent.displayName = "PaginationContent";
 
-export { BasePagination as Pagination, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis };
+export { BasePagination as Pagination, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious };

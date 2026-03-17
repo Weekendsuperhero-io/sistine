@@ -49,4 +49,4 @@ export const NavigationMenuViewport = React.forwardRef<React.ElementRef<typeof B
 );
 NavigationMenuViewport.displayName = "NavigationMenuViewport";
 
-export { BaseNavigationMenu as NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuIndicator, NavigationMenuTrigger };
+export { BaseNavigationMenu as NavigationMenu, NavigationMenuIndicator, NavigationMenuItem, NavigationMenuLink, NavigationMenuTrigger };

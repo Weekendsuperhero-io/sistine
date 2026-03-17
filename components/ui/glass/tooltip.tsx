@@ -18,4 +18,4 @@ export const TooltipContent = React.forwardRef<React.ElementRef<typeof BaseToolt
 );
 TooltipContent.displayName = "TooltipContent";
 
-export { BaseTooltip as Tooltip, TooltipTrigger, TooltipProvider };
+export { BaseTooltip as Tooltip, TooltipProvider, TooltipTrigger };

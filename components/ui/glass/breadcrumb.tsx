@@ -26,4 +26,4 @@ export const BreadcrumbList = React.forwardRef<HTMLOListElement, BreadcrumbListP
 );
 BreadcrumbList.displayName = "BreadcrumbList";
 
-export { BaseBreadcrumb as Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbEllipsis };
+export { BaseBreadcrumb as Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator };
