@@ -1,14 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Glass UI/Checkbox',
+  title: "Glass UI/Checkbox",
   component: Checkbox,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   decorators: [
     (Story) => (
       <div className="flex items-center space-x-2">
@@ -23,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    id: 'checkbox-default',
+    id: "checkbox-default",
   },
   render: (args) => (
     <>
@@ -35,7 +37,7 @@ export const Default: Story = {
 
 export const Checked: Story = {
   args: {
-    id: 'checkbox-checked',
+    id: "checkbox-checked",
     defaultChecked: true,
   },
   render: (args) => (
@@ -48,7 +50,7 @@ export const Checked: Story = {
 
 export const Disabled: Story = {
   args: {
-    id: 'checkbox-disabled',
+    id: "checkbox-disabled",
     disabled: true,
   },
   render: (args) => (
@@ -61,7 +63,7 @@ export const Disabled: Story = {
 
 export const DisabledChecked: Story = {
   args: {
-    id: 'checkbox-disabled-checked',
+    id: "checkbox-disabled-checked",
     disabled: true,
     defaultChecked: true,
   },
@@ -72,4 +74,3 @@ export const DisabledChecked: Story = {
     </>
   ),
 };
-

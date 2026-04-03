@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react"
 import Link from "next/link"
@@ -501,5 +501,5 @@ export default function Home() {
 
       </div>
     </div>
-  )
+  );
 }

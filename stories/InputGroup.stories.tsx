@@ -1,24 +1,40 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { InputGroup } from '@/components/ui/glass/input-group';
-import { Input } from '@/components/ui/glass/input';
-import { Button } from '@/components/ui/glass/button';
-import { Search } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/glass/button";
+import { Input } from "@/components/ui/glass/input";
+import { InputGroup } from "@/components/ui/glass/input-group";
 
 const meta = {
-  title: 'Glass UI/InputGroup',
+  title: "Glass UI/InputGroup",
   component: InputGroup,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "glassSubtle",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
     },
   },
 } satisfies Meta<typeof InputGroup>;
@@ -28,7 +44,7 @@ type Story = StoryObj<typeof meta>;
 
 export const WithButton: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
@@ -42,7 +58,7 @@ export const WithButton: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
+    variant: "frosted",
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
@@ -53,4 +69,3 @@ export const Frosted: Story = {
     ),
   },
 };
-

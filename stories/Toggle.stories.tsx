@@ -1,22 +1,31 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Toggle } from '@/components/ui/toggle';
-import { Bold, Italic, Underline } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Bold, Italic, Underline } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 const meta = {
-  title: 'Glass UI/Toggle',
+  title: "Glass UI/Toggle",
   component: Toggle,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'outline'],
+      control: "select",
+      options: [
+        "default",
+        "outline",
+      ],
     },
     size: {
-      control: 'select',
-      options: ['default', 'sm', 'lg'],
+      control: "select",
+      options: [
+        "default",
+        "sm",
+        "lg",
+      ],
     },
   },
 } satisfies Meta<typeof Toggle>;
@@ -36,7 +45,7 @@ export const Default: Story = {
 
 export const Outline: Story = {
   args: {
-    variant: 'outline',
+    variant: "outline",
     children: (
       <>
         <Italic className="h-4 w-4" />
@@ -58,7 +67,7 @@ export const WithText: Story = {
 
 export const Small: Story = {
   args: {
-    size: 'sm',
+    size: "sm",
     children: (
       <>
         <Italic className="h-4 w-4" />
@@ -69,7 +78,7 @@ export const Small: Story = {
 
 export const Large: Story = {
   args: {
-    size: 'lg',
+    size: "lg",
     children: (
       <>
         <Underline className="h-4 w-4" />
@@ -104,4 +113,3 @@ export const Disabled: Story = {
     ),
   },
 };
-

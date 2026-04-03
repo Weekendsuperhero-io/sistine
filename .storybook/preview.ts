@@ -10,19 +10,19 @@ const preview: Preview = {
       },
     },
     backgrounds: {
-      default: 'glass',
+      default: "glass",
       values: [
         {
-          name: 'glass',
-          value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          name: "glass",
+          value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         },
         {
-          name: 'light',
-          value: '#ffffff',
+          name: "light",
+          value: "#ffffff",
         },
         {
-          name: 'dark',
-          value: '#1a1a1a',
+          name: "dark",
+          value: "#1a1a1a",
         },
       ],
     },

@@ -1,13 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Skeleton } from '@/components/ui/skeleton';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const meta = {
-  title: 'Glass UI/Skeleton',
+  title: "Glass UI/Skeleton",
   component: Skeleton,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Skeleton>;
 
 export default meta;
@@ -88,4 +90,3 @@ export const Form: Story = {
     </div>
   ),
 };
-

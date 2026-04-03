@@ -1,13 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const meta = {
-  title: 'Glass UI/Avatar',
+  title: "Glass UI/Avatar",
   component: Avatar,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Avatar>;
 
 export default meta;
@@ -80,21 +82,14 @@ export const CustomFallback: Story = {
   render: () => (
     <div className="flex gap-4">
       <Avatar>
-        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500">
-          AB
-        </AvatarFallback>
+        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500">AB</AvatarFallback>
       </Avatar>
       <Avatar>
-        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500">
-          CD
-        </AvatarFallback>
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500">CD</AvatarFallback>
       </Avatar>
       <Avatar>
-        <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-500">
-          EF
-        </AvatarFallback>
+        <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-500">EF</AvatarFallback>
       </Avatar>
     </div>
   ),
 };
-

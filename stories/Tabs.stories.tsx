@@ -1,14 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/glass/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/glass/card';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs";
 
 const meta = {
-  title: 'Glass UI/Tabs',
+  title: "Glass UI/Tabs",
   component: Tabs,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -25,9 +27,7 @@ export const Glass: Story = {
         <Card variant="glass">
           <CardHeader>
             <CardTitle>Account</CardTitle>
-            <CardDescription>
-              Make changes to your account here. Click save when you're done.
-            </CardDescription>
+            <CardDescription>Make changes to your account here. Click save when you're done.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <p className="text-sm">Your account settings and preferences.</p>
@@ -38,9 +38,7 @@ export const Glass: Story = {
         <Card variant="glass">
           <CardHeader>
             <CardTitle>Password</CardTitle>
-            <CardDescription>
-              Change your password here. After saving, you'll be logged out.
-            </CardDescription>
+            <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <p className="text-sm">Update your password securely.</p>
@@ -167,4 +165,3 @@ export const WithGlow: Story = {
     </Tabs>
   ),
 };
-

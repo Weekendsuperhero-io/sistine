@@ -9,12 +9,16 @@ import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: [
+    "latin",
+  ],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: [
+    "latin",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -39,9 +43,9 @@ export default function RootLayout({
         >
           <GridBackground />
           {/* <div className="flex min-h-screen flex-col"> */}
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
           {/* </div> */}
           <Toaster />
         </ThemeProvider>

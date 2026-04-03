@@ -1,9 +1,8 @@
-import Link from "next/link"
-import { Github, Heart } from "lucide-react"
-import { Button } from "@/components/ui/glass/button"
+import { Github, Heart } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/glass/button";
 
 export function Footer() {
-
   return (
     <footer className="w-full pb-4 bg-transparent mt-16">
       <div className="container mx-auto px-4">
@@ -42,19 +41,8 @@ export function Footer() {
               </div>
             </div>
             <div className="flex items-center gap-4 flex-wrap justify-center md:justify-end">
-              <Button
-                variant="glass"
-                size="sm"
-                asChild
-                effect="glow"
-                className="gap-2"
-              >
-                <Link
-                  href="https://github.com/sponsors/akshaypjoshi"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Sponsor akshaypjoshi"
-                >
+              <Button variant="glass" size="sm" asChild effect="glow" className="gap-2">
+                <Link href="https://github.com/sponsors/akshaypjoshi" target="_blank" rel="noopener noreferrer" aria-label="Sponsor akshaypjoshi">
                   <Heart className="h-4 w-4 fill-current" />
                   <span>Sponsor</span>
                 </Link>
@@ -68,14 +56,11 @@ export function Footer() {
               >
                 <Github className="h-5 w-5" />
               </Link>
-              <span className="text-xs sm:text-sm text-muted-foreground">
-                The source code is available on GitHub.
-              </span>
+              <span className="text-xs sm:text-sm text-muted-foreground">The source code is available on GitHub.</span>
             </div>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }
-

@@ -1,14 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const meta = {
-  title: 'Glass UI/RadioGroup',
+  title: "Glass UI/RadioGroup",
   component: RadioGroup,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof RadioGroup>;
 
 export default meta;
@@ -75,4 +77,3 @@ export const Disabled: Story = {
     </RadioGroup>
   ),
 };
-

@@ -1,37 +1,50 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ChevronRight } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { getComponents } from "@/lib/registry"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { getComponents } from "@/lib/registry";
+import { cn } from "@/lib/utils";
 
-const components = getComponents()
+const components = getComponents();
 
 // New components that should show NEW badge
 const newComponents = new Set([
-  'spinner',
-  'button-group',
-  'input-group',
-  'empty-state',
-  'menu-bar',
-  'date-picker-input',
-  'context-menu',
-  'carousel',
-])
+  "spinner",
+  "button-group",
+  "input-group",
+  "empty-state",
+  "menu-bar",
+  "date-picker-input",
+  "context-menu",
+  "carousel",
+]);
 
-type NavItem = { title: string; href: string; isNew?: boolean }
+type NavItem = {
+  title: string;
+  href: string;
+  isNew?: boolean;
+};
 
 const docsNav = [
   {
     title: "Getting Started",
     items: [
-      { title: "Installation", href: "/docs/getting-started" },
-      { title: "MCP Setup", href: "/docs/getting-started#mcp" },
-      { title: "Glass Customization", href: "/docs/getting-started#glass-customization" },
+      {
+        title: "Installation",
+        href: "/docs/getting-started",
+      },
+      {
+        title: "MCP Setup",
+        href: "/docs/getting-started#mcp",
+      },
+      {
+        title: "Glass Customization",
+        href: "/docs/getting-started#glass-customization",
+      },
     ] as NavItem[],
   },
   {
@@ -42,10 +55,10 @@ const docsNav = [
       isNew: newComponents.has(comp.name),
     })) as NavItem[],
   },
-]
+];
 
 export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <aside className="w-full md:w-64">
@@ -57,7 +70,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                 <h3 className="text-sm font-semibold text-foreground mb-3">{section.title}</h3>
                 <ul className="space-y-1">
                   {section.items.map((item) => {
-                    const isActive = pathname === item.href
+                    const isActive = pathname === item.href;
                     return (
                       <li key={item.href}>
                         <Link
@@ -65,9 +78,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           onClick={onLinkClick}
                           className={cn(
                             "flex items-center gap-2 text-sm transition-colors hover:text-foreground rounded-md px-2 py-1.5",
-                            isActive
-                              ? "text-foreground font-medium bg-accent"
-                              : "text-muted-foreground hover:bg-accent/50"
+                            isActive ? "text-foreground font-medium bg-accent" : "text-muted-foreground hover:bg-accent/50",
                           )}
                         >
                           {isActive && <ChevronRight className="h-4 w-4" />}
@@ -79,7 +90,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           )}
                         </Link>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               </div>
@@ -88,6 +99,5 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
         </CardContent>
       </Card>
     </aside>
-  )
+  );
 }
-

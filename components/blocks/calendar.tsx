@@ -1,21 +1,39 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Clock, MapPin } from "lucide-react"
+import { Clock, MapPin } from "lucide-react";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const events = [
-  { id: 1, title: "Team Meeting", time: "10:00 AM", location: "Conference Room A", date: new Date() },
-  { id: 2, title: "Client Call", time: "2:00 PM", location: "Zoom", date: new Date() },
-  { id: 3, title: "Project Review", time: "4:00 PM", location: "Office", date: new Date() },
-]
+  {
+    id: 1,
+    title: "Team Meeting",
+    time: "10:00 AM",
+    location: "Conference Room A",
+    date: new Date(),
+  },
+  {
+    id: 2,
+    title: "Client Call",
+    time: "2:00 PM",
+    location: "Zoom",
+    date: new Date(),
+  },
+  {
+    id: 3,
+    title: "Project Review",
+    time: "4:00 PM",
+    location: "Office",
+    date: new Date(),
+  },
+];
 
 export function CalendarBlock() {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
 
   return (
     <div className="p-6 space-y-6">
@@ -36,13 +54,7 @@ export function CalendarBlock() {
             <CardDescription className="text-muted-foreground">Select a date to view events</CardDescription>
           </CardHeader>
           <CardContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              variant="glass"
-              className="rounded-md border"
-            />
+            <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} variant="glass" className="rounded-md border" />
           </CardContent>
         </Card>
 
@@ -55,10 +67,7 @@ export function CalendarBlock() {
             <ScrollArea className="h-[400px]">
               <div className="space-y-4">
                 {events.map((event) => (
-                  <div
-                    key={event.id}
-                    className="p-4 rounded-lg border border-white/20 bg-black/20 backdrop-blur-sm"
-                  >
+                  <div key={event.id} className="p-4 rounded-lg border border-white/20 bg-black/20 backdrop-blur-sm">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold text-white">{event.title}</h4>
                       <Badge variant="glass">Today</Badge>
@@ -81,6 +90,5 @@ export function CalendarBlock() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

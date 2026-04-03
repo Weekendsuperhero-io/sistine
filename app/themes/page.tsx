@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check, Palette } from "lucide-react"
-import { generateThemeCSS, defaultTheme, type ThemeColors } from "@/lib/theme-generator"
+import { Check, Copy, Palette } from "lucide-react";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { defaultTheme, generateThemeCSS, type ThemeColors } from "@/lib/theme-generator";
 
 const presetThemes = [
   {
@@ -32,30 +32,37 @@ const presetThemes = [
       foreground: "oklch(1 0 0)",
     },
   },
-]
+];
 
 export default function ThemesPage() {
-  const [selectedTheme, setSelectedTheme] = React.useState(presetThemes[0])
-  const [customColors, setCustomColors] = React.useState<ThemeColors>(defaultTheme)
-  const [copied, setCopied] = React.useState(false)
-  const [activeTab, setActiveTab] = React.useState<"presets" | "custom">("presets")
+  const [selectedTheme, setSelectedTheme] = React.useState(presetThemes[0]);
+  const [customColors, setCustomColors] = React.useState<ThemeColors>(defaultTheme);
+  const [copied, setCopied] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"presets" | "custom">("presets");
 
   const currentCSS = React.useMemo(() => {
     if (activeTab === "presets") {
-      return generateThemeCSS(selectedTheme.colors, selectedTheme.darkColors)
+      return generateThemeCSS(selectedTheme.colors, selectedTheme.darkColors);
     }
-    return generateThemeCSS(customColors)
-  }, [selectedTheme, customColors, activeTab])
+    return generateThemeCSS(customColors);
+  }, [
+    selectedTheme,
+    customColors,
+    activeTab,
+  ]);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(currentCSS)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(currentCSS);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const updateColor = (key: keyof ThemeColors, value: string) => {
-    setCustomColors((prev) => ({ ...prev, [key]: value }))
-  }
+    setCustomColors((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
   return (
     <div className="min-h-screen relative">
@@ -65,9 +72,7 @@ export default function ThemesPage() {
             <Palette className="h-7 w-7 text-foreground" />
             <h1 className="text-4xl font-bold text-foreground">Themes</h1>
           </div>
-          <p className="text-lg text-muted-foreground">
-            Hand-picked themes that you can copy and paste into your apps.
-          </p>
+          <p className="text-lg text-muted-foreground">Hand-picked themes that you can copy and paste into your apps.</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "presets" | "custom")} className="space-y-8">
@@ -89,23 +94,27 @@ export default function ThemesPage() {
                 >
                   <CardHeader>
                     <CardTitle className="text-foreground">{theme.name}</CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      Click to select this theme
-                    </CardDescription>
+                    <CardDescription className="text-muted-foreground">Click to select this theme</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-2">
                       <div
                         className="w-8 h-8 rounded border border-border"
-                        style={{ backgroundColor: theme.colors.primary }}
+                        style={{
+                          backgroundColor: theme.colors.primary,
+                        }}
                       />
                       <div
                         className="w-8 h-8 rounded border border-border"
-                        style={{ backgroundColor: theme.colors.background }}
+                        style={{
+                          backgroundColor: theme.colors.background,
+                        }}
                       />
                       <div
                         className="w-8 h-8 rounded border border-border"
-                        style={{ backgroundColor: theme.colors.accent }}
+                        style={{
+                          backgroundColor: theme.colors.accent,
+                        }}
                       />
                     </div>
                   </CardContent>
@@ -118,21 +127,17 @@ export default function ThemesPage() {
             <Card variant="glass" className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Customize Colors</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Adjust colors to create your own theme
-                </CardDescription>
+                <CardDescription className="text-muted-foreground">Adjust colors to create your own theme</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4">Theme Colors</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.keys(customColors).map((key) => {
-                      if (key === "radius" || key.startsWith("glass") || key.startsWith("blur") || key.startsWith("dark")) return null
+                      if (key === "radius" || key.startsWith("glass") || key.startsWith("blur") || key.startsWith("dark")) return null;
                       return (
                         <div key={key} className="space-y-2">
-                          <Label className="text-foreground capitalize">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </Label>
+                          <Label className="text-foreground capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</Label>
                           <div className="flex gap-2">
                             <input
                               type="color"
@@ -148,24 +153,39 @@ export default function ThemesPage() {
                             />
                           </div>
                         </div>
-                      )
+                      );
                     })}
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4">Glass Effect (Light Mode)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {["glassBg", "glassBorder", "glassShadow", "glassShadowLg", "glassShadowSm", "blur", "blurSm", "blurLg"].map((key) => (
+                    {[
+                      "glassBg",
+                      "glassBorder",
+                      "glassShadow",
+                      "glassShadowLg",
+                      "glassShadowSm",
+                      "blur",
+                      "blurSm",
+                      "blurLg",
+                    ].map((key) => (
                       <div key={key} className="space-y-2">
-                        <Label className="text-foreground capitalize">
-                          {key.replace(/([A-Z])/g, " $1").trim()}
-                        </Label>
+                        <Label className="text-foreground capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</Label>
                         <Input
                           type="text"
                           value={customColors[key as keyof ThemeColors] || ""}
                           onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
-                          placeholder={key.includes("blur") ? "e.g., 30px" : key.includes("glassBg") ? "e.g., rgba(255, 255, 255, 0.25)" : key.includes("glassBorder") ? "e.g., rgba(255, 255, 255, 0.18)" : "e.g., 0 8px 32px rgba(0, 0, 0, 0.1)"}
+                          placeholder={
+                            key.includes("blur")
+                              ? "e.g., 30px"
+                              : key.includes("glassBg")
+                                ? "e.g., rgba(255, 255, 255, 0.25)"
+                                : key.includes("glassBorder")
+                                  ? "e.g., rgba(255, 255, 255, 0.18)"
+                                  : "e.g., 0 8px 32px rgba(0, 0, 0, 0.1)"
+                          }
                           className="text-foreground"
                         />
                       </div>
@@ -176,16 +196,31 @@ export default function ThemesPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4">Glass Effect (Dark Mode)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {["darkGlassBg", "darkGlassBorder", "darkGlassShadow", "darkGlassShadowLg", "darkGlassShadowSm"].map((key) => (
+                    {[
+                      "darkGlassBg",
+                      "darkGlassBorder",
+                      "darkGlassShadow",
+                      "darkGlassShadowLg",
+                      "darkGlassShadowSm",
+                    ].map((key) => (
                       <div key={key} className="space-y-2">
                         <Label className="text-foreground capitalize">
-                          {key.replace(/([A-Z])/g, " $1").replace("dark ", "").trim()}
+                          {key
+                            .replace(/([A-Z])/g, " $1")
+                            .replace("dark ", "")
+                            .trim()}
                         </Label>
                         <Input
                           type="text"
                           value={customColors[key as keyof ThemeColors] || ""}
                           onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
-                          placeholder={key.includes("darkGlassBg") ? "e.g., rgba(255, 255, 255, 0.05)" : key.includes("darkGlassBorder") ? "e.g., rgba(255, 255, 255, 0.15)" : "e.g., 0 8px 32px rgba(0, 0, 0, 0.4)"}
+                          placeholder={
+                            key.includes("darkGlassBg")
+                              ? "e.g., rgba(255, 255, 255, 0.05)"
+                              : key.includes("darkGlassBorder")
+                                ? "e.g., rgba(255, 255, 255, 0.15)"
+                                : "e.g., 0 8px 32px rgba(0, 0, 0, 0.4)"
+                          }
                           className="text-foreground"
                         />
                       </div>
@@ -201,14 +236,9 @@ export default function ThemesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-foreground">CSS Code</CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    Copy and paste this into your CSS file
-                  </CardDescription>
+                  <CardDescription className="text-muted-foreground">Copy and paste this into your CSS file</CardDescription>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={copyToClipboard}
-                >
+                <Button variant="outline" onClick={copyToClipboard}>
                   {copied ? (
                     <>
                       <Check className="mr-2 h-4 w-4" />
@@ -234,6 +264,5 @@ export default function ThemesPage() {
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
-

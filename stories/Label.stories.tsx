@@ -1,15 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Glass UI/Label',
+  title: "Glass UI/Label",
   component: Label,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Label>;
 
 export default meta;
@@ -17,7 +19,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    children: 'Email Address',
+    children: "Email Address",
   },
 };
 
@@ -49,4 +51,3 @@ export const Required: Story = {
     </div>
   ),
 };
-

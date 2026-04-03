@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Dialog as BaseDialog,
   DialogContent as BaseDialogContent,
@@ -9,24 +9,24 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+} from "@/components/ui/dialog";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
 
 export interface DialogContentProps extends Omit<React.ComponentProps<typeof BaseDialogContent>, "glass"> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
-  animated?: boolean
-  hover?: HoverEffect
-  glass?: GlassCustomization
+  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  animated?: boolean;
+  hover?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
  * Glass UI Dialog - Enhanced dialog with glassy effects and animations
- * 
+ *
  * @example
  * ```tsx
- * <DialogContent 
+ * <DialogContent
  *   glass={{
  *     color: "rgba(139, 92, 246, 0.15)",
  *     blur: 40,
@@ -37,35 +37,28 @@ export interface DialogContentProps extends Omit<React.ComponentProps<typeof Bas
  * </DialogContent>
  * ```
  */
-export const DialogContent = React.forwardRef<
-  React.ElementRef<typeof BaseDialogContent>,
-  DialogContentProps
->(({ className, variant = "glass", animated = true, hover = "none", glass, children, ...props }, ref) => {
-  return (
-    <BaseDialogContent
-      ref={ref}
-      variant={variant}
-      glass={glass}
-      className={cn(
-        "relative overflow-hidden",
-        animated && "backdrop-blur-[var(--blur-lg)]",
-        hoverEffects({ hover }),
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </BaseDialogContent>
-  )
-})
-DialogContent.displayName = "DialogContent"
+export const DialogContent = React.forwardRef<React.ElementRef<typeof BaseDialogContent>, DialogContentProps>(
+  ({ className, variant = "glass", animated = true, hover = "none", glass, children, ...props }, ref) => {
+    return (
+      <BaseDialogContent
+        ref={ref}
+        variant={variant}
+        glass={glass}
+        className={cn(
+          "relative overflow-hidden",
+          animated && "backdrop-blur-[var(--blur-lg)]",
+          hoverEffects({
+            hover,
+          }),
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </BaseDialogContent>
+    );
+  },
+);
+DialogContent.displayName = "DialogContent";
 
-export {
-  BaseDialog as Dialog,
-  DialogTrigger,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-}
-
+export { BaseDialog as Dialog, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger };

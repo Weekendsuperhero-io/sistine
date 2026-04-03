@@ -1,13 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const meta = {
-  title: 'Glass UI/Select',
+  title: "Glass UI/Select",
   component: Select,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Select>;
 
 export default meta;
@@ -78,4 +80,3 @@ export const WithDefaultValue: Story = {
     </Select>
   ),
 };
-

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Skeleton as BaseSkeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import type * as React from "react";
+import { Skeleton as BaseSkeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export interface SkeletonProps extends React.ComponentProps<typeof BaseSkeleton> {
-  shimmer?: boolean
+  shimmer?: boolean;
 }
 
 /**
@@ -16,11 +16,11 @@ export function Skeleton({ className, variant = "glass", shimmer = true, ...prop
     <BaseSkeleton
       variant={variant}
       className={cn(
-        shimmer && "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-[shimmer_2s_infinite]",
-        className
+        shimmer &&
+          "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-[shimmer_2s_infinite]",
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
-

@@ -5,15 +5,17 @@
  * Cross-platform alternative to rsync for Vercel deployment
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const sourceDir = path.join(process.cwd(), 'storybook-static');
-const targetDir = path.join(process.cwd(), 'public', 'storybook');
+const sourceDir = path.join(process.cwd(), "storybook-static");
+const targetDir = path.join(process.cwd(), "public", "storybook");
 
 // Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {
-  fs.mkdirSync(targetDir, { recursive: true });
+  fs.mkdirSync(targetDir, {
+    recursive: true,
+  });
 }
 
 // Copy files recursively
@@ -24,13 +26,12 @@ function copyRecursiveSync(src, dest) {
 
   if (isDirectory) {
     if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest, { recursive: true });
+      fs.mkdirSync(dest, {
+        recursive: true,
+      });
     }
     fs.readdirSync(src).forEach((childItemName) => {
-      copyRecursiveSync(
-        path.join(src, childItemName),
-        path.join(dest, childItemName)
-      );
+      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
     });
   } else {
     fs.copyFileSync(src, dest);
@@ -46,11 +47,13 @@ if (!fs.existsSync(sourceDir)) {
 
 // Remove existing target directory if it exists
 if (fs.existsSync(targetDir)) {
-  fs.rmSync(targetDir, { recursive: true, force: true });
+  fs.rmSync(targetDir, {
+    recursive: true,
+    force: true,
+  });
 }
 
 // Copy files
 console.log(`Copying Storybook files from ${sourceDir} to ${targetDir}...`);
 copyRecursiveSync(sourceDir, targetDir);
-console.log('✓ Storybook files exported successfully!');
-
+console.log("✓ Storybook files exported successfully!");

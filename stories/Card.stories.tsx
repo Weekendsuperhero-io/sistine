@@ -1,22 +1,38 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/glass/card';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/glass/card";
 
 const meta = {
-  title: 'Glass UI/Card',
+  title: "Glass UI/Card",
   component: Card,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "glassSubtle",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     hover: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
-      description: 'Hover animation effect',
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
+      description: "Hover animation effect",
     },
   },
 } satisfies Meta<typeof Card>;
@@ -26,7 +42,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Glass: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     children: (
       <>
         <CardHeader>
@@ -46,7 +62,7 @@ export const Glass: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
+    variant: "frosted",
     children: (
       <>
         <CardHeader>
@@ -63,7 +79,7 @@ export const Frosted: Story = {
 
 export const Fluted: Story = {
   args: {
-    variant: 'fluted',
+    variant: "fluted",
     children: (
       <>
         <CardHeader>
@@ -80,7 +96,7 @@ export const Fluted: Story = {
 
 export const Crystal: Story = {
   args: {
-    variant: 'crystal',
+    variant: "crystal",
     children: (
       <>
         <CardHeader>
@@ -97,8 +113,8 @@ export const Crystal: Story = {
 
 export const WithGlowHover: Story = {
   args: {
-    variant: 'glass',
-    hover: 'glow',
+    variant: "glass",
+    hover: "glow",
     children: (
       <>
         <CardHeader>
@@ -115,8 +131,8 @@ export const WithGlowHover: Story = {
 
 export const WithShimmerHover: Story = {
   args: {
-    variant: 'glass',
-    hover: 'shimmer',
+    variant: "glass",
+    hover: "shimmer",
     children: (
       <>
         <CardHeader>
@@ -133,8 +149,8 @@ export const WithShimmerHover: Story = {
 
 export const WithLiftHover: Story = {
   args: {
-    variant: 'glass',
-    hover: 'lift',
+    variant: "glass",
+    hover: "lift",
     children: (
       <>
         <CardHeader>
@@ -151,13 +167,13 @@ export const WithLiftHover: Story = {
 
 export const WithCustomGlass: Story = {
   args: {
-    variant: 'glass',
-    hover: 'scale',
+    variant: "glass",
+    hover: "scale",
     glass: {
-      color: 'rgba(139, 92, 246, 0.15)',
+      color: "rgba(139, 92, 246, 0.15)",
       blur: 25,
-      outline: 'rgba(139, 92, 246, 0.4)',
-      innerGlow: 'rgba(255, 255, 255, 0.2)',
+      outline: "rgba(139, 92, 246, 0.4)",
+      innerGlow: "rgba(255, 255, 255, 0.2)",
       innerGlowBlur: 20,
     },
     children: (

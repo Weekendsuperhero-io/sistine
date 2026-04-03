@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react"
 import Link from "next/link"
@@ -44,16 +44,17 @@ const blocks = [
     description: "Beautiful charts with bar, line, and area visualizations",
     category: "Data Display",
   },
-]
+];
 
 export default function BlocksPage() {
-  const [searchQuery, setSearchQuery] = React.useState("")
+  const [searchQuery, setSearchQuery] = React.useState("");
 
-  const filteredBlocks = blocks.filter((block) =>
-    block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    block.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    block.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredBlocks = blocks.filter(
+    (block) =>
+      block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      block.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      block.description.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="min-h-screen relative">
@@ -106,6 +107,5 @@ export default function BlocksPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
-

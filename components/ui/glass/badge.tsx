@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Badge as BaseBadge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import type * as React from "react";
+import { Badge as BaseBadge } from "@/components/ui/badge";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.ComponentProps<typeof BaseBadge> {
-  glow?: boolean
-  hover?: HoverEffect
+  glow?: boolean;
+  hover?: HoverEffect;
 }
 
 /**
@@ -21,11 +21,12 @@ export function Badge({ className, variant = "glass", glow = false, hover = "non
         "relative overflow-hidden",
         glow && "shadow-lg shadow-purple-500/30",
         "transition-all duration-200",
-        hoverEffects({ hover }),
-        className
+        hoverEffects({
+          hover,
+        }),
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
-

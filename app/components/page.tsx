@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react"
 import Link from "next/link"
@@ -8,28 +8,29 @@ import { Badge } from "@/components/ui/badge"
 import { Search } from "lucide-react"
 import { getComponents } from "@/lib/registry"
 
-const components = getComponents()
+const components = getComponents();
 
 // New components that should show NEW badge
 const newComponents = new Set([
-  'spinner',
-  'button-group',
-  'input-group',
-  'empty-state',
-  'menu-bar',
-  'date-picker-input',
-  'context-menu',
-  'carousel',
-])
+  "spinner",
+  "button-group",
+  "input-group",
+  "empty-state",
+  "menu-bar",
+  "date-picker-input",
+  "context-menu",
+  "carousel",
+]);
 
 export default function ComponentsPage() {
-  const [searchQuery, setSearchQuery] = React.useState("")
+  const [searchQuery, setSearchQuery] = React.useState("");
 
-  const filteredComponents = components.filter((component) =>
-    component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    component.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    component.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredComponents = components.filter(
+    (component) =>
+      component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      component.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      component.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="min-h-screen relative">
@@ -71,9 +72,7 @@ export default function ComponentsPage() {
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-muted-foreground">
-                    {component.description || "No description available"}
-                  </CardDescription>
+                  <CardDescription className="text-muted-foreground">{component.description || "No description available"}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
@@ -92,6 +91,5 @@ export default function ComponentsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }
-

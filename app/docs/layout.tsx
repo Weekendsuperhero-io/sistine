@@ -1,22 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { DocsSidebar } from "@/components/docs-sidebar"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { Menu } from "lucide-react";
+import * as React from "react";
+import { DocsSidebar } from "@/components/docs-sidebar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-export default function DocsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-300 relative"
-    >
+    <div className="min-h-screen transition-colors duration-300 relative">
       <div className="container mx-auto px-4 pt-4 pb-8 relative z-10">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {/* Desktop Sidebar */}
@@ -47,5 +41,5 @@ export default function DocsLayout({
         </div>
       </div>
     </div>
-  )
+  );
 }

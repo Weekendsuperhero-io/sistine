@@ -1,33 +1,30 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Check, Copy } from "lucide-react";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface InstallationInstructionsProps {
-  componentName: string
-  packageName?: string
+  componentName: string;
+  packageName?: string;
 }
 
-export function InstallationInstructions({ 
-  componentName, 
-  packageName = "@crenspire/glass-ui" 
-}: InstallationInstructionsProps) {
-  const [copied, setCopied] = React.useState<string | null>(null)
+export function InstallationInstructions({ componentName, packageName = "@crenspire/glass-ui" }: InstallationInstructionsProps) {
+  const [copied, setCopied] = React.useState<string | null>(null);
 
   const commands = {
     pnpm: `pnpm dlx shadcn@latest add @glass-ui/${componentName}`,
     yarn: `yarn dlx shadcn@latest add @glass-ui/${componentName}`,
     npm: `npx shadcn@latest add @glass-ui/${componentName}`,
     bun: `bunx shadcn@latest add @glass-ui/${componentName}`,
-  }
+  };
 
   const copyToClipboard = (command: string, key: string) => {
-    navigator.clipboard.writeText(command)
-    setCopied(key)
-    setTimeout(() => setCopied(null), 2000)
-  }
+    navigator.clipboard.writeText(command);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   return (
     <Tabs defaultValue="pnpm" className="w-full">
@@ -49,16 +46,11 @@ export function InstallationInstructions({
               className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
               onClick={() => copyToClipboard(command, key)}
             >
-              {copied === key ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
+              {copied === key ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>
           </div>
         </TabsContent>
       ))}
     </Tabs>
-  )
+  );
 }
-

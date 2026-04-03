@@ -1,20 +1,29 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Button } from '@/components/ui/glass/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CalendarDays } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { CalendarDays } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/glass/button";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const meta = {
-  title: 'Glass UI/HoverCard',
+  title: "Glass UI/HoverCard",
   component: HoverCard,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "glassSubtle",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
   },
 } satisfies Meta<typeof HoverCard>;
@@ -36,14 +45,10 @@ export const Glass: Story = {
           </Avatar>
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">@nextjs</h4>
-            <p className="text-sm">
-              The React Framework – created and maintained by @vercel.
-            </p>
+            <p className="text-sm">The React Framework – created and maintained by @vercel.</p>
             <div className="flex items-center pt-2">
               <CalendarDays className="mr-2 h-4 w-4 opacity-70" />
-              <span className="text-xs text-muted-foreground">
-                Joined December 2021
-              </span>
+              <span className="text-xs text-muted-foreground">Joined December 2021</span>
             </div>
           </div>
         </div>
@@ -66,14 +71,10 @@ export const Frosted: Story = {
           </Avatar>
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">@shadcn</h4>
-            <p className="text-sm">
-              Creator of shadcn/ui – Beautiful, accessible components.
-            </p>
+            <p className="text-sm">Creator of shadcn/ui – Beautiful, accessible components.</p>
             <div className="flex items-center pt-2">
               <CalendarDays className="mr-2 h-4 w-4 opacity-70" />
-              <span className="text-xs text-muted-foreground">
-                Active contributor
-              </span>
+              <span className="text-xs text-muted-foreground">Active contributor</span>
             </div>
           </div>
         </div>
@@ -91,20 +92,14 @@ export const Crystal: Story = {
       <HoverCardContent variant="crystal" className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
-            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500">
-              PR
-            </AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500">PR</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <h4 className="text-sm font-semibold">Premium User</h4>
-            <p className="text-sm">
-              Enjoy premium features with crystal glass styling.
-            </p>
+            <p className="text-sm">Enjoy premium features with crystal glass styling.</p>
             <div className="flex items-center pt-2">
               <CalendarDays className="mr-2 h-4 w-4 opacity-70" />
-              <span className="text-xs text-muted-foreground">
-                Member since 2024
-              </span>
+              <span className="text-xs text-muted-foreground">Member since 2024</span>
             </div>
           </div>
         </div>
@@ -120,11 +115,8 @@ export const SimpleText: Story = {
         <span className="cursor-pointer underline">Hover here</span>
       </HoverCardTrigger>
       <HoverCardContent variant="glass">
-        <p className="text-sm">
-          This is a simple hover card with just text content.
-        </p>
+        <p className="text-sm">This is a simple hover card with just text content.</p>
       </HoverCardContent>
     </HoverCard>
   ),
 };
-

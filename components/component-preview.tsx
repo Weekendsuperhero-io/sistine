@@ -1,69 +1,110 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Slider } from "@/components/ui/slider"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Calendar } from "@/components/ui/calendar"
-import { Toggle } from "@/components/ui/toggle"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/sidebar"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
-import { Toaster } from "@/components/ui/sonner"
-import { toast } from "sonner"
-import { Info, Sparkles, Inbox, Search, Calendar as CalendarIcon } from "lucide-react"
-import { Spinner } from "@/components/ui/glass/spinner"
-import { ButtonGroup } from "@/components/ui/glass/button-group"
-import { InputGroup } from "@/components/ui/glass/input-group"
-import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/glass/empty-state"
-import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar"
-import { DatePickerInput } from "@/components/ui/glass/date-picker-input"
-import { ContextMenu, ContextMenuTrigger, ContextMenuContent, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator } from "@/components/ui/glass/context-menu"
-import { Carousel } from "@/components/ui/glass/carousel"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Cropper } from "@/components/ui/cropper"
-import { ModeToggle } from "@/components/ui/glass/mode-toggle"
+import { Calendar as CalendarIcon, Inbox, Info, Search, Sparkles } from "lucide-react";
+import * as React from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Cropper } from "@/components/ui/cropper";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ButtonGroup } from "@/components/ui/glass/button-group";
+import { Carousel } from "@/components/ui/glass/carousel";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/glass/context-menu";
+import { DatePickerInput } from "@/components/ui/glass/date-picker-input";
+import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/glass/empty-state";
+import { InputGroup } from "@/components/ui/glass/input-group";
+import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar";
+import { ModeToggle } from "@/components/ui/glass/mode-toggle";
+import { Spinner } from "@/components/ui/glass/spinner";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
+import { Toaster } from "@/components/ui/sonner";
+import { Switch } from "@/components/ui/switch";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function DatePickerInputPreview() {
-  const [date, setDate] = React.useState<Date | undefined>(undefined)
-  return (
-    <DatePickerInput
-      variant="glass"
-      value={date}
-      onChange={setDate}
-      placeholder="Pick a date"
-    />
-  )
+  const [date, setDate] = React.useState<Date | undefined>(undefined);
+  return <DatePickerInput variant="glass" value={date} onChange={setDate} placeholder="Pick a date" />;
 }
 
 export function ComponentPreview({ componentName }: { componentName: string }) {
@@ -71,13 +112,23 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
     case "button":
       return (
         <div className="flex flex-wrap gap-2">
-          <Button variant="glass" className="cursor-pointer">Glass Button</Button>
-          <Button variant="outline" className="cursor-pointer">Outline</Button>
-          <Button variant="default" className="cursor-pointer">Default</Button>
-          <Button variant="ghost" className="cursor-pointer">Ghost</Button>
-          <Button variant="destructive" className="cursor-pointer">Destructive</Button>
+          <Button variant="glass" className="cursor-pointer">
+            Glass Button
+          </Button>
+          <Button variant="outline" className="cursor-pointer">
+            Outline
+          </Button>
+          <Button variant="default" className="cursor-pointer">
+            Default
+          </Button>
+          <Button variant="ghost" className="cursor-pointer">
+            Ghost
+          </Button>
+          <Button variant="destructive" className="cursor-pointer">
+            Destructive
+          </Button>
         </div>
-      )
+      );
 
     case "card":
       return (
@@ -90,7 +141,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <p>Card content goes here</p>
           </CardContent>
         </Card>
-      )
+      );
 
     case "input":
       return (
@@ -98,7 +149,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Input variant="glass" placeholder="Enter text..." />
           <Input variant="default" placeholder="Default input" />
         </div>
-      )
+      );
 
     case "badge":
       return (
@@ -108,7 +159,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Badge variant="secondary">Secondary</Badge>
           <Badge variant="destructive">Destructive</Badge>
         </div>
-      )
+      );
 
     case "checkbox":
       return (
@@ -116,7 +167,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Checkbox id="terms" variant="glass" />
           <Label htmlFor="terms">Accept terms and conditions</Label>
         </div>
-      )
+      );
 
     case "switch":
       return (
@@ -124,14 +175,18 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Switch variant="glass" />
           <Label>Enable notifications</Label>
         </div>
-      )
+      );
 
     case "tabs":
       return (
         <Tabs defaultValue="account" className="w-full">
           <TabsList variant="glass" className="glass-bg p-1">
-            <TabsTrigger value="account" className="cursor-pointer">Account</TabsTrigger>
-            <TabsTrigger value="password" className="cursor-pointer">Password</TabsTrigger>
+            <TabsTrigger value="account" className="cursor-pointer">
+              Account
+            </TabsTrigger>
+            <TabsTrigger value="password" className="cursor-pointer">
+              Password
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="account" className="mt-4">
             <Card variant="glass">
@@ -156,7 +211,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </Card>
           </TabsContent>
         </Tabs>
-      )
+      );
 
     case "alert":
       return (
@@ -164,12 +219,10 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Alert variant="glass">
             <Info className="h-4 w-4" />
             <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>
-              This is an alert with glass effect.
-            </AlertDescription>
+            <AlertDescription>This is an alert with glass effect.</AlertDescription>
           </Alert>
         </div>
-      )
+      );
 
     case "avatar":
       return (
@@ -186,7 +239,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <AvatarFallback>JD</AvatarFallback>
           </Avatar>
         </div>
-      )
+      );
 
     case "separator":
       return (
@@ -204,7 +257,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <div>Source</div>
           </div>
         </div>
-      )
+      );
 
     case "skeleton":
       return (
@@ -213,19 +266,24 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Skeleton className="h-4 w-[200px]" />
           <Skeleton className="h-12 w-full" />
         </div>
-      )
+      );
 
     case "slider":
       return (
         <div className="space-y-4">
-          <Slider defaultValue={[50]} max={100} step={1} variant="glass" />
+          <Slider
+            defaultValue={[
+              50,
+            ]}
+            max={100}
+            step={1}
+            variant="glass"
+          />
         </div>
-      )
+      );
 
     case "textarea":
-      return (
-        <Textarea variant="glass" placeholder="Type your message here." />
-      )
+      return <Textarea variant="glass" placeholder="Type your message here." />;
 
     case "label":
       return (
@@ -233,7 +291,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Label htmlFor="email">Email</Label>
           <Input id="email" variant="glass" type="email" placeholder="name@example.com" />
         </div>
-      )
+      );
 
     case "radio-group":
       return (
@@ -251,7 +309,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <Label htmlFor="r3">Compact</Label>
           </div>
         </RadioGroup>
-      )
+      );
 
     case "select":
       return (
@@ -265,82 +323,83 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <SelectItem value="system">System</SelectItem>
           </SelectContent>
         </Select>
-      )
+      );
 
     case "accordion":
       return (
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="item-1">
             <AccordionTrigger variant="glass">Is it accessible?</AccordionTrigger>
-            <AccordionContent>
-              Yes. It adheres to the WAI-ARIA design pattern.
-            </AccordionContent>
+            <AccordionContent>Yes. It adheres to the WAI-ARIA design pattern.</AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
             <AccordionTrigger variant="glass">Is it styled?</AccordionTrigger>
-            <AccordionContent>
-              Yes. It comes with default styles that matches the other components&apos; aesthetic.
-            </AccordionContent>
+            <AccordionContent>Yes. It comes with default styles that matches the other components&apos; aesthetic.</AccordionContent>
           </AccordionItem>
         </Accordion>
-      )
+      );
 
     case "tooltip":
       return (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" className="cursor-pointer">Hover</Button>
+              <Button variant="outline" className="cursor-pointer">
+                Hover
+              </Button>
             </TooltipTrigger>
             <TooltipContent variant="glass">
               <p>Add to library</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      )
+      );
 
     case "popover":
       return (
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Open popover</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Open popover
+            </Button>
           </PopoverTrigger>
           <PopoverContent variant="glass" className="w-80">
             <div className="grid gap-4">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Dimensions</h4>
-                <p className="text-sm text-muted-foreground">
-                  Set the dimensions for the layer.
-                </p>
+                <p className="text-sm text-muted-foreground">Set the dimensions for the layer.</p>
               </div>
             </div>
           </PopoverContent>
         </Popover>
-      )
+      );
 
     case "dialog":
       return (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Open Dialog</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Open Dialog
+            </Button>
           </DialogTrigger>
           <DialogContent variant="glass">
             <DialogHeader>
               <DialogTitle>Are you absolutely sure?</DialogTitle>
               <DialogDescription>
-                This action cannot be undone. This will permanently delete your account
-                and remove your data from our servers.
+                This action cannot be undone. This will permanently delete your account and remove your data from our servers.
               </DialogDescription>
             </DialogHeader>
           </DialogContent>
         </Dialog>
-      )
+      );
 
     case "dropdown-menu":
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Open Menu</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Open Menu
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent variant="glass">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -350,14 +409,14 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <DropdownMenuItem>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
 
     case "calendar":
       return (
         <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
           <Calendar variant="glass" mode="single" />
         </div>
-      )
+      );
 
     case "toggle":
       return (
@@ -369,18 +428,24 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             Bold
           </Toggle>
         </div>
-      )
+      );
 
     case "toggle-group":
       return (
         <div className="p-4 glass-bg rounded-lg inline-block">
           <ToggleGroup type="single" variant="glass" defaultValue="b">
-            <ToggleGroupItem value="a" className="cursor-pointer">A</ToggleGroupItem>
-            <ToggleGroupItem value="b" className="cursor-pointer">B</ToggleGroupItem>
-            <ToggleGroupItem value="c" className="cursor-pointer">C</ToggleGroupItem>
+            <ToggleGroupItem value="a" className="cursor-pointer">
+              A
+            </ToggleGroupItem>
+            <ToggleGroupItem value="b" className="cursor-pointer">
+              B
+            </ToggleGroupItem>
+            <ToggleGroupItem value="c" className="cursor-pointer">
+              C
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
-      )
+      );
 
     case "table":
       return (
@@ -405,7 +470,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </TableRow>
           </TableBody>
         </Table>
-      )
+      );
 
     case "breadcrumb":
       return (
@@ -424,13 +489,15 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-      )
+      );
 
     case "collapsible":
       return (
         <Collapsible>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Toggle</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Toggle
+            </Button>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="space-y-2">
@@ -438,7 +505,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </div>
           </CollapsibleContent>
         </Collapsible>
-      )
+      );
 
     case "command":
       return (
@@ -453,35 +520,39 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </CommandGroup>
           </CommandList>
         </Command>
-      )
+      );
 
     case "scroll-area":
       return (
         <ScrollArea className="h-[200px] w-full rounded-md border p-4" variant="glass">
           <div className="space-y-2">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <p key={i} className="text-sm">Item {i + 1}</p>
+            {Array.from({
+              length: 20,
+            }).map((_, i) => (
+              <p key={i} className="text-sm">
+                Item {i + 1}
+              </p>
             ))}
           </div>
         </ScrollArea>
-      )
+      );
 
     case "sheet":
       return (
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Open Sheet</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Open Sheet
+            </Button>
           </SheetTrigger>
           <SheetContent variant="glass">
             <SheetHeader>
               <SheetTitle>Edit profile</SheetTitle>
-              <SheetDescription>
-                Make changes to your profile here. Click save when you&apos;re done.
-              </SheetDescription>
+              <SheetDescription>Make changes to your profile here. Click save when you&apos;re done.</SheetDescription>
             </SheetHeader>
           </SheetContent>
         </Sheet>
-      )
+      );
 
     case "navigation-menu":
       return (
@@ -509,7 +580,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-      )
+      );
 
     case "pagination":
       return (
@@ -522,7 +593,9 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               <PaginationLink href="#">1</PaginationLink>
             </PaginationItem>
             <PaginationItem>
-              <PaginationLink href="#" isActive>2</PaginationLink>
+              <PaginationLink href="#" isActive>
+                2
+              </PaginationLink>
             </PaginationItem>
             <PaginationItem>
               <PaginationLink href="#">3</PaginationLink>
@@ -535,32 +608,34 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </PaginationItem>
           </PaginationContent>
         </Pagination>
-      )
+      );
 
     case "hover-card":
       return (
         <HoverCard>
           <HoverCardTrigger asChild>
-            <Button variant="link" className="cursor-pointer">@nextjs</Button>
+            <Button variant="link" className="cursor-pointer">
+              @nextjs
+            </Button>
           </HoverCardTrigger>
           <HoverCardContent variant="glass" className="w-80">
             <div className="flex justify-between space-x-4">
               <div className="space-y-1">
                 <h4 className="text-sm font-semibold">@nextjs</h4>
-                <p className="text-sm">
-                  The React Framework – created and maintained by @vercel.
-                </p>
+                <p className="text-sm">The React Framework – created and maintained by @vercel.</p>
               </div>
             </div>
           </HoverCardContent>
         </HoverCard>
-      )
+      );
 
     case "drawer":
       return (
         <Drawer>
           <DrawerTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Open Drawer</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Open Drawer
+            </Button>
           </DrawerTrigger>
           <DrawerContent variant="glass">
             <DrawerHeader>
@@ -570,25 +645,28 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <DrawerFooter>
               <Button className="cursor-pointer">Submit</Button>
               <DrawerClose asChild>
-                <Button variant="outline" className="cursor-pointer">Cancel</Button>
+                <Button variant="outline" className="cursor-pointer">
+                  Cancel
+                </Button>
               </DrawerClose>
             </DrawerFooter>
           </DrawerContent>
         </Drawer>
-      )
+      );
 
     case "alert-dialog":
       return (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="cursor-pointer">Show Dialog</Button>
+            <Button variant="outline" className="cursor-pointer">
+              Show Dialog
+            </Button>
           </AlertDialogTrigger>
           <AlertDialogContent variant="glass">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your account
-                and remove your data from our servers.
+                This action cannot be undone. This will permanently delete your account and remove your data from our servers.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -597,7 +675,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      )
+      );
 
     case "sidebar":
       return (
@@ -613,17 +691,41 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <SidebarItem>Profile</SidebarItem>
           </SidebarContent>
         </Sidebar>
-      )
+      );
 
-    case "chart":
+    case "chart": {
       const chartData = [
-        { month: "January", desktop: 186, mobile: 80 },
-        { month: "February", desktop: 305, mobile: 200 },
-        { month: "March", desktop: 237, mobile: 120 },
-        { month: "April", desktop: 273, mobile: 190 },
-        { month: "May", desktop: 209, mobile: 130 },
-        { month: "June", desktop: 214, mobile: 140 },
-      ]
+        {
+          month: "January",
+          desktop: 186,
+          mobile: 80,
+        },
+        {
+          month: "February",
+          desktop: 305,
+          mobile: 200,
+        },
+        {
+          month: "March",
+          desktop: 237,
+          mobile: 120,
+        },
+        {
+          month: "April",
+          desktop: 273,
+          mobile: 190,
+        },
+        {
+          month: "May",
+          desktop: 209,
+          mobile: 130,
+        },
+        {
+          month: "June",
+          desktop: 214,
+          mobile: 140,
+        },
+      ];
 
       const chartConfig = {
         desktop: {
@@ -634,26 +736,21 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           label: "Mobile",
           color: "hsl(var(--chart-2))",
         },
-      }
+      };
 
       return (
         <ChartContainer config={chartConfig} variant="glass" className="h-[300px]">
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => value.slice(0, 3)} />
             <YAxis tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
             <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
           </BarChart>
         </ChartContainer>
-      )
+      );
+    }
 
     case "sonner":
       return (
@@ -662,54 +759,61 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <Info className="h-4 w-4" />
             <AlertTitle>Glass Effects Enabled</AlertTitle>
             <AlertDescription>
-              All toasts automatically use glass effects with color-coded borders (green for success, red for error, yellow for warning, blue for info).
+              All toasts automatically use glass effects with color-coded borders (green for success, red for error, yellow for warning, blue for
+              info).
             </AlertDescription>
           </Alert>
           <div className="flex flex-col gap-3">
             <Button
               variant="glass"
               className="cursor-pointer"
-              onClick={() => toast.success('Success!', {
-                description: 'Your action was completed successfully'
-              })}
+              onClick={() =>
+                toast.success("Success!", {
+                  description: "Your action was completed successfully",
+                })
+              }
             >
               Show Success Toast
             </Button>
-            
+
             <Button
               variant="glass"
               className="cursor-pointer"
-              onClick={() => toast.error('Error!', {
-                description: 'Something went wrong'
-              })}
+              onClick={() =>
+                toast.error("Error!", {
+                  description: "Something went wrong",
+                })
+              }
             >
               Show Error Toast
             </Button>
-            
+
             <Button
               variant="glass"
               className="cursor-pointer"
-              onClick={() => toast('Event Created', {
-                description: 'Your event has been scheduled',
-                action: {
-                  label: 'View',
-                  onClick: () => console.log('View clicked'),
-                },
-              })}
+              onClick={() =>
+                toast("Event Created", {
+                  description: "Your event has been scheduled",
+                  action: {
+                    label: "View",
+                    onClick: () => console.log("View clicked"),
+                  },
+                })
+              }
             >
               Toast with Action
             </Button>
           </div>
           <Toaster />
         </>
-      )
+      );
 
     case "input-otp":
       return (
         <div className="p-4 glass-bg rounded-lg inline-block">
           <InputOTP variant="glass" maxLength={6} />
         </div>
-      )
+      );
 
     case "cropper":
       return (
@@ -718,7 +822,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           onCropComplete={() => {}}
           variant="glass"
         />
-      )
+      );
 
     case "spinner":
       return (
@@ -729,16 +833,22 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Spinner variant="frosted" size="md" />
           <Spinner variant="crystal" size="md" />
         </div>
-      )
+      );
 
     case "button-group":
       return (
         <ButtonGroup variant="glass" orientation="horizontal">
-          <Button variant="ghost" className="cursor-pointer">One</Button>
-          <Button variant="ghost" className="cursor-pointer">Two</Button>
-          <Button variant="ghost" className="cursor-pointer">Three</Button>
+          <Button variant="ghost" className="cursor-pointer">
+            One
+          </Button>
+          <Button variant="ghost" className="cursor-pointer">
+            Two
+          </Button>
+          <Button variant="ghost" className="cursor-pointer">
+            Three
+          </Button>
         </ButtonGroup>
-      )
+      );
 
     case "input-group":
       return (
@@ -756,7 +866,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             </Button>
           </InputGroup>
         </div>
-      )
+      );
 
     case "empty-state":
       return (
@@ -766,15 +876,13 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               <Inbox className="h-12 w-12" />
             </EmptyStateIcon>
             <EmptyStateTitle>No items found</EmptyStateTitle>
-            <EmptyStateDescription>
-              Get started by creating a new item.
-            </EmptyStateDescription>
+            <EmptyStateDescription>Get started by creating a new item.</EmptyStateDescription>
             <Button variant="glass" className="mt-4 cursor-pointer">
               Create Item
             </Button>
           </EmptyState>
         </div>
-      )
+      );
 
     case "menu-bar":
       return (
@@ -784,14 +892,14 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <MenuBarItem>View</MenuBarItem>
           <MenuBarItem>Help</MenuBarItem>
         </MenuBar>
-      )
+      );
 
     case "date-picker-input":
       return (
         <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
           <DatePickerInputPreview />
         </div>
-      )
+      );
 
     case "context-menu":
       return (
@@ -810,7 +918,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <ContextMenuItem>Logout</ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
-      )
+      );
 
     case "carousel":
       return (
@@ -834,21 +942,20 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <CardContent>Content for slide 3</CardContent>
           </Card>
         </Carousel>
-      )
+      );
 
     case "mode-toggle":
       return (
         <div className="p-4 glass-bg rounded-lg inline-block">
           <ModeToggle variant="glass" />
         </div>
-      )
+      );
 
     default:
       return (
         <div className="p-4 border border-border rounded-lg bg-muted/20">
           <p className="text-muted-foreground">Preview not available for this component.</p>
         </div>
-      )
+      );
   }
 }
-

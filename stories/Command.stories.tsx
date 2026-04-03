@@ -1,18 +1,37 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from '@/components/ui/command';
-import { Calculator, Calendar, CreditCard, Settings, Smile, User } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Calculator, Calendar, CreditCard, Settings, Smile, User } from "lucide-react";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command";
 
 const meta = {
-  title: 'Glass UI/Command',
+  title: "Glass UI/Command",
   component: Command,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "glassSubtle",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
   },
 } satisfies Meta<typeof Command>;
@@ -128,4 +147,3 @@ export const Simple: Story = {
     </Command>
   ),
 };
-

@@ -1,19 +1,19 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { use } from "react"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { DashboardBlock } from "@/components/blocks/dashboard"
-import { AuthenticationBlock } from "@/components/blocks/authentication"
-import { SignupBlock } from "@/components/blocks/signup"
-import { ForgotPasswordBlock } from "@/components/blocks/forgot-password"
-import { CalendarBlock } from "@/components/blocks/calendar"
-import { ChartBlock } from "@/components/blocks/chart"
+import { ArrowLeft, Check, Copy } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import * as React from "react";
+import { use } from "react";
+import { AuthenticationBlock } from "@/components/blocks/authentication";
+import { CalendarBlock } from "@/components/blocks/calendar";
+import { ChartBlock } from "@/components/blocks/chart";
+import { DashboardBlock } from "@/components/blocks/dashboard";
+import { ForgotPasswordBlock } from "@/components/blocks/forgot-password";
+import { SignupBlock } from "@/components/blocks/signup";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const blocks = {
   dashboard: {
@@ -76,16 +76,16 @@ export default function Page() {
   return <ChartBlock />
 }`,
   },
-}
+};
 
 function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = React.useState(false)
+  const [copied, setCopied] = React.useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative">
@@ -98,29 +98,27 @@ function CodeBlock({ code }: { code: string }) {
         className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
         onClick={copyToClipboard}
       >
-        {copied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
-  )
+  );
 }
 
 export default function BlockPage({
   params,
 }: {
-  params: Promise<{ block: string }>
+  params: Promise<{
+    block: string;
+  }>;
 }) {
-  const { block: blockName } = use(params)
-  const block = blocks[blockName as keyof typeof blocks]
+  const { block: blockName } = use(params);
+  const block = blocks[blockName as keyof typeof blocks];
 
   if (!block) {
-    notFound()
+    notFound();
   }
 
-  const Component = block.component
+  const Component = block.component;
 
   return (
     <div className="min-h-screen relative">
@@ -155,9 +153,7 @@ export default function BlockPage({
             <Card variant="glass" className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Implementation</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Copy this code to use the block in your project
-                </CardDescription>
+                <CardDescription className="text-muted-foreground">Copy this code to use the block in your project</CardDescription>
               </CardHeader>
               <CardContent>
                 <CodeBlock code={block.code} />
@@ -167,6 +163,5 @@ export default function BlockPage({
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
-

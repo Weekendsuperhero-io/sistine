@@ -1,16 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/glass/dialog';
-import { Button } from '@/components/ui/glass/button';
-import { Input } from '@/components/ui/glass/input';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Button } from "@/components/ui/glass/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog";
+import { Input } from "@/components/ui/glass/input";
+import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: 'Glass UI/Dialog',
+  title: "Glass UI/Dialog",
   component: Dialog,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Dialog>;
 
 export default meta;
@@ -25,9 +27,7 @@ export const Glass: Story = {
       <DialogContent variant="glass">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
-          </DialogDescription>
+          <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -44,7 +44,9 @@ export const Glass: Story = {
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" variant="glass">Save changes</Button>
+          <Button type="submit" variant="glass">
+            Save changes
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -60,14 +62,10 @@ export const Frosted: Story = {
       <DialogContent variant="frosted">
         <DialogHeader>
           <DialogTitle>Frosted Glass Dialog</DialogTitle>
-          <DialogDescription>
-            This dialog uses a frosted glass effect with enhanced blur.
-          </DialogDescription>
+          <DialogDescription>This dialog uses a frosted glass effect with enhanced blur.</DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-sm">
-            The frosted variant provides a stronger blur effect, creating a more pronounced separation from the background.
-          </p>
+          <p className="text-sm">The frosted variant provides a stronger blur effect, creating a more pronounced separation from the background.</p>
         </div>
       </DialogContent>
     </Dialog>
@@ -83,14 +81,10 @@ export const Crystal: Story = {
       <DialogContent variant="crystal">
         <DialogHeader>
           <DialogTitle>Crystal Glass Dialog</DialogTitle>
-          <DialogDescription>
-            This dialog features layered crystal effects with animations.
-          </DialogDescription>
+          <DialogDescription>This dialog features layered crystal effects with animations.</DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <p className="text-sm">
-            The crystal variant combines multiple layers with gradients and subtle animations for a premium look.
-          </p>
+          <p className="text-sm">The crystal variant combines multiple layers with gradients and subtle animations for a premium look.</p>
         </div>
         <DialogFooter>
           <Button variant="crystal">Continue</Button>
@@ -109,9 +103,7 @@ export const WithForm: Story = {
       <DialogContent variant="glass">
         <DialogHeader>
           <DialogTitle>Create your account</DialogTitle>
-          <DialogDescription>
-            Enter your information to create a new account.
-          </DialogDescription>
+          <DialogDescription>Enter your information to create a new account.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">

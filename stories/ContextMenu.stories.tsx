@@ -1,21 +1,23 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Card, CardContent } from "@/components/ui/glass/card";
 import {
   ContextMenu,
-  ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuSeparator,
   ContextMenuLabel,
-} from '@/components/ui/glass/context-menu';
-import { Card, CardContent } from '@/components/ui/glass/card';
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/glass/context-menu";
 
 const meta = {
-  title: 'Glass UI/ContextMenu',
+  title: "Glass UI/ContextMenu",
   component: ContextMenu,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof ContextMenu>;
 
 export default meta;
@@ -60,4 +62,3 @@ export const Frosted: Story = {
     </ContextMenu>
   ),
 };
-

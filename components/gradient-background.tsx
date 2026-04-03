@@ -1,52 +1,49 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { generateSeededGradient, generateBeautifulGradient, gradientToCSS } from "@/lib/gradient-utils"
+import * as React from "react";
+import { generateBeautifulGradient, generateSeededGradient, gradientToCSS } from "@/lib/gradient-utils";
 
 interface GradientBackgroundProps {
   /**
    * Seed for consistent gradient per page (e.g., page pathname)
    * If not provided, generates a new random gradient on each render
    */
-  seed?: string
+  seed?: string;
   /**
    * Use beautiful complementary colors instead of random
    */
-  beautiful?: boolean
+  beautiful?: boolean;
   /**
    * Additional className
    */
-  className?: string
+  className?: string;
   /**
    * Opacity of the gradient (0-1)
    */
-  opacity?: number
+  opacity?: number;
   /**
    * Blur effect for the background
    */
-  blur?: boolean
+  blur?: boolean;
 }
 
-export function GradientBackground({
-  seed,
-  beautiful = true,
-  className = "",
-  opacity = 1,
-  blur = true,
-}: GradientBackgroundProps) {
-  const [gradient, setGradient] = React.useState<string>("")
+export function GradientBackground({ seed, beautiful = true, className = "", opacity = 1, blur = true }: GradientBackgroundProps) {
+  const [gradient, setGradient] = React.useState<string>("");
 
   React.useEffect(() => {
     const gradientObj = seed
       ? generateSeededGradient(seed)
       : beautiful
-      ? generateBeautifulGradient()
-      : generateSeededGradient(Math.random().toString())
+        ? generateBeautifulGradient()
+        : generateSeededGradient(Math.random().toString());
 
-    setGradient(gradientToCSS(gradientObj))
-  }, [seed, beautiful])
+    setGradient(gradientToCSS(gradientObj));
+  }, [
+    seed,
+    beautiful,
+  ]);
 
-  if (!gradient) return null
+  if (!gradient) return null;
 
   return (
     <div
@@ -68,6 +65,5 @@ export function GradientBackground({
         }}
       />
     </div>
-  )
+  );
 }
-

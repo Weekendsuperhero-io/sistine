@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function ForgotPasswordBlock() {
   return (
@@ -19,14 +19,10 @@ export function ForgotPasswordBlock() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              variant="glass"
-              className="text-white placeholder:text-muted-foreground"
-            />
+            <Label htmlFor="email" className="text-white">
+              Email
+            </Label>
+            <Input id="email" type="email" placeholder="name@example.com" variant="glass" className="text-white placeholder:text-muted-foreground" />
           </div>
           <Button variant="glass" className="w-full text-white">
             Send Reset Link
@@ -40,6 +36,5 @@ export function ForgotPasswordBlock() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
