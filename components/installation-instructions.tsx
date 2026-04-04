@@ -10,7 +10,7 @@ interface InstallationInstructionsProps {
   packageName?: string;
 }
 
-export function InstallationInstructions({ componentName, packageName = "@crenspire/glass-ui" }: InstallationInstructionsProps) {
+export function InstallationInstructions({ componentName, packageName: _packageName = "@crenspire/glass-ui" }: InstallationInstructionsProps) {
   const [copied, setCopied] = React.useState<string | null>(null);
 
   const commands = {
