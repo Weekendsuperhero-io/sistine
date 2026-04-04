@@ -31,9 +31,8 @@ export const SelectTrigger = React.forwardRef<React.ElementRef<typeof BaseSelect
     return (
       <BaseSelectTrigger
         ref={ref}
-        variant={variant}
         className={cn(glow && "shadow-md shadow-purple-500/20", "transition-all duration-200", className)}
-        {...props}
+        {...({ variant, ...props } as React.ComponentProps<typeof BaseSelectTrigger>)}
       />
     );
   },
@@ -42,7 +41,13 @@ SelectTrigger.displayName = "SelectTrigger";
 
 export const SelectContent = React.forwardRef<React.ElementRef<typeof BaseSelectContent>, SelectContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseSelectContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-purple-500/30", className)} {...props} />;
+    return (
+      <BaseSelectContent
+        ref={ref}
+        className={cn(glow && "shadow-lg shadow-purple-500/30", className)}
+        {...({ variant, ...props } as React.ComponentProps<typeof BaseSelectContent>)}
+      />
+    );
   },
 );
 SelectContent.displayName = "SelectContent";
