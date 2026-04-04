@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Collapsible as BaseCollapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible as BaseCollapsible, CollapsibleContent, CollapsibleTrigger } from "../collapsible";
 
 /**
  * Glass UI Collapsible - Re-exported from base with glassy styling support

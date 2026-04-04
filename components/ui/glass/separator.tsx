@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Separator as BaseSeparator } from "@/components/ui/separator";
+import { Separator as BaseSeparator } from "../separator";
 import { cn } from "@/lib/utils";
 
 export interface SeparatorProps extends React.ComponentProps<typeof BaseSeparator> {

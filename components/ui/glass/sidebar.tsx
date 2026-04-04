@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sidebar as BaseSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem } from "@/components/ui/sidebar";
+import { Sidebar as BaseSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem } from "../sidebar";
 import { cn } from "@/lib/utils";
 
 export interface SidebarProps extends React.ComponentProps<typeof BaseSidebar> {

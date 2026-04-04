@@ -12,7 +12,7 @@ import {
   SheetPortal,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
+} from "../sheet";
 import { cn } from "@/lib/utils";
 
 export interface SheetContentProps extends React.ComponentProps<typeof BaseSheetContent> {

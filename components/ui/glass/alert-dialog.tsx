@@ -11,7 +11,7 @@ import {
   AlertDialogTrigger,
   AlertDialog as BaseAlertDialog,
   AlertDialogContent as BaseAlertDialogContent,
-} from "@/components/ui/alert-dialog";
+} from "../alert-dialog";
 import { cn } from "@/lib/utils";
 
 export interface AlertDialogContentProps extends React.ComponentProps<typeof BaseAlertDialogContent> {

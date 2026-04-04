@@ -6,7 +6,7 @@ import {
   InputOTPGroup as BaseInputOTPGroup,
   InputOTPSlot as BaseInputOTPSlot,
   InputOTPSeparator,
-} from "@/components/ui/input-otp";
+} from "../input-otp";
 import { cn } from "@/lib/utils";
 
 export interface InputOTPProps extends React.ComponentProps<typeof BaseInputOTP> {

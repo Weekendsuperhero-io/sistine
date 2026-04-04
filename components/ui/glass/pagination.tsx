@@ -9,7 +9,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "../pagination";
 import { cn } from "@/lib/utils";
 
 export interface PaginationContentProps extends React.ComponentProps<typeof BasePaginationContent> {

@@ -11,7 +11,7 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/components/ui/command";
+} from "../command";
 import { cn } from "@/lib/utils";
 
 export interface CommandProps extends React.ComponentProps<typeof BaseCommand> {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { RadioGroup as BaseRadioGroup, RadioGroupItem as BaseRadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup as BaseRadioGroup, RadioGroupItem as BaseRadioGroupItem } from "../radio-group";
 import { cn } from "@/lib/utils";
 
 export interface RadioGroupItemProps extends React.ComponentProps<typeof BaseRadioGroupItem> {

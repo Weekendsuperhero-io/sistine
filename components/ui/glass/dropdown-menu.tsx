@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../dropdown-menu";
 import { cn } from "@/lib/utils";
 
 export interface DropdownMenuContentProps extends React.ComponentProps<typeof BaseDropdownMenuContent> {

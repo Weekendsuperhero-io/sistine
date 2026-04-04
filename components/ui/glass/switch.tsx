@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Switch as BaseSwitch } from "@/components/ui/switch";
+import { Switch as BaseSwitch } from "../switch";
 import { cn } from "@/lib/utils";
 
 export interface SwitchProps extends React.ComponentProps<typeof BaseSwitch> {

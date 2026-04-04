@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { InputGroup as BaseInputGroup } from "@/components/ui/input-group";
+import { InputGroup as BaseInputGroup } from "../input-group";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";

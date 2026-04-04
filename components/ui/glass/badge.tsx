@@ -1,7 +1,7 @@
 "use client";
 
 import type * as React from "react";
-import { Badge as BaseBadge } from "@/components/ui/badge";
+import { Badge as BaseBadge } from "../badge";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
 

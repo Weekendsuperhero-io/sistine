@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Table as BaseTable, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table as BaseTable, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../table";
 import { cn } from "@/lib/utils";
 
 export interface TableProps extends React.ComponentProps<typeof BaseTable> {

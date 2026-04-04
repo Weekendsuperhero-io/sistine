@@ -12,7 +12,7 @@ import {
   DrawerPortal,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
+} from "../drawer";
 import { cn } from "@/lib/utils";
 
 export interface DrawerContentProps extends React.ComponentProps<typeof BaseDrawerContent> {

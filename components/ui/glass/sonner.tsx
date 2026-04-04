@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Toaster as BaseToaster } from "@/components/ui/sonner";
+import { Toaster as BaseToaster } from "../sonner";
 
 /**
  * Glass UI Toaster - Toast notifications with glassmorphism effects

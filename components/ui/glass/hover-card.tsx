@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { HoverCard as BaseHoverCard, HoverCardContent as BaseHoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { HoverCard as BaseHoverCard, HoverCardContent as BaseHoverCardContent, HoverCardTrigger } from "../hover-card";
 import { cn } from "@/lib/utils";
 
 export interface HoverCardContentProps extends React.ComponentProps<typeof BaseHoverCardContent> {

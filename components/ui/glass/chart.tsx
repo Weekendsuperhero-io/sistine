@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import type { ChartConfig } from "@/components/ui/chart";
+import type { ChartConfig } from "../chart";
 import {
   ChartContainer as BaseChartContainer,
   ChartLegendContent as BaseChartLegendContent,
   ChartTooltipContent as BaseChartTooltipContent,
   ChartLegend,
   ChartTooltip,
-} from "@/components/ui/chart";
+} from "../chart";
 import { cn } from "@/lib/utils";
 
 export interface ChartContainerProps extends React.ComponentProps<typeof BaseChartContainer> {

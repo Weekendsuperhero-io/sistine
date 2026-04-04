@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Textarea as BaseTextarea } from "@/components/ui/textarea";
+import { Textarea as BaseTextarea } from "../textarea";
 import { cn } from "@/lib/utils";
 
 export interface TextareaProps extends React.ComponentProps<typeof BaseTextarea> {

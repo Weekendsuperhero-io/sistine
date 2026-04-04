@@ -10,7 +10,7 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from "../navigation-menu";
 import { cn } from "@/lib/utils";
 
 export interface NavigationMenuListProps extends React.ComponentProps<typeof BaseNavigationMenuList> {

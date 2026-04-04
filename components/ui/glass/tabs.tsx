@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Tabs as BaseTabs, TabsList as BaseTabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs as BaseTabs, TabsList as BaseTabsList, TabsContent, TabsTrigger } from "../tabs";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
 

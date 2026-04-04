@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Checkbox as BaseCheckbox } from "@/components/ui/checkbox";
+import { Checkbox as BaseCheckbox } from "../checkbox";
 import { cn } from "@/lib/utils";
 
 export interface CheckboxProps extends React.ComponentProps<typeof BaseCheckbox> {

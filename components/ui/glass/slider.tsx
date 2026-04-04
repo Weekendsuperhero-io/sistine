@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Slider as BaseSlider } from "@/components/ui/slider";
+import { Slider as BaseSlider } from "../slider";
 import { cn } from "@/lib/utils";
 
 export interface SliderProps extends React.ComponentProps<typeof BaseSlider> {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Card as BaseCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card as BaseCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../card";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";

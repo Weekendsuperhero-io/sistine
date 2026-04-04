@@ -17,7 +17,7 @@ import {
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from "@/components/ui/context-menu";
+} from "../context-menu";
 
 /**
  * Glass UI Context Menu - A beautifully designed context menu with glassy effects

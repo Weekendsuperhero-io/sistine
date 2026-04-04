@@ -3,7 +3,7 @@
  *
  * This is the main entry point for Glass UI components.
  * All components here are built on top of base components from
- * @/components/ui/ with enhanced glassy design effects.
+ * ../ with enhanced glassy design effects.
  */
 
 export type { AccordionTriggerProps } from "./accordion";

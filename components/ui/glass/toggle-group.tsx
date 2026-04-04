@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ToggleGroup as BaseToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ToggleGroup as BaseToggleGroup, ToggleGroupItem } from "../toggle-group";
 import { cn } from "@/lib/utils";
 
 type BaseToggleGroupProps = React.ComponentProps<typeof BaseToggleGroup>;

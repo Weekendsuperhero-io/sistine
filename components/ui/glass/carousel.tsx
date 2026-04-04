@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Carousel as BaseCarousel } from "@/components/ui/carousel";
+import { Carousel as BaseCarousel } from "../carousel";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
