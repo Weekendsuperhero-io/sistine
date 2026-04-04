@@ -11,8 +11,8 @@
       "components/**",
       "lib/**",
       "app/**",
-      "!!public",
-      "!!registry"
+      "!!public/",
+      "!!registry/"
     ]
   },
   "formatter": {

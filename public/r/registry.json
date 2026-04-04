@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "crenspire/glass-ui",
-  "homepage": "https://glass-ui.crenspire.com",
+  "name": "weekendsuperhero-io/glass-ui",
+  "homepage": "https://weekendsuperhero.io",
   "items": [
     {
       "name": "button",
