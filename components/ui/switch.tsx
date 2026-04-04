@@ -11,11 +11,6 @@ const Switch = React.forwardRef<
     variant?: "default" | "glass";
   }
 >(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "bg-primary",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)]",
-  };
-
   return (
     <SwitchPrimitives.Root
       className={cn(
