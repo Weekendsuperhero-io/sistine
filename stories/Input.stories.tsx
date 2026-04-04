@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Mail, Search } from "lucide-react";
+import { EnvelopeSimpleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/glass/input";
 
 const meta = {
@@ -54,7 +54,7 @@ export const WithIcon: Story = {
   args: {
     placeholder: "Search...",
     variant: "glass",
-    icon: <Search className="h-4 w-4" />,
+    icon: <MagnifyingGlassIcon className="h-4 w-4" />,
   },
 };
 
@@ -62,7 +62,7 @@ export const WithEmailIcon: Story = {
   args: {
     placeholder: "Email address...",
     variant: "glass",
-    icon: <Mail className="h-4 w-4" />,
+    icon: <EnvelopeSimpleIcon className="h-4 w-4" />,
     type: "email",
   },
 };

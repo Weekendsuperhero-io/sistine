@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Check, Copy } from "lucide-react";
+import { ArrowLeft, Check, Copy } from "@phosphor-icons/react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import * as React from "react";

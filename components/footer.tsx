@@ -1,4 +1,4 @@
-import { Github, Heart } from "lucide-react";
+import { GithubLogoIcon, Heart } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/glass/button";
 
@@ -54,7 +54,7 @@ export function Footer() {
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="GitHub"
               >
-                <Github className="h-5 w-5" />
+                <GithubLogoIcon className="h-5 w-5" />
               </Link>
               <span className="text-xs sm:text-sm text-muted-foreground">The source code is available on GitHub.</span>
             </div>

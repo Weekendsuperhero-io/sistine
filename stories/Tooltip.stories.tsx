@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/glass/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 

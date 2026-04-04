@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Check, Copy } from "lucide-react";
+import { BookOpen, Check, Copy } from "@phosphor-icons/react";
 import { notFound } from "next/navigation";
 import * as React from "react";
 import { use } from "react";

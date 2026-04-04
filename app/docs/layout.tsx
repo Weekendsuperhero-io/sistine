@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { ListIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { DocsSidebar } from "@/components/docs-sidebar";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="glass" size="sm" className="mb-4">
-                  <Menu className="h-4 w-4 mr-2" />
+                  <ListIcon className="h-4 w-4 mr-2" />
                   Menu
                 </Button>
               </SheetTrigger>

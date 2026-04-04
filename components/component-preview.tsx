@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar as CalendarIcon, Inbox, Info, Search, Sparkles } from "lucide-react";
+import { CalendarIcon , TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
@@ -856,7 +856,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <InputGroup variant="glass">
             <Input placeholder="Search..." className="border-0 rounded-r-none" />
             <Button variant="ghost" size="icon" className="rounded-l-none cursor-pointer">
-              <Search className="h-4 w-4" />
+              <MagnifyingGlassIcon className="h-4 w-4" />
             </Button>
           </InputGroup>
           <InputGroup variant="frosted">

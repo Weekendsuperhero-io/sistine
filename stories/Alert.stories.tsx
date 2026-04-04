@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { AlertCircle, CheckCircle2, Terminal, XCircle } from "lucide-react";
+import { WarningCircleIcon, CheckCircleIcon, Terminal, XCircle } from "@phosphor-icons/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const meta = {
@@ -60,7 +60,7 @@ export const Frosted: Story = {
     variant: "frosted",
     children: (
       <>
-        <AlertCircle className="h-4 w-4" />
+        <WarningCircleIcon className="h-4 w-4" />
         <AlertTitle>Information</AlertTitle>
         <AlertDescription>This is a frosted glass alert with enhanced blur effect.</AlertDescription>
       </>
@@ -73,7 +73,7 @@ export const Crystal: Story = {
     variant: "crystal",
     children: (
       <>
-        <CheckCircle2 className="h-4 w-4" />
+        <CheckCircleIcon className="h-4 w-4" />
         <AlertTitle>Success!</AlertTitle>
         <AlertDescription>Your changes have been saved successfully.</AlertDescription>
       </>
@@ -126,7 +126,7 @@ export const WithShimmerHover: Story = {
     hover: "shimmer",
     children: (
       <>
-        <AlertCircle className="h-4 w-4" />
+        <WarningCircleIcon className="h-4 w-4" />
         <AlertTitle>Shimmer Effect</AlertTitle>
         <AlertDescription>Hover to see a beautiful shimmer animation sweep across.</AlertDescription>
       </>
@@ -140,7 +140,7 @@ export const WithLiftHover: Story = {
     hover: "lift",
     children: (
       <>
-        <CheckCircle2 className="h-4 w-4" />
+        <CheckCircleIcon className="h-4 w-4" />
         <AlertTitle>Lift Effect</AlertTitle>
         <AlertDescription>This alert lifts up slightly when you hover over it.</AlertDescription>
       </>

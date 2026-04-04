@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin } from "@phosphor-icons/react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

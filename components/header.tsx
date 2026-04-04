@@ -1,6 +1,6 @@
 "use client";
 
-import { Github, Menu } from "lucide-react";
+import { GithubLogoIcon, ListIcon } from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -100,7 +100,7 @@ export function Header() {
             {starCount !== null && (
               <Link href="https://github.com/crenspire/glass-ui" target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center">
                 <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
-                  <Github className="h-4 w-4" />
+                  <GithubLogoIcon className="h-4 w-4" />
                   <span className="text-xs font-semibold">{starCount.toLocaleString()}</span>
                 </Badge>
               </Link>
@@ -109,7 +109,7 @@ export function Header() {
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden h-9 w-9" aria-label="Toggle menu">
-                  <Menu className="h-5 w-5" />
+                  <ListIcon className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent variant="glass" side="right" className="w-[300px] sm:w-[400px]">
@@ -151,7 +151,7 @@ export function Header() {
                         className="flex items-center"
                       >
                         <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
-                          <Github className="h-4 w-4" />
+                          <GithubLogoIcon className="h-4 w-4" />
                           <span className="text-xs font-semibold">{starCount.toLocaleString()}</span>
                         </Badge>
                       </Link>

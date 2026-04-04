@@ -271,7 +271,7 @@
       "description": "A window overlaid on either the primary window or another dialog window, rendering the content underneath inert.",
       "dependencies": [
         "@radix-ui/react-dialog",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "dialog"
@@ -429,7 +429,7 @@
       "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
       "dependencies": [
         "@radix-ui/react-checkbox",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "checkbox"
@@ -586,7 +586,7 @@
       "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glassy variant.",
       "dependencies": [
         "@radix-ui/react-dropdown-menu",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "dropdown-menu"
@@ -626,7 +626,7 @@
       "description": "Displays a list of options for the user to pick from—triggered by a button with optional glassy variant.",
       "dependencies": [
         "@radix-ui/react-select",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "select"
@@ -666,7 +666,7 @@
       "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glassy variant.",
       "dependencies": [
         "@radix-ui/react-radio-group",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "radio-group"
@@ -778,7 +778,7 @@
       "description": "A vertically stacked set of interactive headings that each reveal a section of content.",
       "dependencies": [
         "@radix-ui/react-accordion",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "accordion"
@@ -818,7 +818,7 @@
       "description": "Displays the path to the current resource using a hierarchy of links.",
       "dependencies": [
         "@radix-ui/react-slot",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "breadcrumb"
@@ -858,7 +858,7 @@
       "description": "A date field component that allows users to enter and edit date.",
       "dependencies": [
         "date-fns",
-        "lucide-react",
+        "@phosphor-icons/react",
         "react-day-picker"
       ],
       "registryDependencies": [
@@ -979,7 +979,7 @@
       "dependencies": [
         "@radix-ui/react-dialog",
         "cmdk",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "command",
@@ -1140,7 +1140,7 @@
       "description": "Accessible one-time password component with copy paste functionality.",
       "dependencies": [
         "input-otp",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "input-otp"
@@ -1180,7 +1180,7 @@
       "description": "A collection of links for navigating websites.",
       "dependencies": [
         "@radix-ui/react-navigation-menu",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "navigation-menu"
@@ -1250,7 +1250,7 @@
         }
       ],
       "dependencies": [
-        "lucide-react"
+        "@phosphor-icons/react"
       ]
     },
     {
@@ -1299,7 +1299,7 @@
       "description": "Extends the Dialog component to display content that complements the main content of the screen.",
       "dependencies": [
         "@radix-ui/react-dialog",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "sheet"
@@ -1567,7 +1567,7 @@
       "title": "Mode Toggle",
       "description": "A theme switcher component with optional glassy variant.",
       "dependencies": [
-        "lucide-react",
+        "@phosphor-icons/react",
         "next-themes"
       ],
       "registryDependencies": [
@@ -1790,7 +1790,7 @@
       "description": "A date picker input component with glassy variants.",
       "dependencies": [
         "date-fns",
-        "lucide-react",
+        "@phosphor-icons/react",
         "react-day-picker"
       ],
       "registryDependencies": [
@@ -1835,7 +1835,7 @@
       "description": "A context menu component with glassy variants.",
       "dependencies": [
         "@radix-ui/react-context-menu",
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "context-menu"
@@ -1874,7 +1874,7 @@
       "title": "Carousel",
       "description": "A carousel component with glassy variants.",
       "dependencies": [
-        "lucide-react"
+        "@phosphor-icons/react"
       ],
       "registryDependencies": [
         "button",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, BarChart3, CreditCard, DollarSign, TrendingUp, Users } from "lucide-react";
+import { PulseIcon as Activity, ChartScatterIcon as ChartBarIcon, CreditCard, CurrencyDollarSimpleIcon as CurrencyDollarSimpleIcon, TrendUpIcon as TrendingUp, Users } from "@phosphor-icons/react";
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +18,7 @@ export function DashboardBlock() {
         <Card variant="glass" className="text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CurrencyDollarSimpleIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">$45,231.89</div>

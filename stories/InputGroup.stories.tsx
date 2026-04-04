@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Search } from "lucide-react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/glass/button";
 import { Input } from "@/components/ui/glass/input";
 import { InputGroup } from "@/components/ui/glass/input-group";
@@ -49,7 +49,7 @@ export const WithButton: Story = {
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
         <Button variant="ghost" size="icon" className="rounded-l-none">
-          <Search className="h-4 w-4" />
+          <MagnifyingGlassIcon className="h-4 w-4" />
         </Button>
       </>
     ),
@@ -63,7 +63,7 @@ export const Frosted: Story = {
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
         <Button variant="ghost" size="icon" className="rounded-l-none">
-          <Search className="h-4 w-4" />
+          <MagnifyingGlassIcon className="h-4 w-4" />
         </Button>
       </>
     ),

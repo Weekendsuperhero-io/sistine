@@ -123,7 +123,7 @@ export function Example() {
 
     case "alert":
       return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/glass/alert"
-import { Info } from "lucide-react"
+import { Info } from "@phosphor-icons/react"
 
 export function Example() {
   return (
@@ -387,7 +387,7 @@ export function Example() {
 
     case "toggle":
       return `import { Toggle } from "@/components/ui/glass/toggle"
-import { Sparkles } from "lucide-react"
+import { SparkleIcon as Sparkles } from "@phosphor-icons/react"
 
 export function Example() {
   return (
@@ -492,7 +492,7 @@ export function Example() {
 export function Example() {
   return (
     <Command className="rounded-lg border shadow-md">
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput placeholder="Type a command or Search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Suggestions">
@@ -761,7 +761,7 @@ export function Example() {
       >
         Show Success Toast
       </Button>
-      
+
       <Button
         variant="glass"
         onClick={() => toast.error('Error!', {
@@ -770,7 +770,7 @@ export function Example() {
       >
         Show Error Toast
       </Button>
-      
+
       <Button
         variant="glass"
         onClick={() => toast('Event Created', {
@@ -789,7 +789,7 @@ export function Example() {
 
 // Don't forget to add <Toaster /> to your root layout:
 // import { Toaster } from "@/components/ui/glass/sonner"
-// 
+//
 // export default function RootLayout({ children }) {
 //   return (
 //     <html>
@@ -836,14 +836,14 @@ export function Example() {
       return `import { InputGroup } from "@/components/ui/glass/input-group"
 import { Input } from "@/components/ui/glass/input"
 import { Button } from "@/components/ui/glass/button"
-import { Search } from "lucide-react"
+import { MagnifyingGlassIcon } from "@phosphor-icons/react"
 
 export function Example() {
   return (
     <InputGroup variant="glass">
       <Input placeholder="Search..." className="border-0 rounded-r-none" />
       <Button variant="ghost" size="icon" className="rounded-l-none">
-        <Search className="h-4 w-4" />
+        <MagnifyingGlassIcon className="h-4 w-4" />
       </Button>
     </InputGroup>
   )
@@ -870,7 +870,7 @@ export function Example() {
     case "empty-state":
       return `import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/glass/empty-state"
 import { Button } from "@/components/ui/glass/button"
-import { Inbox } from "lucide-react"
+import { Inbox } from "@phosphor-icons/react"
 
 export function Example() {
   return (
@@ -909,7 +909,7 @@ import { useState } from "react"
 
 export function Example() {
   const [date, setDate] = useState<Date | undefined>(undefined)
-  
+
   return (
     <DatePickerInput
       variant="glass"

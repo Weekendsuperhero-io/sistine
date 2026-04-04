@@ -1,7 +1,7 @@
 "use client";
 
 import { OTPInput, type SlotProps } from "input-otp";
-import { Dot } from "lucide-react";
+import { Dot } from "@phosphor-icons/react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

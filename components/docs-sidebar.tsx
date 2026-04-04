@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { CaretRightIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -81,7 +81,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                             isActive ? "text-foreground font-medium bg-accent" : "text-muted-foreground hover:bg-accent/50",
                           )}
                         >
-                          {isActive && <ChevronRight className="h-4 w-4" />}
+                          {isActive && <CaretRightIcon className="h-4 w-4" />}
                           <span className="truncate flex-1">{item.title}</span>
                           {item.isNew === true && (
                             <Badge variant="glass" className="bg-primary/20 text-primary border-primary/30 text-xs px-1.5 py-0.5">

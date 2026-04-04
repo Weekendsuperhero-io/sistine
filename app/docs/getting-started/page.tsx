@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@phosphor-icons/react";
 import * as React from "react";
 import { InstallationInstructions } from "@/components/installation-instructions";
 import { Button } from "@/components/ui/button";
@@ -187,15 +187,15 @@ export function Example() {
 :root {
   /* Glass background transparency (0-1) */
   --glass-bg: rgba(255, 255, 255, 0.25);
-  
+
   /* Glass border color and opacity */
   --glass-border: rgba(255, 255, 255, 0.18);
-  
+
   /* Blur amount - Apple standard is 30px */
   --blur: 30px;
   --blur-sm: 15px;  /* Small blur for subtle effects */
   --blur-lg: 50px;  /* Large blur for strong effects */
-  
+
   /* Glass shadows */
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
   --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -212,12 +212,12 @@ export function Example() {
   /* More transparent for dark backgrounds */
   --glass-bg: rgba(255, 255, 255, 0.1);
   --glass-border: rgba(255, 255, 255, 0.2);
-  
+
   /* Same blur values work for both modes */
   --blur: 30px;
   --blur-sm: 15px;
   --blur-lg: 50px;
-  
+
   /* Deeper shadows for dark mode */
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { buttonVariants } from "@/components/ui/button";
@@ -59,9 +59,9 @@ function Calendar({ className, classNames, showOutsideDays = true, variant = "gl
       components={{
         Chevron: (props) => {
           if (props.orientation === "left") {
-            return <ChevronLeft className="h-4 w-4" />;
+            return <CaretLeftIcon className="h-4 w-4" />;
           }
-          return <ChevronRight className="h-4 w-4" />;
+          return <CaretRightIcon className="h-4 w-4" />;
         },
       }}
       {...props}

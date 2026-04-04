@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Inbox } from "lucide-react";
+import { Inbox } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/glass/button";
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/glass/empty-state";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
@@ -95,7 +95,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
               onClick={goToPrevious}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <CaretLeftIcon className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -103,7 +103,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
               onClick={goToNext}
             >
-              <ChevronRight className="h-4 w-4" />
+              <CaretRightIcon className="h-4 w-4" />
             </Button>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">

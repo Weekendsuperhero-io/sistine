@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Calculator, Calendar, CreditCard, Settings, Smile, User } from "lucide-react";
+import { Calculator, Calendar, CreditCard, GearFineIcon, Smile, User } from "@phosphor-icons/react";
 import {
   Command,
   CommandDialog,
@@ -72,7 +72,7 @@ export const Glass: Story = {
             <CommandShortcut>⌘B</CommandShortcut>
           </CommandItem>
           <CommandItem>
-            <Settings className="mr-2 h-4 w-4" />
+            <GearFineIcon className="mr-2 h-4 w-4" />
             <span>Settings</span>
             <CommandShortcut>⌘S</CommandShortcut>
           </CommandItem>
@@ -98,7 +98,7 @@ export const Frosted: Story = {
             <span>Add Contact</span>
           </CommandItem>
           <CommandItem>
-            <Settings className="mr-2 h-4 w-4" />
+            <GearFineIcon className="mr-2 h-4 w-4" />
             <span>Preferences</span>
           </CommandItem>
         </CommandGroup>
