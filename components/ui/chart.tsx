@@ -159,7 +159,6 @@ const ChartTooltipContent = React.forwardRef<
       {...props}
     >
       {payload?.map((item, index) => {
-        const _key = `${item.dataKey || item.name || "value"}-${index}`;
         const configItem = config[item.dataKey as string] || config[item.name as string];
         const indicatorColor =
           (

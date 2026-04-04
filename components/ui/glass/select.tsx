@@ -11,10 +11,12 @@ import {
 import { cn } from "@/lib/utils";
 
 export interface SelectTriggerProps extends React.ComponentProps<typeof BaseSelectTrigger> {
+  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
   glow?: boolean;
 }
 
 export interface SelectContentProps extends React.ComponentProps<typeof BaseSelectContent> {
+  variant?: "default" | "glass";
   glow?: boolean;
 }
 
