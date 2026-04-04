@@ -37,45 +37,141 @@ export interface CanvasConfig {
 const COLOR_PALETTES = {
   // Sunset/Sunrise gradients (warm, vibrant)
   sunset: [
-    { l: 71.2, c: 0.181, h: 22.8 },  // Coral Red
-    { l: 78.5, c: 0.155, h: 61.3 },  // Orange
-    { l: 87.3, c: 0.147, h: 86.7 },  // Golden Yellow
-    { l: 75.2, c: 0.186, h: 346.6 }, // Pink
+    {
+      l: 71.2,
+      c: 0.181,
+      h: 22.8,
+    }, // Coral Red
+    {
+      l: 78.5,
+      c: 0.155,
+      h: 61.3,
+    }, // Orange
+    {
+      l: 87.3,
+      c: 0.147,
+      h: 86.7,
+    }, // Golden Yellow
+    {
+      l: 75.2,
+      c: 0.186,
+      h: 346.6,
+    }, // Pink
   ],
   // Ocean/Sea gradients (calm, refreshing)
   ocean: [
-    { l: 71.1, c: 0.129, h: 219 },   // Ocean Blue
-    { l: 77.9, c: 0.117, h: 213.7 }, // Sky Blue
-    { l: 86, c: 0.081, h: 210.7 },   // Light Blue
-    { l: 63.1, c: 0.126, h: 230.5 }, // Deep Blue
+    {
+      l: 71.1,
+      c: 0.129,
+      h: 219,
+    }, // Ocean Blue
+    {
+      l: 77.9,
+      c: 0.117,
+      h: 213.7,
+    }, // Sky Blue
+    {
+      l: 86,
+      c: 0.081,
+      h: 210.7,
+    }, // Light Blue
+    {
+      l: 63.1,
+      c: 0.126,
+      h: 230.5,
+    }, // Deep Blue
   ],
   // Forest/Nature gradients (earthy, natural)
   forest: [
-    { l: 55.8, c: 0.169, h: 142.9 }, // Forest Green
-    { l: 52.3, c: 0.135, h: 144.2 }, // Dark Green
-    { l: 67.3, c: 0.162, h: 144.2 }, // Light Green
-    { l: 57.5, c: 0.145, h: 144.2 }, // Green
+    {
+      l: 55.8,
+      c: 0.169,
+      h: 142.9,
+    }, // Forest Green
+    {
+      l: 52.3,
+      c: 0.135,
+      h: 144.2,
+    }, // Dark Green
+    {
+      l: 67.3,
+      c: 0.162,
+      h: 144.2,
+    }, // Light Green
+    {
+      l: 57.5,
+      c: 0.145,
+      h: 144.2,
+    }, // Green
   ],
   // Lavender/Dream gradients (soft, dreamy)
   lavender: [
-    { l: 75.9, c: 0.068, h: 326.2 }, // Lavender
-    { l: 64.5, c: 0.162, h: 321.6 }, // Purple
-    { l: 57.6, c: 0.194, h: 321.6 }, // Deep Purple
-    { l: 83.7, c: 0.069, h: 323 },   // Light Lavender
+    {
+      l: 75.9,
+      c: 0.068,
+      h: 326.2,
+    }, // Lavender
+    {
+      l: 64.5,
+      c: 0.162,
+      h: 321.6,
+    }, // Purple
+    {
+      l: 57.6,
+      c: 0.194,
+      h: 321.6,
+    }, // Deep Purple
+    {
+      l: 83.7,
+      c: 0.069,
+      h: 323,
+    }, // Light Lavender
   ],
   // Fire/Ember gradients (intense, dynamic)
   fire: [
-    { l: 67.9, c: 0.213, h: 36.5 },  // Deep Orange
-    { l: 77, c: 0.174, h: 64.1 },    // Orange
-    { l: 84.4, c: 0.172, h: 84.9 },  // Amber
-    { l: 64.3, c: 0.215, h: 28.8 },  // Red
+    {
+      l: 67.9,
+      c: 0.213,
+      h: 36.5,
+    }, // Deep Orange
+    {
+      l: 77,
+      c: 0.174,
+      h: 64.1,
+    }, // Orange
+    {
+      l: 84.4,
+      c: 0.172,
+      h: 84.9,
+    }, // Amber
+    {
+      l: 64.3,
+      c: 0.215,
+      h: 28.8,
+    }, // Red
   ],
   // Midnight/Space gradients (mysterious, deep)
   midnight: [
-    { l: 28.8, c: 0.144, h: 272.8 }, // Midnight Blue
-    { l: 41.4, c: 0.125, h: 286 },   // Dark Slate Blue
-    { l: 54.4, c: 0.171, h: 285.5 }, // Slate Blue
-    { l: 60.4, c: 0.194, h: 285.5 }, // Medium Slate Blue
+    {
+      l: 28.8,
+      c: 0.144,
+      h: 272.8,
+    }, // Midnight Blue
+    {
+      l: 41.4,
+      c: 0.125,
+      h: 286,
+    }, // Dark Slate Blue
+    {
+      l: 54.4,
+      c: 0.171,
+      h: 285.5,
+    }, // Slate Blue
+    {
+      l: 60.4,
+      c: 0.194,
+      h: 285.5,
+    }, // Medium Slate Blue
   ],
 };
 
@@ -108,7 +204,7 @@ function randomColor(seed?: number): string {
 
   const l = Math.max(0, Math.min(100, color.l * (1 + lVariation)));
   const c = Math.max(0, Math.min(0.4, color.c * (1 + cVariation)));
-  const h = ((color.h + hVariation) % 360 + 360) % 360;
+  const h = (((color.h + hVariation) % 360) + 360) % 360;
 
   return `oklch(${l.toFixed(1)}% ${c.toFixed(3)} ${h.toFixed(1)})`;
 }
@@ -123,7 +219,11 @@ function withAlpha(color: string, alpha: number): string {
 /**
  * Get linear Display P3 float values (0-1) from a palette color for pixel manipulation
  */
-function randomColorP3(seed?: number): [number, number, number] {
+function randomColorP3(seed?: number): [
+  number,
+  number,
+  number,
+] {
   if (seed === undefined) {
     seed = Math.random() * 1000;
   }
@@ -139,7 +239,7 @@ function randomColorP3(seed?: number): [number, number, number] {
 
   const l = Math.max(0, Math.min(1, (color.l * (1 + lVariation)) / 100));
   const c = Math.max(0, Math.min(0.4, color.c * (1 + cVariation)));
-  const h = (((color.h + hVariation) % 360 + 360) % 360) * Math.PI / 180;
+  const h = (((((color.h + hVariation) % 360) + 360) % 360) * Math.PI) / 180;
 
   // OKLCH → Oklab
   const a = c * Math.cos(h);
@@ -148,7 +248,7 @@ function randomColorP3(seed?: number): [number, number, number] {
   // Oklab → linear sRGB
   const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
   const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
-  const s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+  const s_ = l - 0.0894841775 * a - 1.291485548 * b;
   const ll = l_ * l_ * l_;
   const mm = m_ * m_ * m_;
   const ss = s_ * s_ * s_;
@@ -156,12 +256,12 @@ function randomColorP3(seed?: number): [number, number, number] {
   // Linear sRGB → linear Display P3 (using sRGB-to-P3 matrix)
   const sr = +4.0767416621 * ll - 3.3077115913 * mm + 0.2309699292 * ss;
   const sg = -1.2684380046 * ll + 2.6097574011 * mm - 0.3413193965 * ss;
-  const sb = -0.0041960863 * ll - 0.7034186147 * mm + 1.7076147010 * ss;
+  const sb = -0.0041960863 * ll - 0.7034186147 * mm + 1.707614701 * ss;
 
   // sRGB linear → Display P3 linear
-  const pr = 0.8224621 * sr + 0.1775380 * sg + 0.0000000 * sb;
-  const pg = 0.0331942 * sr + 0.9668058 * sg + 0.0000000 * sb;
-  const pb = 0.0170608 * sr + 0.0723740 * sg + 0.9105652 * sb;
+  const pr = 0.8224621 * sr + 0.177538 * sg + 0.0 * sb;
+  const pg = 0.0331942 * sr + 0.9668058 * sg + 0.0 * sb;
+  const pb = 0.0170608 * sr + 0.072374 * sg + 0.9105652 * sb;
 
   return [
     Math.max(0, Math.min(1, pr)),
@@ -307,16 +407,19 @@ function drawNoise(ctx: CanvasRenderingContext2D, width: number, height: number,
   ctx.fillRect(0, 0, width, height);
 
   // Draw noise using float16 P3 pixel data
-  const imageData = ctx.createImageData(width, height, { colorSpace: "display-p3", pixelFormat: "rgba-float16" });
+  const imageData = ctx.createImageData(width, height, {
+    colorSpace: "display-p3",
+    pixelFormat: "rgba-float16",
+  });
   const data = imageData.data;
   const [baseR, baseG, baseB] = randomColorP3(random() * 1000);
 
   for (let i = 0; i < data.length; i += 4) {
     const noise = (random() - 0.5) * 0.2; // ±0.1 in 0-1 range
-    data[i] = Math.max(0, Math.min(1, baseR + noise));     // R
+    data[i] = Math.max(0, Math.min(1, baseR + noise)); // R
     data[i + 1] = Math.max(0, Math.min(1, baseG + noise)); // G
     data[i + 2] = Math.max(0, Math.min(1, baseB + noise)); // B
-    data[i + 3] = (random() * 0.4 + 0.2);                  // A
+    data[i + 3] = random() * 0.4 + 0.2; // A
   }
 
   ctx.putImageData(imageData, 0, 0);

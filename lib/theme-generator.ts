@@ -127,7 +127,8 @@ export const defaultTheme: ThemeColors = {
   ring: "oklch(0.5 0.2 260)",
   radius: "0rem",
   // Glass effect defaults - Enhanced with gradient tint and border glow
-  glassBg: "linear-gradient(in oklch, 135deg, oklch(100.000% 0.000000 0.000000 / 0.400000) 0%, oklch(100.000% 0.000000 0.000000 / 0.250000) 50%, oklch(97.6470% 0.010680 245.000000 / 0.300000) 100%)",
+  glassBg:
+    "linear-gradient(in oklch, 135deg, oklch(100.000% 0.000000 0.000000 / 0.400000) 0%, oklch(100.000% 0.000000 0.000000 / 0.250000) 50%, oklch(97.6470% 0.010680 245.000000 / 0.300000) 100%)",
   glassBorder: "oklch(100.000% 0.000000 0.000000 / 0.300000)",
   glassShadow:
     "0 8px 32px oklch(0.000000% 0.000000 0.000000 / 0.120000), 0 2px 8px oklch(0.000000% 0.000000 0.000000 / 0.080000), 0 0 0 1px oklch(100.000% 0.000000 0.000000 / 0.100000) inset, 0 0 20px oklch(100.000% 0.000000 0.000000 / 0.050000)",
@@ -139,7 +140,8 @@ export const defaultTheme: ThemeColors = {
   blurSm: "15px",
   blurLg: "50px",
   // Dark mode glass defaults - Enhanced with gradient tint and border glow
-  darkGlassBg: "linear-gradient(in oklch, 135deg, oklch(100.000% 0.000000 0.000000 / 0.150000) 0%, oklch(100.000% 0.000000 0.000000 / 0.080000) 50%, oklch(97.6470% 0.010680 245.000000 / 0.100000) 100%)",
+  darkGlassBg:
+    "linear-gradient(in oklch, 135deg, oklch(100.000% 0.000000 0.000000 / 0.150000) 0%, oklch(100.000% 0.000000 0.000000 / 0.080000) 50%, oklch(97.6470% 0.010680 245.000000 / 0.100000) 100%)",
   darkGlassBorder: "oklch(100.000% 0.000000 0.000000 / 0.250000)",
   darkGlassShadow:
     "0 8px 32px oklch(0.000000% 0.000000 0.000000 / 0.500000), 0 2px 8px oklch(0.000000% 0.000000 0.000000 / 0.300000), 0 0 0 1px oklch(100.000% 0.000000 0.000000 / 0.150000) inset, 0 0 20px oklch(100.000% 0.000000 0.000000 / 0.080000)",

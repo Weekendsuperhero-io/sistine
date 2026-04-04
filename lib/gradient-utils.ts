@@ -22,9 +22,9 @@ export interface Gradient {
  */
 export function randomColor(): GradientColor {
   return {
-    l: Math.random() * 60 + 30,    // 30-90% lightness
+    l: Math.random() * 60 + 30, // 30-90% lightness
     c: Math.random() * 0.25 + 0.05, // 0.05-0.30 chroma
-    h: Math.random() * 360,          // full hue range
+    h: Math.random() * 360, // full hue range
   };
 }
 
@@ -111,14 +111,30 @@ export function generateBeautifulGradient(): Gradient {
 
   const colors: GradientColor[] = [
     // Primary
-    { l: 65, c: 0.2, h: baseHue },
+    {
+      l: 65,
+      c: 0.2,
+      h: baseHue,
+    },
     // Complementary (180° away)
-    { l: 65, c: 0.2, h: (baseHue + 180) % 360 },
+    {
+      l: 65,
+      c: 0.2,
+      h: (baseHue + 180) % 360,
+    },
     // Tertiary (120° away)
-    { l: 70, c: 0.17, h: (baseHue + 120) % 360 },
+    {
+      l: 70,
+      c: 0.17,
+      h: (baseHue + 120) % 360,
+    },
   ];
 
-  const stops = [0, 50, 100];
+  const stops = [
+    0,
+    50,
+    100,
+  ];
   const angle = Math.floor(Math.random() * 360);
 
   return {

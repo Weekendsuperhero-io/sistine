@@ -110,8 +110,7 @@
   --glass-border: oklch(100% 0 0 / 0.12);
   /* Minimal shadows with subtle inner glow - Apple standard */
   --glass-shadow:
-    0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04), 0 0 0 0.5px oklch(100% 0 0 / 0.08) inset,
-    0 0 12px oklch(100% 0 0 / 0.1) inset;
+    0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04), 0 0 0 0.5px oklch(100% 0 0 / 0.08) inset, 0 0 12px oklch(100% 0 0 / 0.1) inset;
   --glass-shadow-lg:
     0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.06), 0 0 0 0.5px oklch(100% 0 0 / 0.1) inset, 0 0 20px oklch(100% 0 0 / 0.12) inset;
   --glass-shadow-sm:
@@ -133,8 +132,7 @@
   );
   --glass-frosted-border: oklch(100% 0 0 / 0.3);
   --glass-frosted-shadow:
-    0 8px 32px oklch(0% 0 0 / 0.12), 0 2px 8px oklch(0% 0 0 / 0.08), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset,
-    0 0 20px oklch(100% 0 0 / 0.18) inset;
+    0 8px 32px oklch(0% 0 0 / 0.12), 0 2px 8px oklch(0% 0 0 / 0.08), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset, 0 0 20px oklch(100% 0 0 / 0.18) inset;
   --blur-frosted: 25px;
 
   /* Fluted glass variant - Vertical ridges pattern */
@@ -170,8 +168,7 @@
   --glass-border: oklch(100% 0 0 / 0.15);
   /* Minimal shadows with subtle inner glow - Apple standard for dark mode */
   --glass-shadow:
-    0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15), 0 0 0 0.5px oklch(100% 0 0 / 0.12) inset,
-    0 0 12px oklch(100% 0 0 / 0.15) inset;
+    0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15), 0 0 0 0.5px oklch(100% 0 0 / 0.12) inset, 0 0 12px oklch(100% 0 0 / 0.15) inset;
   --glass-shadow-lg:
     0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.2), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset, 0 0 20px oklch(100% 0 0 / 0.18) inset;
   --glass-shadow-sm:
