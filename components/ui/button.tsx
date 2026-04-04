@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { Slot as SlotPrimitive } from "radix-ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
@@ -57,7 +57,7 @@ function Button({
     asChild?: boolean;
     glass?: GlassCustomization;
   }) {
-  const Comp = asChild ? Slot : "button";
+  const Comp = asChild ? SlotPrimitive.Slot : "button";
 
   // Apply glass styles for glass variants when custom glass props are provided
   const hasCustomGlass = glass !== undefined;

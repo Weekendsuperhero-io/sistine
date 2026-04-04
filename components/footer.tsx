@@ -1,3 +1,5 @@
+"use client";
+
 import { GithubLogoIcon, Heart } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/glass/button";
