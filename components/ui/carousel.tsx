@@ -2,7 +2,7 @@
 
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 

@@ -3,9 +3,9 @@
 import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Slider } from "@/components/ui/slider";
+import { Button } from "./button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
+import { Slider } from "./slider";
 import { cn } from "@/lib/utils";
 
 interface CropperProps {

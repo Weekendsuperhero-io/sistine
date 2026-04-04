@@ -4,7 +4,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { Command as CommandPrimitive } from "cmdk";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "./dialog";
 import { cn } from "@/lib/utils";
 
 const Command = React.forwardRef<

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Spinner as BaseSpinner } from "@/components/ui/spinner";
+import { Spinner as BaseSpinner } from "../spinner";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";

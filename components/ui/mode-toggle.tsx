@@ -4,7 +4,7 @@ import { Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "./button";
 
 export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass" }) {
   const { setTheme, resolvedTheme } = useTheme()

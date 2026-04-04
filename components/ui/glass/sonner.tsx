@@ -15,7 +15,7 @@ import { Toaster as BaseToaster } from "../sonner";
  *
  * @example
  * ```tsx
- * import { Toaster } from "@/components/ui/glass"
+ * import { Toaster } from "./glass"
  * import { toast } from "sonner"
  *
  * // Add to your root layout
