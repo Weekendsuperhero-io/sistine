@@ -5,7 +5,7 @@
 
 export interface GlassCustomization {
   /**
-   * Background color for the glass effect (e.g., "rgba(255, 255, 255, 0.1)" or "#ffffff")
+   * Background color for the glass effect (e.g., "oklch(100% 0 0 / 0.1)")
    * Default: uses CSS variable --glass-bg
    */
   color?: string;
@@ -23,7 +23,7 @@ export interface GlassCustomization {
   blur?: number | string;
 
   /**
-   * Border/outline color (e.g., "rgba(255, 255, 255, 0.25)" or "#ffffff")
+   * Border/outline color (e.g., "oklch(100% 0 0 / 0.25)")
    * Default: uses CSS variable --glass-border
    */
   outline?: string;
@@ -41,7 +41,7 @@ export interface GlassCustomization {
   shadow?: string;
 
   /**
-   * Inner glow color and intensity (e.g., "rgba(255, 255, 255, 0.2)")
+   * Inner glow color and intensity (e.g., "oklch(100% 0 0 / 0.2)")
    * Creates an inset shadow for a glowing effect inside the element
    */
   innerGlow?: string;
@@ -54,6 +54,39 @@ export interface GlassCustomization {
 }
 
 /**
+ * Set or replace the alpha channel on any CSS color string.
+ * Handles oklch(), hex, and rgb/rgba formats — always outputs oklch.
+ */
+function setAlpha(color: string, alpha: number): string {
+  // oklch(...) — replace or append alpha
+  const oklchMatch = color.match(/^oklch\(([^/)]+?)(?:\s*\/\s*[\d.]+)?\)$/);
+  if (oklchMatch) {
+    return `oklch(${oklchMatch[1].trim()} / ${alpha})`;
+  }
+
+  // hex — convert to oklch with alpha
+  if (color.startsWith("#")) {
+    const hex = color.replace("#", "");
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    // Approximate lightness for simple hex fallback
+    const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return `oklch(${(l * 100).toFixed(1)}% 0 0 / ${alpha})`;
+  }
+
+  // rgb/rgba — convert to oklch with alpha
+  const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgbaMatch) {
+    const l = (0.2126 * +rgbaMatch[1] + 0.7152 * +rgbaMatch[2] + 0.0722 * +rgbaMatch[3]) / 255;
+    return `oklch(${(l * 100).toFixed(1)}% 0 0 / ${alpha})`;
+  }
+
+  // Unknown format — wrap with color-mix as fallback
+  return `color-mix(in oklch, ${color} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
+/**
  * Converts glass customization props to CSS style object
  */
 export function getGlassStyles(customization?: GlassCustomization): React.CSSProperties {
@@ -63,26 +96,10 @@ export function getGlassStyles(customization?: GlassCustomization): React.CSSPro
 
   // Handle background color and transparency
   if (customization.color || customization.transparency !== undefined) {
-    let bgColor = customization.color || "rgba(255, 255, 255, 0.1)";
+    let bgColor = customization.color || "oklch(100% 0 0 / 0.1)";
 
-    // If transparency is provided, adjust the alpha channel
     if (customization.transparency !== undefined) {
-      // Extract RGB from color string if it's rgba/rgb
-      const rgbaMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
-      if (rgbaMatch) {
-        const [, r, g, b] = rgbaMatch;
-        bgColor = `rgba(${r}, ${g}, ${b}, ${customization.transparency})`;
-      } else if (bgColor.startsWith("#")) {
-        // Convert hex to rgba
-        const hex = bgColor.replace("#", "");
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        bgColor = `rgba(${r}, ${g}, ${b}, ${customization.transparency})`;
-      } else {
-        // Fallback: append transparency
-        bgColor = `${bgColor}${customization.transparency}`;
-      }
+      bgColor = setAlpha(bgColor, customization.transparency);
     }
 
     styles.backgroundColor = bgColor;
@@ -103,7 +120,7 @@ export function getGlassStyles(customization?: GlassCustomization): React.CSSPro
     styles.borderStyle = "solid";
   } else if (!customization.outline && (customization.color || customization.transparency !== undefined || customization.blur !== undefined)) {
     // Apply default border if glass customization is provided but outline is not
-    styles.borderColor = "rgba(255, 255, 255, 0.3)";
+    styles.borderColor = "oklch(100% 0 0 / 0.3)";
     styles.borderWidth = "1px";
     styles.borderStyle = "solid";
   }
@@ -116,7 +133,7 @@ export function getGlassStyles(customization?: GlassCustomization): React.CSSPro
     shadows.push(customization.shadow);
   } else if (customization.color || customization.transparency !== undefined || customization.blur !== undefined) {
     // Apply default glass shadow for depth
-    shadows.push("0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05)");
+    shadows.push("0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.05)");
   }
 
   // Add inner glow as inset shadow
@@ -147,20 +164,10 @@ export function getGlassCSSVars(customization?: GlassCustomization): Record<stri
   const vars: Record<string, string> = {};
 
   if (customization.color || customization.transparency !== undefined) {
-    let bgColor = customization.color || "rgba(255, 255, 255, 0.1)";
+    let bgColor = customization.color || "oklch(100% 0 0 / 0.1)";
 
     if (customization.transparency !== undefined) {
-      const rgbaMatch = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
-      if (rgbaMatch) {
-        const [, r, g, b] = rgbaMatch;
-        bgColor = `rgba(${r}, ${g}, ${b}, ${customization.transparency})`;
-      } else if (bgColor.startsWith("#")) {
-        const hex = bgColor.replace("#", "");
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        bgColor = `rgba(${r}, ${g}, ${b}, ${customization.transparency})`;
-      }
+      bgColor = setAlpha(bgColor, customization.transparency);
     }
 
     vars["--glass-bg-custom"] = bgColor;

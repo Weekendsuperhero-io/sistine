@@ -40,8 +40,8 @@ const ToggleGroupItem = React.forwardRef<
       // Active state - lighter, more opaque background with shadow (same as tabs)
       "data-[state=on]:bg-white/80 dark:data-[state=on]:bg-white/20",
       "data-[state=on]:text-foreground",
-      "data-[state=on]:shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_1px_rgba(255,255,255,0.5)]",
-      "dark:data-[state=on]:shadow-[0_2px_6px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.15),inset_0_0_8px_rgba(255,255,255,0.1)]",
+      "data-[state=on]:shadow-[0_1px_3px_oklch(0%_0_0/0.1),inset_0_1px_1px_oklch(100%_0_0/0.5)]",
+      "dark:data-[state=on]:shadow-[0_2px_6px_oklch(0%_0_0/0.4),inset_0_1px_2px_oklch(100%_0_0/0.15),inset_0_0_8px_oklch(100%_0_0/0.1)]",
       "hover:bg-accent/50 hover:text-accent-foreground",
       className,
     )}

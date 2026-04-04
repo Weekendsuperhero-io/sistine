@@ -28,9 +28,9 @@ export interface DialogContentProps extends Omit<React.ComponentProps<typeof Bas
  * ```tsx
  * <DialogContent
  *   glass={{
- *     color: "rgba(139, 92, 246, 0.15)",
+ *     color: "oklch(60.5631% 0.218915 292.717225 / 0.15)",
  *     blur: 40,
- *     outline: "rgba(139, 92, 246, 0.3)"
+ *     outline: "oklch(60.5631% 0.218915 292.717225 / 0.3)"
  *   }}
  * >
  *   Dialog content

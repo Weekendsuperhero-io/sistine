@@ -58,9 +58,9 @@ export function GradientBackground({ seed, beautiful = true, className = "", opa
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.1) 0%, transparent 50%)`,
+          background: `radial-gradient(circle at 20% 30%, oklch(100% 0 0 / 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 70%, oklch(100% 0 0 / 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 50% 50%, oklch(0% 0 0 / 0.1) 0%, transparent 50%)`,
           mixBlendMode: "overlay",
         }}
       />

@@ -1,11 +1,14 @@
 /**
- * Utility functions for generating random gradient backgrounds
+ * Utility functions for generating random gradient backgrounds (OKLCH color space)
  */
 
 export interface GradientColor {
-  r: number;
-  g: number;
-  b: number;
+  /** Lightness (0-100%) */
+  l: number;
+  /** Chroma (0-0.4) */
+  c: number;
+  /** Hue (0-360) */
+  h: number;
 }
 
 export interface Gradient {
@@ -15,13 +18,13 @@ export interface Gradient {
 }
 
 /**
- * Generate a random color in RGB format
+ * Generate a random color in OKLCH
  */
 export function randomColor(): GradientColor {
   return {
-    r: Math.floor(Math.random() * 255),
-    g: Math.floor(Math.random() * 255),
-    b: Math.floor(Math.random() * 255),
+    l: Math.random() * 60 + 30,    // 30-90% lightness
+    c: Math.random() * 0.25 + 0.05, // 0.05-0.30 chroma
+    h: Math.random() * 360,          // full hue range
   };
 }
 
@@ -29,7 +32,7 @@ export function randomColor(): GradientColor {
  * Generate a random gradient with 2-4 colors
  */
 export function generateRandomGradient(): Gradient {
-  const numColors = Math.floor(Math.random() * 3) + 2; // 2-4 colors
+  const numColors = Math.floor(Math.random() * 3) + 2;
   const colors: GradientColor[] = [];
   const stops: number[] = [];
 
@@ -38,7 +41,7 @@ export function generateRandomGradient(): Gradient {
     stops.push((i / (numColors - 1)) * 100);
   }
 
-  const angle = Math.floor(Math.random() * 360); // 0-360 degrees
+  const angle = Math.floor(Math.random() * 360);
 
   return {
     colors,
@@ -48,47 +51,45 @@ export function generateRandomGradient(): Gradient {
 }
 
 /**
- * Convert gradient to CSS linear-gradient string
+ * Convert gradient to CSS linear-gradient string (oklch)
  */
 export function gradientToCSS(gradient: Gradient): string {
   const colorStops = gradient.colors
     .map((color, index) => {
       const stop = gradient.stops[index];
-      return `rgba(${color.r}, ${color.g}, ${color.b}, 0.8) ${stop}%`;
+      return `oklch(${color.l.toFixed(1)}% ${color.c.toFixed(3)} ${color.h.toFixed(1)} / 0.8) ${stop}%`;
     })
     .join(", ");
 
-  return `linear-gradient(${gradient.angle}deg, ${colorStops})`;
+  return `linear-gradient(in oklch, ${gradient.angle}deg, ${colorStops})`;
 }
 
 /**
  * Generate a seeded random gradient based on a string (for consistent per-page gradients)
  */
 export function generateSeededGradient(seed: string): Gradient {
-  // Simple hash function for seed
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     const char = seed.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
 
-  // Use hash to seed random number generator
   const rng = (seed: number) => {
     const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
   };
 
-  const numColors = Math.floor(rng(hash) * 3) + 2; // 2-4 colors
+  const numColors = Math.floor(rng(hash) * 3) + 2;
   const colors: GradientColor[] = [];
   const stops: number[] = [];
 
   for (let i = 0; i < numColors; i++) {
     const colorHash = hash + i * 1000;
     colors.push({
-      r: Math.floor(rng(colorHash) * 255),
-      g: Math.floor(rng(colorHash + 1) * 255),
-      b: Math.floor(rng(colorHash + 2) * 255),
+      l: rng(colorHash) * 60 + 30,
+      c: rng(colorHash + 1) * 0.25 + 0.05,
+      h: rng(colorHash + 2) * 360,
     });
     stops.push((i / (numColors - 1)) * 100);
   }
@@ -106,38 +107,18 @@ export function generateSeededGradient(seed: string): Gradient {
  * Generate a beautiful gradient with complementary colors
  */
 export function generateBeautifulGradient(): Gradient {
-  // Generate a base hue
-  const baseHue = Math.floor(Math.random() * 360);
+  const baseHue = Math.random() * 360;
 
-  // Generate complementary colors
-  const colors: GradientColor[] = [];
-  const stops: number[] = [
-    0,
-    50,
-    100,
+  const colors: GradientColor[] = [
+    // Primary
+    { l: 65, c: 0.2, h: baseHue },
+    // Complementary (180° away)
+    { l: 65, c: 0.2, h: (baseHue + 180) % 360 },
+    // Tertiary (120° away)
+    { l: 70, c: 0.17, h: (baseHue + 120) % 360 },
   ];
 
-  // Convert HSL to RGB
-  const hslToRgb = (h: number, s: number, l: number): GradientColor => {
-    s /= 100;
-    l /= 100;
-    const k = (n: number) => (n + h / 30) % 12;
-    const a = s * Math.min(l, 1 - l);
-    const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    return {
-      r: Math.round(255 * f(0)),
-      g: Math.round(255 * f(8)),
-      b: Math.round(255 * f(4)),
-    };
-  };
-
-  // Primary color
-  colors.push(hslToRgb(baseHue, 70, 50));
-  // Complementary color (180 degrees away)
-  colors.push(hslToRgb((baseHue + 180) % 360, 70, 50));
-  // Tertiary color (120 degrees away)
-  colors.push(hslToRgb((baseHue + 120) % 360, 60, 55));
-
+  const stops = [0, 50, 100];
   const angle = Math.floor(Math.random() * 360);
 
   return {

@@ -43,11 +43,11 @@ export interface CardProps extends React.ComponentProps<typeof BaseCard> {
  * <Card
  *   variant="glass"
  *   glass={{
- *     color: "rgba(139, 92, 246, 0.2)",
+ *     color: "oklch(60.5631% 0.218915 292.717225 / 0.2)",
  *     blur: 30,
  *     transparency: 0.3,
- *     outline: "rgba(139, 92, 246, 0.5)",
- *     innerGlow: "rgba(255, 255, 255, 0.3)",
+ *     outline: "oklch(60.5631% 0.218915 292.717225 / 0.5)",
+ *     innerGlow: "oklch(100% 0 0 / 0.3)",
  *     innerGlowBlur: 25
  *   }}
  *   gradient
