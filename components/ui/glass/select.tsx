@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Select as SelectPrimitive } from "radix-ui";
 import {
   Select as BaseSelect,
   SelectContent as BaseSelectContent,
@@ -10,13 +11,15 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-export interface SelectTriggerProps extends React.ComponentProps<typeof BaseSelectTrigger> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+type SelectVariant = "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+
+export interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
+  variant?: SelectVariant;
   glow?: boolean;
 }
 
-export interface SelectContentProps extends React.ComponentProps<typeof BaseSelectContent> {
-  variant?: "default" | "glass";
+export interface SelectContentProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> {
+  variant?: SelectVariant;
   glow?: boolean;
 }
 

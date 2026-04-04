@@ -158,7 +158,7 @@ const ChartTooltipContent = React.forwardRef<
       className={cn("grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-md", variants[variant], className)}
       {...props}
     >
-      {payload?.map((item, index) => {
+      {payload?.map((item) => {
         const configItem = config[item.dataKey as string] || config[item.name as string];
         const indicatorColor =
           (
