@@ -100,23 +100,23 @@
   /* Low opacity for Apple's standard glass effect */
   --glass-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.12) 25%,
-    rgba(240, 248, 255, 0.13) 50%,
-    rgba(255, 255, 255, 0.11) 75%,
-    rgba(230, 240, 255, 0.12) 100%
+    oklch(100% 0 0 / 0.15) 0%,
+    oklch(100% 0 0 / 0.12) 25%,
+    oklch(97.5143% 0.01266 244.251 / 0.13) 50%,
+    oklch(100% 0 0 / 0.11) 75%,
+    oklch(95.2068% 0.02289 258.359 / 0.12) 100%
   );
   /* Very subtle white border - Apple standard */
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border: oklch(100% 0 0 / 0.12);
   /* Minimal shadows with subtle inner glow - Apple standard */
   --glass-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
-    0 0 12px rgba(255, 255, 255, 0.1) inset;
+    0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04), 0 0 0 0.5px oklch(100% 0 0 / 0.08) inset,
+    0 0 12px oklch(100% 0 0 / 0.1) inset;
   --glass-shadow-lg:
-    0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset, 0 0 20px rgba(255, 255, 255, 0.12) inset;
+    0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.06), 0 0 0 0.5px oklch(100% 0 0 / 0.1) inset, 0 0 20px oklch(100% 0 0 / 0.12) inset;
   --glass-shadow-sm:
-    0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03), 0 0 0 0.5px rgba(255, 255, 255, 0.06) inset, 0 0 8px rgba(255, 255, 255, 0.08) inset;
-  --gradient: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+    0 2px 8px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.03), 0 0 0 0.5px oklch(100% 0 0 / 0.06) inset, 0 0 8px oklch(100% 0 0 / 0.08) inset;
+  --gradient: linear-gradient(135deg, oklch(62.6846% 0.23254 303.9) 0%, oklch(62.3083% 0.18801 259.815) 100%);
   /* Apple-standard blur values - moderate blur */
   --blur: 10px;
   --blur-sm: 10px;
@@ -125,33 +125,33 @@
   /* Frosted glass variant - Enhanced opacity and stronger blur */
   --glass-frosted-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.25) 0%,
-    rgba(255, 255, 255, 0.22) 25%,
-    rgba(240, 248, 255, 0.23) 50%,
-    rgba(255, 255, 255, 0.21) 75%,
-    rgba(230, 240, 255, 0.22) 100%
+    oklch(100% 0 0 / 0.25) 0%,
+    oklch(100% 0 0 / 0.22) 25%,
+    oklch(97.5143% 0.01266 244.251 / 0.23) 50%,
+    oklch(100% 0 0 / 0.21) 75%,
+    oklch(95.2068% 0.02289 258.359 / 0.22) 100%
   );
-  --glass-frosted-border: rgba(255, 255, 255, 0.3);
+  --glass-frosted-border: oklch(100% 0 0 / 0.3);
   --glass-frosted-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(255, 255, 255, 0.15) inset,
-    0 0 20px rgba(255, 255, 255, 0.18) inset;
+    0 8px 32px oklch(0% 0 0 / 0.12), 0 2px 8px oklch(0% 0 0 / 0.08), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset,
+    0 0 20px oklch(100% 0 0 / 0.18) inset;
   --blur-frosted: 25px;
 
   /* Fluted glass variant - Vertical ridges pattern */
   --glass-fluted-pattern: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.08) 0px,
-    rgba(255, 255, 255, 0.15) 4px,
-    rgba(255, 255, 255, 0.08) 8px,
-    rgba(255, 255, 255, 0.02) 10px,
-    rgba(255, 255, 255, 0.08) 12px
+    oklch(100% 0 0 / 0.08) 0px,
+    oklch(100% 0 0 / 0.15) 4px,
+    oklch(100% 0 0 / 0.08) 8px,
+    oklch(100% 0 0 / 0.02) 10px,
+    oklch(100% 0 0 / 0.08) 12px
   );
 
   /* Crystal glass variant - Clear glass with highlights and glow */
-  --glass-crystal-bg: rgba(255, 255, 255, 0.3);
-  --glass-crystal-border: rgba(255, 255, 255, 0.3);
-  --glass-crystal-shadow: 0 0 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 255, 255, 0.1);
-  --glass-crystal-shadow-hover: 0 0 25px rgba(0, 0, 0, 0.3), 0 0 35px rgba(255, 255, 255, 0.15);
+  --glass-crystal-bg: oklch(100% 0 0 / 0.3);
+  --glass-crystal-border: oklch(100% 0 0 / 0.3);
+  --glass-crystal-shadow: 0 0 20px oklch(0% 0 0 / 0.2), 0 0 30px oklch(100% 0 0 / 0.1);
+  --glass-crystal-shadow-hover: 0 0 25px oklch(0% 0 0 / 0.3), 0 0 35px oklch(100% 0 0 / 0.15);
   --blur-crystal: 2px;
 }
 
@@ -160,51 +160,51 @@
   /* Very low opacity for Apple's standard glass effect in dark mode */
   --glass-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.06) 25%,
-    rgba(240, 248, 255, 0.07) 50%,
-    rgba(255, 255, 255, 0.05) 75%,
-    rgba(230, 240, 255, 0.06) 100%
+    oklch(100% 0 0 / 0.08) 0%,
+    oklch(100% 0 0 / 0.06) 25%,
+    oklch(97.5143% 0.01266 244.251 / 0.07) 50%,
+    oklch(100% 0 0 / 0.05) 75%,
+    oklch(95.2068% 0.02289 258.359 / 0.06) 100%
   );
   /* Very subtle white border - Apple standard */
-  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border: oklch(100% 0 0 / 0.15);
   /* Minimal shadows with subtle inner glow - Apple standard for dark mode */
   --glass-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.15), 0 0 0 0.5px rgba(255, 255, 255, 0.12) inset,
-    0 0 12px rgba(255, 255, 255, 0.15) inset;
+    0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15), 0 0 0 0.5px oklch(100% 0 0 / 0.12) inset,
+    0 0 12px oklch(100% 0 0 / 0.15) inset;
   --glass-shadow-lg:
-    0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(255, 255, 255, 0.15) inset, 0 0 20px rgba(255, 255, 255, 0.18) inset;
+    0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.2), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset, 0 0 20px oklch(100% 0 0 / 0.18) inset;
   --glass-shadow-sm:
-    0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset, 0 0 8px rgba(255, 255, 255, 0.12) inset;
+    0 2px 8px oklch(0% 0 0 / 0.25), 0 1px 2px oklch(0% 0 0 / 0.12), 0 0 0 0.5px oklch(100% 0 0 / 0.1) inset, 0 0 8px oklch(100% 0 0 / 0.12) inset;
 
   /* Frosted glass variant - Enhanced opacity and stronger blur for dark mode */
   --glass-frosted-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0.12) 25%,
-    rgba(240, 248, 255, 0.13) 50%,
-    rgba(255, 255, 255, 0.11) 75%,
-    rgba(230, 240, 255, 0.12) 100%
+    oklch(100% 0 0 / 0.15) 0%,
+    oklch(100% 0 0 / 0.12) 25%,
+    oklch(97.5143% 0.01266 244.251 / 0.13) 50%,
+    oklch(100% 0 0 / 0.11) 75%,
+    oklch(95.2068% 0.02289 258.359 / 0.12) 100%
   );
-  --glass-frosted-border: rgba(255, 255, 255, 0.25);
+  --glass-frosted-border: oklch(100% 0 0 / 0.25);
   --glass-frosted-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.2) inset, 0 0 20px rgba(255, 255, 255, 0.22) inset;
+    0 8px 32px oklch(0% 0 0 / 0.5), 0 2px 8px oklch(0% 0 0 / 0.3), 0 0 0 0.5px oklch(100% 0 0 / 0.2) inset, 0 0 20px oklch(100% 0 0 / 0.22) inset;
 
   /* Fluted glass variant - Vertical ridges pattern for dark mode */
   --glass-fluted-pattern: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05) 0px,
-    rgba(255, 255, 255, 0.12) 4px,
-    rgba(255, 255, 255, 0.05) 8px,
-    rgba(255, 255, 255, 0.01) 10px,
-    rgba(255, 255, 255, 0.05) 12px
+    oklch(100% 0 0 / 0.05) 0px,
+    oklch(100% 0 0 / 0.12) 4px,
+    oklch(100% 0 0 / 0.05) 8px,
+    oklch(100% 0 0 / 0.01) 10px,
+    oklch(100% 0 0 / 0.05) 12px
   );
 
   /* Crystal glass variant - Clear glass with highlights and glow for dark mode */
-  --glass-crystal-bg: rgba(255, 255, 255, 0.1);
-  --glass-crystal-border: rgba(255, 255, 255, 0.3);
-  --glass-crystal-shadow: 0 0 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 255, 255, 0.15);
-  --glass-crystal-shadow-hover: 0 0 25px rgba(0, 0, 0, 0.5), 0 0 35px rgba(255, 255, 255, 0.2);
+  --glass-crystal-bg: oklch(100% 0 0 / 0.1);
+  --glass-crystal-border: oklch(100% 0 0 / 0.3);
+  --glass-crystal-shadow: 0 0 20px oklch(0% 0 0 / 0.4), 0 0 30px oklch(100% 0 0 / 0.15);
+  --glass-crystal-shadow-hover: 0 0 25px oklch(0% 0 0 / 0.5), 0 0 35px oklch(100% 0 0 / 0.2);
 
   /* Base colors - Apple-style white text */
   --background: transparent;
@@ -323,7 +323,7 @@
     box-shadow: var(--glass-crystal-shadow) !important;
     transition: all 0.3s ease !important;
     /* Top highlight gradient */
-    background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.15), transparent 50%) !important;
+    background-image: linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%) !important;
     background-size: 200% 200% !important;
   }
 
@@ -332,7 +332,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent);
     opacity: 0.7;
     pointer-events: none;
     height: 30%;
@@ -343,7 +343,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.2), transparent 70%);
+    background: radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%);
     opacity: 0.8;
     pointer-events: none;
   }
@@ -387,19 +387,19 @@
 }
 
 [data-sonner-toast][data-type="success"] {
-  border-color: rgba(34, 197, 94, 0.3) !important;
+  border-color: oklch(72.2746% 0.19201 149.579 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="error"] {
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  border-color: oklch(63.6834% 0.20785 25.3313 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="warning"] {
-  border-color: rgba(234, 179, 8, 0.3) !important;
+  border-color: oklch(79.5243% 0.16167 86.0468 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="info"] {
-  border-color: rgba(59, 130, 246, 0.3) !important;
+  border-color: oklch(62.3083% 0.18801 259.815 / 0.3) !important;
 }
 
 /* Toast description text */
