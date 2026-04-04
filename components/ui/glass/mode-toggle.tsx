@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { ModeToggle as BaseModeToggle } from "../mode-toggle";
 
 /**

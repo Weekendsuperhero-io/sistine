@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  PulseIcon as Activity,
-  ChartScatterIcon as ChartBarIcon,
-  CreditCard,
-  CurrencyDollarSimpleIcon,
-  TrendUpIcon as TrendingUp,
-  Users,
-} from "@phosphor-icons/react";
-import * as React from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PulseIcon as Activity, CreditCard, CurrencyDollarSimpleIcon, Users } from "@phosphor-icons/react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

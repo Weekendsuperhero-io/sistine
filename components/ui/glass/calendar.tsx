@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Calendar as BaseCalendar, type CalendarProps as BaseCalendarProps } from "../calendar";
 

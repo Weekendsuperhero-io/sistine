@@ -565,7 +565,6 @@ export function generateCanvasBackground(config: CanvasConfig = {}): {
       case "artistic":
         drawArtistic(ctx, width, height, colorCount, random);
         break;
-      case "gradient":
       default:
         drawGradient(ctx, width, height, colorCount, random);
         break;

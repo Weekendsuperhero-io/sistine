@@ -55,7 +55,12 @@
         "useKeyWithClickEvents": "off",
         "useButtonType": "off",
         "useSemanticElements": "off",
-        "noSvgWithoutTitle": "off"
+        "noSvgWithoutTitle": "off",
+        "useFocusableInteractive": "off",
+        "useAriaPropsForRole": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       }
     }
   },

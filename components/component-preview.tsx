@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon, TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
+import { TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
@@ -65,7 +65,7 @@ import { ModeToggle } from "@/components/ui/glass/mode-toggle";
 import { Spinner } from "@/components/ui/glass/spinner";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { InputOTP } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import {
   NavigationMenu,

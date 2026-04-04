@@ -17,7 +17,7 @@ export interface DatePickerInputProps extends Omit<React.ComponentProps<typeof I
 }
 
 const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>(
-  ({ className, value, onChange, placeholder = "Pick a date", variant = "glass", ...props }, ref) => {
+  ({ className, value, onChange, placeholder = "Pick a date", variant = "glass" }, _ref) => {
     const [open, setOpen] = React.useState(false);
 
     return (

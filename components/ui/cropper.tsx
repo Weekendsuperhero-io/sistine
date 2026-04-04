@@ -4,8 +4,6 @@ import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
 import { cn } from "@/lib/utils";
-import { Button } from "./button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Slider } from "./slider";
 
 interface CropperProps {
@@ -21,11 +19,17 @@ export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass" }
     y: 0,
   });
   const [zoom, setZoom] = React.useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = React.useState<Area | null>(null);
+  const [_croppedAreaPixels, setCroppedAreaPixels] = React.useState<Area | null>(null);
 
-  const handleCropComplete = React.useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const handleCropComplete = React.useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+      onCropComplete(croppedArea, croppedAreaPixels);
+    },
+    [
+      onCropComplete,
+    ],
+  );
 
   return (
     <div

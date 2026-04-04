@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Collapsible as BaseCollapsible, CollapsibleContent, CollapsibleTrigger } from "../collapsible";
 
 /**

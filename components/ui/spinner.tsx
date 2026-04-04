@@ -1,5 +1,5 @@
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import type { GlassCustomization } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
