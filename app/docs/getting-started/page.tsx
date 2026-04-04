@@ -186,10 +186,10 @@ export function Example() {
                     code={`/* In your globals.css or main CSS file */
 :root {
   /* Glass background transparency (0-1) */
-  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-bg: oklch(100% 0 0 / 0.25);
 
   /* Glass border color and opacity */
-  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-border: oklch(100% 0 0 / 0.18);
 
   /* Blur amount - Apple standard is 30px */
   --blur: 30px;
@@ -197,9 +197,9 @@ export function Example() {
   --blur-lg: 50px;  /* Large blur for strong effects */
 
   /* Glass shadows */
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
-  --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
-  --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --glass-shadow: 0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.06);
+  --glass-shadow-lg: 0 12px 48px oklch(0% 0 0 / 0.15), 0 4px 16px oklch(0% 0 0 / 0.1);
+  --glass-shadow-sm: 0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04);
 }`}
                   />
                 </div>
@@ -210,8 +210,8 @@ export function Example() {
                     code={`/* Dark mode overrides */
 .dark {
   /* More transparent for dark backgrounds */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-bg: oklch(100% 0 0 / 0.1);
+  --glass-border: oklch(100% 0 0 / 0.2);
 
   /* Same blur values work for both modes */
   --blur: 30px;
@@ -219,9 +219,9 @@ export function Example() {
   --blur-lg: 50px;
 
   /* Deeper shadows for dark mode */
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.15);
+  --glass-shadow: 0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.2);
+  --glass-shadow-lg: 0 12px 48px oklch(0% 0 0 / 0.5), 0 4px 16px oklch(0% 0 0 / 0.3);
+  --glass-shadow-sm: 0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15);
 }`}
                   />
                 </div>
@@ -236,23 +236,23 @@ export function Example() {
               <CodeBlock
                 code={`/* More transparent, stronger blur */
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.15);  /* 15% opacity - more transparent */
-  --blur: 40px;                            /* Stronger blur */
+  --glass-bg: oklch(100% 0 0 / 0.15);  /* 15% opacity - more transparent */
+  --blur: 40px;                          /* Stronger blur */
 }
 
 .dark {
-  --glass-bg: rgba(255, 255, 255, 0.08);  /* 8% opacity for dark mode */
+  --glass-bg: oklch(100% 0 0 / 0.08);  /* 8% opacity for dark mode */
   --blur: 40px;
 }
 
 /* Less transparent, subtle blur */
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.4);   /* 40% opacity - less transparent */
-  --blur: 20px;                            /* Subtle blur */
+  --glass-bg: oklch(100% 0 0 / 0.4);   /* 40% opacity - less transparent */
+  --blur: 20px;                          /* Subtle blur */
 }
 
 .dark {
-  --glass-bg: rgba(255, 255, 255, 0.15);  /* 15% opacity for dark mode */
+  --glass-bg: oklch(100% 0 0 / 0.15);  /* 15% opacity for dark mode */
   --blur: 20px;
 }`}
               />
@@ -294,10 +294,10 @@ export function CustomGlassCard() {
     <Card
       variant="glass"
       glass={{
-        color: "rgba(139, 92, 246, 0.2)",  // Purple tint
-        blur: 40,                            // 40px blur
-        transparency: 0.3,                   // 30% opacity
-        outline: "rgba(139, 92, 246, 0.5)",  // Purple border
+        color: "oklch(60.5631% 0.218915 292.717225 / 0.2)",  // Purple tint
+        blur: 40,                                              // 40px blur
+        transparency: 0.3,                                     // 30% opacity
+        outline: "oklch(60.5631% 0.218915 292.717225 / 0.5)",  // Purple border
       }}
     >
       <CardHeader>

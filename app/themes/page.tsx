@@ -181,10 +181,10 @@ export default function ThemesPage() {
                             key.includes("blur")
                               ? "e.g., 30px"
                               : key.includes("glassBg")
-                                ? "e.g., rgba(255, 255, 255, 0.25)"
+                                ? "e.g., oklch(100% 0 0 / 0.25)"
                                 : key.includes("glassBorder")
-                                  ? "e.g., rgba(255, 255, 255, 0.18)"
-                                  : "e.g., 0 8px 32px rgba(0, 0, 0, 0.1)"
+                                  ? "e.g., oklch(100% 0 0 / 0.18)"
+                                  : "e.g., 0 8px 32px oklch(0% 0 0 / 0.1)"
                           }
                           className="text-foreground"
                         />
@@ -216,10 +216,10 @@ export default function ThemesPage() {
                           onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
                           placeholder={
                             key.includes("darkGlassBg")
-                              ? "e.g., rgba(255, 255, 255, 0.05)"
+                              ? "e.g., oklch(100% 0 0 / 0.05)"
                               : key.includes("darkGlassBorder")
-                                ? "e.g., rgba(255, 255, 255, 0.15)"
-                                : "e.g., 0 8px 32px rgba(0, 0, 0, 0.4)"
+                                ? "e.g., oklch(100% 0 0 / 0.15)"
+                                : "e.g., 0 8px 32px oklch(0% 0 0 / 0.4)"
                           }
                           className="text-foreground"
                         />
