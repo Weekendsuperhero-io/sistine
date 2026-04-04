@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Tabs as BaseTabs, TabsList as BaseTabsList, TabsContent, TabsTrigger } from "../tabs";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { Tabs as BaseTabs, TabsList as BaseTabsList, TabsContent, TabsTrigger } from "../tabs";
 
 export interface TabsListProps extends React.ComponentProps<typeof BaseTabsList> {
   glow?: boolean;

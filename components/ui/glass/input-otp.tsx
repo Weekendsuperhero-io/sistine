@@ -1,13 +1,8 @@
 "use client";
 
 import * as React from "react";
-import {
-  InputOTP as BaseInputOTP,
-  InputOTPGroup as BaseInputOTPGroup,
-  InputOTPSlot as BaseInputOTPSlot,
-  InputOTPSeparator,
-} from "../input-otp";
 import { cn } from "@/lib/utils";
+import { InputOTP as BaseInputOTP, InputOTPGroup as BaseInputOTPGroup, InputOTPSlot as BaseInputOTPSlot, InputOTPSeparator } from "../input-otp";
 
 export interface InputOTPProps extends React.ComponentProps<typeof BaseInputOTP> {
   glow?: boolean;

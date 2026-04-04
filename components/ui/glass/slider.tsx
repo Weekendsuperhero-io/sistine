@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Slider as BaseSlider } from "../slider";
 import { cn } from "@/lib/utils";
+import { Slider as BaseSlider } from "../slider";
 
 export interface SliderProps extends React.ComponentProps<typeof BaseSlider> {
   glow?: boolean;

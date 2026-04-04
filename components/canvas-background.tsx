@@ -57,7 +57,9 @@ export function CanvasBackground({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { colorSpace: "display-p3" });
+    const ctx = canvas.getContext("2d", {
+      colorSpace: "display-p3",
+    });
     if (!ctx) return;
 
     canvas.width = dimensions.width;

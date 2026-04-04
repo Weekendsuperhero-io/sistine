@@ -1,7 +1,7 @@
-import { CaretLeftIcon, CaretRightIcon, ArrowsHorizontalIcon } from "@phosphor-icons/react";
+import { ArrowsHorizontalIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { buttonVariants } from "./button";
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "./button";
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav role="navigation" aria-label="pagination" className={cn("mx-auto flex w-full justify-center", className)} {...props} />

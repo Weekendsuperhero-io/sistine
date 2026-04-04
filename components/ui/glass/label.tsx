@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Label as BaseLabel } from "../label";
 import { cn } from "@/lib/utils";
+import { Label as BaseLabel } from "../label";
 
 export interface LabelProps extends React.ComponentProps<typeof BaseLabel> {
   required?: boolean;

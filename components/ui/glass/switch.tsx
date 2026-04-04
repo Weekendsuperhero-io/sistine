@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Switch as BaseSwitch } from "../switch";
 import { cn } from "@/lib/utils";
+import { Switch as BaseSwitch } from "../switch";
 
 export interface SwitchProps extends React.ComponentProps<typeof BaseSwitch> {
   glow?: boolean;

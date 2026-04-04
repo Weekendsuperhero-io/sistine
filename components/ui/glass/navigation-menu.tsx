@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   NavigationMenu as BaseNavigationMenu,
   NavigationMenuContent as BaseNavigationMenuContent,
@@ -11,7 +12,6 @@ import {
   NavigationMenuLink,
   NavigationMenuTrigger,
 } from "../navigation-menu";
-import { cn } from "@/lib/utils";
 
 export interface NavigationMenuListProps extends React.ComponentProps<typeof BaseNavigationMenuList> {
   glow?: boolean;

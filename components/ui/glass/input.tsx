@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Input as BaseInput } from "../input";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { Input as BaseInput } from "../input";
 
 export interface InputProps extends Omit<React.ComponentProps<typeof BaseInput>, "glass"> {
   icon?: React.ReactNode;

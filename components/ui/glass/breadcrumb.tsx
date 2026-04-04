@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb as BaseBreadcrumb,
   BreadcrumbList as BaseBreadcrumbList,
@@ -10,7 +11,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../breadcrumb";
-import { cn } from "@/lib/utils";
 
 export interface BreadcrumbListProps extends React.ComponentProps<typeof BaseBreadcrumbList> {
   glow?: boolean;

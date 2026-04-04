@@ -1,5 +1,5 @@
-import { Slot as SlotPrimitive } from "radix-ui";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";

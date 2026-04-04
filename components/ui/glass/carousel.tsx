@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Carousel as BaseCarousel } from "../carousel";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { Carousel as BaseCarousel } from "../carousel";
 
 export interface CarouselProps extends React.ComponentProps<typeof BaseCarousel> {
   effect?: HoverEffect;

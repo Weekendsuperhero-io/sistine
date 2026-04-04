@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
 import {
   Dialog as BaseDialog,
   DialogContent as BaseDialogContent,
@@ -10,9 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../dialog";
-import type { GlassCustomization } from "@/lib/glass-utils";
-import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { cn } from "@/lib/utils";
 
 export interface DialogContentProps extends Omit<React.ComponentProps<typeof BaseDialogContent>, "glass"> {
   variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";

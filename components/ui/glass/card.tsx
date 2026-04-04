@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Card as BaseCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../card";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { Card as BaseCard, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../card";
 
 export interface CardProps extends React.ComponentProps<typeof BaseCard> {
   gradient?: boolean;

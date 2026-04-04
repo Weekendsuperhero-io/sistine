@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "./button";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
 
 export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";

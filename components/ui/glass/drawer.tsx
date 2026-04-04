@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Drawer as BaseDrawer,
   DrawerContent as BaseDrawerContent,
@@ -13,7 +14,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../drawer";
-import { cn } from "@/lib/utils";
 
 export interface DrawerContentProps extends React.ComponentProps<typeof BaseDrawerContent> {
   glow?: boolean;

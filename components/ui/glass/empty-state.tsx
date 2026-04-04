@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { EmptyState as BaseEmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "../empty-state";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { EmptyState as BaseEmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "../empty-state";
 
 export interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptyState> {
   effect?: HoverEffect;

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -12,7 +13,6 @@ import {
   AlertDialog as BaseAlertDialog,
   AlertDialogContent as BaseAlertDialogContent,
 } from "../alert-dialog";
-import { cn } from "@/lib/utils";
 
 export interface AlertDialogContentProps extends React.ComponentProps<typeof BaseAlertDialogContent> {
   animated?: boolean;

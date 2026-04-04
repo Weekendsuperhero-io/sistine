@@ -1,11 +1,11 @@
 "use client";
 
-import { Dialog as DialogPrimitive } from "radix-ui";
-import { Command as CommandPrimitive } from "cmdk";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { Command as CommandPrimitive } from "cmdk";
+import type { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
-import { Dialog, DialogContent } from "./dialog";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent } from "./dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,

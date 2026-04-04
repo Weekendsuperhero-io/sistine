@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ScrollArea as BaseScrollArea, ScrollBar } from "../scroll-area";
 import { cn } from "@/lib/utils";
+import { ScrollArea as BaseScrollArea, ScrollBar } from "../scroll-area";
 
 export interface ScrollAreaProps extends React.ComponentProps<typeof BaseScrollArea> {
   glow?: boolean;

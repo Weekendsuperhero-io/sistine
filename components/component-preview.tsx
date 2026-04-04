@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarIcon , TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
+import { CalendarIcon, TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";

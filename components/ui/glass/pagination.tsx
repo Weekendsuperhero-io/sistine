@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Pagination as BasePagination,
   PaginationContent as BasePaginationContent,
@@ -10,7 +11,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../pagination";
-import { cn } from "@/lib/utils";
 
 export interface PaginationContentProps extends React.ComponentProps<typeof BasePaginationContent> {
   glow?: boolean;

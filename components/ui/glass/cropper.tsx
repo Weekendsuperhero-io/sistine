@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Cropper as BaseCropper } from "../cropper";
 import { cn } from "@/lib/utils";
+import { Cropper as BaseCropper } from "../cropper";
 
 export interface CropperProps {
   image: string;

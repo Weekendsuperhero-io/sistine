@@ -2,9 +2,9 @@
 
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { Button } from "./button";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
 
 export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";

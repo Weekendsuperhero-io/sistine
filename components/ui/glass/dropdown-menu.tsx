@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu as BaseDropdownMenu,
   DropdownMenuContent as BaseDropdownMenuContent,
@@ -9,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
-import { cn } from "@/lib/utils";
 
 export interface DropdownMenuContentProps extends React.ComponentProps<typeof BaseDropdownMenuContent> {
   glow?: boolean;

@@ -1,5 +1,5 @@
+import { ArrowsHorizontalIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Slot as SlotPrimitive } from "radix-ui";
-import { CaretRightIcon, ArrowsHorizontalIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { AccordionContent, AccordionItem, Accordion as BaseAccordion, AccordionTrigger as BaseAccordionTrigger } from "../accordion";
 import { cn } from "@/lib/utils";
+import { AccordionContent, AccordionItem, Accordion as BaseAccordion, AccordionTrigger as BaseAccordionTrigger } from "../accordion";
 
 export interface AccordionTriggerProps extends React.ComponentProps<typeof BaseAccordionTrigger> {
   glow?: boolean;

@@ -1,7 +1,7 @@
 "use client";
 
+import { CaretDownIcon, CaretUpIcon, Check } from "@phosphor-icons/react";
 import { Select as SelectPrimitive } from "radix-ui";
-import { Check, CaretDownIcon, CaretUpIcon } from "@phosphor-icons/react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";

@@ -1,13 +1,13 @@
 "use client";
 
-import { format } from "date-fns";
 import { CalendarIcon } from "@phosphor-icons/react";
+import { format } from "date-fns";
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import type { Input } from "./input";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { cn } from "@/lib/utils";
 
 export interface DatePickerInputProps extends Omit<React.ComponentProps<typeof Input>, "value" | "onChange"> {
   value?: Date;

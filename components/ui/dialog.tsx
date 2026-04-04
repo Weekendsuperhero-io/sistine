@@ -1,7 +1,7 @@
 "use client";
 
-import { Dialog as DialogPrimitive } from "radix-ui";
 import { X } from "@phosphor-icons/react";
+import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";

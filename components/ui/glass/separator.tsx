@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Separator as BaseSeparator } from "../separator";
 import { cn } from "@/lib/utils";
+import { Separator as BaseSeparator } from "../separator";
 
 export interface SeparatorProps extends React.ComponentProps<typeof BaseSeparator> {
   glow?: boolean;

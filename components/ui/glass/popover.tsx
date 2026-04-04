@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Popover as BasePopover, PopoverContent as BasePopoverContent, PopoverTrigger } from "../popover";
 import { cn } from "@/lib/utils";
+import { Popover as BasePopover, PopoverContent as BasePopoverContent, PopoverTrigger } from "../popover";
 
 export interface PopoverContentProps extends React.ComponentProps<typeof BasePopoverContent> {
   glow?: boolean;

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import type { ChartConfig } from "../chart";
 import {
   ChartContainer as BaseChartContainer,
@@ -9,7 +10,6 @@ import {
   ChartLegend,
   ChartTooltip,
 } from "../chart";
-import { cn } from "@/lib/utils";
 
 export interface ChartContainerProps extends React.ComponentProps<typeof BaseChartContainer> {
   glow?: boolean;

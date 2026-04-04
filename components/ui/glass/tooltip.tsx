@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Tooltip as BaseTooltip, TooltipContent as BaseTooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip";
 import { cn } from "@/lib/utils";
+import { Tooltip as BaseTooltip, TooltipContent as BaseTooltipContent, TooltipProvider, TooltipTrigger } from "../tooltip";
 
 export interface TooltipContentProps extends React.ComponentProps<typeof BaseTooltipContent> {
   glow?: boolean;

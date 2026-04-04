@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Checkbox as BaseCheckbox } from "../checkbox";
 import { cn } from "@/lib/utils";
+import { Checkbox as BaseCheckbox } from "../checkbox";
 
 export interface CheckboxProps extends React.ComponentProps<typeof BaseCheckbox> {
   glow?: boolean;

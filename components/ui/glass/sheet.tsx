@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Sheet as BaseSheet,
   SheetContent as BaseSheetContent,
@@ -13,7 +14,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../sheet";
-import { cn } from "@/lib/utils";
 
 export interface SheetContentProps extends React.ComponentProps<typeof BaseSheetContent> {
   glow?: boolean;

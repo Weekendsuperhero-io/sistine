@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AlertDescription, AlertTitle, Alert as BaseAlert } from "../alert";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { AlertDescription, AlertTitle, Alert as BaseAlert } from "../alert";
 
 export interface AlertProps extends React.ComponentProps<typeof BaseAlert> {
   glow?: boolean;

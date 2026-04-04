@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Sidebar as BaseSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem } from "../sidebar";
 import { cn } from "@/lib/utils";
+import { Sidebar as BaseSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem } from "../sidebar";
 
 export interface SidebarProps extends React.ComponentProps<typeof BaseSidebar> {
   glow?: boolean;

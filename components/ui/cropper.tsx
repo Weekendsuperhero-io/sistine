@@ -3,10 +3,10 @@
 import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
+import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Slider } from "./slider";
-import { cn } from "@/lib/utils";
 
 interface CropperProps {
   image: string;

@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { MenuBar as BaseMenuBar, MenuBarItem as BaseMenuBarItem } from "../menu-bar";
 import type { GlassCustomization } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { cn } from "@/lib/utils";
+import { MenuBar as BaseMenuBar, MenuBarItem as BaseMenuBarItem } from "../menu-bar";
 
 export interface MenuBarProps extends React.ComponentProps<typeof BaseMenuBar> {
   effect?: HoverEffect;

@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Toggle as BaseToggle, toggleVariants } from "../toggle";
 import { cn } from "@/lib/utils";
+import { Toggle as BaseToggle, toggleVariants } from "../toggle";
 
 export interface ToggleProps extends React.ComponentProps<typeof BaseToggle> {
   glow?: boolean;

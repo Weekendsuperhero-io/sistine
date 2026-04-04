@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Calendar as BaseCalendar, type CalendarProps as BaseCalendarProps } from "../calendar";
 import { cn } from "@/lib/utils";
+import { Calendar as BaseCalendar, type CalendarProps as BaseCalendarProps } from "../calendar";
 
 export type CalendarProps = BaseCalendarProps & {
   glow?: boolean;
