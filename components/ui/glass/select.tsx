@@ -1,7 +1,7 @@
 "use client";
 
+import type { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
-import { Select as SelectPrimitive } from "radix-ui";
 import {
   Select as BaseSelect,
   SelectContent as BaseSelectContent,
@@ -32,7 +32,10 @@ export const SelectTrigger = React.forwardRef<React.ElementRef<typeof BaseSelect
       <BaseSelectTrigger
         ref={ref}
         className={cn(glow && "shadow-md shadow-purple-500/20", "transition-all duration-200", className)}
-        {...({ variant, ...props } as React.ComponentProps<typeof BaseSelectTrigger>)}
+        {...({
+          variant,
+          ...props,
+        } as React.ComponentProps<typeof BaseSelectTrigger>)}
       />
     );
   },
@@ -45,7 +48,10 @@ export const SelectContent = React.forwardRef<React.ElementRef<typeof BaseSelect
       <BaseSelectContent
         ref={ref}
         className={cn(glow && "shadow-lg shadow-purple-500/30", className)}
-        {...({ variant, ...props } as React.ComponentProps<typeof BaseSelectContent>)}
+        {...({
+          variant,
+          ...props,
+        } as React.ComponentProps<typeof BaseSelectContent>)}
       />
     );
   },
