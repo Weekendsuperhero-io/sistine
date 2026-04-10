@@ -57,9 +57,10 @@ export default function Home() {
               50+ Liquid Glass Components
             </Badge>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-[1.08]">
-              Beautiful interfaces,{" "}
-              <span className="text-muted-foreground">built with liquid glass.</span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.08]">
+              <span className="text-foreground">Beautiful interfaces,</span>
+              <br />
+              <span className="text-foreground/35">built with liquid glass.</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
