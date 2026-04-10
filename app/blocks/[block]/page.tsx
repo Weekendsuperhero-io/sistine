@@ -89,8 +89,8 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-4 overflow-x-auto">
-        <code className="text-foreground text-sm font-mono whitespace-pre">{code}</code>
+      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+        <code className="text-foreground whitespace-pre">{code}</code>
       </pre>
       <Button
         variant="ghost"
@@ -123,18 +123,17 @@ export default function BlockPage({
   const Component = block.component
 
   return (
-    <div
-      className="min-h-screen transition-colors duration-300 relative"
-    >
-      <div className="container mx-auto px-4 pt-4 pb-8 relative z-10">
-        <div className="mb-6">
-          <Button variant="glass" asChild className="mb-4">
-            <Link href="/blocks">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blocks
-            </Link>
-          </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">{block.title}</h1>
+    <div className="min-h-screen relative">
+      <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
+        <div className="mb-8">
+          <Link
+            href="/blocks"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blocks
+          </Link>
+          <h1 className="text-4xl font-bold text-foreground mb-3">{block.title}</h1>
           <p className="text-lg text-muted-foreground">{block.description}</p>
         </div>
 

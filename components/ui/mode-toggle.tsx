@@ -7,22 +7,12 @@ import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 
 export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass" }) {
-  const { setTheme, theme, resolvedTheme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
-
-  const toggleTheme = () => {
-    if (theme === "system") {
-      setTheme("light")
-    } else if (theme === "light") {
-      setTheme("dark")
-    } else {
-      setTheme("system")
-    }
-  }
 
   if (!mounted) {
     return (
@@ -34,10 +24,10 @@ export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass
   }
 
   return (
-    <Button 
-      variant={variant === "glass" ? "glass" : "outline"} 
+    <Button
+      variant={variant === "glass" ? "glass" : "outline"}
       size="icon"
-      onClick={toggleTheme}
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {resolvedTheme === "dark" ? (
         <Moon className="h-[1.2rem] w-[1.2rem]" />
@@ -48,4 +38,3 @@ export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass
     </Button>
   )
 }
-

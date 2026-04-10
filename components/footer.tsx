@@ -7,12 +7,8 @@ export function Footer() {
   return (
     <footer className="w-full pb-4 bg-transparent mt-16">
       <div className="container mx-auto px-4">
-        <div 
-          className="rounded-xl border border-[var(--glass-border)] backdrop-blur-[var(--blur)] shadow-[var(--glass-shadow)] px-4 py-6 md:px-6 md:py-8"
-          style={{
-            backgroundColor: "transparent",
-            boxShadow: "var(--glass-shadow)",
-          }}
+        <div
+          className="rounded-xl glass-bg px-4 py-6 md:px-6 md:py-8"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col items-center text-center md:items-start md:text-left gap-1 text-xs sm:text-sm text-muted-foreground">

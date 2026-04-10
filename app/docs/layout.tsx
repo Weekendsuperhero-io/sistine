@@ -42,9 +42,7 @@ export default function DocsLayout({
           </div>
 
           <main className="flex-1 max-w-4xl min-w-0 w-full">
-            <div className="prose prose-invert max-w-none prose-sm sm:prose-base prose-headings:text-foreground prose-p:text-foreground prose-a:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:overflow-x-auto">
-              {children}
-            </div>
+            {children}
           </main>
         </div>
       </div>

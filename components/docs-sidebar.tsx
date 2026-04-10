@@ -49,7 +49,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <aside className="w-full md:w-64">
-      <Card variant="glass" className="sticky top-[5rem] h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] flex flex-col border-0 md:border">
+      <Card variant="glass" className="sticky top-[5rem] h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] flex flex-col">
         <CardContent className="p-4 md:p-6 overflow-y-auto flex-1">
           <nav className="space-y-6">
             {docsNav.map((section) => (

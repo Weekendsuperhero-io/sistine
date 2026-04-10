@@ -45,7 +45,7 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1.25rem;
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(0.15 0 0); /* Near black - dark text for light mode */
@@ -302,8 +302,10 @@ body {
     /* Moderate backdrop blur - Apple standard (20px) */
     backdrop-filter: blur(var(--blur)) saturate(180%);
     -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
-    /* Very subtle white border - Apple standard */
-    border: 0.5px solid var(--glass-border);
+    border-top: 0.5px solid var(--glass-border-top);
+    border-left: 0.5px solid var(--glass-border-top);
+    border-right: 0.5px solid var(--glass-border-bottom);
+    border-bottom: 0.5px solid var(--glass-border-bottom);
     /* Minimal shadow with subtle inner glow - Apple standard */
     box-shadow: var(--glass-shadow);
   }

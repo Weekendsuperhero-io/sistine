@@ -25,8 +25,8 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm">
-        <code className="text-foreground font-mono whitespace-pre break-words">{code}</code>
+      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+        <code className="text-foreground whitespace-pre break-words">{code}</code>
       </pre>
       <Button
         variant="ghost"

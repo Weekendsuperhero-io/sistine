@@ -58,13 +58,11 @@ export default function ThemesPage() {
   }
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-300 relative"
-    >
-      <div className="container mx-auto px-4 pt-4 pb-16 relative z-10">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Palette className="h-8 w-8 text-foreground" />
+    <div className="min-h-screen relative">
+      <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-3">
+            <Palette className="h-7 w-7 text-foreground" />
             <h1 className="text-4xl font-bold text-foreground">Themes</h1>
           </div>
           <p className="text-lg text-muted-foreground">
@@ -84,7 +82,7 @@ export default function ThemesPage() {
                 <Card
                   key={theme.name}
                   variant="glass"
-                  className={`cursor-pointer transition-all hover:scale-105 ${
+                  className={`cursor-pointer transition-opacity hover:opacity-90 ${
                     selectedTheme.name === theme.name ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() => setSelectedTheme(theme)}
@@ -226,8 +224,8 @@ export default function ThemesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-4 overflow-x-auto">
-                <code className="text-foreground text-sm font-mono whitespace-pre">
+              <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                <code className="text-foreground whitespace-pre">
                   {currentCSS}
                 </code>
               </pre>

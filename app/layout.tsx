@@ -4,7 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { CanvasBackgroundWrapper } from "@/components/canvas-background-wrapper";
+import { GridBackground } from "@/components/grid-background";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -34,11 +34,10 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
           disableTransitionOnChange
         >
-          <CanvasBackgroundWrapper />
+          <GridBackground />
           {/* <div className="flex min-h-screen flex-col"> */}
             <Header />
             <main className="flex-1">{children}</main>
