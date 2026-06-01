@@ -36,7 +36,7 @@ const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>
               onChange?.(date);
               setOpen(false);
             }}
-            initialFocus
+            autoFocus
           />
         </PopoverContent>
       </Popover>
