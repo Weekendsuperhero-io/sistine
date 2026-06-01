@@ -2,7 +2,7 @@
 
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { DayPicker, getDefaultClassNames, type DayButton, type Locale } from "react-day-picker";
+import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./button";
 
@@ -43,7 +43,10 @@ function Calendar({
       captionLayout={captionLayout}
       locale={locale}
       formatters={{
-        formatMonthDropdown: (date) => date.toLocaleString(locale?.code, { month: "short" }),
+        formatMonthDropdown: (date) =>
+          date.toLocaleString(locale?.code, {
+            month: "short",
+          }),
         ...formatters,
       }}
       classNames={{
@@ -52,26 +55,24 @@ function Calendar({
         month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
         nav: cn("absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1", defaultClassNames.nav),
         button_previous: cn(
-          buttonVariants({ variant: buttonVariant }),
+          buttonVariants({
+            variant: buttonVariant,
+          }),
           "size-(--cell-size) p-0 opacity-70 select-none hover:opacity-100 aria-disabled:opacity-50",
           defaultClassNames.button_previous,
         ),
         button_next: cn(
-          buttonVariants({ variant: buttonVariant }),
+          buttonVariants({
+            variant: buttonVariant,
+          }),
           "size-(--cell-size) p-0 opacity-70 select-none hover:opacity-100 aria-disabled:opacity-50",
           defaultClassNames.button_next,
         ),
-        month_caption: cn(
-          "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
-          defaultClassNames.month_caption,
-        ),
+        month_caption: cn("flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)", defaultClassNames.month_caption),
         caption_label: cn("text-sm font-medium text-foreground select-none", defaultClassNames.caption_label),
         month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
         weekdays: cn("flex", defaultClassNames.weekdays),
-        weekday: cn(
-          "flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none",
-          defaultClassNames.weekday,
-        ),
+        weekday: cn("flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none", defaultClassNames.weekday),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
         day: cn(
           "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius) [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
@@ -80,7 +81,10 @@ function Calendar({
         range_start: cn("rounded-l-(--cell-radius) bg-accent", defaultClassNames.range_start),
         range_middle: cn("rounded-none aria-selected:bg-accent aria-selected:text-accent-foreground", defaultClassNames.range_middle),
         range_end: cn("rounded-r-(--cell-radius) bg-accent", defaultClassNames.range_end),
-        today: cn("rounded-(--cell-radius) bg-accent/50 font-semibold text-accent-foreground data-[selected=true]:rounded-none", defaultClassNames.today),
+        today: cn(
+          "rounded-(--cell-radius) bg-accent/50 font-semibold text-accent-foreground data-[selected=true]:rounded-none",
+          defaultClassNames.today,
+        ),
         outside: cn("text-muted-foreground opacity-50 aria-selected:text-muted-foreground", defaultClassNames.outside),
         disabled: cn("text-muted-foreground opacity-50", defaultClassNames.disabled),
         hidden: cn("invisible", defaultClassNames.hidden),
@@ -111,13 +115,17 @@ function CalendarDayButton({
   modifiers,
   locale,
   ...props
-}: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
+}: React.ComponentProps<typeof DayButton> & {
+  locale?: Partial<Locale>;
+}) {
   const defaultClassNames = getDefaultClassNames();
 
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus();
-  }, [modifiers.focused]);
+  }, [
+    modifiers.focused,
+  ]);
 
   return (
     <Button
@@ -125,9 +133,7 @@ function CalendarDayButton({
       variant="ghost"
       size="icon"
       data-day={day.date.toLocaleDateString(locale?.code)}
-      data-selected-single={
-        modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle
-      }
+      data-selected-single={modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle}
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
