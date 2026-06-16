@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/glass/input"
-import { Badge } from "@/components/ui/badge"
-import { MagnifyingGlass as Search } from "@phosphor-icons/react"
-import { getComponents } from "@/lib/registry"
+import { MagnifyingGlass as Search } from "@phosphor-icons/react";
+import Link from "next/link";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/glass/input";
+import { getComponents } from "@/lib/registry";
 
 const components = getComponents();
 
@@ -37,9 +37,7 @@ export default function ComponentsPage() {
       <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-foreground mb-3">Components</h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Browse our collection of {components.length} beautiful, glassy UI components.
-          </p>
+          <p className="text-lg text-muted-foreground mb-8">Browse our collection of {components.length} beautiful, glassy UI components.</p>
           <div className="relative max-w-md">
             <Input
               type="text"
@@ -55,17 +53,11 @@ export default function ComponentsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map((component) => (
-            <Link
-              key={component.name}
-              href={`/docs/components/${component.name}`}
-              className="group"
-            >
+            <Link key={component.name} href={`/docs/components/${component.name}`} className="group">
               <Card variant="glass" className="h-full transition-opacity hover:opacity-90">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-1">
-                    <CardTitle className="text-foreground">
-                      {component.title || component.name}
-                    </CardTitle>
+                    <CardTitle className="text-foreground">{component.title || component.name}</CardTitle>
                     {newComponents.has(component.name) && (
                       <Badge variant="glass" className="bg-primary/20 text-primary border-primary/30">
                         NEW
@@ -75,9 +67,7 @@ export default function ComponentsPage() {
                   <CardDescription className="text-muted-foreground">{component.description || "No description available"}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    View &rarr;
-                  </span>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">View &rarr;</span>
                 </CardContent>
               </Card>
             </Link>

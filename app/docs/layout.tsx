@@ -35,9 +35,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
             </Sheet>
           </div>
 
-          <main className="flex-1 max-w-4xl min-w-0 w-full">
-            {children}
-          </main>
+          <main className="flex-1 max-w-4xl min-w-0 w-full">{children}</main>
         </div>
       </div>
     </div>

@@ -87,9 +87,7 @@ export default function ThemesPage() {
                 <Card
                   key={theme.name}
                   variant="glass"
-                  className={`cursor-pointer transition-opacity hover:opacity-90 ${
-                    selectedTheme.name === theme.name ? "ring-2 ring-primary" : ""
-                  }`}
+                  className={`cursor-pointer transition-opacity hover:opacity-90 ${selectedTheme.name === theme.name ? "ring-2 ring-primary" : ""}`}
                   onClick={() => setSelectedTheme(theme)}
                 >
                   <CardHeader>
@@ -255,9 +253,7 @@ export default function ThemesPage() {
             </CardHeader>
             <CardContent>
               <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                <code className="text-foreground whitespace-pre">
-                  {currentCSS}
-                </code>
+                <code className="text-foreground whitespace-pre">{currentCSS}</code>
               </pre>
             </CardContent>
           </Card>

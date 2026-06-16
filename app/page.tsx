@@ -1,54 +1,53 @@
 "use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/glass/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card"
-import { Badge } from "@/components/ui/glass/badge"
-import { Input } from "@/components/ui/glass/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass/select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Switch } from "@/components/ui/switch"
-import { Slider } from "@/components/ui/slider"
-import { Separator } from "@/components/ui/separator"
-import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
-import { Toaster } from "@/components/ui/glass/sonner"
 import {
   ArrowRight,
-  Copy,
-  Check,
   Robot as Bot,
-  PaperPlaneTilt as Send,
-  EnvelopeSimple as Mail,
-  Lock,
-  User,
+  Check,
+  Copy,
   CreditCard,
-  Gear as Settings,
-  TrendUp as TrendingUp,
   CurrencyDollar as DollarSign,
-  Lightning as Zap,
-  Sparkle as Sparkles,
-  Palette,
   Stack as Layers,
-} from "@phosphor-icons/react"
+  Lock,
+  EnvelopeSimple as Mail,
+  Palette,
+  PaperPlaneTilt as Send,
+  Gear as Settings,
+  Sparkle as Sparkles,
+  TrendUp as TrendingUp,
+  User,
+  Lightning as Zap,
+} from "@phosphor-icons/react";
+import Link from "next/link";
+import * as React from "react";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/glass/badge";
+import { Button } from "@/components/ui/glass/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog";
+import { Input } from "@/components/ui/glass/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass/select";
+import { Toaster } from "@/components/ui/glass/sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 
 export default function Home() {
-  const [copied, setCopied] = React.useState(false)
+  const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("npx shadcn@latest add https://glass-ui.com/r/styles/glass")
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText("npx shadcn@latest add https://glass-ui.com/r/styles/glass");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="min-h-screen transition-colors duration-300 relative">
       <Toaster />
       <div className="relative z-10">
-
         {/* ───────────────────── Hero ───────────────────── */}
         <section className="container mx-auto px-4 pt-24 pb-32 md:pt-32 md:pb-40">
           <div className="max-w-3xl mx-auto text-center">
@@ -64,8 +63,8 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
-              A component library inspired by Apple&apos;s design language. Drop-in
-              replacements for shadcn/ui with blur, depth, and translucency baked&nbsp;in.
+              A component library inspired by Apple&apos;s design language. Drop-in replacements for shadcn/ui with blur, depth, and translucency
+              baked&nbsp;in.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
@@ -76,9 +75,7 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" effect="lift">
-                <Link href="/components">
-                  Browse Components
-                </Link>
+                <Link href="/components">Browse Components</Link>
               </Button>
             </div>
 
@@ -99,16 +96,11 @@ export default function Home() {
         {/* ───────────────── Component Showcase ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
-              Components that speak for themselves
-            </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Real UI patterns built entirely with Liquid Glass components.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Components that speak for themselves</h2>
+            <p className="text-muted-foreground max-w-lg mx-auto">Real UI patterns built entirely with Liquid Glass components.</p>
           </div>
 
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
             {/* Settings */}
             <Card variant="glass">
               <CardHeader>
@@ -129,7 +121,14 @@ export default function Home() {
                 <Separator />
                 <div className="space-y-2">
                   <Label className="text-sm">Volume</Label>
-                  <Slider variant="glass" defaultValue={[65]} max={100} step={1} />
+                  <Slider
+                    variant="glass"
+                    defaultValue={[
+                      65,
+                    ]}
+                    max={100}
+                    step={1}
+                  />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
@@ -205,14 +204,18 @@ export default function Home() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Status</span>
-                    <Badge variant="glass" className="bg-green-500/20 text-green-600 dark:text-green-400">Active</Badge>
+                    <Badge variant="glass" className="bg-green-500/20 text-green-600 dark:text-green-400">
+                      Active
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Role</span>
                     <span className="font-medium text-foreground">Admin</span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full" size="sm">View Profile</Button>
+                <Button variant="outline" className="w-full" size="sm">
+                  View Profile
+                </Button>
               </CardContent>
             </Card>
 
@@ -286,35 +289,21 @@ export default function Home() {
                 <CardDescription>Authentication form</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input
-                  variant="glass"
-                  placeholder="Email address"
-                  icon={<Mail className="h-4 w-4 text-muted-foreground" />}
-                />
-                <Input
-                  variant="glass"
-                  type="password"
-                  placeholder="Password"
-                  icon={<Lock className="h-4 w-4 text-muted-foreground" />}
-                />
+                <Input variant="glass" placeholder="Email address" icon={<Mail className="h-4 w-4 text-muted-foreground" />} />
+                <Input variant="glass" type="password" placeholder="Password" icon={<Lock className="h-4 w-4 text-muted-foreground" />} />
                 <Button variant="glass" className="w-full" effect="glow">
                   Sign In
                 </Button>
               </CardContent>
             </Card>
-
           </div>
         </section>
 
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
-              Four distinct glass variants
-            </h2>
-            <p className="text-muted-foreground">
-              Every component ships with Glass, Frosted, Fluted, and Crystal styles.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct glass variants</h2>
+            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Fluted, and Crystal styles.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
@@ -326,7 +315,14 @@ export default function Home() {
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
               </TabsList>
 
-              {(["glass", "frosted", "fluted", "crystal"] as const).map((v) => (
+              {(
+                [
+                  "glass",
+                  "frosted",
+                  "fluted",
+                  "crystal",
+                ] as const
+              ).map((v) => (
                 <TabsContent key={v} value={v}>
                   <Card variant={v}>
                     <CardHeader>
@@ -341,8 +337,12 @@ export default function Home() {
                       </div>
                       <Input variant={v} placeholder={`${v} input...`} />
                       <div className="flex gap-3">
-                        <Button variant={v} effect="glow" className="flex-1">Primary</Button>
-                        <Button variant="outline" className="flex-1">Secondary</Button>
+                        <Button variant={v} effect="glow" className="flex-1">
+                          Primary
+                        </Button>
+                        <Button variant="outline" className="flex-1">
+                          Secondary
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -355,12 +355,8 @@ export default function Home() {
         {/* ───────────────── Interactive ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
-              Try it live
-            </h2>
-            <p className="text-muted-foreground">
-              Click to experience liquid glass in action.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Try it live</h2>
+            <p className="text-muted-foreground">Click to experience liquid glass in action.</p>
           </div>
 
           <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -374,9 +370,7 @@ export default function Home() {
               <DialogContent variant="frosted" className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Glass Dialog</DialogTitle>
-                  <DialogDescription>
-                    A frosted glass modal with form controls inside.
-                  </DialogDescription>
+                  <DialogDescription>A frosted glass modal with form controls inside.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <Input variant="glass" placeholder="Your name" />
@@ -392,7 +386,9 @@ export default function Home() {
                   </Select>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline">Cancel</Button>
-                    <Button variant="glass" effect="glow">Confirm</Button>
+                    <Button variant="glass" effect="glow">
+                      Confirm
+                    </Button>
                   </div>
                 </div>
               </DialogContent>
@@ -431,12 +427,8 @@ export default function Home() {
         {/* ───────────────── Features ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
-              Why Liquid Glass?
-            </h2>
-            <p className="text-muted-foreground">
-              Everything you need to ship polished interfaces.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Why Liquid Glass?</h2>
+            <p className="text-muted-foreground">Everything you need to ship polished interfaces.</p>
           </div>
 
           <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -476,12 +468,9 @@ export default function Home() {
         {/* ───────────────── CTA ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Start building today.
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Start building today.</h2>
             <p className="text-muted-foreground mb-10 max-w-md mx-auto">
-              Install a single component or the full library.
-              Works with any Next.js + shadcn/ui project.
+              Install a single component or the full library. Works with any Next.js + shadcn/ui project.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
               <Button asChild size="lg" variant="glass" effect="glow">
@@ -491,14 +480,11 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" effect="lift">
-                <Link href="/components">
-                  Browse Components
-                </Link>
+                <Link href="/components">Browse Components</Link>
               </Button>
             </div>
           </div>
         </section>
-
       </div>
     </div>
   );

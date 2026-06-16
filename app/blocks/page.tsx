@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { MagnifyingGlassIcon } from "@phosphor-icons/react"
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import Link from "next/link";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 const blocks = [
   {
@@ -61,9 +61,7 @@ export default function BlocksPage() {
       <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-foreground mb-3">Blocks</h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Pre-built page layouts and component compositions.
-          </p>
+          <p className="text-lg text-muted-foreground mb-8">Pre-built page layouts and component compositions.</p>
           <div className="relative max-w-md">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -86,14 +84,10 @@ export default function BlocksPage() {
                     <CardTitle className="text-foreground">{block.title}</CardTitle>
                     <Badge variant="glass">{block.category}</Badge>
                   </div>
-                  <CardDescription className="text-muted-foreground">
-                    {block.description}
-                  </CardDescription>
+                  <CardDescription className="text-muted-foreground">{block.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    View &rarr;
-                  </span>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">View &rarr;</span>
                 </CardContent>
               </Card>
             </Link>

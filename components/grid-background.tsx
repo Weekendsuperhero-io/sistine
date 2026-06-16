@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 /**
  * Theme-aware wallpaper.
@@ -10,14 +10,14 @@ import { useEffect, useState } from "react"
  *        the glass components something to contrast against.
  */
 export function GridBackground() {
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  const isDark = !mounted || resolvedTheme === "dark"
+  const isDark = !mounted || resolvedTheme === "dark";
 
   return (
     <div
@@ -141,5 +141,5 @@ export function GridBackground() {
         }}
       />
     </div>
-  )
+  );
 }
