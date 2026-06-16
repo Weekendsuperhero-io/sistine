@@ -72,13 +72,13 @@ export function Header() {
                 <Image
                   src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                   alt="Sistine"
-                  width={120}
+                  width={32}
                   height={32}
-                  className="h-6 md:h-8 w-auto"
+                  className="h-6 w-6 md:h-8 md:w-8 rounded-md"
                   priority
                 />
               )}
-              {!mounted && <div className="h-6 md:h-8 w-[120px] bg-muted animate-pulse rounded" />}
+              {!mounted && <div className="h-6 w-6 md:h-8 md:w-8 bg-muted animate-pulse rounded" />}
               <span className="text-lg md:text-xl font-bold text-foreground">Sistine</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
@@ -124,12 +124,12 @@ export function Header() {
                       <Image
                         src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
                         alt="Sistine"
-                        width={120}
+                        width={32}
                         height={32}
-                        className="h-8 w-auto"
+                        className="h-8 w-8 rounded-md"
                       />
                     )}
-                    {!mounted && <div className="h-8 w-[120px] bg-muted animate-pulse rounded" />}
+                    {!mounted && <div className="h-8 w-8 bg-muted animate-pulse rounded" />}
                   </div>
                   <nav className="flex flex-col gap-4">
                     {navigation.map((item) => (
