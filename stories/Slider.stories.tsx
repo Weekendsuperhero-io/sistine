@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
 const meta = {
-  title: "Glass UI/Slider",
+  title: "Sistine/Slider",
   component: Slider,
   parameters: {
     layout: "centered",

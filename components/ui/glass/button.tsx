@@ -12,7 +12,7 @@ export interface ButtonProps extends Omit<React.ComponentProps<typeof BaseButton
 }
 
 /**
- * Glass UI Button - A beautifully designed button component with glassy effects
+ * Sistine Button - A beautifully designed button component with glassy effects
  * Built on top of the base Button component with enhanced visual effects
  *
  * @example

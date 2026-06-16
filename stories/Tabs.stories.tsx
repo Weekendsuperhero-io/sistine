@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs";
 
 const meta = {
-  title: "Glass UI/Tabs",
+  title: "Sistine/Tabs",
   component: Tabs,
   parameters: {
     layout: "centered",

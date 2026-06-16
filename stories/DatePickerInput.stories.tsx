@@ -3,7 +3,7 @@ import * as React from "react";
 import { DatePickerInput } from "@/components/ui/glass/date-picker-input";
 
 const meta = {
-  title: "Glass UI/DatePickerInput",
+  title: "Sistine/DatePickerInput",
   component: DatePickerInput,
   parameters: {
     layout: "centered",

@@ -17,7 +17,7 @@ export interface InputOTPSlotProps extends React.ComponentProps<typeof BaseInput
 }
 
 /**
- * Glass UI Input OTP - Enhanced OTP input with glassy effects
+ * Sistine Input OTP - Enhanced OTP input with glassy effects
  */
 export const InputOTP = React.forwardRef<React.ElementRef<typeof BaseInputOTP>, InputOTPProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

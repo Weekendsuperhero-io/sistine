@@ -11,7 +11,7 @@ export interface TabsListProps extends React.ComponentProps<typeof BaseTabsList>
 }
 
 /**
- * Glass UI Tabs - Enhanced tabs with glassy effects
+ * Sistine Tabs - Enhanced tabs with glassy effects
  */
 export const TabsList = React.forwardRef<React.ElementRef<typeof BaseTabsList>, TabsListProps>(
   ({ className, variant = "glass", glow = false, hover = "none", ...props }, ref) => {

@@ -9,7 +9,7 @@ export interface PopoverContentProps extends React.ComponentProps<typeof BasePop
 }
 
 /**
- * Glass UI Popover - Enhanced popover with glassy effects
+ * Sistine Popover - Enhanced popover with glassy effects
  */
 export const PopoverContent = React.forwardRef<React.ElementRef<typeof BasePopoverContent>, PopoverContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

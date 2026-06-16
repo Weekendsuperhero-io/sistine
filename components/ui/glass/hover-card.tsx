@@ -9,7 +9,7 @@ export interface HoverCardContentProps extends React.ComponentProps<typeof BaseH
 }
 
 /**
- * Glass UI Hover Card - Enhanced hover card with glassy effects
+ * Sistine Hover Card - Enhanced hover card with glassy effects
  */
 export const HoverCardContent = React.forwardRef<React.ElementRef<typeof BaseHoverCardContent>, HoverCardContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

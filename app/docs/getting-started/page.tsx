@@ -9,13 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const mcpCode = `{
   "mcpServers": {
-    "crenspire-glass": {
+    "sistine": {
       "command": "npx",
       "args": [
         "-y",
         "@shadcn/mcp-server",
         "--registry",
-        "https://glass-ui.crenspire.com/r/registry.json"
+        "https://weekendsuperhero.io/r/registry.json"
       ]
     }
   }
@@ -52,14 +52,14 @@ export default function GettingStartedPage() {
     <div className="text-foreground">
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">Getting Started</h1>
-        <p className="text-base sm:text-lg text-muted-foreground">Get up and running with Glass UI in minutes</p>
+        <p className="text-base sm:text-lg text-muted-foreground">Get up and running with Sistine in minutes</p>
       </div>
 
       <div className="space-y-8">
         <Card variant="glass" className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Installation</CardTitle>
-            <CardDescription className="text-muted-foreground">Install Glass UI components using the shadcn CLI</CardDescription>
+            <CardDescription className="text-muted-foreground">Install Sistine components using the shadcn CLI</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -69,7 +69,7 @@ export default function GettingStartedPage() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">2. Install components</h3>
               <p className="text-muted-foreground mb-4">
-                Use the shadcn CLI to add components from the Glass UI registry with your preferred package manager:
+                Use the shadcn CLI to add components from the Sistine registry with your preferred package manager:
               </p>
               <InstallationInstructions componentName="button" />
             </div>
@@ -83,13 +83,13 @@ export default function GettingStartedPage() {
         <Card variant="glass" className="text-foreground" id="mcp">
           <CardHeader>
             <CardTitle className="text-foreground">MCP (Model Context Protocol) Setup</CardTitle>
-            <CardDescription className="text-muted-foreground">Configure MCP to use Glass UI components with AI assistants</CardDescription>
+            <CardDescription className="text-muted-foreground">Configure MCP to use Sistine components with AI assistants</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">What is MCP?</h3>
               <p className="text-muted-foreground mb-4">
-                MCP allows AI assistants to access and use Glass UI components directly. This enables seamless integration with tools like Claude,
+                MCP allows AI assistants to access and use Sistine components directly. This enables seamless integration with tools like Claude,
                 ChatGPT, and other MCP-compatible assistants.
               </p>
             </div>
@@ -104,7 +104,7 @@ export default function GettingStartedPage() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Usage</h3>
               <p className="text-muted-foreground">
-                Once configured, you can ask your AI assistant to add Glass UI components to your project, and it will automatically use the correct
+                Once configured, you can ask your AI assistant to add Sistine components to your project, and it will automatically use the correct
                 registry URL and component paths.
               </p>
             </div>
@@ -114,7 +114,7 @@ export default function GettingStartedPage() {
         <Card variant="glass" className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Basic Usage</CardTitle>
-            <CardDescription className="text-muted-foreground">Example of using Glass UI components</CardDescription>
+            <CardDescription className="text-muted-foreground">Example of using Sistine components</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="example" className="w-full">
@@ -175,8 +175,8 @@ export function Example() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Global CSS Variables</h3>
               <p className="text-muted-foreground mb-4">
-                All Glass UI components automatically use CSS variables for glass effects. You can override these in your global CSS file to change
-                the appearance of all components at once. Changes take effect immediately.
+                All Sistine components automatically use CSS variables for glass effects. You can override these in your global CSS file to change the
+                appearance of all components at once. Changes take effect immediately.
               </p>
 
               <div className="space-y-4">
@@ -260,7 +260,7 @@ export function Example() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">How It Works</h3>
-              <p className="text-muted-foreground mb-2">All Glass UI components with glass variants automatically use these CSS variables:</p>
+              <p className="text-muted-foreground mb-2">All Sistine components with glass variants automatically use these CSS variables:</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                 <li>
                   Components read <code className="bg-muted px-1 rounded">--glass-bg</code> for background color
@@ -314,7 +314,7 @@ export function CustomGlassCard() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Apple Standards</h3>
-              <p className="text-muted-foreground mb-2">Glass UI uses Apple&apos;s glassmorphism standards by default:</p>
+              <p className="text-muted-foreground mb-2">Sistine uses Apple&apos;s glassmorphism standards by default:</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                 <li>
                   <strong>Light Mode:</strong> 25% opacity, 30px blur

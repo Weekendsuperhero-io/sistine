@@ -44,7 +44,7 @@ export function Header() {
 
   React.useEffect(() => {
     // Fetch GitHub star count
-    fetch("https://api.github.com/repos/crenspire/glass-ui")
+    fetch("https://api.github.com/repos/Weekendsuperhero-io/os-glass")
       .then((res) => res.json())
       .then((data) => {
         if (data.stargazers_count) {
@@ -71,7 +71,7 @@ export function Header() {
               {mounted && (
                 <Image
                   src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-                  alt="Glass UI"
+                  alt="Sistine"
                   width={120}
                   height={32}
                   className="h-6 md:h-8 w-auto"
@@ -79,7 +79,7 @@ export function Header() {
                 />
               )}
               {!mounted && <div className="h-6 md:h-8 w-[120px] bg-muted animate-pulse rounded" />}
-              <span className="text-lg md:text-xl font-bold text-foreground">Glass UI</span>
+              <span className="text-lg md:text-xl font-bold text-foreground">Sistine</span>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               {navigation.map((item) => (
@@ -98,7 +98,12 @@ export function Header() {
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             {starCount !== null && (
-              <Link href="https://github.com/crenspire/glass-ui" target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center">
+              <Link
+                href="https://github.com/Weekendsuperhero-io/os-glass"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center"
+              >
                 <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
                   <GithubLogoIcon className="h-4 w-4" />
                   <span className="text-xs font-semibold">{starCount.toLocaleString()}</span>
@@ -118,7 +123,7 @@ export function Header() {
                     {mounted && (
                       <Image
                         src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-                        alt="Glass UI"
+                        alt="Sistine"
                         width={120}
                         height={32}
                         className="h-8 w-auto"
@@ -144,7 +149,7 @@ export function Header() {
                   {starCount !== null && (
                     <div className="pt-4 border-t border-border">
                       <Link
-                        href="https://github.com/crenspire/glass-ui"
+                        href="https://github.com/Weekendsuperhero-io/os-glass"
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => setMobileMenuOpen(false)}

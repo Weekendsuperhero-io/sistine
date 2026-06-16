@@ -12,7 +12,7 @@ export interface SpinnerProps extends React.ComponentProps<typeof BaseSpinner> {
 }
 
 /**
- * Glass UI Spinner - A beautifully designed loading spinner with glassy effects
+ * Sistine Spinner - A beautifully designed loading spinner with glassy effects
  * Built on top of the base Spinner component with enhanced visual styling
  */
 export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {

@@ -3,7 +3,7 @@
 import { Toaster as BaseToaster } from "../sonner";
 
 /**
- * Glass UI Toaster - Toast notifications with glassmorphism effects
+ * Sistine Toaster - Toast notifications with glassmorphism effects
  *
  * The Toaster component automatically uses glass effects for all toast notifications.
  * Toasts will have:

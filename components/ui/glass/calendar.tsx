@@ -8,7 +8,7 @@ export type CalendarProps = BaseCalendarProps & {
 };
 
 /**
- * Glass UI Calendar - Enhanced calendar with glassy effects
+ * Sistine Calendar - Enhanced calendar with glassy effects
  */
 export function Calendar({ className, variant = "glass", glow = false, ...props }: CalendarProps) {
   return (

@@ -9,7 +9,7 @@ export interface CheckboxProps extends React.ComponentProps<typeof BaseCheckbox>
 }
 
 /**
- * Glass UI Checkbox - Enhanced checkbox with glassy effects
+ * Sistine Checkbox - Enhanced checkbox with glassy effects
  */
 export const Checkbox = React.forwardRef<React.ElementRef<typeof BaseCheckbox>, CheckboxProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

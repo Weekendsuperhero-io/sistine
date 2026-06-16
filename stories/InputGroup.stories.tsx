@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/glass/input";
 import { InputGroup } from "@/components/ui/glass/input-group";
 
 const meta = {
-  title: "Glass UI/InputGroup",
+  title: "Sistine/InputGroup",
   component: InputGroup,
   parameters: {
     layout: "centered",

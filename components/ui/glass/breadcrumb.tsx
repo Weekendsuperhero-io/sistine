@@ -17,7 +17,7 @@ export interface BreadcrumbListProps extends React.ComponentProps<typeof BaseBre
 }
 
 /**
- * Glass UI Breadcrumb - Enhanced breadcrumb with glassy effects
+ * Sistine Breadcrumb - Enhanced breadcrumb with glassy effects
  */
 export const BreadcrumbList = React.forwardRef<HTMLOListElement, BreadcrumbListProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

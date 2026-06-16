@@ -228,11 +228,11 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <div className="flex gap-4">
           <Avatar>
-            <AvatarImage src="https://github.com/akshaypjoshi.png" alt="@akshaypjoshi" />
+            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" alt="@Weekendsuperhero-io" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <Avatar>
-            <AvatarImage src="https://github.com/akshaypjoshi.png" alt="@akshaypjoshi" />
+            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" alt="@Weekendsuperhero-io" />
             <AvatarFallback>AJ</AvatarFallback>
           </Avatar>
           <Avatar>

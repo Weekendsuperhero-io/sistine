@@ -9,7 +9,7 @@ export interface RadioGroupItemProps extends React.ComponentProps<typeof BaseRad
 }
 
 /**
- * Glass UI Radio Group - Enhanced radio group with glassy effects
+ * Sistine Radio Group - Enhanced radio group with glassy effects
  */
 export const RadioGroupItem = React.forwardRef<React.ElementRef<typeof BaseRadioGroupItem>, RadioGroupItemProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

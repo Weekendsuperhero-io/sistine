@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/glass/button";
 
 const meta = {
-  title: "Glass UI/AlertDialog",
+  title: "Sistine/AlertDialog",
   component: AlertDialog,
   parameters: {
     layout: "centered",

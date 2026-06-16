@@ -1,6 +1,6 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "crenspire",
+  "style": "sistine",
   "rsc": true,
   "tsx": true,
   "tailwind": {

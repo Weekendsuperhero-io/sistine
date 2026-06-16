@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Separator } from "@/components/ui/separator";
 
 const meta = {
-  title: "Glass UI/Separator",
+  title: "Sistine/Separator",
   component: Separator,
   parameters: {
     layout: "centered",
@@ -19,7 +19,7 @@ export const Horizontal: Story = {
   render: () => (
     <div className="space-y-4 w-[300px]">
       <div>
-        <h4 className="text-sm font-medium">Glass UI Components</h4>
+        <h4 className="text-sm font-medium">Sistine Components</h4>
         <p className="text-sm text-muted-foreground">Beautiful glassmorphic components.</p>
       </div>
       <Separator />

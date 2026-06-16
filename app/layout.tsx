@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Glass UI - Component Library",
+  title: "Sistine - Component Library",
   description: "A modern, glassmorphic component library inspired by Apple's design language",
 };
 

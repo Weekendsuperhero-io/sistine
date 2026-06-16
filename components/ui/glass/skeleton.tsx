@@ -9,7 +9,7 @@ export interface SkeletonProps extends React.ComponentProps<typeof BaseSkeleton>
 }
 
 /**
- * Glass UI Skeleton - Enhanced skeleton with glassy effects and shimmer
+ * Sistine Skeleton - Enhanced skeleton with glassy effects and shimmer
  */
 export function Skeleton({ className, variant = "glass", shimmer = true, ...props }: SkeletonProps) {
   return (

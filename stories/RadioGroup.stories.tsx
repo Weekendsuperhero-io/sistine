@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const meta = {
-  title: "Glass UI/RadioGroup",
+  title: "Sistine/RadioGroup",
   component: RadioGroup,
   parameters: {
     layout: "centered",

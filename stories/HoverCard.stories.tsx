@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/glass/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const meta = {
-  title: "Glass UI/HoverCard",
+  title: "Sistine/HoverCard",
   component: HoverCard,
   parameters: {
     layout: "centered",
@@ -40,7 +40,7 @@ export const Glass: Story = {
       <HoverCardContent variant="glass" className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/akshaypjoshi.png" />
+            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
             <AvatarFallback>VC</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
@@ -66,7 +66,7 @@ export const Frosted: Story = {
       <HoverCardContent variant="frosted" className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/akshaypjoshi.png" />
+            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
             <AvatarFallback>SC</AvatarFallback>
           </Avatar>
           <div className="space-y-1">

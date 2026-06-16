@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/glass/context-menu";
 
 const meta = {
-  title: "Glass UI/ContextMenu",
+  title: "Sistine/ContextMenu",
   component: ContextMenu,
   parameters: {
     layout: "centered",

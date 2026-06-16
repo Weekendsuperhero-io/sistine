@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 
 const meta = {
-  title: "Glass UI/Command",
+  title: "Sistine/Command",
   component: Command,
   parameters: {
     layout: "centered",

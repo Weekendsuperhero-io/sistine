@@ -1,6 +1,6 @@
 # Glassmorphism Customization Guide
 
-Glass UI components support full customization of glassmorphism effects. You can override color, transparency, blur, and outline to create custom glass-like effects.
+Sistine components support full customization of glassmorphism effects. You can override color, transparency, blur, and outline to create custom glass-like effects.
 
 ## GlassCustomization Interface
 
@@ -205,10 +205,10 @@ import { Input } from "@/components/ui/input"
 
 The following components support glass customization:
 
-- ✅ Card (base & glass-ui)
-- ✅ Button (base & glass-ui)
-- ✅ Input (base & glass-ui)
-- ✅ Dialog (base & glass-ui)
+- ✅ Card (base & glass)
+- ✅ Button (base & glass)
+- ✅ Input (base & glass)
+- ✅ Dialog (base & glass)
 - ✅ Textarea
 - ✅ Badge
 - ✅ Alert

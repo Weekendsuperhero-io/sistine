@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/glass/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const meta = {
-  title: "Glass UI/Tooltip",
+  title: "Sistine/Tooltip",
   component: Tooltip,
   parameters: {
     layout: "centered",

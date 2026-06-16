@@ -1,7 +1,7 @@
 /**
- * Glass UI - Main Component Exports
+ * Sistine - Main Component Exports
  *
- * This is the main entry point for Glass UI components.
+ * This is the main entry point for Sistine components.
  * All components here are built on top of base components from
  * ../ with enhanced glassy design effects.
  */

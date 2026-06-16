@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar";
 
 const meta = {
-  title: "Glass UI/MenuBar",
+  title: "Sistine/MenuBar",
   component: MenuBar,
   parameters: {
     layout: "centered",

@@ -9,7 +9,7 @@ export interface TableProps extends React.ComponentProps<typeof BaseTable> {
 }
 
 /**
- * Glass UI Table - Enhanced table with glassy effects
+ * Sistine Table - Enhanced table with glassy effects
  */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(({ className, variant = "glass", glow = false, ...props }, ref) => {
   return <BaseTable ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-purple-500/20", className)} {...props} />;

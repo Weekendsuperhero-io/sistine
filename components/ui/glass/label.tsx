@@ -9,7 +9,7 @@ export interface LabelProps extends React.ComponentProps<typeof BaseLabel> {
 }
 
 /**
- * Glass UI Label - Enhanced label component with glassy styling
+ * Sistine Label - Enhanced label component with glassy styling
  */
 export const Label = React.forwardRef<React.ElementRef<typeof BaseLabel>, LabelProps>(({ className, required, children, ...props }, ref) => {
   return (

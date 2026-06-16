@@ -17,7 +17,7 @@ export interface PaginationContentProps extends React.ComponentProps<typeof Base
 }
 
 /**
- * Glass UI Pagination - Enhanced pagination with glassy effects
+ * Sistine Pagination - Enhanced pagination with glassy effects
  */
 export const PaginationContent = React.forwardRef<HTMLUListElement, PaginationContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

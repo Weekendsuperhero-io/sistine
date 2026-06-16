@@ -11,7 +11,7 @@ export interface AlertProps extends React.ComponentProps<typeof BaseAlert> {
 }
 
 /**
- * Glass UI Alert - Enhanced alert with glassy effects and hover animations
+ * Sistine Alert - Enhanced alert with glassy effects and hover animations
  *
  * @example
  * ```tsx

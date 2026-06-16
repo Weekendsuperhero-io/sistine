@@ -19,7 +19,7 @@ export interface AlertDialogContentProps extends React.ComponentProps<typeof Bas
 }
 
 /**
- * Glass UI Alert Dialog - Enhanced alert dialog with glassy effects
+ * Sistine Alert Dialog - Enhanced alert dialog with glassy effects
  */
 export const AlertDialogContent = React.forwardRef<React.ElementRef<typeof BaseAlertDialogContent>, AlertDialogContentProps>(
   ({ className, variant = "glass", animated = true, ...props }, ref) => {

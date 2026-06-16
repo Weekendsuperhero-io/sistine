@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 
 /**
- * Shared hover effect variants for all Glass UI components
+ * Shared hover effect variants for all Sistine components
  *
  * Effects:
  * - none: No hover effect

@@ -10,7 +10,7 @@ export interface TextareaProps extends React.ComponentProps<typeof BaseTextarea>
 }
 
 /**
- * Glass UI Textarea - A beautifully designed textarea component with glassy effects
+ * Sistine Textarea - A beautifully designed textarea component with glassy effects
  * Built on top of the base Textarea component with enhanced visual styling
  */
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, variant = "glass", icon, error, ...props }, ref) => {

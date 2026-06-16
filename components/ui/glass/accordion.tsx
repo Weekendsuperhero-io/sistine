@@ -9,7 +9,7 @@ export interface AccordionTriggerProps extends React.ComponentProps<typeof BaseA
 }
 
 /**
- * Glass UI Accordion - Enhanced accordion with glassy effects
+ * Sistine Accordion - Enhanced accordion with glassy effects
  */
 export const AccordionTrigger = React.forwardRef<React.ElementRef<typeof BaseAccordionTrigger>, AccordionTriggerProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

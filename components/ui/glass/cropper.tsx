@@ -26,7 +26,7 @@ export interface CropperProps {
 }
 
 /**
- * Glass UI Cropper - Enhanced image cropper with glassy effects
+ * Sistine Cropper - Enhanced image cropper with glassy effects
  */
 export function Cropper({ className, variant = "glass", glow = false, ...props }: CropperProps) {
   return (

@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
 const meta = {
-  title: "Glass UI/Switch",
+  title: "Sistine/Switch",
   component: Switch,
   parameters: {
     layout: "centered",

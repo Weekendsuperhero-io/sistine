@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/glass/input";
 import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: "Glass UI/Dialog",
+  title: "Sistine/Dialog",
   component: Dialog,
   parameters: {
     layout: "centered",

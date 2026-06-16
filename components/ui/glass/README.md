@@ -1,18 +1,18 @@
-# Glass UI Components
+# Sistine Components
 
-This folder contains the main designed components for Glass UI. These components are built on top of the base components located in `../` (parent directory).
+This folder contains the main designed components for Sistine. These components are built on top of the base components located in `../` (parent directory).
 
 ## Architecture
 
 - **Base Components** (`../`): Foundation components with glassy variants
-- **Glass UI Components** (`./glass/`): Designed components that use base components with enhanced styling
+- **Sistine Components** (`./glass/`): Designed components that use base components with enhanced styling
 
 ## Usage
 
 ```tsx
 import { Button, Card, Input, CardHeader, CardTitle } from "@/components/ui/glass"
 
-// Use Glass UI components
+// Use Sistine components
 <Button effect="glow" variant="glass">
   Click me
 </Button>
@@ -26,7 +26,7 @@ import { Button, Card, Input, CardHeader, CardTitle } from "@/components/ui/glas
 
 ## Component Pattern
 
-All Glass UI components:
+All Sistine components:
 1. Import base components from parent directory
 2. Add enhanced styling and effects
 3. Maintain the same API as base components

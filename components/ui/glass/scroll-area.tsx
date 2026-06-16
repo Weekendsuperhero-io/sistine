@@ -9,7 +9,7 @@ export interface ScrollAreaProps extends React.ComponentProps<typeof BaseScrollA
 }
 
 /**
- * Glass UI Scroll Area - Enhanced scroll area with glassy effects
+ * Sistine Scroll Area - Enhanced scroll area with glassy effects
  */
 export const ScrollArea = React.forwardRef<React.ElementRef<typeof BaseScrollArea>, ScrollAreaProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

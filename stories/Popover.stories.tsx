@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const meta = {
-  title: "Glass UI/Popover",
+  title: "Sistine/Popover",
   component: Popover,
   parameters: {
     layout: "centered",

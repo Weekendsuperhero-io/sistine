@@ -20,7 +20,7 @@ import {
 } from "../context-menu";
 
 /**
- * Glass UI Context Menu - A beautifully designed context menu with glassy effects
+ * Sistine Context Menu - A beautifully designed context menu with glassy effects
  * Built on top of the base ContextMenu component with enhanced visual styling
  */
 export const ContextMenu = BaseContextMenu;

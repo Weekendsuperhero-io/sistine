@@ -13,7 +13,7 @@ export type ToggleGroupProps = Omit<BaseToggleGroupProps, "variant" | "className
 };
 
 /**
- * Glass UI Toggle Group - Enhanced toggle group with glassy effects
+ * Sistine Toggle Group - Enhanced toggle group with glassy effects
  */
 export const ToggleGroup = React.forwardRef<React.ElementRef<typeof BaseToggleGroup>, ToggleGroupProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

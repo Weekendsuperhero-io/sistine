@@ -19,7 +19,7 @@ export interface CommandProps extends React.ComponentProps<typeof BaseCommand> {
 }
 
 /**
- * Glass UI Command - Enhanced command menu with glassy effects
+ * Sistine Command - Enhanced command menu with glassy effects
  */
 export const Command = React.forwardRef<React.ElementRef<typeof BaseCommand>, CommandProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

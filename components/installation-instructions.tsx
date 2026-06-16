@@ -10,14 +10,17 @@ interface InstallationInstructionsProps {
   packageName?: string;
 }
 
-export function InstallationInstructions({ componentName, packageName: _packageName = "@crenspire/glass-ui" }: InstallationInstructionsProps) {
+export function InstallationInstructions({
+  componentName,
+  packageName: _packageName = "@weekendsuperhero-io/sistine",
+}: InstallationInstructionsProps) {
   const [copied, setCopied] = React.useState<string | null>(null);
 
   const commands = {
-    pnpm: `pnpm dlx shadcn@latest add @glass-ui/${componentName}`,
-    yarn: `yarn dlx shadcn@latest add @glass-ui/${componentName}`,
-    npm: `npx shadcn@latest add @glass-ui/${componentName}`,
-    bun: `bunx shadcn@latest add @glass-ui/${componentName}`,
+    pnpm: `pnpm dlx shadcn@latest add @sistine/${componentName}`,
+    yarn: `yarn dlx shadcn@latest add @sistine/${componentName}`,
+    npm: `npx shadcn@latest add @sistine/${componentName}`,
+    bun: `bunx shadcn@latest add @sistine/${componentName}`,
   };
 
   const copyToClipboard = (command: string, key: string) => {

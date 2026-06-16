@@ -9,7 +9,7 @@ export interface TooltipContentProps extends React.ComponentProps<typeof BaseToo
 }
 
 /**
- * Glass UI Tooltip - Enhanced tooltip with glassy effects
+ * Sistine Tooltip - Enhanced tooltip with glassy effects
  */
 export const TooltipContent = React.forwardRef<React.ElementRef<typeof BaseTooltipContent>, TooltipContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

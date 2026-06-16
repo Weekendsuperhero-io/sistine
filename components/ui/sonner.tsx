@@ -6,7 +6,7 @@ import { Toaster as Sonner } from "sonner";
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 /**
- * Glass UI Toaster - Toast notifications with glassmorphism effects
+ * Sistine Toaster - Toast notifications with glassmorphism effects
  *
  * Features:
  * - Glass background with backdrop blur

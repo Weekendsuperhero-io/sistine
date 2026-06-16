@@ -14,7 +14,7 @@ export interface InputProps extends Omit<React.ComponentProps<typeof BaseInput>,
 }
 
 /**
- * Glass UI Input - A beautifully designed input component with glassy effects
+ * Sistine Input - A beautifully designed input component with glassy effects
  * Built on top of the base Input component with enhanced visual styling
  *
  * @example

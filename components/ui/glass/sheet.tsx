@@ -20,7 +20,7 @@ export interface SheetContentProps extends React.ComponentProps<typeof BaseSheet
 }
 
 /**
- * Glass UI Sheet - Enhanced sheet with glassy effects
+ * Sistine Sheet - Enhanced sheet with glassy effects
  */
 export const SheetContent = React.forwardRef<React.ElementRef<typeof BaseSheetContent>, SheetContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

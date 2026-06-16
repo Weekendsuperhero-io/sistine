@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Spinner } from "@/components/ui/glass/spinner";
 
 const meta = {
-  title: "Glass UI/Spinner",
+  title: "Sistine/Spinner",
   component: Spinner,
   parameters: {
     layout: "centered",

@@ -12,7 +12,7 @@ export interface MenuBarProps extends React.ComponentProps<typeof BaseMenuBar> {
 }
 
 /**
- * Glass UI Menu Bar - A beautifully designed menu bar with glassy effects
+ * Sistine Menu Bar - A beautifully designed menu bar with glassy effects
  * Built on top of the base MenuBar component with enhanced visual styling
  */
 export const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {

@@ -9,14 +9,14 @@ export async function GET(request: NextRequest) {
   const rssXml = await generateRegistryRssFeed({
     baseUrl,
     rss: {
-      title: "@glass-ui",
-      description: "Subscribe to @glass-ui updates",
-      link: "https://glass-ui.crenspire.com",
+      title: "@sistine",
+      description: "Subscribe to @sistine updates",
+      link: "https://weekendsuperhero.io",
       pubDateStrategy: "githubLastEdit",
     },
     github: {
-      owner: "akshaypjoshi",
-      repo: "crenspire/glass-ui",
+      owner: "Weekendsuperhero-io",
+      repo: "os-glass",
       token: process.env.GITHUB_TOKEN,
     },
     componentsUrl: "/docs/components",

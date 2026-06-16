@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const meta = {
-  title: "Glass UI/Accordion",
+  title: "Sistine/Accordion",
   component: Accordion,
   parameters: {
     layout: "centered",
@@ -38,8 +38,8 @@ export const Multiple: Story = {
   render: () => (
     <Accordion type="multiple" className="w-[450px]">
       <AccordionItem value="item-1">
-        <AccordionTrigger>What is Glass UI?</AccordionTrigger>
-        <AccordionContent>Glass UI is a modern, glassmorphic component library built with Next.js, React, and shadcn-ui registry.</AccordionContent>
+        <AccordionTrigger>What is Sistine?</AccordionTrigger>
+        <AccordionContent>Sistine is a modern, glassmorphic component library built with Next.js, React, and shadcn-ui registry.</AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-2">
         <AccordionTrigger>What variants are available?</AccordionTrigger>
@@ -67,7 +67,7 @@ export const FAQ: Story = {
       <AccordionItem value="getting-started">
         <AccordionTrigger>How do I get started?</AccordionTrigger>
         <AccordionContent>
-          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @glass-ui/component-name</code>
+          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @weekendsuperhero.ioponent-name</code>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="customization">

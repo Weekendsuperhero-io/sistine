@@ -12,7 +12,7 @@ export interface InputGroupProps extends React.ComponentProps<typeof BaseInputGr
 }
 
 /**
- * Glass UI Input Group - A beautifully designed input group with glassy effects
+ * Sistine Input Group - A beautifully designed input group with glassy effects
  * Built on top of the base InputGroup component with enhanced visual styling
  */
 export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(

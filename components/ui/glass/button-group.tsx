@@ -12,7 +12,7 @@ export interface ButtonGroupProps extends React.ComponentProps<typeof BaseButton
 }
 
 /**
- * Glass UI Button Group - A beautifully designed button group with glassy effects
+ * Sistine Button Group - A beautifully designed button group with glassy effects
  * Built on top of the base ButtonGroup component with enhanced visual styling
  */
 export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(

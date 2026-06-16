@@ -1,6 +1,6 @@
-# Glass UI Storybook
+# Sistine Storybook
 
-Welcome to the Glass UI Storybook! This is your interactive component playground where you can explore, test, and customize all Glass UI components.
+Welcome to the Sistine Storybook! This is your interactive component playground where you can explore, test, and customize all Sistine components.
 
 ## 🚀 Getting Started
 
@@ -100,7 +100,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ComponentName } from '@/components/ui/glass/component-name';
 
 const meta = {
-  title: 'Glass UI/ComponentName',
+  title: 'Sistine/ComponentName',
   component: ComponentName,
   parameters: {
     layout: 'centered',
@@ -121,7 +121,7 @@ export const Default: Story = {
 ## 🔗 Useful Links
 
 - [Storybook Documentation](https://storybook.js.org/)
-- [Glass UI Documentation](http://localhost:3000/docs)
+- [Sistine Documentation](http://localhost:3000/docs)
 - [Component API Reference](http://localhost:3000/docs/components)
 
 ## 🎯 Best Practices
@@ -151,5 +151,5 @@ The build output will be in `storybook-static/` directory.
 - Press `F` to focus on a component
 - Press `S` to add shortcuts panel
 
-Enjoy exploring Glass UI components! 🎨✨
+Enjoy exploring Sistine components! 🎨✨
 

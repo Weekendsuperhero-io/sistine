@@ -24,7 +24,7 @@ export interface ChartLegendContentProps extends React.ComponentProps<typeof Bas
 }
 
 /**
- * Glass UI Chart - Enhanced chart components with glassy effects
+ * Sistine Chart - Enhanced chart components with glassy effects
  */
 export const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

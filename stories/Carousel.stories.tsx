@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/glass/
 import { Carousel } from "@/components/ui/glass/carousel";
 
 const meta = {
-  title: "Glass UI/Carousel",
+  title: "Sistine/Carousel",
   component: Carousel,
   parameters: {
     layout: "centered",

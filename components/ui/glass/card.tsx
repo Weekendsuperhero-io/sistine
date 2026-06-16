@@ -14,7 +14,7 @@ export interface CardProps extends React.ComponentProps<typeof BaseCard> {
 }
 
 /**
- * Glass UI Card - A beautifully designed card component with glassy effects
+ * Sistine Card - A beautifully designed card component with glassy effects
  * Built on top of the base Card component with enhanced visual styling
  *
  * @example

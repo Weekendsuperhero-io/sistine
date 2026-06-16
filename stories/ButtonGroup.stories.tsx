@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/glass/button";
 import { ButtonGroup } from "@/components/ui/glass/button-group";
 
 const meta = {
-  title: "Glass UI/ButtonGroup",
+  title: "Sistine/ButtonGroup",
   component: ButtonGroup,
   parameters: {
     layout: "centered",

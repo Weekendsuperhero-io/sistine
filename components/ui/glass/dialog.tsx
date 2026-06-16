@@ -22,7 +22,7 @@ export interface DialogContentProps extends Omit<React.ComponentProps<typeof Bas
 }
 
 /**
- * Glass UI Dialog - Enhanced dialog with glassy effects and animations
+ * Sistine Dialog - Enhanced dialog with glassy effects and animations
  *
  * @example
  * ```tsx

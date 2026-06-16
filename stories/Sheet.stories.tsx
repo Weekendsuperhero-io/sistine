@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const meta = {
-  title: "Glass UI/Sheet",
+  title: "Sistine/Sheet",
   component: Sheet,
   parameters: {
     layout: "centered",

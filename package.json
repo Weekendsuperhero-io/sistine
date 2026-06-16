@@ -1,9 +1,9 @@
 {
-  "name": "@weekendsuperhero-io/glass-ui",
+  "name": "@weekendsuperhero-io/sistine",
   "version": "0.1.0",
   "private": true,
-  "description": "Glass UI - A modern, glassmorphic component library built with shadcn-ui registry",
-  "author": "Crenspire Technologies",
+  "description": "Sistine - A modern, glassmorphic component library built with shadcn-ui registry",
+  "author": "Weekend Superhero LLC",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

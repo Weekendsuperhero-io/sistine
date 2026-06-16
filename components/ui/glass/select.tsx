@@ -24,7 +24,7 @@ export interface SelectContentProps extends React.ComponentPropsWithoutRef<typeo
 }
 
 /**
- * Glass UI Select - Enhanced select with glassy effects
+ * Sistine Select - Enhanced select with glassy effects
  */
 export const SelectTrigger = React.forwardRef<React.ElementRef<typeof BaseSelectTrigger>, SelectTriggerProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

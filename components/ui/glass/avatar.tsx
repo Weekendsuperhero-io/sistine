@@ -10,7 +10,7 @@ export interface AvatarProps extends React.ComponentProps<typeof BaseAvatar> {
 }
 
 /**
- * Glass UI Avatar - Enhanced avatar with glassy effects
+ * Sistine Avatar - Enhanced avatar with glassy effects
  */
 export const Avatar = React.forwardRef<React.ElementRef<typeof BaseAvatar>, AvatarProps>(
   ({ className, glow = false, size = "md", ...props }, ref) => {

@@ -9,7 +9,7 @@ export interface SwitchProps extends React.ComponentProps<typeof BaseSwitch> {
 }
 
 /**
- * Glass UI Switch - Enhanced switch with glassy effects
+ * Sistine Switch - Enhanced switch with glassy effects
  */
 export const Switch = React.forwardRef<React.ElementRef<typeof BaseSwitch>, SwitchProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

@@ -14,20 +14,23 @@ export function Footer() {
               <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                 <span>Built by</span>
                 <Link
-                  href="https://github.com/akshaypjoshi"
+                  href="https://github.com/Weekendsuperhero-io"
                   className="text-foreground hover:text-foreground/80 transition-colors whitespace-nowrap"
                   target="_blank"
                 >
-                  Akshay Joshi
+                  Weekend Superhero LLC
                 </Link>
-                <span>at</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+                <span>Based on</span>
                 <Link
-                  href="https://crenspire.com"
+                  href="https://github.com/crenspire/glass-ui"
                   className="text-foreground hover:text-foreground/80 transition-colors whitespace-nowrap"
                   target="_blank"
                 >
-                  Crenspire Technologies
+                  Glass UI
                 </Link>
+                <span>by Crenspire</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                 <span>Inspired by</span>
@@ -42,13 +45,13 @@ export function Footer() {
             </div>
             <div className="flex items-center gap-4 flex-wrap justify-center md:justify-end">
               <Button variant="glass" size="sm" asChild effect="glow" className="gap-2">
-                <Link href="https://github.com/sponsors/akshaypjoshi" target="_blank" rel="noopener noreferrer" aria-label="Sponsor akshaypjoshi">
+                <Link href="https://github.com/Weekendsuperhero-io" target="_blank" rel="noopener noreferrer" aria-label="Sponsor Weekend Superhero">
                   <Heart className="h-4 w-4 fill-current" />
                   <span>Sponsor</span>
                 </Link>
               </Button>
               <Link
-                href="https://github.com/crenspire/glass-ui"
+                href="https://github.com/Weekendsuperhero-io/os-glass"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

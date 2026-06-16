@@ -39,7 +39,7 @@ export default function Home() {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("npx shadcn@latest add https://glass-ui.com/r/styles/glass");
+    navigator.clipboard.writeText("npx shadcn@latest add https://weekendsuperhero.io/r/styles/glass");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -83,7 +83,7 @@ export default function Home() {
               className="glass-bg max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl"
               onClick={handleCopy}
             >
-              <code className="text-foreground/70 truncate select-all">pnpm dlx shadcn@latest add @glass-ui/button</code>
+              <code className="text-foreground/70 truncate select-all">pnpm dlx shadcn@latest add @sistine/button</code>
               {copied ? (
                 <Check className="h-4 w-4 text-green-500 shrink-0" />
               ) : (
@@ -192,7 +192,7 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="https://github.com/akshaypjoshi.png" />
+                    <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
                     <AvatarFallback>AJ</AvatarFallback>
                   </Avatar>
                   <div>
@@ -410,7 +410,7 @@ export default function Home() {
               className="glass-bg rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() =>
                 toast("New update available", {
-                  description: "Glass UI v2.0 includes 10 new components.",
+                  description: "Sistine v2.0 includes 10 new components.",
                   action: {
                     label: "View",
                     onClick: () => window.open("/docs/getting-started", "_blank"),

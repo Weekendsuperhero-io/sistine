@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 const meta = {
-  title: "Glass UI/ScrollArea",
+  title: "Sistine/ScrollArea",
   component: ScrollArea,
   parameters: {
     layout: "centered",
@@ -60,10 +60,10 @@ export const Horizontal: Story = {
 export const WithContent: Story = {
   render: () => (
     <ScrollArea className="h-[400px] w-[350px] rounded-md border glass-bg backdrop-blur-[var(--blur)] border-[var(--glass-border)] p-4">
-      <h4 className="mb-4 text-sm font-medium leading-none">Glass UI Documentation</h4>
+      <h4 className="mb-4 text-sm font-medium leading-none">Sistine Documentation</h4>
       <div className="space-y-4 text-sm">
         <p>
-          Glass UI is a modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui
+          Sistine is a modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui
           registry.
         </p>
         <p>It provides 40+ beautiful glass components with variants including glass, frosted, fluted, and crystal effects.</p>

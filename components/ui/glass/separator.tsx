@@ -9,7 +9,7 @@ export interface SeparatorProps extends React.ComponentProps<typeof BaseSeparato
 }
 
 /**
- * Glass UI Separator - Enhanced separator with glassy effects
+ * Sistine Separator - Enhanced separator with glassy effects
  */
 export const Separator = React.forwardRef<React.ElementRef<typeof BaseSeparator>, SeparatorProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

@@ -3,7 +3,7 @@ import { WarningCircleIcon, CheckCircleIcon, Terminal, XCircle } from "@phosphor
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const meta = {
-  title: "Glass UI/Alert",
+  title: "Sistine/Alert",
   component: Alert,
   parameters: {
     layout: "centered",

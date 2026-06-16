@@ -12,7 +12,7 @@ export interface DatePickerInputProps extends React.ComponentProps<typeof BaseDa
 }
 
 /**
- * Glass UI Date Picker Input - A beautifully designed date picker with glassy effects
+ * Sistine Date Picker Input - A beautifully designed date picker with glassy effects
  * Built on top of the base DatePickerInput component with enhanced visual styling
  */
 export const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>(

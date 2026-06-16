@@ -3,7 +3,7 @@ import { Bold, Italic, Underline } from "@phosphor-icons/react";
 import { Toggle } from "@/components/ui/toggle";
 
 const meta = {
-  title: "Glass UI/Toggle",
+  title: "Sistine/Toggle",
   component: Toggle,
   parameters: {
     layout: "centered",

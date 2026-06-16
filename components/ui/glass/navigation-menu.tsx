@@ -26,7 +26,7 @@ export interface NavigationMenuViewportProps extends React.ComponentProps<typeof
 }
 
 /**
- * Glass UI Navigation Menu - Enhanced navigation menu with glassy effects
+ * Sistine Navigation Menu - Enhanced navigation menu with glassy effects
  */
 export const NavigationMenuList = React.forwardRef<React.ElementRef<typeof BaseNavigationMenuList>, NavigationMenuListProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

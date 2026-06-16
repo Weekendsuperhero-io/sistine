@@ -12,7 +12,7 @@ export interface CarouselProps extends React.ComponentProps<typeof BaseCarousel>
 }
 
 /**
- * Glass UI Carousel - A beautifully designed carousel with glassy effects
+ * Sistine Carousel - A beautifully designed carousel with glassy effects
  * Built on top of the base Carousel component with enhanced visual styling
  */
 export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(({ className, variant = "glass", effect = "none", glass, ...props }, ref) => {

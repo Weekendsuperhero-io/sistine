@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 const meta = {
-  title: "Glass UI/Checkbox",
+  title: "Sistine/Checkbox",
   component: Checkbox,
   parameters: {
     layout: "centered",

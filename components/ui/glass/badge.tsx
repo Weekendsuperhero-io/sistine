@@ -11,7 +11,7 @@ export interface BadgeProps extends React.ComponentProps<typeof BaseBadge> {
 }
 
 /**
- * Glass UI Badge - Enhanced badge with glassy effects and glow option
+ * Sistine Badge - Enhanced badge with glassy effects and glow option
  */
 export function Badge({ className, variant = "glass", glow = false, hover = "none", ...props }: BadgeProps) {
   return (

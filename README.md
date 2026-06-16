@@ -1,8 +1,8 @@
-# Glass UI
+# Sistine
 
 A modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui registry.
 
-![Glass UI](https://img.shields.io/badge/Glass%20UI-v0.1.0-blue)
+![Sistine](https://img.shields.io/badge/Sistine-v0.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black)
 ![React](https://img.shields.io/badge/React-19.1-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
@@ -27,22 +27,22 @@ Install components using the shadcn CLI with your preferred package manager:
 
 **pnpm:**
 ```bash
-pnpm dlx shadcn@latest add @glass-ui/button
+pnpm dlx shadcn@latest add @sistine/button
 ```
 
 **yarn:**
 ```bash
-yarn dlx shadcn@latest add @glass-ui/button
+yarn dlx shadcn@latest add @sistine/button
 ```
 
 **npm:**
 ```bash
-npx shadcn@latest add @glass-ui/button
+npx shadcn@latest add @sistine/button
 ```
 
 **bun:**
 ```bash
-bunx shadcn@latest add @glass-ui/button
+bunx shadcn@latest add @sistine/button
 ```
 
 ### Usage
@@ -74,7 +74,7 @@ export function Example() {
 
 ## 📚 Documentation
 
-Visit the [full documentation](https://glass-ui.crenspire.com) for:
+Visit the [full documentation](https://weekendsuperhero.io) for:
 - Complete component reference
 - Installation guides
 - Customization examples
@@ -105,7 +105,7 @@ Visit `http://localhost:6006` after starting Storybook.
 
 ## 🏗️ Architecture
 
-Glass UI follows a two-layer component architecture:
+Sistine follows a two-layer component architecture:
 
 ### Base Components (`registry/ui/`)
 Foundation components with glassy variants providing:
@@ -114,7 +114,7 @@ Foundation components with glassy variants providing:
 - Accessibility features (Radix UI)
 - TypeScript support
 
-### Glass UI Components (`registry/ui/glass/`)
+### Sistine Components (`registry/ui/glass/`)
 Enhanced components built on top of base components with:
 - Enhanced visual effects (glow, shimmer, ripple)
 - Advanced styling options
@@ -182,7 +182,7 @@ Customize glass effects globally using CSS variables:
 - Calendar, Chart, Command
 - Slider, Toggle, Toggle Group
 
-And more! See the [full component list](https://glass-ui.crenspire.com/components).
+And more! See the [full component list](https://weekendsuperhero.io/components).
 
 ## 🛠️ Development
 
@@ -195,8 +195,8 @@ And more! See the [full component list](https://glass-ui.crenspire.com/component
 
 ```bash
 # Clone the repository
-git clone https://github.com/crenspire/glass-ui.git
-cd glass-ui
+git clone https://github.com/Weekendsuperhero-io/os-glass.git
+cd os-glass
 
 # Install dependencies
 pnpm install
@@ -217,14 +217,14 @@ pnpm registry:build
 ### Project Structure
 
 ```
-glass-ui/
+os-glass/
 ├── app/                    # Next.js app directory
 ├── components/             # Shared components
 ├── lib/                    # Utilities and helpers
 ├── public/                 # Static assets
 ├── registry/
 │   ├── ui/                # Base components
-│   └── ui/glass/          # Glass UI components
+│   └── ui/glass/          # Sistine components
 ├── stories/               # Storybook stories
 └── registry.json          # Component registry
 ```
@@ -271,9 +271,9 @@ This project is licensed under the MIT License.
 
 ## 🔗 Links
 
-- [Documentation](https://glass-ui.crenspire.com)
-- [GitHub Repository](https://github.com/crenspire/glass-ui)
-- [Issue Tracker](https://github.com/crenspire/glass-ui/issues)
+- [Documentation](https://weekendsuperhero.io)
+- [GitHub Repository](https://github.com/Weekendsuperhero-io/os-glass)
+- [Issue Tracker](https://github.com/Weekendsuperhero-io/os-glass/issues)
 
 ## 🙏 Acknowledgments
 
@@ -283,4 +283,4 @@ This project is licensed under the MIT License.
 
 ---
 
-Made with ❤️ by [Crenspire Technologies](https://crenspire.com)
+Made with ❤️ by Weekend Superhero LLC · Based on [Glass UI](https://github.com/crenspire/glass-ui) by Crenspire Technologies (MIT)

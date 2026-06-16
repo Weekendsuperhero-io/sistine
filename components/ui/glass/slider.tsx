@@ -9,7 +9,7 @@ export interface SliderProps extends React.ComponentProps<typeof BaseSlider> {
 }
 
 /**
- * Glass UI Slider - Enhanced slider with glassy effects
+ * Sistine Slider - Enhanced slider with glassy effects
  */
 export const Slider = React.forwardRef<React.ElementRef<typeof BaseSlider>, SliderProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

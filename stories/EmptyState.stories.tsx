@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/glass/button";
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/glass/empty-state";
 
 const meta = {
-  title: "Glass UI/EmptyState",
+  title: "Sistine/EmptyState",
   component: EmptyState,
   parameters: {
     layout: "centered",

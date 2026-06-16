@@ -12,7 +12,7 @@ export interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptySt
 }
 
 /**
- * Glass UI Empty State - A beautifully designed empty state component with glassy effects
+ * Sistine Empty State - A beautifully designed empty state component with glassy effects
  * Built on top of the base EmptyState component with enhanced visual styling
  */
 export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(

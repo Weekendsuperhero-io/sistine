@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/glass/button";
 import { Toaster } from "@/components/ui/glass/sonner";
 
 const meta = {
-  title: "Glass UI/Sonner",
+  title: "Sistine/Sonner",
   component: Toaster,
   parameters: {
     layout: "centered",

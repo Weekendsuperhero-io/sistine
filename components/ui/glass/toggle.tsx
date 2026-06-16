@@ -9,7 +9,7 @@ export interface ToggleProps extends React.ComponentProps<typeof BaseToggle> {
 }
 
 /**
- * Glass UI Toggle - Enhanced toggle with glassy effects
+ * Sistine Toggle - Enhanced toggle with glassy effects
  */
 export const Toggle = React.forwardRef<React.ElementRef<typeof BaseToggle>, ToggleProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {

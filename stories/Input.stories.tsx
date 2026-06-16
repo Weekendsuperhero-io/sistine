@@ -3,7 +3,7 @@ import { EnvelopeSimpleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/glass/input";
 
 const meta = {
-  title: "Glass UI/Input",
+  title: "Sistine/Input",
   component: Input,
   parameters: {
     layout: "centered",
