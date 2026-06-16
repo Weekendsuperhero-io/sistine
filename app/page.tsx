@@ -192,11 +192,11 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
-                    <AvatarFallback>AJ</AvatarFallback>
+                    <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
+                    <AvatarFallback>AM</AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-semibold text-sm text-foreground">Akshay Joshi</div>
+                    <div className="font-semibold text-sm text-foreground">Agent Muse</div>
                     <div className="text-xs text-muted-foreground">Developer</div>
                   </div>
                 </div>
