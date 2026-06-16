@@ -144,12 +144,12 @@ export function Example() {
   return (
     <div className="flex gap-4">
       <Avatar>
-        <AvatarImage src="https://github.com/Weekendsuperhero-io.png" alt="@Weekendsuperhero-io" />
+        <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
       <Avatar>
-        <AvatarImage src="https://github.com/Weekendsuperhero-io.png" alt="@Weekendsuperhero-io" />
-        <AvatarFallback>AJ</AvatarFallback>
+        <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
+        <AvatarFallback>AM</AvatarFallback>
       </Avatar>
       <Avatar>
         <AvatarFallback>JD</AvatarFallback>

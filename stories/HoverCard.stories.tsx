@@ -40,7 +40,7 @@ export const Glass: Story = {
       <HoverCardContent variant="glass" className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
+            <AvatarImage src="/logo-dark.png" />
             <AvatarFallback>VC</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
@@ -66,7 +66,7 @@ export const Frosted: Story = {
       <HoverCardContent variant="frosted" className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
-            <AvatarImage src="https://github.com/Weekendsuperhero-io.png" />
+            <AvatarImage src="/logo-dark.png" />
             <AvatarFallback>SC</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
