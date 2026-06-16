@@ -8,7 +8,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "biome check .",
     "registry:build": "shadcn build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static",
