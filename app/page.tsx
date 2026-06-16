@@ -20,20 +20,20 @@ import {
   ArrowRight,
   Copy,
   Check,
-  Bot,
-  Send,
-  Mail,
+  Robot as Bot,
+  PaperPlaneTilt as Send,
+  EnvelopeSimple as Mail,
   Lock,
   User,
   CreditCard,
-  Settings,
-  TrendingUp,
-  DollarSign,
-  Zap,
-  Sparkles,
+  Gear as Settings,
+  TrendUp as TrendingUp,
+  CurrencyDollar as DollarSign,
+  Lightning as Zap,
+  Sparkle as Sparkles,
   Palette,
-  Layers,
-} from "lucide-react"
+  Stack as Layers,
+} from "@phosphor-icons/react"
 
 export default function Home() {
   const [copied, setCopied] = React.useState(false)

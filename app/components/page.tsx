@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/glass/input"
 import { Badge } from "@/components/ui/badge"
-import { Search } from "lucide-react"
+import { MagnifyingGlass as Search } from "@phosphor-icons/react"
 import { getComponents } from "@/lib/registry"
 
 const components = getComponents();

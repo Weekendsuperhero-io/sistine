@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { MagnifyingGlassIcon } from "@phosphor-icons/react"
 
 const blocks = [
   {
