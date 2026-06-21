@@ -45,7 +45,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           toast:
             "group toast group-[.toaster]:rounded-xl group-[.toaster]:glass-bg group-[.toaster]:backdrop-blur-[var(--blur)] group-[.toaster]:border group-[.toaster]:border-[var(--glass-border)] group-[.toaster]:shadow-[var(--glass-shadow-lg)] group-[.toaster]:text-foreground",
-          description: "group-[.toast]:text-muted-foreground",
+          description: "group-[.toast]:text-current group-[.toast]:opacity-70",
           actionButton:
             "group-[.toast]:rounded-md group-[.toast]:glass-bg group-[.toast]:backdrop-blur-[var(--blur-sm)] group-[.toast]:border group-[.toast]:border-[var(--glass-border)] group-[.toast]:text-foreground group-[.toast]:hover:opacity-90",
           cancelButton:

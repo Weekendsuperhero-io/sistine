@@ -17,13 +17,13 @@ const alertVariants = cva(
         fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
         crystal:
           "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
-        info: "glass-bg backdrop-blur-[var(--blur)] border border-blue-500/40 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
+        info: "glass-bg backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
-          "glass-bg backdrop-blur-[var(--blur)] border border-green-500/40 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
+          "glass-bg backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
         warning:
-          "glass-bg backdrop-blur-[var(--blur)] border border-yellow-500/40 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
+          "glass-bg backdrop-blur-[var(--blur)] border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
         destructive:
-          "glass-bg backdrop-blur-[var(--blur)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
+          "glass-bg backdrop-blur-[var(--blur)] border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
       },
     },
     defaultVariants: {
