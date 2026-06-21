@@ -929,7 +929,8 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               onClick={() =>
                 toast("Event Created", {
                   description: "Your event has been scheduled",
-                  className: "border-blue-500/30! text-blue-600! dark:text-blue-400!",
+                  className:
+                    "border-blue-500/30! [&_[data-title]]:text-blue-600! dark:[&_[data-title]]:text-blue-400! [&_[data-description]]:text-blue-600/80! dark:[&_[data-description]]:text-blue-400/80!",
                   action: {
                     label: "View",
                     onClick: () => console.log("View clicked"),
