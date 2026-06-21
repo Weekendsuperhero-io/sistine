@@ -175,7 +175,6 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
-      ...props
     },
     ref,
   ) => {
@@ -225,7 +224,6 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn("grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-md", variants[variant], className)}
-        {...props}
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
@@ -322,7 +320,7 @@ const ChartLegendContent = React.forwardRef<
       hideIcon?: boolean;
       nameKey?: string;
     }
->(({ className, payload, verticalAlign = "bottom", variant = "glass", hideIcon = false, nameKey, ...props }, ref) => {
+>(({ className, payload, verticalAlign = "bottom", variant = "glass", hideIcon = false, nameKey }, ref) => {
   const { config } = useChart();
 
   const variants = {
@@ -335,11 +333,7 @@ const ChartLegendContent = React.forwardRef<
   }
 
   return (
-    <div
-      ref={ref}
-      className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}
-      {...props}
-    >
+    <div ref={ref} className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}>
       {payload
         .filter((item) => item.type !== "none")
         .map((item, index) => {
