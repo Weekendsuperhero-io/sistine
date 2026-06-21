@@ -90,7 +90,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarItem } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Toaster } from "@/components/ui/sonner";
@@ -679,18 +679,28 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "sidebar":
       return (
-        <Sidebar variant="glass" className="w-64">
-          <SidebarHeader>
-            <div className="px-3 py-2">
-              <h2 className="mb-2 px-4 text-lg font-semibold">Sidebar</h2>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarItem>Home</SidebarItem>
-            <SidebarItem>Settings</SidebarItem>
-            <SidebarItem>Profile</SidebarItem>
-          </SidebarContent>
-        </Sidebar>
+        <SidebarProvider className="min-h-0">
+          <Sidebar collapsible="none" className="w-64 rounded-xl">
+            <SidebarHeader>
+              <div className="px-3 py-2">
+                <h2 className="mb-2 px-4 text-lg font-semibold">Sidebar</h2>
+              </div>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>Home</SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>Settings</SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton>Profile</SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          </Sidebar>
+        </SidebarProvider>
       );
 
     case "chart": {

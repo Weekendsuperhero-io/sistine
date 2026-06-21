@@ -1560,7 +1560,14 @@
       "type": "registry:component",
       "title": "Sidebar",
       "description": "A sidebar component with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/input",
+        "@sistine/separator",
+        "@sistine/sheet",
+        "@sistine/skeleton",
+        "@sistine/tooltip"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1594,8 +1601,10 @@
         }
       ],
       "dependencies": [
+        "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
+        "radix-ui",
         "tailwind-merge"
       ]
     },

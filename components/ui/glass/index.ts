@@ -153,8 +153,7 @@ export {
   SheetTitle,
   SheetTrigger,
 } from "./sheet";
-export type { SidebarProps } from "./sidebar";
-export { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarItem } from "./sidebar";
+export * from "./sidebar";
 export type { SkeletonProps } from "./skeleton";
 export { Skeleton } from "./skeleton";
 export type { SliderProps } from "./slider";
