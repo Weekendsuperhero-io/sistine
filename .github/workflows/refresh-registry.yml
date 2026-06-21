@@ -1,0 +1,57 @@
+name: Refresh registry
+
+# Rebuilds the shadcn registry output (public/r/*.json) whenever the source of a
+# registry item changes on main, and commits the result back so the published
+# @sistine registry (served from main via raw.githubusercontent.com) never goes stale.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "registry.json"
+      - "components/**"
+      - "lib/**"
+      - "app/globals.css"
+      - "scripts/fix-registry.mjs"
+      - ".github/workflows/refresh-registry.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-registry-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build registry
+        run: pnpm registry:build
+
+      - name: Commit refreshed registry
+        run: |
+          if [ -n "$(git status --porcelain public/r)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/r
+            git commit -m "chore(registry): refresh public/r [skip ci]"
+            git push
+          else
+            echo "public/r already up to date — nothing to commit."
+          fi
