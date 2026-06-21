@@ -1,6 +1,14 @@
 "use client";
 
-import { TrayIcon as Inbox, InfoIcon as Info, MagnifyingGlassIcon, SparkleIcon as Sparkles } from "@phosphor-icons/react";
+import {
+  GearIcon,
+  HouseIcon,
+  TrayIcon as Inbox,
+  InfoIcon as Info,
+  MagnifyingGlassIcon,
+  SparkleIcon as Sparkles,
+  UserIcon,
+} from "@phosphor-icons/react";
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
@@ -90,7 +98,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Toaster } from "@/components/ui/sonner";
@@ -236,7 +256,8 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <AvatarFallback>AM</AvatarFallback>
           </Avatar>
           <Avatar>
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarImage src="/logo-light.png" alt="Agent Muse" />
+            <AvatarFallback>AM</AvatarFallback>
           </Avatar>
         </div>
       );
@@ -524,8 +545,8 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "scroll-area":
       return (
-        <ScrollArea className="h-[200px] w-full rounded-md border p-4" variant="glass">
-          <div className="space-y-2">
+        <ScrollArea className="h-[200px] w-full" variant="glass">
+          <div className="space-y-2 p-4">
             {Array.from({
               length: 20,
             }).map((_, i) => (
@@ -679,26 +700,69 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "sidebar":
       return (
-        <SidebarProvider className="min-h-0">
+        <SidebarProvider className="min-h-0 h-[400px]">
           <Sidebar collapsible="none" className="w-64 rounded-xl">
             <SidebarHeader>
-              <div className="px-3 py-2">
-                <h2 className="mb-2 px-4 text-lg font-semibold">Sidebar</h2>
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <Sparkles className="size-5 text-primary" />
+                <span className="text-base font-semibold">Sistine</span>
               </div>
             </SidebarHeader>
             <SidebarContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>Home</SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>Settings</SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton>Profile</SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
+              <SidebarGroup>
+                <SidebarGroupLabel>Platform</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton isActive>
+                        <HouseIcon />
+                        Home
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>
+                        <MagnifyingGlassIcon />
+                        Search
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>
+                        <Inbox />
+                        Inbox
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+              <SidebarGroup>
+                <SidebarGroupLabel>Account</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>
+                        <UserIcon />
+                        Profile
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton>
+                        <GearIcon />
+                        Settings
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <Avatar className="size-7">
+                  <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
+                  <AvatarFallback>AM</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">Agent Muse</span>
+              </div>
+            </SidebarFooter>
           </Sidebar>
         </SidebarProvider>
       );
@@ -804,6 +868,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               onClick={() =>
                 toast("Event Created", {
                   description: "Your event has been scheduled",
+                  className: "border-blue-500/30!",
                   action: {
                     label: "View",
                     onClick: () => console.log("View clicked"),

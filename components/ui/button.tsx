@@ -22,7 +22,7 @@ const buttonVariants = cva(
         crystal:
           "glass-crystal text-foreground transition-all active:opacity-90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.25),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         destructive:
-          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3)]",
+          "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition-all active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         outline:
           "border-2 border-foreground/20 bg-transparent text-foreground shadow-xs hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground dark:border-white/40 dark:hover:bg-white/5 dark:hover:border-white/60 dark:text-white active:bg-foreground/15 active:border-foreground/50 dark:active:bg-white/10 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.1)]",
         secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15)]",

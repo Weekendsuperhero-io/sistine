@@ -18,8 +18,9 @@ const badgeVariants = cva(
         fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow-sm)]",
         crystal:
           "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
-        secondary: "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground shadow [a&]:hover:bg-destructive/80",
+        secondary:
+          "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-muted-foreground shadow-[var(--glass-shadow-sm)]",
+        destructive: "glass-bg backdrop-blur-[var(--blur-sm)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow-sm)]",
         outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "border-transparent [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "border-transparent text-primary underline-offset-4 [a&]:hover:underline",
