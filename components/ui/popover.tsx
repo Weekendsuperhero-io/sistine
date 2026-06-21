@@ -9,6 +9,8 @@ const Popover = PopoverPrimitive.Root;
 
 const PopoverTrigger = PopoverPrimitive.Trigger;
 
+const PopoverAnchor = PopoverPrimitive.Anchor;
+
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
@@ -35,6 +37,7 @@ const PopoverContent = React.forwardRef<
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         ref={ref}
+        data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
         className={cn(
@@ -49,4 +52,19 @@ const PopoverContent = React.forwardRef<
 });
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverContent, PopoverTrigger };
+const PopoverHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div data-slot="popover-header" className={cn("flex flex-col gap-1 text-sm", className)} {...props} />
+);
+PopoverHeader.displayName = "PopoverHeader";
+
+const PopoverTitle = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div data-slot="popover-title" className={cn("font-medium", className)} {...props} />
+);
+PopoverTitle.displayName = "PopoverTitle";
+
+const PopoverDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p data-slot="popover-description" className={cn("text-muted-foreground", className)} {...props} />
+);
+PopoverDescription.displayName = "PopoverDescription";
+
+export { Popover, PopoverAnchor, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger };

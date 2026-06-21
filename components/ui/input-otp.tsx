@@ -28,7 +28,9 @@ const InputOTP = React.forwardRef<
   return (
     <OTPInput
       ref={ref}
-      containerClassName={cn("flex items-center gap-2", variants[variant], className)}
+      data-slot="input-otp"
+      containerClassName={cn("flex items-center gap-2 has-disabled:opacity-50", variants[variant], className)}
+      className="disabled:cursor-not-allowed"
       render={render || defaultRender}
       {...props}
     />
@@ -47,7 +49,7 @@ const InputOTPGroup = React.forwardRef<
     glass: "flex items-center gap-1",
   };
 
-  return <div ref={ref} className={cn(variants[variant], className)} {...props} />;
+  return <div ref={ref} data-slot="input-otp-group" className={cn(variants[variant], className)} {...props} />;
 });
 InputOTPGroup.displayName = "InputOTPGroup";
 
@@ -68,6 +70,8 @@ const InputOTPSlot = React.forwardRef<
   return (
     <div
       ref={ref}
+      data-slot="input-otp-slot"
+      data-active={isActive}
       className={cn(
         variants[variant],
         isActive && "z-10 ring-2 ring-ring ring-offset-background opacity-100",
@@ -88,7 +92,7 @@ const InputOTPSlot = React.forwardRef<
 InputOTPSlot.displayName = "InputOTPSlot";
 
 const InputOTPSeparator = React.forwardRef<React.ElementRef<"div">, React.ComponentPropsWithoutRef<"div">>(({ ...props }, ref) => (
-  <div ref={ref} role="separator" aria-orientation="vertical" {...props}>
+  <div ref={ref} data-slot="input-otp-separator" role="separator" aria-orientation="vertical" {...props}>
     <Dot />
   </div>
 ));

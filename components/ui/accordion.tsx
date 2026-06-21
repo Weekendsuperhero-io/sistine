@@ -11,7 +11,9 @@ const Accordion = AccordionPrimitive.Root;
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
->(({ className, ...props }, ref) => <AccordionPrimitive.Item ref={ref} className={cn("border-b", className)} {...props} />);
+>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Item ref={ref} data-slot="accordion-item" className={cn("border-b last:border-b-0", className)} {...props} />
+));
 AccordionItem.displayName = "AccordionItem";
 
 const AccordionTrigger = React.forwardRef<
@@ -29,15 +31,16 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         ref={ref}
+        data-slot="accordion-trigger"
         className={cn(
-          "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left font-medium outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           variants[variant],
           className,
         )}
         {...props}
       >
         {children}
-        <CaretDownIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+        <CaretDownIcon className="pointer-events-none h-4 w-4 shrink-0 translate-y-0.5 text-muted-foreground transition-transform duration-200" />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
@@ -50,6 +53,7 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
+    data-slot="accordion-content"
     className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
     {...props}
   >

@@ -5,7 +5,19 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+const Tabs = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(
+  ({ className, orientation = "horizontal", ...props }, ref) => (
+    <TabsPrimitive.Root
+      ref={ref}
+      data-slot="tabs"
+      data-orientation={orientation}
+      orientation={orientation}
+      className={cn("group/tabs flex gap-2 data-[orientation=horizontal]:flex-col", className)}
+      {...props}
+    />
+  ),
+);
+Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
@@ -29,6 +41,7 @@ const TabsList = React.forwardRef<
   return (
     <TabsPrimitive.List
       ref={ref}
+      data-slot="tabs-list"
       className={cn("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", getVariantClass(), className)}
       {...props}
     />
@@ -40,6 +53,7 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
   ({ className, ...props }, ref) => (
     <TabsPrimitive.Trigger
       ref={ref}
+      data-slot="tabs-trigger"
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         // Inactive state - transparent, blends with background
@@ -63,6 +77,7 @@ const TabsContent = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Conte
   ({ className, ...props }, ref) => (
     <TabsPrimitive.Content
       ref={ref}
+      data-slot="tabs-content"
       className={cn(
         "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className,

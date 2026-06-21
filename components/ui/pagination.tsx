@@ -1,10 +1,10 @@
 import { ArrowsHorizontalIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "./button";
+import { type Button, buttonVariants } from "./button";
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
-  <nav aria-label="pagination" className={cn("mx-auto flex w-full justify-center", className)} {...props} />
+  <nav aria-label="pagination" data-slot="pagination" className={cn("mx-auto flex w-full justify-center", className)} {...props} />
 );
 Pagination.displayName = "Pagination";
 
@@ -19,22 +19,23 @@ const PaginationContent = React.forwardRef<
     glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg px-2 py-1 shadow-[var(--glass-shadow-sm)]",
   };
 
-  return <ul ref={ref} className={cn("flex flex-row items-center gap-1", variants[variant], className)} {...props} />;
+  return <ul ref={ref} data-slot="pagination-content" className={cn("flex flex-row items-center gap-1", variants[variant], className)} {...props} />;
 });
 PaginationContent.displayName = "PaginationContent";
 
 const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li">>(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn("", className)} {...props} />
+  <li ref={ref} data-slot="pagination-item" className={cn("", className)} {...props} />
 ));
 PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & React.ComponentProps<"a"> & {
+} & Pick<React.ComponentProps<typeof Button>, "size"> &
+  React.ComponentProps<"a"> & {
     variant?: "default" | "glass";
   };
 
-const PaginationLink = ({ className, isActive, variant = "glass", ...props }: PaginationLinkProps) => {
+const PaginationLink = ({ className, isActive, size = "icon", variant = "glass", ...props }: PaginationLinkProps) => {
   const variants = {
     default: isActive ? "bg-background text-foreground" : "",
     glass: isActive ? "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]" : "",
@@ -43,9 +44,12 @@ const PaginationLink = ({ className, isActive, variant = "glass", ...props }: Pa
   return (
     <a
       aria-current={isActive ? "page" : undefined}
+      data-slot="pagination-link"
+      data-active={isActive}
       className={cn(
         buttonVariants({
           variant: isActive ? "outline" : "ghost",
+          size,
         }),
         variants[variant],
         className,
@@ -57,23 +61,23 @@ const PaginationLink = ({ className, isActive, variant = "glass", ...props }: Pa
 PaginationLink.displayName = "PaginationLink";
 
 const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="Go to previous page" className={cn("gap-1 pl-2.5", className)} {...props}>
+  <PaginationLink aria-label="Go to previous page" size="default" className={cn("gap-1 px-2.5 sm:pl-2.5", className)} {...props}>
     <CaretLeftIcon className="h-4 w-4" />
-    <span>Previous</span>
+    <span className="hidden sm:block">Previous</span>
   </PaginationLink>
 );
 PaginationPrevious.displayName = "PaginationPrevious";
 
 const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink aria-label="Go to next page" className={cn("gap-1 pr-2.5", className)} {...props}>
-    <span>Next</span>
+  <PaginationLink aria-label="Go to next page" size="default" className={cn("gap-1 px-2.5 sm:pr-2.5", className)} {...props}>
+    <span className="hidden sm:block">Next</span>
     <CaretRightIcon className="h-4 w-4" />
   </PaginationLink>
 );
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
-  <span aria-hidden className={cn("flex h-9 w-9 items-center justify-center", className)} {...props}>
+  <span aria-hidden data-slot="pagination-ellipsis" className={cn("flex h-9 w-9 items-center justify-center", className)} {...props}>
     <ArrowsHorizontalIcon className="h-4 w-4" />
     <span className="sr-only">More pages</span>
   </span>

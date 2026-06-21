@@ -12,7 +12,7 @@ function Skeleton({
     glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] animate-pulse shadow-[var(--glass-shadow-sm)]",
   };
 
-  return <div className={cn("rounded-md", variants[variant], className)} {...props} />;
+  return <div data-slot="skeleton" className={cn("rounded-md", variants[variant], className)} {...props} />;
 }
 
 export { Skeleton };

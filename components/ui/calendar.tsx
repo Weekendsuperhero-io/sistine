@@ -69,13 +69,30 @@ function Calendar({
           defaultClassNames.button_next,
         ),
         month_caption: cn("flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)", defaultClassNames.month_caption),
-        caption_label: cn("text-sm font-medium text-foreground select-none", defaultClassNames.caption_label),
+        dropdowns: cn("flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-medium", defaultClassNames.dropdowns),
+        dropdown_root: cn(
+          "relative rounded-md border border-input has-focus:border-ring has-focus:ring-[3px] has-focus:ring-ring/50",
+          defaultClassNames.dropdown_root,
+        ),
+        dropdown: cn("absolute inset-0 bg-popover opacity-0", defaultClassNames.dropdown),
+        caption_label: cn(
+          "font-medium text-foreground select-none",
+          captionLayout === "label"
+            ? "text-sm"
+            : "flex h-8 items-center gap-1 rounded-md pr-1 pl-2 text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
+          defaultClassNames.caption_label,
+        ),
         month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn("flex-1 rounded-(--cell-radius) text-[0.8rem] font-normal text-muted-foreground select-none", defaultClassNames.weekday),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
+        week_number: cn("text-[0.8rem] text-muted-foreground select-none", defaultClassNames.week_number),
         day: cn(
-          "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius) [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
+          "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
+          props.showWeekNumber
+            ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
+            : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
           defaultClassNames.day,
         ),
         range_start: cn("rounded-l-(--cell-radius) bg-accent", defaultClassNames.range_start),
@@ -91,6 +108,9 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        Root: ({ className, rootRef, ...props }) => {
+          return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
+        },
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return <CaretLeftIcon className={cn("size-4", className)} {...props} />;
@@ -101,6 +121,13 @@ function Calendar({
           return <CaretDownIcon className={cn("size-4", className)} {...props} />;
         },
         DayButton: ({ ...props }) => <CalendarDayButton locale={locale} {...props} />,
+        WeekNumber: ({ children, ...props }) => {
+          return (
+            <td {...props}>
+              <div className="flex size-(--cell-size) items-center justify-center text-center">{children}</div>
+            </td>
+          );
+        },
         ...components,
       }}
       {...props}

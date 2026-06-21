@@ -37,7 +37,7 @@
     },
     {
       "path": "components/ui/collapsible.tsx",
-      "content": "\"use client\";\n\nimport { Collapsible as CollapsiblePrimitive } from \"radix-ui\";\n\nconst Collapsible = CollapsiblePrimitive.Root;\n\nconst CollapsibleTrigger = CollapsiblePrimitive.CollapsibleTrigger;\n\nconst CollapsibleContent = CollapsiblePrimitive.CollapsibleContent;\n\nexport { Collapsible, CollapsibleContent, CollapsibleTrigger };\n",
+      "content": "\"use client\";\n\nimport { Collapsible as CollapsiblePrimitive } from \"radix-ui\";\nimport type * as React from \"react\";\n\nfunction Collapsible({ ...props }: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {\n  return <CollapsiblePrimitive.Root data-slot=\"collapsible\" {...props} />;\n}\n\nfunction CollapsibleTrigger({ ...props }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>) {\n  return <CollapsiblePrimitive.CollapsibleTrigger data-slot=\"collapsible-trigger\" {...props} />;\n}\n\nfunction CollapsibleContent({ ...props }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>) {\n  return <CollapsiblePrimitive.CollapsibleContent data-slot=\"collapsible-content\" {...props} />;\n}\n\nexport { Collapsible, CollapsibleContent, CollapsibleTrigger };\n",
       "type": "registry:component",
       "target": "components/ui/collapsible.tsx"
     },

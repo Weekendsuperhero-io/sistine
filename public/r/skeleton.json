@@ -36,7 +36,7 @@
     },
     {
       "path": "components/ui/skeleton.tsx",
-      "content": "import { cn } from \"@/lib/utils\";\n\nfunction Skeleton({\n  className,\n  variant = \"glass\",\n  ...props\n}: React.HTMLAttributes<HTMLDivElement> & {\n  variant?: \"default\" | \"glass\";\n}) {\n  const variants = {\n    default: \"bg-muted animate-pulse\",\n    glass: \"glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] animate-pulse shadow-[var(--glass-shadow-sm)]\",\n  };\n\n  return <div className={cn(\"rounded-md\", variants[variant], className)} {...props} />;\n}\n\nexport { Skeleton };\n",
+      "content": "import { cn } from \"@/lib/utils\";\n\nfunction Skeleton({\n  className,\n  variant = \"glass\",\n  ...props\n}: React.HTMLAttributes<HTMLDivElement> & {\n  variant?: \"default\" | \"glass\";\n}) {\n  const variants = {\n    default: \"bg-muted animate-pulse\",\n    glass: \"glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] animate-pulse shadow-[var(--glass-shadow-sm)]\",\n  };\n\n  return <div data-slot=\"skeleton\" className={cn(\"rounded-md\", variants[variant], className)} {...props} />;\n}\n\nexport { Skeleton };\n",
       "type": "registry:component",
       "target": "components/ui/skeleton.tsx"
     },
