@@ -10,10 +10,10 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(({ className, variant = "glass", ...props }, ref) => {
   const variants = {
     default: "bg-sidebar text-sidebar-foreground border-r",
-    glass: "glass-bg backdrop-blur-[var(--blur)] border-r border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+    glass: "glass-bg backdrop-blur-[var(--blur)] rounded-xl border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
   };
 
-  return <aside ref={ref} className={cn("flex h-screen w-64 flex-col", variants[variant], className)} {...props} />;
+  return <aside ref={ref} className={cn("flex h-screen w-64 flex-col overflow-hidden", variants[variant], className)} {...props} />;
 });
 Sidebar.displayName = "Sidebar";
 
