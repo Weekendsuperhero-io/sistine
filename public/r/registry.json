@@ -266,6 +266,7 @@
       "dependencies": [
         "class-variance-authority",
         "clsx",
+        "radix-ui",
         "tailwind-merge"
       ]
     },
@@ -326,7 +327,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/button"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1647,6 +1650,7 @@
       "title": "Sonner",
       "description": "An opinionated toast component for React.",
       "dependencies": [
+        "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
         "next-themes",
@@ -1918,7 +1922,9 @@
       "type": "registry:component",
       "title": "Button Group",
       "description": "A group of buttons with glassy variants.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/separator"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1954,6 +1960,7 @@
       "dependencies": [
         "class-variance-authority",
         "clsx",
+        "radix-ui",
         "tailwind-merge"
       ]
     },
@@ -1962,7 +1969,11 @@
       "type": "registry:component",
       "title": "Input Group",
       "description": "A group of inputs with glassy variants.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/input",
+        "@sistine/textarea"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",

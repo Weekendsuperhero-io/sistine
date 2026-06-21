@@ -34,3 +34,5 @@ export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
   },
 );
 InputGroup.displayName = "InputGroup";
+
+export { InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "../input-group";

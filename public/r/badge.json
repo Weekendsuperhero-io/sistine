@@ -6,6 +6,7 @@
   "dependencies": [
     "class-variance-authority",
     "clsx",
+    "radix-ui",
     "tailwind-merge"
   ],
   "registryDependencies": [],

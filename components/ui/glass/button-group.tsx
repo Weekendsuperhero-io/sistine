@@ -34,3 +34,5 @@ export const ButtonGroup = React.forwardRef<HTMLDivElement, ButtonGroupProps>(
   },
 );
 ButtonGroup.displayName = "ButtonGroup";
+
+export { ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from "../button-group";

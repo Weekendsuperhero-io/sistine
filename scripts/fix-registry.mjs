@@ -18,6 +18,7 @@ import { dirname, join } from "node:path";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const registryPath = join(root, "registry.json");
 const registry = JSON.parse(readFileSync(registryPath, "utf8"));
+const componentNames = new Set(registry.items.map((i) => i.name));
 
 const NAMESPACE = "@sistine";
 // Shared libs ship in every item, so their externals are baseline for all items.
@@ -43,6 +44,20 @@ function externalsOf(absPath) {
   return [...out];
 }
 
+/** Cross-component deps: relative imports (./x or ../x) that name another registry item. */
+function crossDepsOf(absPath, selfName) {
+  if (!existsSync(absPath)) return [];
+  const src = readFileSync(absPath, "utf8");
+  const out = new Set();
+  const re = /from\s+["'](\.\.?\/[a-z0-9-]+)["']/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const dep = m[1].split("/").pop();
+    if (componentNames.has(dep) && dep !== selfName) out.add(dep);
+  }
+  return [...out];
+}
+
 let changed = 0;
 for (const item of registry.items) {
   const name = item.name;
@@ -59,14 +74,16 @@ for (const item of registry.items) {
     else item.files.push(entry);
   }
 
-  // 2. registryDependencies — drop self ref, namespace the rest.
-  item.registryDependencies = [
-    ...new Set(
-      (item.registryDependencies ?? [])
-        .filter((d) => d !== name && !d.startsWith("@"))
-        .map((d) => `${NAMESPACE}/${d}`),
-    ),
-  ].sort();
+  // 2. registryDependencies — keep existing namespaced deps and ADD any cross-component
+  //    deps discovered via relative imports (additive: never drops an existing dep).
+  const existingDeps = (item.registryDependencies ?? [])
+    .map((d) => (d.startsWith("@") ? d : `${NAMESPACE}/${d}`))
+    .filter((d) => d !== `${NAMESPACE}/${name}`);
+  const derivedDeps = [];
+  for (const rel of [baseRel, glassRel]) {
+    for (const dep of crossDepsOf(join(root, rel), name)) derivedDeps.push(`${NAMESPACE}/${dep}`);
+  }
+  item.registryDependencies = [...new Set([...existingDeps, ...derivedDeps])].sort();
 
   // 3. dependencies — baseline ∪ externals of base + glass files.
   const externals = new Set(BASELINE_DEPS);

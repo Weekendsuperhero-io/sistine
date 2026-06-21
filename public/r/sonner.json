@@ -4,6 +4,7 @@
   "title": "Sonner",
   "description": "An opinionated toast component for React.",
   "dependencies": [
+    "@phosphor-icons/react",
     "class-variance-authority",
     "clsx",
     "next-themes",

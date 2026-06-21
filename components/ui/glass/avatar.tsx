@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { AvatarFallback, AvatarImage, Avatar as BaseAvatar } from "../avatar";
+import { AvatarBadge, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage, Avatar as BaseAvatar } from "../avatar";
 
-export interface AvatarProps extends React.ComponentProps<typeof BaseAvatar> {
+export interface AvatarProps extends Omit<React.ComponentProps<typeof BaseAvatar>, "size"> {
   glow?: boolean;
   size?: "sm" | "md" | "lg";
 }
@@ -36,4 +36,4 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof BaseAvatar>, Avat
 );
 Avatar.displayName = "Avatar";
 
-export { AvatarFallback, AvatarImage };
+export { AvatarBadge, AvatarFallback, AvatarGroup, AvatarGroupCount, AvatarImage };

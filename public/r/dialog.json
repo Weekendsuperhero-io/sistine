@@ -10,7 +10,9 @@
     "radix-ui",
     "tailwind-merge"
   ],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@sistine/button"
+  ],
   "files": [
     {
       "path": "lib/utils.ts",
