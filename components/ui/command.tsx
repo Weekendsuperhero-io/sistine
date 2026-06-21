@@ -33,7 +33,7 @@ const Command = React.forwardRef<
     <CommandPrimitive
       ref={ref}
       data-slot="command"
-      className={cn("flex h-full w-full flex-col overflow-hidden rounded-md", getVariantClass(), className)}
+      className={cn("flex h-full w-full flex-col overflow-hidden rounded-xl", getVariantClass(), className)}
       {...props}
     />
   );
