@@ -15,9 +15,15 @@ const mcpCode = `{
         "-y",
         "@shadcn/mcp-server",
         "--registry",
-        "https://weekendsuperhero.io/r/registry.json"
+        "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/registry.json"
       ]
     }
+  }
+}`;
+
+const registryConfig = `{
+  "registries": {
+    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/{name}.json"
   }
 }`;
 
@@ -67,14 +73,22 @@ export default function GettingStartedPage() {
               <p className="text-muted-foreground mb-4">Make sure you have a Next.js project set up with Tailwind CSS configured.</p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">2. Install components</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">2. Add the Sistine registry</h3>
+              <p className="text-muted-foreground mb-4">
+                Add the <code className="bg-muted px-1 rounded">@sistine</code> namespace to your project&apos;s{" "}
+                <code className="bg-muted px-1 rounded">components.json</code> once:
+              </p>
+              <CodeBlock code={registryConfig} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">3. Install components</h3>
               <p className="text-muted-foreground mb-4">
                 Use the shadcn CLI to add components from the Sistine registry with your preferred package manager:
               </p>
               <InstallationInstructions componentName="button" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">3. Start building</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">4. Start building</h3>
               <p className="text-muted-foreground">Import and use components in your application. All components default to glass variants.</p>
             </div>
           </CardContent>

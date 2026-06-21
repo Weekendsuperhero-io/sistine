@@ -23,7 +23,17 @@ A modern, glassmorphic component library inspired by Apple's design language, bu
 
 ### Installation
 
-Install components using the shadcn CLI with your preferred package manager:
+Sistine is a namespaced shadcn registry. Add the `@sistine` namespace to your project's `components.json` **once**:
+
+```json
+{
+  "registries": {
+    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/{name}.json"
+  }
+}
+```
+
+Then add any component with the shadcn CLI using your preferred package manager:
 
 **pnpm:**
 ```bash
