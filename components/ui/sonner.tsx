@@ -50,10 +50,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
             "group-[.toast]:rounded-md group-[.toast]:glass-bg group-[.toast]:backdrop-blur-[var(--blur-sm)] group-[.toast]:border group-[.toast]:border-[var(--glass-border)] group-[.toast]:text-foreground group-[.toast]:hover:opacity-90",
           cancelButton:
             "group-[.toast]:rounded-md group-[.toast]:glass-bg group-[.toast]:backdrop-blur-[var(--blur-sm)] group-[.toast]:border group-[.toast]:border-[var(--glass-border)] group-[.toast]:text-muted-foreground group-[.toast]:hover:opacity-90",
-          success: "group-[.toast]:border-green-500/30",
-          error: "group-[.toast]:border-red-500/30",
-          warning: "group-[.toast]:border-yellow-500/30",
-          info: "group-[.toast]:border-blue-500/30",
+          success: "group-[.toast]:border-green-500/30 group-[.toast]:text-green-600 dark:group-[.toast]:text-green-400",
+          error: "group-[.toast]:border-red-500/30 group-[.toast]:text-red-600 dark:group-[.toast]:text-red-400",
+          warning: "group-[.toast]:border-yellow-500/30 group-[.toast]:text-yellow-600 dark:group-[.toast]:text-yellow-400",
+          info: "group-[.toast]:border-blue-500/30 group-[.toast]:text-blue-600 dark:group-[.toast]:text-blue-400",
         },
       }}
       {...props}

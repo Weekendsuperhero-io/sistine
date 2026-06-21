@@ -241,6 +241,26 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <AlertTitle>Heads up!</AlertTitle>
             <AlertDescription>This is an alert with glass effect.</AlertDescription>
           </Alert>
+          <Alert variant="info">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Information</AlertTitle>
+            <AlertDescription>A neutral, informational message.</AlertDescription>
+          </Alert>
+          <Alert variant="success">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>Your changes were saved.</AlertDescription>
+          </Alert>
+          <Alert variant="warning">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Warning</AlertTitle>
+            <AlertDescription>Double-check before you continue.</AlertDescription>
+          </Alert>
+          <Alert variant="destructive">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>Something went wrong.</AlertDescription>
+          </Alert>
         </div>
       );
 
@@ -470,27 +490,68 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "table":
       return (
-        <Table variant="glass">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Role</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell>John Doe</TableCell>
-              <TableCell>Active</TableCell>
-              <TableCell>Admin</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Jane Smith</TableCell>
-              <TableCell>Active</TableCell>
-              <TableCell>User</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Bordered rows — a subtle divider between each row (default).</p>
+            <Table variant="glass">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>John Doe</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>Admin</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Jane Smith</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>User</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Sam Lee</TableCell>
+                  <TableCell>Inactive</TableCell>
+                  <TableCell>Editor</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Striped rows — alternating brightness, no dividers (pass <code className="text-xs">striped</code>).
+            </p>
+            <Table variant="glass" striped>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>John Doe</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>Admin</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Jane Smith</TableCell>
+                  <TableCell>Active</TableCell>
+                  <TableCell>User</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Sam Lee</TableCell>
+                  <TableCell>Inactive</TableCell>
+                  <TableCell>Editor</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       );
 
     case "breadcrumb":
@@ -868,7 +929,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               onClick={() =>
                 toast("Event Created", {
                   description: "Your event has been scheduled",
-                  className: "border-blue-500/30!",
+                  className: "border-blue-500/30! text-blue-600! dark:text-blue-400!",
                   action: {
                     label: "View",
                     onClick: () => console.log("View clicked"),

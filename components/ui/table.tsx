@@ -6,8 +6,10 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & {
     variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    /** When true, rows alternate in brightness and the per-row dividers are removed. */
+    striped?: boolean;
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", striped = false, ...props }, ref) => {
   const getVariantClass = () => {
     if (variant === "default") return "w-full caption-bottom text-sm";
 
@@ -26,9 +28,11 @@ const Table = React.forwardRef<
     return variants[variant] || variants.glass;
   };
 
+  const stripedClass = striped ? "[&_tbody_tr]:border-0 [&_tbody_tr:nth-child(even)]:bg-foreground/[0.04]" : "";
+
   return (
     <div data-slot="table-container" className={variant !== "default" ? "rounded-lg overflow-hidden" : ""}>
-      <table ref={ref} data-slot="table" className={cn(getVariantClass(), className)} {...props} />
+      <table ref={ref} data-slot="table" data-striped={striped} className={cn(getVariantClass(), stripedClass, className)} {...props} />
     </div>
   );
 });

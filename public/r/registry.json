@@ -1704,7 +1704,7 @@
       "name": "table",
       "type": "registry:component",
       "title": "Table",
-      "description": "A responsive table component with optional glassy variant.",
+      "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
       "registryDependencies": [],
       "files": [
         {
