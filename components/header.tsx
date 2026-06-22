@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import * as React from "react";
+import { BackgroundSwitcher } from "@/components/background-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
@@ -110,6 +111,7 @@ export function Header() {
                 </Badge>
               </Link>
             )}
+            <BackgroundSwitcher />
             <ModeToggle variant="glass" />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>

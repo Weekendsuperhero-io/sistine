@@ -61,7 +61,7 @@ export function gradientToCSS(gradient: Gradient): string {
     })
     .join(", ");
 
-  return `linear-gradient(in oklch, ${gradient.angle}deg, ${colorStops})`;
+  return `linear-gradient(${gradient.angle}deg in oklch, ${colorStops})`;
 }
 
 /**
@@ -106,27 +106,27 @@ export function generateSeededGradient(seed: string): Gradient {
 /**
  * Generate a beautiful gradient with complementary colors
  */
-export function generateBeautifulGradient(): Gradient {
-  const baseHue = Math.random() * 360;
+export function generateBeautifulGradient(baseHue?: number): Gradient {
+  const hue = baseHue ?? Math.random() * 360;
 
   const colors: GradientColor[] = [
     // Primary
     {
       l: 65,
       c: 0.2,
-      h: baseHue,
+      h: hue,
     },
     // Complementary (180° away)
     {
       l: 65,
       c: 0.2,
-      h: (baseHue + 180) % 360,
+      h: (hue + 180) % 360,
     },
     // Tertiary (120° away)
     {
       l: 70,
       c: 0.17,
-      h: (baseHue + 120) % 360,
+      h: (hue + 120) % 360,
     },
   ];
 

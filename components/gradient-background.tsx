@@ -25,22 +25,30 @@ interface GradientBackgroundProps {
    * Blur effect for the background
    */
   blur?: boolean;
+  /**
+   * Base hue (0-360) for a deterministic "beautiful" gradient. Changing it reshuffles.
+   */
+  hue?: number;
 }
 
-export function GradientBackground({ seed, beautiful = true, className = "", opacity = 1, blur = true }: GradientBackgroundProps) {
+export function GradientBackground({ seed, beautiful = true, className = "", opacity = 1, blur = true, hue }: GradientBackgroundProps) {
   const [gradient, setGradient] = React.useState<string>("");
 
   React.useEffect(() => {
-    const gradientObj = seed
-      ? generateSeededGradient(seed)
-      : beautiful
-        ? generateBeautifulGradient()
-        : generateSeededGradient(Math.random().toString());
+    const gradientObj =
+      hue !== undefined
+        ? generateBeautifulGradient(hue)
+        : seed
+          ? generateSeededGradient(seed)
+          : beautiful
+            ? generateBeautifulGradient()
+            : generateSeededGradient(Math.random().toString());
 
     setGradient(gradientToCSS(gradientObj));
   }, [
     seed,
     beautiful,
+    hue,
   ]);
 
   if (!gradient) return null;

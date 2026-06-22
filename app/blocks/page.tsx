@@ -44,6 +44,12 @@ const blocks = [
     description: "Beautiful charts with bar, line, and area visualizations",
     category: "Data Display",
   },
+  {
+    name: "data-table",
+    title: "Data Table",
+    description: "Sortable, filterable table with pagination",
+    category: "Data Display",
+  },
 ];
 
 export default function BlocksPage() {

@@ -9,6 +9,7 @@ import { AuthenticationBlock } from "@/components/blocks/authentication";
 import { CalendarBlock } from "@/components/blocks/calendar";
 import { ChartBlock } from "@/components/blocks/chart";
 import { DashboardBlock } from "@/components/blocks/dashboard";
+import { DataTableBlock } from "@/components/blocks/data-table";
 import { ForgotPasswordBlock } from "@/components/blocks/forgot-password";
 import { SignupBlock } from "@/components/blocks/signup";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,16 @@ export default function Page() {
 
 export default function Page() {
   return <ChartBlock />
+}`,
+  },
+  "data-table": {
+    title: "Data Table",
+    description: "Sortable, filterable table with pagination on the glass Table",
+    component: DataTableBlock,
+    code: `import { DataTableBlock } from "@/components/blocks/data-table"
+
+export default function Page() {
+  return <DataTableBlock />
 }`,
   },
 };

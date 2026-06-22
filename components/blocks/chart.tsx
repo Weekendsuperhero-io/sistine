@@ -130,11 +130,11 @@ export function ChartBlock() {
                 config={{
                   desktop: {
                     label: "Desktop",
-                    color: "hsl(var(--chart-1))",
+                    color: "var(--chart-1)",
                   },
                   mobile: {
                     label: "Mobile",
-                    color: "hsl(var(--chart-2))",
+                    color: "var(--chart-2)",
                   },
                 }}
                 variant="glass"
@@ -165,11 +165,11 @@ export function ChartBlock() {
                 config={{
                   revenue: {
                     label: "Revenue",
-                    color: "hsl(var(--chart-1))",
+                    color: "var(--chart-1)",
                   },
                   profit: {
                     label: "Profit",
-                    color: "hsl(var(--chart-2))",
+                    color: "var(--chart-2)",
                   },
                 }}
                 variant="glass"
@@ -200,11 +200,11 @@ export function ChartBlock() {
                 config={{
                   sales: {
                     label: "Sales",
-                    color: "hsl(var(--chart-1))",
+                    color: "var(--chart-1)",
                   },
                   returns: {
                     label: "Returns",
-                    color: "hsl(var(--chart-3))",
+                    color: "var(--chart-3)",
                   },
                 }}
                 variant="glass"

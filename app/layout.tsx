@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { BackgroundProvider } from "@/components/background-provider";
 import { Footer } from "@/components/footer";
-import { GridBackground } from "@/components/grid-background";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -35,13 +35,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
-          <GridBackground />
-          {/* <div className="flex min-h-screen flex-col"> */}
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          {/* </div> */}
-          <Toaster />
+          <BackgroundProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <Toaster />
+          </BackgroundProvider>
         </ThemeProvider>
       </body>
     </html>

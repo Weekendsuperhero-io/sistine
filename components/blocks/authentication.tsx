@@ -10,28 +10,34 @@ import { Separator } from "@/components/ui/separator";
 export function AuthenticationBlock() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <Card variant="glass" className="w-full max-w-md text-white">
+      <Card variant="glass" className="w-full max-w-md text-foreground">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
+          <CardTitle className="text-2xl text-foreground">Welcome back</CardTitle>
           <CardDescription className="text-muted-foreground">Enter your credentials to sign in to your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">
+            <Label htmlFor="email" className="text-foreground">
               Email
             </Label>
-            <Input id="email" type="email" placeholder="name@example.com" variant="glass" className="text-white placeholder:text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              variant="glass"
+              className="text-foreground placeholder:text-muted-foreground"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">
+            <Label htmlFor="password" className="text-foreground">
               Password
             </Label>
-            <Input id="password" type="password" variant="glass" className="text-white placeholder:text-muted-foreground" />
+            <Input id="password" type="password" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Checkbox id="remember" variant="glass" />
-              <Label htmlFor="remember" className="text-white text-sm cursor-pointer">
+              <Label htmlFor="remember" className="text-foreground text-sm cursor-pointer">
                 Remember me
               </Label>
             </div>
@@ -39,7 +45,7 @@ export function AuthenticationBlock() {
               Forgot password?
             </Button>
           </div>
-          <Button variant="glass" className="w-full text-white">
+          <Button variant="glass" className="w-full text-foreground">
             Sign In
           </Button>
           <div className="relative">
@@ -51,10 +57,10 @@ export function AuthenticationBlock() {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="text-white">
+            <Button variant="outline" className="text-foreground">
               GitHub
             </Button>
-            <Button variant="outline" className="text-white">
+            <Button variant="outline" className="text-foreground">
               Google
             </Button>
           </div>

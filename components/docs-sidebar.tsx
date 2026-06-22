@@ -77,7 +77,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           onClick={onLinkClick}
                           className={cn(
                             "flex items-center gap-2 text-sm transition-colors hover:text-foreground rounded-md px-2 py-1.5",
-                            isActive ? "text-foreground font-medium bg-accent" : "text-muted-foreground hover:bg-accent/50",
+                            isActive ? "text-foreground font-medium bg-foreground/10" : "text-muted-foreground hover:bg-foreground/5",
                           )}
                         >
                           {isActive && <CaretRightIcon className="h-4 w-4" />}
