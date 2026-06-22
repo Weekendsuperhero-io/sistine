@@ -94,6 +94,7 @@ import {
 } from "@/components/ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -125,6 +126,40 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 function DatePickerInputPreview() {
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   return <DatePickerInput variant="glass" value={date} onChange={setDate} placeholder="Pick a date" />;
+}
+
+function PaginationDemo() {
+  const [page, setPage] = React.useState(2);
+  const go = (e: React.MouseEvent, p: number) => {
+    e.preventDefault();
+    setPage(Math.max(1, Math.min(3, p)));
+  };
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious href="#" onClick={(e) => go(e, page - 1)} />
+        </PaginationItem>
+        {[
+          1,
+          2,
+          3,
+        ].map((p) => (
+          <PaginationItem key={p}>
+            <PaginationLink href="#" isActive={p === page} onClick={(e) => go(e, p)}>
+              {p}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationEllipsis />
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationNext href="#" onClick={(e) => go(e, page + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
 }
 
 export function ComponentPreview({ componentName }: { componentName: string }) {
@@ -619,6 +654,27 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
         </ScrollArea>
       );
 
+    case "resizable":
+      return (
+        <ResizablePanelGroup direction="horizontal" className="h-[240px] max-w-md rounded-lg glass-surface">
+          <ResizablePanel defaultSize={45}>
+            <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Sidebar</div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={55}>
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={55}>
+                <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Content</div>
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={45}>
+                <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Console</div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      );
+
     case "sheet":
       return (
         <Sheet>
@@ -665,32 +721,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       );
 
     case "pagination":
-      return (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#" isActive>
-                2
-              </PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      );
+      return <PaginationDemo />;
 
     case "hover-card":
       return (

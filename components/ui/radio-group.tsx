@@ -22,7 +22,7 @@ const RadioGroupItem = React.forwardRef<
 >(({ className, variant = "glass", ...props }, ref) => {
   const variants = {
     default: "border-primary",
-    glass: "glass-surface opacity-30",
+    glass: "glass-surface",
   };
 
   return (

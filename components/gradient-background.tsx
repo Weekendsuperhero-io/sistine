@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { generateBeautifulGradient, generateSeededGradient, gradientToCSS } from "@/lib/gradient-utils";
+import { type GradientScheme, generateBeautifulGradient, generateSeededGradient, gradientToCSS } from "@/lib/gradient-utils";
 
 interface GradientBackgroundProps {
   /**
@@ -29,15 +29,27 @@ interface GradientBackgroundProps {
    * Base hue (0-360) for a deterministic "beautiful" gradient. Changing it reshuffles.
    */
   hue?: number;
+  /**
+   * Color-harmony scheme for the beautiful gradient.
+   */
+  scheme?: GradientScheme;
 }
 
-export function GradientBackground({ seed, beautiful = true, className = "", opacity = 1, blur = true, hue }: GradientBackgroundProps) {
+export function GradientBackground({
+  seed,
+  beautiful = true,
+  className = "",
+  opacity = 1,
+  blur = true,
+  hue,
+  scheme = "complementary",
+}: GradientBackgroundProps) {
   const [gradient, setGradient] = React.useState<string>("");
 
   React.useEffect(() => {
     const gradientObj =
       hue !== undefined
-        ? generateBeautifulGradient(hue)
+        ? generateBeautifulGradient(hue, scheme)
         : seed
           ? generateSeededGradient(seed)
           : beautiful
@@ -49,6 +61,7 @@ export function GradientBackground({ seed, beautiful = true, className = "", opa
     seed,
     beautiful,
     hue,
+    scheme,
   ]);
 
   if (!gradient) return null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { GridFourIcon, PaletteIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
+import { GridFourIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
 import { type BackgroundType, useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,7 @@ const options: {
  * how glass components read against each backdrop.
  */
 export function BackgroundSwitcher() {
-  const { background, setBackground, shuffleGradient } = useBackground();
+  const { background, setBackground, shuffleGradient, shuffleCanvas, toggleCanvasAnimated, canvasAnimated } = useBackground();
 
   return (
     <div
@@ -65,6 +65,32 @@ export function BackgroundSwitcher() {
         >
           <ShuffleIcon className="h-4 w-4" />
         </button>
+      )}
+      {background === "canvas" && (
+        <>
+          <button
+            type="button"
+            title="Shuffle canvas"
+            aria-label="Shuffle canvas pattern and palette"
+            onClick={shuffleCanvas}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+          >
+            <ShuffleIcon className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            title={canvasAnimated ? "Pause animation" : "Animate canvas"}
+            aria-label={canvasAnimated ? "Pause canvas animation" : "Animate canvas"}
+            aria-pressed={canvasAnimated}
+            onClick={toggleCanvasAnimated}
+            className={cn(
+              "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
+              canvasAnimated ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+            )}
+          >
+            {canvasAnimated ? <PauseIcon className="h-4 w-4" weight="fill" /> : <PlayIcon className="h-4 w-4" />}
+          </button>
+        </>
       )}
     </div>
   );

@@ -103,32 +103,95 @@ export function generateSeededGradient(seed: string): Gradient {
   };
 }
 
+export type GradientScheme = "complementary" | "analogous" | "triadic" | "monochromatic";
+
+const wrapHue = (h: number) => ((h % 360) + 360) % 360;
+
 /**
- * Generate a beautiful gradient with complementary colors
+ * Generate a beautiful gradient. `scheme` controls the hue relationship between the
+ * three stops; `baseHue` fixes the lead color (omit for a random hue).
  */
-export function generateBeautifulGradient(baseHue?: number): Gradient {
+export function generateBeautifulGradient(baseHue?: number, scheme: GradientScheme = "complementary"): Gradient {
   const hue = baseHue ?? Math.random() * 360;
 
-  const colors: GradientColor[] = [
-    // Primary
-    {
-      l: 65,
-      c: 0.2,
-      h: hue,
-    },
-    // Complementary (180° away)
-    {
-      l: 65,
-      c: 0.2,
-      h: (hue + 180) % 360,
-    },
-    // Tertiary (120° away)
-    {
-      l: 70,
-      c: 0.17,
-      h: (hue + 120) % 360,
-    },
-  ];
+  let colors: GradientColor[];
+  switch (scheme) {
+    case "analogous":
+      colors = [
+        {
+          l: 62,
+          c: 0.19,
+          h: wrapHue(hue - 35),
+        },
+        {
+          l: 66,
+          c: 0.2,
+          h: hue,
+        },
+        {
+          l: 70,
+          c: 0.18,
+          h: wrapHue(hue + 35),
+        },
+      ];
+      break;
+    case "triadic":
+      colors = [
+        {
+          l: 64,
+          c: 0.2,
+          h: hue,
+        },
+        {
+          l: 66,
+          c: 0.19,
+          h: wrapHue(hue + 120),
+        },
+        {
+          l: 68,
+          c: 0.18,
+          h: wrapHue(hue + 240),
+        },
+      ];
+      break;
+    case "monochromatic":
+      colors = [
+        {
+          l: 52,
+          c: 0.22,
+          h: hue,
+        },
+        {
+          l: 68,
+          c: 0.18,
+          h: hue,
+        },
+        {
+          l: 82,
+          c: 0.1,
+          h: hue,
+        },
+      ];
+      break;
+    default:
+      colors = [
+        {
+          l: 65,
+          c: 0.2,
+          h: hue,
+        },
+        {
+          l: 65,
+          c: 0.2,
+          h: wrapHue(hue + 180),
+        },
+        {
+          l: 70,
+          c: 0.17,
+          h: wrapHue(hue + 120),
+        },
+      ];
+  }
 
   const stops = [
     0,

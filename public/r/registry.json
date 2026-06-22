@@ -2254,6 +2254,37 @@
           "target": "components/ui/glass/carousel.tsx"
         }
       ]
+    },
+    {
+      "name": "resizable",
+      "type": "registry:component",
+      "title": "Resizable",
+      "description": "Resizable panel groups and handles with a glassy grip, built on react-resizable-panels.",
+      "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "react-resizable-panels@^2.1.0",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/resizable.tsx",
+          "type": "registry:component",
+          "target": "components/ui/resizable.tsx"
+        }
+      ]
     }
   ]
 }

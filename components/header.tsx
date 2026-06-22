@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import * as React from "react";
 import { BackgroundSwitcher } from "@/components/background-switcher";
+import { GlassStyleSwitcher } from "@/components/glass-style-switcher";
+import { GlassTintPicker } from "@/components/glass-tint-picker";
+import { GlassTintSwitcher } from "@/components/glass-tint-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
@@ -60,13 +63,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent">
       <div className="container mx-auto px-4 pt-4">
-        <div
-          className="flex h-16 items-center justify-between px-4 md:px-6 rounded-xl border border-[var(--glass-border)] backdrop-blur-[var(--blur)] shadow-[var(--glass-shadow)]"
-          style={{
-            backgroundColor: "transparent",
-            boxShadow: "var(--glass-shadow)",
-          }}
-        >
+        <div className="glass-surface flex h-16 items-center justify-between px-4 md:px-6 rounded-xl">
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2">
               {mounted && (
@@ -112,6 +109,9 @@ export function Header() {
               </Link>
             )}
             <BackgroundSwitcher />
+            <GlassStyleSwitcher />
+            <GlassTintSwitcher />
+            <GlassTintPicker />
             <ModeToggle variant="glass" />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
