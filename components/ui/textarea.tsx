@@ -16,14 +16,14 @@ function Textarea({
 
   const getVariantClass = () => {
     if (variant === "default") return "dark:bg-input/30 border-input bg-transparent shadow-xs";
-    if (hasCustomGlass) return "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]";
+    if (hasCustomGlass) return "glass-surface-sm";
 
     const variants = {
-      glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
-      glassSubtle: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)] opacity-50",
-      frosted: "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] shadow-[var(--glass-frosted-shadow)]",
-      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
-      crystal: "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] shadow-[var(--glass-crystal-shadow)]",
+      glass: "glass-surface-sm",
+      glassSubtle: "glass-surface-sm opacity-50",
+      frosted: "glass-frosted",
+      fluted: "glass-fluted",
+      crystal: "glass-crystal",
     };
     return variants[variant] || variants.glass;
   };

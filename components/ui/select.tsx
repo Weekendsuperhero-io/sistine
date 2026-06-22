@@ -23,11 +23,11 @@ const SelectTrigger = React.forwardRef<
     if (variant === "default") return "border-input bg-background";
 
     const variants = {
-      glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
-      glassSubtle: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)] opacity-50",
-      frosted: "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] shadow-[var(--glass-frosted-shadow)]",
-      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
-      crystal: "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] shadow-[var(--glass-crystal-shadow)]",
+      glass: "glass-surface",
+      glassSubtle: "glass-surface opacity-50",
+      frosted: "glass-frosted",
+      fluted: "glass-fluted",
+      crystal: "glass-crystal",
     };
     return variants[variant] || variants.glass;
   };
@@ -93,14 +93,11 @@ const SelectContent = React.forwardRef<
     if (variant === "default") return "bg-popover text-popover-foreground border";
 
     const variants = {
-      glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-      glassSubtle:
-        "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] opacity-50",
-      frosted:
-        "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] text-foreground shadow-[var(--glass-frosted-shadow)]",
-      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-      crystal:
-        "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
+      glass: "glass-solid text-foreground",
+      glassSubtle: "glass-solid text-foreground opacity-50",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
     };
     return variants[variant] || variants.glass;
   };
@@ -150,7 +147,7 @@ const SelectItem = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Item
       ref={ref}
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-foreground/10 focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className,
       )}
       {...props}

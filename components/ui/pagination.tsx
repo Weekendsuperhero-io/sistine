@@ -16,7 +16,7 @@ const PaginationContent = React.forwardRef<
 >(({ className, variant = "glass", ...props }, ref) => {
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg px-2 py-1 shadow-[var(--glass-shadow-sm)]",
+    glass: "glass-surface rounded-lg px-2 py-1",
   };
 
   return <ul ref={ref} data-slot="pagination-content" className={cn("flex flex-row items-center gap-1", variants[variant], className)} {...props} />;
@@ -38,7 +38,7 @@ type PaginationLinkProps = {
 const PaginationLink = ({ className, isActive, size = "icon", variant = "glass", ...props }: PaginationLinkProps) => {
   const variants = {
     default: isActive ? "bg-background text-foreground" : "",
-    glass: isActive ? "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]" : "",
+    glass: isActive ? "glass-surface" : "",
   };
 
   return (

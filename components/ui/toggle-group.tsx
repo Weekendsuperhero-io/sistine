@@ -27,7 +27,7 @@ const ToggleGroup = React.forwardRef<
 >(({ className, variant = "glass", size = "default", spacing = 0, children, ...props }, ref) => {
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-md p-1 shadow-[var(--glass-shadow-sm)]",
+    glass: "glass-surface rounded-md p-1",
   };
 
   return (

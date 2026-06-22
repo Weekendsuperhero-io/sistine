@@ -60,7 +60,7 @@ const ChartContainer = React.forwardRef<
 
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg p-4 shadow-[var(--glass-shadow)]",
+    glass: "glass-surface rounded-lg p-4",
   };
 
   return (
@@ -182,7 +182,7 @@ const ChartTooltipContent = React.forwardRef<
 
     const variants = {
       default: "bg-popover text-popover-foreground border",
-      glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+      glass: "glass-solid text-foreground",
     };
 
     const tooltipLabel = React.useMemo(() => {
@@ -325,7 +325,7 @@ const ChartLegendContent = React.forwardRef<
 
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg px-2 py-1 shadow-[var(--glass-shadow-sm)]",
+    glass: "glass-surface rounded-lg px-2 py-1",
   };
 
   if (!payload?.length) {

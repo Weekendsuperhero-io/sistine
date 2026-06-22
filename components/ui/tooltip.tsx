@@ -23,7 +23,7 @@ const TooltipContent = React.forwardRef<
 >(({ className, variant = "glass", sideOffset = 4, children, ...props }, ref) => {
   const variants = {
     default: "bg-primary text-primary-foreground",
-    glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
+    glass: "glass-solid text-foreground",
   };
 
   return (

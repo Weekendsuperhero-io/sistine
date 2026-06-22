@@ -14,7 +14,7 @@ const InputOTP = React.forwardRef<
 >(({ className, variant = "glass", render, ...props }, ref) => {
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] rounded-lg border border-[var(--glass-border)] shadow-[var(--glass-shadow-sm)]",
+    glass: "glass-surface rounded-lg",
   };
 
   const defaultRender = ({ slots }: { slots: SlotProps[] }) => (

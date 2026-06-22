@@ -14,16 +14,11 @@ const Table = React.forwardRef<
     if (variant === "default") return "w-full caption-bottom text-sm";
 
     const variants = {
-      glass:
-        "w-full caption-bottom text-sm glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)]",
-      glassSubtle:
-        "w-full caption-bottom text-sm glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)] opacity-50",
-      frosted:
-        "w-full caption-bottom text-sm glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] rounded-lg overflow-hidden shadow-[var(--glass-frosted-shadow)]",
-      fluted:
-        "w-full caption-bottom text-sm glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow-sm)]",
-      crystal:
-        "w-full caption-bottom text-sm glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] rounded-lg overflow-hidden shadow-[var(--glass-crystal-shadow)]",
+      glass: "w-full caption-bottom text-sm glass-surface rounded-lg overflow-hidden",
+      glassSubtle: "w-full caption-bottom text-sm glass-surface rounded-lg overflow-hidden opacity-50",
+      frosted: "w-full caption-bottom text-sm glass-frosted rounded-lg overflow-hidden",
+      fluted: "w-full caption-bottom text-sm glass-fluted rounded-lg overflow-hidden",
+      crystal: "w-full caption-bottom text-sm glass-crystal rounded-lg overflow-hidden",
     };
     return variants[variant] || variants.glass;
   };

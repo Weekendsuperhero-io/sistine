@@ -118,8 +118,8 @@
   --gradient: linear-gradient(135deg, oklch(62.6846% 0.23254 303.9) 0%, oklch(62.3083% 0.18801 259.815) 100%);
   /* Apple-standard blur values - moderate blur */
   --blur: 10px;
-  --blur-sm: 10px;
-  --blur-lg: 10px;
+  --blur-sm: 4px;
+  --blur-lg: 20px;
 
   /* Frosted glass variant - Enhanced opacity and stronger blur */
   --glass-frosted-bg: linear-gradient(
@@ -257,74 +257,120 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
   }
   body {
     @apply text-foreground;
     background-color: transparent;
   }
+  /* Thin, glass-friendly scrollbars (replaces the chunky native bar) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--foreground) 38%, transparent);
+  }
 }
 
-@layer utilities {
-  /* Apple-standard glass utility - Very subtle and refined */
-  /* This creates Apple's standard glassmorphism with moderate blur */
-  .glass-bg {
-    /* Low opacity gradient background - Apple standard */
-    background-image: var(--glass-bg);
-    background-color: transparent;
-    /* Moderate backdrop blur - Apple standard (20px) */
-    backdrop-filter: blur(var(--blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
-    border-top: 0.5px solid var(--glass-border-top);
-    border-left: 0.5px solid var(--glass-border-top);
-    border-right: 0.5px solid var(--glass-border-bottom);
-    border-bottom: 0.5px solid var(--glass-border-bottom);
-    /* Minimal shadow with subtle inner glow - Apple standard */
-    box-shadow: var(--glass-shadow);
-  }
+/* ── Glass surface utilities ───────────────────────────────────────────────
+   Each glass variant is configured here (the recipe); its values live in the
+   --glass-* / --blur* tokens in :root/.dark. Tailwind v4 @utility blocks are
+   top-level. Components reference these by name — glass-bg, glass-surface,
+   glass-frosted, glass-fluted, glass-crystal — with no inline blur/border/shadow. */
 
-  /* Frosted glass utility - Enhanced blur and higher opacity */
-  .glass-frosted {
-    background-image: var(--glass-frosted-bg) !important;
-    background-color: transparent !important;
-    /* Stronger backdrop blur for frosted effect */
-    backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
-    /* More pronounced border */
-    border: 0.5px solid var(--glass-frosted-border) !important;
-    /* Enhanced shadow for depth */
-    box-shadow: var(--glass-frosted-shadow) !important;
-  }
+/* Borderless base — Apple-standard subtle glass (card, button, etc.) */
+@utility glass-bg {
+  background-image: var(--glass-bg);
+  background-color: transparent;
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  box-shadow: var(--glass-shadow);
+}
 
-  /* Fluted glass utility - Vertical ridges with glass effect */
-  .glass-fluted {
-    /* Base glass background combined with fluted pattern */
-    background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
-    background-color: transparent !important;
-    /* Moderate backdrop blur like standard glass */
-    backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-    /* Standard glass border */
-    border: 0.5px solid var(--glass-border) !important;
-    /* Standard glass shadow */
-    box-shadow: var(--glass-shadow) !important;
-  }
+/* Bordered glass surface — the standard glass variant for panels & overlays */
+@utility glass-surface {
+  background-image: var(--glass-bg);
+  background-color: transparent;
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
 
-  /* Crystal glass utility - Clear glass with highlights and glow */
-  .glass-crystal {
-    position: relative;
-    background-color: var(--glass-crystal-bg) !important;
-    /* Minimal backdrop blur for clarity */
-    backdrop-filter: blur(var(--blur-crystal)) !important;
-    -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
-    border: 1px solid var(--glass-crystal-border) !important;
-    box-shadow: var(--glass-crystal-shadow) !important;
-    transition: all 0.3s ease !important;
-    /* Top highlight gradient */
-    background-image: linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%) !important;
-    background-size: 200% 200% !important;
-  }
+/* Compact frost — smaller blur + shadow for small controls (inputs, badges). */
+@utility glass-surface-sm {
+  background-image: var(--glass-bg);
+  background-color: transparent;
+  backdrop-filter: blur(var(--blur-sm)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-sm)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-sm);
+}
 
-  .glass-crystal::before {
+/* Deep frost — larger blur + shadow for big overlays (dialogs, sheets). */
+@utility glass-surface-lg {
+  background-image: var(--glass-bg);
+  background-color: transparent;
+  backdrop-filter: blur(var(--blur-lg)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Opaque glass — same recipe over a mostly-opaque --popover, so content behind it
+   stays legible. For overlays you read through: tooltips, menus, toasts. Lower the
+   popover % to be more see-through, raise it to be more solid. */
+@utility glass-solid {
+  background-image: var(--glass-bg);
+  background-color: color-mix(in oklch, var(--popover) 85%, transparent);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Frosted — enhanced blur + higher opacity */
+@utility glass-frosted {
+  background-image: var(--glass-frosted-bg) !important;
+  background-color: transparent !important;
+  backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  border: 0.5px solid var(--glass-frosted-border) !important;
+  box-shadow: var(--glass-frosted-shadow) !important;
+}
+
+/* Fluted — vertical ridges over standard glass */
+@utility glass-fluted {
+  background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
+  background-color: transparent !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+/* Crystal — clear glass with highlight sheen and glow */
+@utility glass-crystal {
+  position: relative;
+  background-color: var(--glass-crystal-bg) !important;
+  background-image: linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%) !important;
+  background-size: 200% 200% !important;
+  backdrop-filter: blur(var(--blur-crystal)) !important;
+  -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
+  border: 1px solid var(--glass-crystal-border) !important;
+  box-shadow: var(--glass-crystal-shadow) !important;
+  transition: all 0.3s ease !important;
+
+  &::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -335,7 +381,7 @@
     height: 30%;
   }
 
-  .glass-crystal::after {
+  &::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -345,20 +391,16 @@
     pointer-events: none;
   }
 
-  .glass-crystal:hover {
+  &:hover {
     box-shadow: var(--glass-crystal-shadow-hover) !important;
     background-position: 100% 100% !important;
   }
+}
 
-  /* Ensure react-day-picker doesn't override glass effect */
-  .glass-bg[class*="rdp"] {
-    background-color: transparent !important;
-  }
-
-  .glass-bg .rdp {
-    background-color: transparent !important;
-  }
-
+/* Keep react-day-picker from painting over the glass background */
+@layer utilities {
+  .glass-bg[class*="rdp"],
+  .glass-bg .rdp,
   .glass-bg .rdp-month {
     background-color: transparent !important;
   }
@@ -375,7 +417,9 @@
 
 /* Sonner Toast Notifications - Glass Effect Overrides */
 [data-sonner-toast] {
-  background: var(--glass-bg) !important;
+  /* Glass gradient layered over a mostly-opaque surface so toast text stays legible.
+     Lower the popover % to make toasts more see-through, raise it to make them more solid. */
+  background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
   backdrop-filter: blur(var(--blur)) !important;
   -webkit-backdrop-filter: blur(var(--blur)) !important;
   border: 1px solid var(--glass-border) !important;

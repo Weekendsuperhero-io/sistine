@@ -12,7 +12,12 @@ const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
-  <AccordionPrimitive.Item ref={ref} data-slot="accordion-item" className={cn("border-b last:border-b-0", className)} {...props} />
+  <AccordionPrimitive.Item
+    ref={ref}
+    data-slot="accordion-item"
+    className={cn("border-b border-[var(--glass-border)] last:border-b-0", className)}
+    {...props}
+  />
 ));
 AccordionItem.displayName = "AccordionItem";
 
@@ -24,7 +29,7 @@ const AccordionTrigger = React.forwardRef<
 >(({ className, variant = "glass", children, ...props }, ref) => {
   const variants = {
     default: "hover:bg-accent",
-    glass: "hover:glass-bg hover:opacity-50",
+    glass: "hover:bg-muted/50",
   };
 
   return (
@@ -33,7 +38,7 @@ const AccordionTrigger = React.forwardRef<
         ref={ref}
         data-slot="accordion-trigger"
         className={cn(
-          "flex flex-1 items-start justify-between gap-4 rounded-md py-4 text-left font-medium outline-none transition-all hover:underline focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
+          "flex flex-1 items-start justify-between gap-4 rounded-md px-4 py-4 text-left font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           variants[variant],
           className,
         )}

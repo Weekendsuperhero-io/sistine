@@ -10,16 +10,12 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: "border-transparent bg-primary text-primary-foreground shadow [a&]:hover:bg-primary/80",
-        glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow-sm)]",
-        glassSubtle:
-          "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow-sm)] opacity-50",
-        frosted:
-          "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] text-foreground shadow-[var(--glass-frosted-shadow)]",
-        fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow-sm)]",
-        crystal:
-          "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
-        secondary:
-          "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-muted-foreground shadow-[var(--glass-shadow-sm)]",
+        glass: "glass-surface text-foreground",
+        glassSubtle: "glass-surface text-foreground opacity-50",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
+        secondary: "glass-surface text-muted-foreground",
         destructive: "glass-bg backdrop-blur-[var(--blur-sm)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow-sm)]",
         outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "border-transparent [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

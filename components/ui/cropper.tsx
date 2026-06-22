@@ -32,13 +32,7 @@ export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass" }
   );
 
   return (
-    <div
-      className={cn(
-        "relative w-full h-[400px]",
-        variant === "glass" &&
-          "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-lg overflow-hidden shadow-[var(--glass-shadow)]",
-      )}
-    >
+    <div className={cn("relative w-full h-[400px]", variant === "glass" && "glass-surface rounded-lg overflow-hidden")}>
       <CropperLib
         image={image}
         crop={crop}

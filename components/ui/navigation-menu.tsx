@@ -50,7 +50,7 @@ const NavigationMenuItem = React.forwardRef<
 NavigationMenuItem.displayName = NavigationMenuPrimitive.Item.displayName;
 
 const navigationMenuTriggerStyle = cva(
-  "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-[color,box-shadow] outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50 data-[state=open]:text-accent-foreground data-[state=open]:hover:bg-accent data-[state=open]:focus:bg-accent",
+  "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-[color,box-shadow] outline-none hover:bg-foreground/10 hover:text-accent-foreground focus:bg-foreground/10 focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-foreground/10/50 data-[state=open]:bg-foreground/10/50 data-[state=open]:text-accent-foreground data-[state=open]:hover:bg-foreground/10 data-[state=open]:focus:bg-foreground/10",
 );
 
 const NavigationMenuTrigger = React.forwardRef<
@@ -85,7 +85,7 @@ const NavigationMenuContent = React.forwardRef<
       inlineRenderStyles,
     ),
     glass: cn(
-      "left-0 top-0 w-full p-2 pr-2.5 glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg text-foreground shadow-[var(--glass-shadow)] data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
+      "left-0 top-0 w-full p-2 pr-2.5 glass-solid rounded-lg text-foreground data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
       inlineRenderStyles,
     ),
   };
@@ -102,7 +102,7 @@ const NavigationMenuLink = React.forwardRef<
     ref={ref}
     data-slot="navigation-menu-link"
     className={cn(
-      "flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-accent data-[active=true]:focus:bg-accent [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+      "flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none hover:bg-foreground/10 hover:text-accent-foreground focus:bg-foreground/10 focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-foreground/10/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-foreground/10 data-[active=true]:focus:bg-foreground/10 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
       className,
     )}
     {...props}
@@ -120,7 +120,7 @@ const NavigationMenuViewport = React.forwardRef<
     default:
       "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
     glass:
-      "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl border border-[var(--glass-border)] glass-bg backdrop-blur-[var(--blur)] text-foreground shadow-[var(--glass-shadow)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
+      "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl glass-solid text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
   };
 
   return (

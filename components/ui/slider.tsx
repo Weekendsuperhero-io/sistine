@@ -13,7 +13,7 @@ const Slider = React.forwardRef<
 >(({ className, variant = "glass", defaultValue, value, min = 0, max = 100, ...props }, ref) => {
   const variants = {
     default: "",
-    glass: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] rounded-full shadow-[var(--glass-shadow-sm)]",
+    glass: "glass-surface rounded-full",
   };
 
   const _values = React.useMemo(

@@ -28,7 +28,7 @@ const Switch = React.forwardRef<
         data-slot="switch-thumb"
         className={cn(
           "pointer-events-none block rounded-full bg-background shadow-lg ring-0 transition-transform group-data-[size=default]/switch:h-4 group-data-[size=default]/switch:w-4 group-data-[size=sm]/switch:h-3 group-data-[size=sm]/switch:w-3 data-[state=unchecked]:translate-x-0 group-data-[size=default]/switch:data-[state=checked]:translate-x-4 group-data-[size=sm]/switch:data-[state=checked]:translate-x-2",
-          variant === "glass" && "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)]",
+          variant === "glass" && "glass-surface",
         )}
       />
     </SwitchPrimitives.Root>

@@ -9,14 +9,11 @@ const alertVariants = cva(
     variants: {
       variant: {
         default: "bg-background text-foreground",
-        glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-        glassSubtle:
-          "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] opacity-50",
-        frosted:
-          "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] text-foreground shadow-[var(--glass-frosted-shadow)]",
-        fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-        crystal:
-          "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
+        glass: "glass-surface text-foreground",
+        glassSubtle: "glass-surface text-foreground opacity-50",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
         info: "glass-bg backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
           "glass-bg backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",

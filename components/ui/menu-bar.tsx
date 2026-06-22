@@ -51,7 +51,12 @@ export interface MenuBarItemProps extends React.ComponentProps<typeof Button> {
 
 const MenuBarItem = React.forwardRef<HTMLButtonElement, MenuBarItemProps>(({ className, active, variant = "ghost", ...props }, ref) => {
   return (
-    <Button ref={ref} variant={variant} className={cn("h-8 px-3 text-sm", active && "bg-accent text-accent-foreground", className)} {...props} />
+    <Button
+      ref={ref}
+      variant={variant}
+      className={cn("h-8 px-3 text-sm", active && "bg-foreground/10 text-accent-foreground", className)}
+      {...props}
+    />
   );
 });
 MenuBarItem.displayName = "MenuBarItem";
