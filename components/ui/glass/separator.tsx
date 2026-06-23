@@ -13,7 +13,7 @@ export interface SeparatorProps extends React.ComponentProps<typeof BaseSeparato
  */
 export const Separator = React.forwardRef<React.ElementRef<typeof BaseSeparator>, SeparatorProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseSeparator ref={ref} variant={variant} className={cn(glow && "shadow-sm shadow-purple-500/20", className)} {...props} />;
+    return <BaseSeparator ref={ref} variant={variant} className={cn(glow && "shadow-sm shadow-(color:--glass-glow)", className)} {...props} />;
   },
 );
 Separator.displayName = "Separator";

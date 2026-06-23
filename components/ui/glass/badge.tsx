@@ -19,7 +19,7 @@ export function Badge({ className, variant = "glass", glow = false, hover = "non
       variant={variant}
       className={cn(
         "relative overflow-hidden",
-        glow && "shadow-lg shadow-purple-500/30",
+        glow && "shadow-lg shadow-(color:--glass-glow)",
         "transition-all duration-200",
         hoverEffects({
           hover,

@@ -13,7 +13,7 @@ export interface PopoverContentProps extends React.ComponentProps<typeof BasePop
  */
 export const PopoverContent = React.forwardRef<React.ElementRef<typeof BasePopoverContent>, PopoverContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BasePopoverContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-purple-500/30", className)} {...props} />;
+    return <BasePopoverContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)} {...props} />;
   },
 );
 PopoverContent.displayName = "PopoverContent";

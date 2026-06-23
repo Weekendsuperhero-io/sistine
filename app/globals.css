@@ -108,6 +108,9 @@
   /* Solid accent that tracks the tint hue at a fixed vivid chroma — used by active controls (switch
      "on", slider range) so they read as the current glass hue instead of plain black/white. */
   --glass-accent: oklch(0.6 0.15 var(--glass-tint-h));
+  /* Colored glow for the `glow` prop on the Sistine glass components — follows the tint hue
+     (was a hardcoded purple-500). Override this var to control the highlight color. */
+  --glass-glow: oklch(0.62 0.2 var(--glass-tint-h) / 0.25);
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
   --glass-solid-bg: oklch(99% 0 0 / 0.65);
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style. */
@@ -178,6 +181,7 @@
   --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
   /* Lighter accent so the tint hue pops on dark surfaces (see :root for the rationale). */
   --glass-accent: oklch(0.68 0.14 var(--glass-tint-h));
+  --glass-glow: oklch(0.7 0.18 var(--glass-tint-h) / 0.3);
   --glass-solid-bg: oklch(18% 0 0 / 0.65);
   /* L lifted from 22% (less extreme light↔dark switch) + chroma kept low so warm hues like amber
      stay in-gamut instead of hard-clipping to rust. */

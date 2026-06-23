@@ -20,7 +20,9 @@ export interface DropdownMenuContentProps extends React.ComponentProps<typeof Ba
  */
 export const DropdownMenuContent = React.forwardRef<React.ElementRef<typeof BaseDropdownMenuContent>, DropdownMenuContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseDropdownMenuContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-purple-500/30", className)} {...props} />;
+    return (
+      <BaseDropdownMenuContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)} {...props} />
+    );
   },
 );
 DropdownMenuContent.displayName = "DropdownMenuContent";

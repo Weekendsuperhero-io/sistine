@@ -21,7 +21,7 @@ export const ToggleGroup = React.forwardRef<React.ElementRef<typeof BaseToggleGr
       <BaseToggleGroup
         ref={ref}
         variant={variant}
-        className={cn(glow && "shadow-md shadow-purple-500/20", className)}
+        className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)}
         {...(props as BaseToggleGroupProps)}
       />
     );

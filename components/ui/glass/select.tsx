@@ -31,7 +31,7 @@ export const SelectTrigger = React.forwardRef<React.ElementRef<typeof BaseSelect
     return (
       <BaseSelectTrigger
         ref={ref}
-        className={cn(glow && "shadow-md shadow-purple-500/20", "transition-all duration-200", className)}
+        className={cn(glow && "shadow-md shadow-(color:--glass-glow)", "transition-all duration-200", className)}
         {...({
           variant,
           ...props,
@@ -47,7 +47,7 @@ export const SelectContent = React.forwardRef<React.ElementRef<typeof BaseSelect
     return (
       <BaseSelectContent
         ref={ref}
-        className={cn(glow && "shadow-lg shadow-purple-500/30", className)}
+        className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)}
         {...({
           variant,
           ...props,

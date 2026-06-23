@@ -23,7 +23,7 @@ export interface CommandProps extends React.ComponentProps<typeof BaseCommand> {
  */
 export const Command = React.forwardRef<React.ElementRef<typeof BaseCommand>, CommandProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseCommand ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-purple-500/20", className)} {...props} />;
+    return <BaseCommand ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)} {...props} />;
   },
 );
 Command.displayName = "Command";

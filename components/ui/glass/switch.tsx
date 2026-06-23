@@ -17,7 +17,11 @@ export const Switch = React.forwardRef<React.ElementRef<typeof BaseSwitch>, Swit
       <BaseSwitch
         ref={ref}
         variant={variant}
-        className={cn(glow && "data-[state=checked]:shadow-lg data-[state=checked]:shadow-purple-500/30", "transition-all duration-200", className)}
+        className={cn(
+          glow && "data-[state=checked]:shadow-lg data-[state=checked]:shadow-(color:--glass-glow)",
+          "transition-all duration-200",
+          className,
+        )}
         {...props}
       />
     );

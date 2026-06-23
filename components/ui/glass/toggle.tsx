@@ -17,7 +17,7 @@ export const Toggle = React.forwardRef<React.ElementRef<typeof BaseToggle>, Togg
       <BaseToggle
         ref={ref}
         variant={variant}
-        className={cn(glow && "data-[state=on]:shadow-lg data-[state=on]:shadow-purple-500/30", "transition-all duration-200", className)}
+        className={cn(glow && "data-[state=on]:shadow-lg data-[state=on]:shadow-(color:--glass-glow)", "transition-all duration-200", className)}
         {...props}
       />
     );
