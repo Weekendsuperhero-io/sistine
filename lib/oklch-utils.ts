@@ -105,16 +105,25 @@ function rangeRamp(seed: number, min: number, max: number, count: number): numbe
 }
 
 /**
- * Hue ramp covering the FULL wheel: `count` steps each side, the seed centered, the left side
- * walking down to hue 0 and the right side up to 360. Lightness + chroma are held; `count` is
- * clamped to [3, 8]. e.g. seed hue 120, count 4 → 0, 30, 60, 90, 120, 180, 240, 300, 360.
+ * Hue ramp covering the FULL wheel: `count` steps each side, the seed centered, hues spread evenly
+ * around the wheel (step = 360 / (2·count + 1)) and wrapped into [0, 360). Lightness + chroma are
+ * held; `count` clamped to [3, 8]. Unlike chroma/lightness, hue is cyclic — 0° ≡ 360° — so the ramp
+ * is distributed cyclically instead of running to both endpoints, which keeps the two edge swatches
+ * distinct. e.g. seed 120, count 4 → 320, 0, 40, 80, 120, 160, 200, 240, 280.
  */
 export function hueRampColors(base: OklchColor | string, count: number): OklchColor[] {
   const color = toColor(base);
-  return rangeRamp(wrapHue(color.h), 0, 360, clampCount(count)).map((h) => ({
-    ...color,
-    h,
-  }));
+  const n = clampCount(count);
+  const seed = wrapHue(color.h);
+  const step = 360 / (2 * n + 1);
+  const out: OklchColor[] = [];
+  for (let k = -n; k <= n; k++) {
+    out.push({
+      ...color,
+      h: wrapHue(seed + k * step),
+    });
+  }
+  return out;
 }
 
 /** Full-wheel hue ramp as CSS oklch strings (the seed sits at the center index). */
@@ -318,4 +327,223 @@ export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
 /** Tonal scale as CSS oklch strings (lightest → darkest). */
 export function tonalScale(options: TonalScaleOptions): string[] {
   return tonalScaleColors(options).map((color) => formatOklch(color));
+}
+
+/** Which ramp drives a {@link rampGradient}. */
+export type RampGradientAxis = "hue" | "lightness" | "tonal" | "chroma";
+
+/**
+ * Build a CSS `linear-gradient` from one of the ramps, the seed centered as a slightly wider plateau
+ * so the theme color anchors the middle; the rest sit in equal-width bands left → right. `count`
+ * steps each side (clamped [3,8]). Interpolated `in oklch` for a perceptual blend.
+ * e.g. rampGradient("tonal", { l: 62, c: 0.15, h: 250 }, 5).
+ */
+export function rampGradient(
+  axis: RampGradientAxis,
+  seed: OklchColor,
+  count: number,
+  options: {
+    angle?: number;
+    gamut?: "srgb" | "p3";
+  } = {},
+): string {
+  const { angle = 90, gamut = "srgb" } = options;
+  let colors: OklchColor[];
+  switch (axis) {
+    case "hue":
+      colors = hueRampColors(seed, count);
+      break;
+    case "lightness":
+      colors = lightnessRampColors(seed, count);
+      break;
+    case "chroma":
+      colors = chromaRampColors(seed, count, gamut === "p3" ? maxP3Chroma(seed.l, seed.h) : maxSrgbChroma(seed.l, seed.h));
+      break;
+    default:
+      colors = lightnessRampColors(seed, count).map((color) => clampToGamut(color, gamut));
+  }
+  const mid = Math.floor(colors.length / 2);
+  const plateau = 7; // half-width (%) of the centered theme-color band
+  const leftEnd = 50 - plateau;
+  const rightStart = 50 + plateau;
+  const parts = colors.map((color, i) => {
+    const css = formatOklch(color);
+    if (i === mid) return `${css} ${leftEnd}%, ${css} ${rightStart}%`;
+    const pos = i < mid ? (i / mid) * leftEnd : rightStart + ((i - mid) / mid) * (100 - rightStart);
+    return `${css} ${pos.toFixed(1)}%`;
+  });
+  return `linear-gradient(${angle}deg in oklch, ${parts.join(", ")})`;
+}
+
+// ── APCA contrast (WCAG-3 draft) ──────────────────────────────────────────────
+// Inlined from the APCA-W3 0.1.9 reference — no dependency. Lc is signed: positive = dark text on
+// a light background, negative = light text on a dark one; |Lc| is the perceptual level (~45 for
+// large/UI text, ~60 headings, ~75 body, ~90 fine text). APCA is polarity-aware — which WCAG-2's
+// ratio is not — so it fits dark mode + tinted glass far better.
+
+/** OKLCH (l 0–100) → gamma-encoded sRGB channels in [0, 1] (out-of-gamut values are clipped). */
+function oklchToSrgb(
+  l: number,
+  c: number,
+  h: number,
+): [
+  number,
+  number,
+  number,
+] {
+  const [lr, lg, lb] = oklchToLinearSrgb(l, c, h);
+  const encode = (v: number) => {
+    const x = Math.max(0, Math.min(1, v));
+    return x <= 0.0031308 ? x * 12.92 : 1.055 * x ** (1 / 2.4) - 0.055;
+  };
+  return [
+    encode(lr),
+    encode(lg),
+    encode(lb),
+  ];
+}
+
+/** APCA screen luminance (Ys) from gamma-encoded sRGB. */
+function apcaLuminance([r, g, b]: [
+  number,
+  number,
+  number,
+]): number {
+  return 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.072175 * b ** 2.4;
+}
+
+/**
+ * APCA lightness contrast (Lc) between a text color and a background color. Signed: positive = dark
+ * text on a light bg, negative = light text on a dark bg; use |Lc| for the level (~60 headings,
+ * ~75 body text). A dependency-free port of APCA-W3 0.1.9.
+ */
+export function apcaContrast(text: OklchColor | string, bg: OklchColor | string): number {
+  const t = toColor(text);
+  const b = toColor(bg);
+  let txtY = apcaLuminance(oklchToSrgb(t.l, t.c, t.h));
+  let bgY = apcaLuminance(oklchToSrgb(b.l, b.c, b.h));
+  const blkThrs = 0.022;
+  // biome-ignore lint/suspicious/noApproximativeNumericConstant: APCA blkClmp tuning constant, not √2
+  const blkClmp = 1.414;
+  txtY = txtY > blkThrs ? txtY : txtY + (blkThrs - txtY) ** blkClmp;
+  bgY = bgY > blkThrs ? bgY : bgY + (blkThrs - bgY) ** blkClmp;
+  if (Math.abs(bgY - txtY) < 0.0005) return 0;
+  let lc: number;
+  if (bgY > txtY) {
+    const sapc = (bgY ** 0.56 - txtY ** 0.57) * 1.14;
+    lc = sapc < 0.1 ? 0 : sapc - 0.027;
+  } else {
+    const sapc = (bgY ** 0.65 - txtY ** 0.62) * 1.14;
+    lc = sapc > -0.1 ? 0 : sapc + 0.027;
+  }
+  return lc * 100;
+}
+
+const FG_LIGHT: OklchColor = {
+  l: 100,
+  c: 0,
+  h: 0,
+};
+const FG_DARK: OklchColor = {
+  l: 15,
+  c: 0,
+  h: 0,
+};
+
+/**
+ * Pick whichever foreground has the higher APCA contrast on `bg` — by default near-white vs the
+ * near-black `--foreground`. The light, perceptual way to choose a readable text/icon color: cheap
+ * enough to run on a theme/tint change (microseconds), no per-frame work, no canvas readback.
+ */
+export function pickForeground(bg: OklchColor | string, light: OklchColor = FG_LIGHT, dark: OklchColor = FG_DARK): OklchColor {
+  return Math.abs(apcaContrast(light, bg)) >= Math.abs(apcaContrast(dark, bg)) ? light : dark;
+}
+
+/**
+ * The effective glass surface color for the active theme + tint — the theme's light/dark floor
+ * blended with the tint wash, mirroring the glass-* utilities (the wash sits at a FIXED lightness,
+ * 72 light / 58 dark; only hue, chroma and alpha vary). Pair with pickForeground to choose readable
+ * text on a tinted glass surface without reading pixels back.
+ */
+export function glassSurface(
+  dark: boolean,
+  tint: {
+    h: number;
+    c: number;
+    a: number;
+  },
+): OklchColor {
+  const baseL = dark ? 20 : 95;
+  const washL = dark ? 58 : 72;
+  return {
+    l: baseL * (1 - tint.a) + washL * tint.a,
+    c: tint.c * 2.5 * tint.a,
+    h: tint.h,
+  };
+}
+
+/** Options for {@link themeForeground}. */
+export interface ThemeForegroundOptions {
+  /** Which of the ramp generator's axes the text levels follow. */
+  palette: "tonal" | "lightness" | "hue" | "chroma";
+  /** Text level: 0 = the first swatch; each +1 is one step along the ramp. */
+  level: number;
+  /** Total steps (the ramp generator's count). */
+  count: number;
+  /** The chosen color the ramp is built from (the ramp generator's base). */
+  base: {
+    l: number;
+    c: number;
+    h: number;
+  };
+  /** Dark theme? Picks which lightness extreme the tonal/lightness ramps start from. */
+  dark: boolean;
+  gamut?: "srgb" | "p3";
+}
+
+/**
+ * Walk one of the ramp generator's ramps — built from the chosen `base` color — mapping ramp steps
+ * to text levels. `palette` picks the axis:
+ *  - tonal / lightness: level 0 is the readable lightness extreme (white in dark mode, black in
+ *    light), each step easing toward the base color's lightness (tonal also gains gamut chroma);
+ *  - hue: constant L + C — level 0 is the far hue (base + count steps), ramping back to the base, so
+ *    e.g. base `oklch(60% 0.15 255)`, count 8 → level 0 `oklch(60% 0.15 64.4)`;
+ *  - chroma: constant L + hue, chroma rising 0 → the base's.
+ * Gamut-clamped.
+ */
+export function themeForeground(options: ThemeForegroundOptions): OklchColor {
+  const { palette, level, count, base, dark, gamut = "srgb" } = options;
+  const t = count <= 0 ? 0 : Math.max(0, Math.min(1, level / count));
+  const lerp = (a: number, b: number) => a + (b - a) * t;
+  let color: OklchColor;
+  switch (palette) {
+    case "hue":
+      color = {
+        l: base.l,
+        c: base.c,
+        h: wrapHue(base.h + (count - level) * (360 / (2 * count + 1))),
+      };
+      break;
+    case "chroma":
+      color = {
+        l: base.l,
+        c: lerp(0, base.c),
+        h: base.h,
+      };
+      break;
+    case "lightness":
+      color = {
+        l: lerp(dark ? 100 : 0, base.l),
+        c: base.c,
+        h: base.h,
+      };
+      break;
+    default:
+      color = {
+        l: lerp(dark ? 100 : 0, base.l),
+        c: lerp(0, base.c),
+        h: base.h,
+      };
+  }
+  return clampToGamut(color, gamut);
 }

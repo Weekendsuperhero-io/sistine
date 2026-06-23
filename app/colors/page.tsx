@@ -1,14 +1,16 @@
+import { ForegroundTester } from "@/components/foreground-tester";
 import { OklchRampDemo } from "@/components/oklch-ramp-demo";
 
 export const metadata = {
   title: "OKLCH ramps · Sistine",
-  description: "Generate symmetric hue and chroma ramps from any oklch base color.",
+  description: "Hue / chroma / lightness ramps, a gamut-safe tonal scale, and a configurable theme-derived foreground.",
 };
 
 export default function ColorsPage() {
   return (
-    <div className="container mx-auto flex justify-center px-4 py-12">
+    <div className="container mx-auto flex flex-col items-center gap-8 px-4 py-12">
       <OklchRampDemo />
+      <ForegroundTester />
     </div>
   );
 }

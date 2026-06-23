@@ -1,10 +1,27 @@
 "use client";
 
+import { SparkleIcon, TrashIcon } from "@phosphor-icons/react";
+import { useTheme } from "next-themes";
 import * as React from "react";
+import { writeRampConfig } from "@/components/auto-foreground";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { chromaRamp, clampToGamut, formatOklch, hueRamp, lightnessRamp, lightnessRampColors } from "@/lib/oklch-utils";
+import {
+  apcaContrast,
+  chromaRamp,
+  clampToGamut,
+  formatOklch,
+  glassSurface,
+  hueRamp,
+  lightnessRamp,
+  lightnessRampColors,
+  maxP3Chroma,
+  maxSrgbChroma,
+  pickForeground,
+} from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
 // Theme-color quick-picks — clicking one seeds the base; the L/C/H sliders are the "custom" control.
@@ -53,11 +70,30 @@ const PRESETS = [
   },
 ];
 
+const AUTO_MODES = [
+  {
+    key: "auto",
+    label: "Auto",
+  },
+  {
+    key: "white",
+    label: "White",
+  },
+  {
+    key: "black",
+    label: "Black",
+  },
+] as const;
+
+// Tint strength for the live "your color on glass" preview — stronger than the global default so
+// the chosen color clearly reads on the surface.
+const PREVIEW_TINT_A = 0.24;
+
 /**
- * Visual demo for lib/oklch-utils. Pick a theme color (or tune L/C/H), choose a step count, and
- * compare four ramps built from the SAME base — hue, chroma, lightness, and a gamut-safe tonal
- * (tints & shades). All four are centered, so the middle swatch is the base in each. Click to copy.
- * Reachable at /colors.
+ * Visual demo for lib/oklch-utils. Pick a theme color (or tune L/C/H) + a step count, compare four
+ * ramps built from the SAME base (hue, chroma, lightness, gamut-safe tonal), then see your color
+ * tint real <Button>/<Badge> components — which follow the top-menu glass style — with their text
+ * APCA-picked. Reachable at /colors.
  */
 export function OklchRampDemo() {
   const [l, setL] = React.useState(60);
@@ -65,6 +101,25 @@ export function OklchRampDemo() {
   const [h, setH] = React.useState(255);
   const [count, setCount] = React.useState(4);
   const [wideGamut, setWideGamut] = React.useState(false);
+  const [mode, setMode] = React.useState<(typeof AUTO_MODES)[number]["key"]>("auto");
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  // Share the base color + step count with AutoForeground — it drives the site-wide foreground.
+  React.useEffect(() => {
+    writeRampConfig({
+      l,
+      c,
+      h,
+      count,
+    });
+  }, [
+    l,
+    c,
+    h,
+    count,
+  ]);
+  const dark = !mounted || resolvedTheme === "dark";
 
   const base = {
     l,
@@ -73,12 +128,32 @@ export function OklchRampDemo() {
   };
   const baseCss = formatOklch(base);
   const gamut = wideGamut ? "p3" : "srgb";
+
   // Each ramp covers the FULL range of its axis (the utility derives the steps from `count`),
   // with the seed centered at index `count`.
   const hues = hueRamp(base, count);
-  const chromas = chromaRamp(base, count);
+  // Cap the chroma sweep at the in-gamut max for THIS lightness+hue (per the wide-gamut toggle), so
+  // every swatch is a distinct, real color — instead of several past the gamut all clamping to one.
+  const chromaMax = wideGamut ? maxP3Chroma(l, h) : maxSrgbChroma(l, h);
+  const chromas = chromaRamp(base, count, chromaMax);
   const lights = lightnessRamp(base, count);
   const tonal = lightnessRampColors(base, count).map((color) => formatOklch(clampToGamut(color, gamut)));
+
+  // "Your color on glass": tint real components by the base color (they adopt the top-menu glass
+  // style) and APCA-pick the glass text. `dark` is hydration-safe (matches the SSR default first).
+  const previewSurface = glassSurface(dark, {
+    h,
+    c,
+    a: PREVIEW_TINT_A,
+  });
+  const autoFg = formatOklch(pickForeground(previewSurface));
+  const autoLc = Math.round(Math.abs(apcaContrast(autoFg, formatOklch(previewSurface))));
+  const textColor = mode === "white" ? "oklch(100% 0 0)" : mode === "black" ? "oklch(15% 0 0)" : autoFg;
+  const previewTintStyle = {
+    "--glass-tint-h": String(h),
+    "--glass-tint-c": String(c),
+    "--glass-tint-a": String(PREVIEW_TINT_A),
+  } as React.CSSProperties;
 
   return (
     <Card variant="glass" className="w-full max-w-3xl">
@@ -103,8 +178,8 @@ export function OklchRampDemo() {
                   setH(p.h);
                 }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border py-1 pr-2.5 pl-1 text-xs transition-colors",
-                  active ? "border-foreground" : "border-[var(--glass-border)] hover:bg-foreground/5",
+                  "glass-surface flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1.5 text-xs transition-transform active:scale-[0.96]",
+                  active && "ring-2 ring-foreground/60",
                 )}
               >
                 <span
@@ -180,7 +255,7 @@ export function OklchRampDemo() {
         </div>
 
         <Ramp title="Hue ramp" colors={hues} mid={count} />
-        <Ramp title="Chroma ramp" colors={chromas} mid={count} />
+        <Ramp title={`Chroma ramp · 0 → ${wideGamut ? "P3" : "sRGB"} max`} colors={chromas} mid={count} />
         <Ramp title="Lightness ramp" colors={lights} mid={count} />
 
         <div className="space-y-2">
@@ -189,6 +264,75 @@ export function OklchRampDemo() {
             <Switch checked={wideGamut} onCheckedChange={setWideGamut} />
             Wide gamut (P3)
           </label>
+        </div>
+
+        <div className="space-y-3 border-t border-[var(--glass-border)] pt-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm font-medium">
+              Your color on glass <span className="font-normal text-muted-foreground">· real components — top-menu style + your tint</span>
+            </div>
+            <div className="inline-flex rounded-lg border border-[var(--glass-border)] p-0.5 text-xs">
+              {AUTO_MODES.map((m) => (
+                <button
+                  type="button"
+                  key={m.key}
+                  onClick={() => setMode(m.key)}
+                  className={cn(
+                    "rounded-md px-2 py-0.5 font-medium transition-colors",
+                    mode === m.key ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2" style={previewTintStyle}>
+            <Button
+              variant="glass"
+              style={{
+                color: textColor,
+              }}
+            >
+              <SparkleIcon weight="fill" />
+              Button
+            </Button>
+            <Button
+              variant="glass"
+              size="sm"
+              style={{
+                color: textColor,
+              }}
+            >
+              Small
+            </Button>
+            <Button variant="destructive">
+              <TrashIcon />
+              Delete
+            </Button>
+            <Badge
+              variant="glass"
+              style={{
+                color: textColor,
+              }}
+            >
+              Badge
+            </Badge>
+            <Badge
+              variant="secondary"
+              style={{
+                color: textColor,
+              }}
+            >
+              Secondary
+            </Badge>
+            <Badge variant="destructive">Destructive</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Real <code className="text-[11px]">&lt;Button&gt;</code> / <code className="text-[11px]">&lt;Badge&gt;</code> components — they follow the
+            glass style from the top menu and take your color as their tint. Glass text uses the APCA foreground (Lc {autoLc} on this surface);
+            destructive keeps its red.
+          </p>
         </div>
       </CardContent>
     </Card>

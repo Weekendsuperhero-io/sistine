@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { AutoForeground } from "@/components/auto-foreground";
 import { BackgroundProvider } from "@/components/background-provider";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
           <BackgroundProvider>
+            <AutoForeground />
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
