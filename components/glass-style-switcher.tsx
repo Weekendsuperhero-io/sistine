@@ -22,6 +22,10 @@ const STYLES = [
     value: "crystal",
     label: "Crystal",
   },
+  {
+    value: "opaque",
+    label: "Opaque",
+  },
 ] as const;
 
 type GlassStyle = (typeof STYLES)[number]["value"];
