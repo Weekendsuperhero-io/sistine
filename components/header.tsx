@@ -20,18 +20,22 @@ const navigation = [
   {
     name: "Docs",
     href: "/docs",
+    color: "oklch(0.64 0.19 255)",
   },
   {
     name: "Components",
     href: "/components",
+    color: "oklch(0.62 0.2 300)",
   },
   {
     name: "Blocks",
     href: "/blocks",
+    color: "oklch(0.64 0.2 354)",
   },
   {
     name: "Themes",
     href: "/themes",
+    color: "oklch(0.72 0.16 70)",
   },
 ];
 
@@ -84,9 +88,12 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  style={{
+                    color: item.color,
+                  }}
                   className={cn(
-                    "text-sm font-medium transition-colors hover:text-foreground/80",
-                    pathname?.startsWith(item.href) ? "text-foreground" : "text-muted-foreground",
+                    "text-sm font-medium transition-opacity hover:opacity-100",
+                    pathname?.startsWith(item.href) ? "opacity-100" : "opacity-60",
                   )}
                 >
                   {item.name}
@@ -139,9 +146,12 @@ export function Header() {
                         key={item.href}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
+                        style={{
+                          color: item.color,
+                        }}
                         className={cn(
-                          "text-base font-medium transition-colors hover:text-foreground/80 py-2",
-                          pathname?.startsWith(item.href) ? "text-foreground" : "text-muted-foreground",
+                          "text-base font-medium transition-opacity hover:opacity-100 py-2",
+                          pathname?.startsWith(item.href) ? "opacity-100" : "opacity-60",
                         )}
                       >
                         {item.name}
