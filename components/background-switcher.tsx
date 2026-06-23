@@ -1,7 +1,7 @@
 "use client";
 
 import { GridFourIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
-import { type BackgroundType, useBackground } from "@/components/background-provider";
+import { type BackgroundType, RAMP_AXES, useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 const options: {
@@ -27,11 +27,22 @@ const options: {
 ];
 
 /**
- * Compact segmented control to switch the site-wide background. Great for previewing
- * how glass components read against each backdrop.
+ * Compact segmented control to switch the site-wide background. When Gradient is active it exposes a
+ * Hue / Lightness / Tonal / Chroma ramp picker; Canvas exposes shuffle + animate. Great for
+ * previewing how glass components read against each backdrop.
  */
 export function BackgroundSwitcher() {
-  const { background, setBackground, shuffleGradient, shuffleCanvas, toggleCanvasAnimated, canvasAnimated } = useBackground();
+  const {
+    background,
+    setBackground,
+    gradientAxis,
+    setGradientAxis,
+    gradientAngle,
+    cycleGradientAngle,
+    shuffleCanvas,
+    toggleCanvasAnimated,
+    canvasAnimated,
+  } = useBackground();
 
   return (
     <div
@@ -56,15 +67,33 @@ export function BackgroundSwitcher() {
         </button>
       ))}
       {background === "gradient" && (
-        <button
-          type="button"
-          title="Shuffle gradient"
-          aria-label="Shuffle gradient"
-          onClick={shuffleGradient}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
-        >
-          <ShuffleIcon className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-0.5 border-[var(--glass-border)] border-l pl-0.5" role="group" aria-label="Gradient ramp + angle">
+          {RAMP_AXES.map((axis) => (
+            <button
+              key={axis}
+              type="button"
+              title={`${axis} gradient`}
+              aria-label={`${axis} gradient`}
+              aria-pressed={gradientAxis === axis}
+              onClick={() => setGradientAxis(axis)}
+              className={cn(
+                "inline-flex h-7 w-7 items-center justify-center rounded-md text-[11px] font-semibold uppercase transition-colors",
+                gradientAxis === axis ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+              )}
+            >
+              {axis[0]}
+            </button>
+          ))}
+          <button
+            type="button"
+            title={`Rotate gradient — ${gradientAngle}°`}
+            aria-label={`Rotate gradient, currently ${gradientAngle} degrees`}
+            onClick={cycleGradientAngle}
+            className="inline-flex h-7 items-center justify-center rounded-md px-1.5 text-[10px] font-semibold text-muted-foreground tabular-nums transition-colors hover:bg-foreground/5 hover:text-foreground"
+          >
+            {gradientAngle}°
+          </button>
+        </div>
       )}
       {background === "canvas" && (
         <>

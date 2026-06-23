@@ -4,7 +4,7 @@ import * as React from "react";
 import { CanvasBackground } from "@/components/canvas-background";
 import { GradientBackground } from "@/components/gradient-background";
 import { GridBackground } from "@/components/grid-background";
-import type { GradientScheme } from "@/lib/gradient-utils";
+import type { RampGradientAxis } from "@/lib/oklch-utils";
 
 export type BackgroundType = "grid" | "gradient" | "canvas";
 
@@ -13,22 +13,17 @@ const STORAGE_KEY = "sistine-background";
 const CANVAS_PATTERNS = [
   "gradient",
   "circles",
-  "waves",
-  "particles",
-  "noise",
-  "artistic",
   "blobs",
 ] as const;
 type CanvasPattern = (typeof CANVAS_PATTERNS)[number];
 
-const GRADIENT_SCHEMES: GradientScheme[] = [
-  "complementary",
-  "analogous",
-  "triadic",
-  "monochromatic",
+/** Ramp axes the Gradient background can use (tonal first = the calmest default). */
+export const RAMP_AXES: RampGradientAxis[] = [
+  "tonal",
+  "hue",
+  "lightness",
+  "chroma",
 ];
-
-const DEFAULT_GRADIENT_HUE = 290; // purple
 
 function persistBackground(next: BackgroundType) {
   try {
@@ -45,8 +40,14 @@ function pickRandom<T>(items: readonly T[]): T {
 interface BackgroundContextValue {
   background: BackgroundType;
   setBackground: (background: BackgroundType) => void;
-  /** Switch to the gradient background and reshuffle it (new hue + color scheme). */
-  shuffleGradient: () => void;
+  /** The ramp axis driving the gradient background. */
+  gradientAxis: RampGradientAxis;
+  /** Switch to the gradient background and set its ramp axis. */
+  setGradientAxis: (axis: RampGradientAxis) => void;
+  /** Gradient angle in degrees (90 = left → right). */
+  gradientAngle: number;
+  /** Rotate the gradient by 45°. */
+  cycleGradientAngle: () => void;
   /** Switch to the canvas background and reshuffle it (new pattern + palette). */
   shuffleCanvas: () => void;
   /** Toggle canvas animation on/off. */
@@ -66,8 +67,8 @@ export function useBackground() {
 }
 
 interface RenderArgs {
-  gradientHue: number;
-  gradientScheme: GradientScheme;
+  gradientAxis: RampGradientAxis;
+  gradientAngle: number;
   canvasPattern: CanvasPattern;
   canvasSeed: string;
   canvasAnimated: boolean;
@@ -76,7 +77,7 @@ interface RenderArgs {
 function renderBackground(background: BackgroundType, args: RenderArgs) {
   switch (background) {
     case "gradient":
-      return <GradientBackground hue={args.gradientHue} scheme={args.gradientScheme} />;
+      return <GradientBackground axis={args.gradientAxis} angle={args.gradientAngle} />;
     case "canvas":
       // key forces a clean redraw when the pattern/palette/animation changes
       return (
@@ -94,14 +95,14 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
 
 /**
  * Holds the site-wide background choice (persisted to localStorage) and renders it
- * behind the app. Pair with <BackgroundSwitcher /> to preview + shuffle each style.
+ * behind the app. Pair with <BackgroundSwitcher /> to preview + tune each style.
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   // SSR + first client render use "grid" so hydration matches; localStorage is read after mount.
   const [background, setBackgroundState] = React.useState<BackgroundType>("grid");
-  const [gradientHue, setGradientHue] = React.useState(DEFAULT_GRADIENT_HUE);
-  const [gradientScheme, setGradientScheme] = React.useState<GradientScheme>("complementary");
-  const [canvasPattern, setCanvasPattern] = React.useState<CanvasPattern>("blobs");
+  const [gradientAxis, setGradientAxisState] = React.useState<RampGradientAxis>("tonal");
+  const [gradientAngle, setGradientAngle] = React.useState(90);
+  const [canvasPattern, setCanvasPattern] = React.useState<CanvasPattern>("gradient");
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
   const [canvasAnimated, setCanvasAnimated] = React.useState(false);
 
@@ -117,11 +118,14 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     persistBackground(next);
   }, []);
 
-  const shuffleGradient = React.useCallback(() => {
+  const setGradientAxis = React.useCallback((axis: RampGradientAxis) => {
     setBackgroundState("gradient");
-    setGradientHue(Math.floor(Math.random() * 360));
-    setGradientScheme(pickRandom(GRADIENT_SCHEMES));
+    setGradientAxisState(axis);
     persistBackground("gradient");
+  }, []);
+
+  const cycleGradientAngle = React.useCallback(() => {
+    setGradientAngle((a) => (a + 45) % 360);
   }, []);
 
   const shuffleCanvas = React.useCallback(() => {
@@ -139,7 +143,10 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     () => ({
       background,
       setBackground,
-      shuffleGradient,
+      gradientAxis,
+      setGradientAxis,
+      gradientAngle,
+      cycleGradientAngle,
       shuffleCanvas,
       toggleCanvasAnimated,
       canvasAnimated,
@@ -147,7 +154,10 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     [
       background,
       setBackground,
-      shuffleGradient,
+      gradientAxis,
+      setGradientAxis,
+      gradientAngle,
+      cycleGradientAngle,
       shuffleCanvas,
       toggleCanvasAnimated,
       canvasAnimated,
@@ -157,8 +167,8 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   return (
     <BackgroundContext.Provider value={value}>
       {renderBackground(background, {
-        gradientHue,
-        gradientScheme,
+        gradientAxis,
+        gradientAngle,
         canvasPattern,
         canvasSeed,
         canvasAnimated,

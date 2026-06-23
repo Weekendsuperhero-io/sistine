@@ -17,9 +17,9 @@ export interface CanvasConfig {
    */
   colorCount?: number;
   /**
-   * Pattern type: 'gradient', 'circles', 'waves', 'particles', 'noise', 'artistic'
+   * Pattern type: 'gradient', 'circles', 'blobs'
    */
-  pattern?: "gradient" | "circles" | "waves" | "particles" | "noise" | "artistic" | "blobs";
+  pattern?: "gradient" | "circles" | "blobs";
   /**
    * Seed for consistent generation (optional)
    */
@@ -28,6 +28,11 @@ export interface CanvasConfig {
    * Animation speed (0 = static, higher = faster)
    */
   animationSpeed?: number;
+  /**
+   * Device pixel ratio the target canvas is backed at — scales blur radii so the gooey metaball
+   * filter looks the same at any backing resolution. Default 1.
+   */
+  dpr?: number;
 }
 
 /**
@@ -217,60 +222,6 @@ function withAlpha(color: string, alpha: number): string {
 }
 
 /**
- * Get linear Display P3 float values (0-1) from a palette color for pixel manipulation
- */
-function randomColorP3(seed?: number): [
-  number,
-  number,
-  number,
-] {
-  if (seed === undefined) {
-    seed = Math.random() * 1000;
-  }
-
-  const palette = getColorPalette(seed);
-  const colorIndex = Math.floor((Math.abs(Math.sin(seed * 2)) * 10000) % palette.length);
-  const color = palette[colorIndex];
-
-  const variation = 0.15;
-  const lVariation = Math.sin(seed * 3) * variation;
-  const cVariation = Math.sin(seed * 4) * variation;
-  const hVariation = Math.sin(seed * 5) * 15;
-
-  const l = Math.max(0, Math.min(1, (color.l * (1 + lVariation)) / 100));
-  const c = Math.max(0, Math.min(0.4, color.c * (1 + cVariation)));
-  const h = (((((color.h + hVariation) % 360) + 360) % 360) * Math.PI) / 180;
-
-  // OKLCH → Oklab
-  const a = c * Math.cos(h);
-  const b = c * Math.sin(h);
-
-  // Oklab → linear sRGB
-  const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
-  const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
-  const s_ = l - 0.0894841775 * a - 1.291485548 * b;
-  const ll = l_ * l_ * l_;
-  const mm = m_ * m_ * m_;
-  const ss = s_ * s_ * s_;
-
-  // Linear sRGB → linear Display P3 (using sRGB-to-P3 matrix)
-  const sr = +4.0767416621 * ll - 3.3077115913 * mm + 0.2309699292 * ss;
-  const sg = -1.2684380046 * ll + 2.6097574011 * mm - 0.3413193965 * ss;
-  const sb = -0.0041960863 * ll - 0.7034186147 * mm + 1.707614701 * ss;
-
-  // sRGB linear → Display P3 linear
-  const pr = 0.8224621 * sr + 0.177538 * sg + 0.0 * sb;
-  const pg = 0.0331942 * sr + 0.9668058 * sg + 0.0 * sb;
-  const pb = 0.0170608 * sr + 0.072374 * sg + 0.9105652 * sb;
-
-  return [
-    Math.max(0, Math.min(1, pr)),
-    Math.max(0, Math.min(1, pg)),
-    Math.max(0, Math.min(1, pb)),
-  ];
-}
-
-/**
  * Seeded random number generator
  */
 function seededRandom(seed: string): () => number {
@@ -331,206 +282,6 @@ function drawCircles(ctx: CanvasRenderingContext2D, width: number, height: numbe
 }
 
 /**
- * Draw waves pattern on canvas
- */
-function drawWaves(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, randomColor(random() * 1000));
-  bgGradient.addColorStop(1, randomColor(random() * 1000));
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw waves
-  ctx.strokeStyle = randomColor(random() * 1000);
-  ctx.lineWidth = 3;
-  ctx.globalAlpha = 0.6;
-
-  for (let i = 0; i < colorCount; i++) {
-    ctx.beginPath();
-    const y = (height / colorCount) * i;
-    const frequency = random() * 0.02 + 0.01;
-    const amplitude = random() * 50 + 20;
-
-    for (let x = 0; x < width; x += 2) {
-      const waveY = y + Math.sin(x * frequency) * amplitude;
-      if (x === 0) {
-        ctx.moveTo(x, waveY);
-      } else {
-        ctx.lineTo(x, waveY);
-      }
-    }
-
-    ctx.strokeStyle = randomColor(random() * 1000);
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha = 1;
-}
-
-/**
- * Draw particles pattern on canvas
- */
-function drawParticles(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, randomColor(random() * 1000));
-  bgGradient.addColorStop(1, randomColor(random() * 1000));
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw particles
-  const particleCount = colorCount * 20;
-  for (let i = 0; i < particleCount; i++) {
-    const x = random() * width;
-    const y = random() * height;
-    const size = random() * 3 + 1;
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.8 + 0.2;
-
-    ctx.fillStyle = withAlpha(color, alpha);
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-/**
- * Draw noise pattern on canvas
- */
-function drawNoise(ctx: CanvasRenderingContext2D, width: number, height: number, _colorCount: number, random: () => number): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, randomColor(random() * 1000));
-  bgGradient.addColorStop(1, randomColor(random() * 1000));
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw noise using float16 P3 pixel data
-  const imageData = ctx.createImageData(width, height, {
-    colorSpace: "display-p3",
-    pixelFormat: "rgba-float16",
-  });
-  const data = imageData.data;
-  const [baseR, baseG, baseB] = randomColorP3(random() * 1000);
-
-  for (let i = 0; i < data.length; i += 4) {
-    const noise = (random() - 0.5) * 0.2; // ±0.1 in 0-1 range
-    data[i] = Math.max(0, Math.min(1, baseR + noise)); // R
-    data[i + 1] = Math.max(0, Math.min(1, baseG + noise)); // G
-    data[i + 2] = Math.max(0, Math.min(1, baseB + noise)); // B
-    data[i + 3] = random() * 0.4 + 0.2; // A
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-}
-
-/**
- * Draw artistic painting pattern with random lines and brush strokes
- */
-function drawArtistic(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
-  // Base gradient background
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, randomColor(random() * 1000));
-  bgGradient.addColorStop(0.5, randomColor(random() * 1000));
-  bgGradient.addColorStop(1, randomColor(random() * 1000));
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw artistic brush strokes
-  const strokeCount = colorCount * 8;
-  for (let i = 0; i < strokeCount; i++) {
-    const x1 = random() * width;
-    const y1 = random() * height;
-    const x2 = x1 + (random() - 0.5) * width * 0.4;
-    const y2 = y1 + (random() - 0.5) * height * 0.4;
-
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.4 + 0.3;
-    const lineWidth = random() * 15 + 5;
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-
-    // Create curved brush stroke with control points
-    const cp1x = x1 + (random() - 0.5) * width * 0.2;
-    const cp1y = y1 + (random() - 0.5) * height * 0.2;
-    const cp2x = x2 + (random() - 0.5) * width * 0.2;
-    const cp2y = y2 + (random() - 0.5) * height * 0.2;
-
-    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
-
-    ctx.strokeStyle = withAlpha(color, alpha);
-    ctx.lineWidth = lineWidth;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.stroke();
-  }
-
-  // Draw abstract shapes (circles and ovals)
-  const shapeCount = colorCount * 3;
-  for (let i = 0; i < shapeCount; i++) {
-    const x = random() * width;
-    const y = random() * height;
-    const radiusX = random() * Math.min(width, height) * 0.15 + 20;
-    const radiusY = random() * Math.min(width, height) * 0.15 + 20;
-
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.3 + 0.2;
-
-    ctx.beginPath();
-    ctx.ellipse(x, y, radiusX, radiusY, random() * Math.PI * 2, 0, Math.PI * 2);
-    ctx.fillStyle = withAlpha(color, alpha);
-    ctx.fill();
-  }
-
-  // Draw flowing lines
-  const lineCount = colorCount * 5;
-  for (let i = 0; i < lineCount; i++) {
-    const startX = random() * width;
-    const startY = random() * height;
-    const segments = Math.floor(random() * 5) + 3;
-
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.5 + 0.3;
-    const lineWidth = random() * 8 + 2;
-
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-
-    let currentX = startX;
-    let currentY = startY;
-
-    for (let j = 0; j < segments; j++) {
-      currentX += (random() - 0.5) * width * 0.3;
-      currentY += (random() - 0.5) * height * 0.3;
-      ctx.lineTo(currentX, currentY);
-    }
-
-    ctx.strokeStyle = withAlpha(color, alpha);
-    ctx.lineWidth = lineWidth;
-    ctx.lineCap = "round";
-    ctx.stroke();
-  }
-
-  // Add some splatter effects (small dots)
-  const splatterCount = colorCount * 15;
-  for (let i = 0; i < splatterCount; i++) {
-    const x = random() * width;
-    const y = random() * height;
-    const size = random() * 4 + 1;
-
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.6 + 0.2;
-
-    ctx.fillStyle = withAlpha(color, alpha);
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-/**
  * Generate canvas background
  */
 export function generateCanvasBackground(config: CanvasConfig = {}): {
@@ -552,18 +303,6 @@ export function generateCanvasBackground(config: CanvasConfig = {}): {
     switch (pattern) {
       case "circles":
         drawCircles(ctx, width, height, colorCount, random);
-        break;
-      case "waves":
-        drawWaves(ctx, width, height, colorCount, random);
-        break;
-      case "particles":
-        drawParticles(ctx, width, height, colorCount, random);
-        break;
-      case "noise":
-        drawNoise(ctx, width, height, colorCount, random);
-        break;
-      case "artistic":
-        drawArtistic(ctx, width, height, colorCount, random);
         break;
       default:
         drawGradient(ctx, width, height, colorCount, random);
@@ -592,10 +331,12 @@ export function createLavaLamp(config: CanvasConfig = {}): {
   const colorCount = config.colorCount ?? 5;
   const random = config.seed ? seededRandom(config.seed) : () => Math.random();
 
+  const dpr = config.dpr ?? 1;
   const paletteSeed = random() * 1000;
   const bgHue = (paletteSeed * 0.37) % 360;
-  const bgTop = `oklch(17% 0.04 ${bgHue.toFixed(1)})`;
-  const bgBottom = `oklch(11% 0.05 ${((bgHue + 40) % 360).toFixed(1)})`;
+  // Deep, colored jewel-tone backdrop (not near-black) so it reads as theme-adjacent.
+  const bgTop = `oklch(28% 0.06 ${bgHue.toFixed(1)})`;
+  const bgBottom = `oklch(19% 0.07 ${((bgHue + 40) % 360).toFixed(1)})`;
 
   const minDim = Math.min(width, height);
   const blobCount = Math.max(5, colorCount + 2);
@@ -628,18 +369,20 @@ export function createLavaLamp(config: CanvasConfig = {}): {
 
   return {
     step: (ctx, t) => {
-      if (!off || !offCtx) {
-        ctx.fillStyle = bgBottom;
-        ctx.fillRect(0, 0, width, height);
-        return;
-      }
-
-      const grad = offCtx.createLinearGradient(0, 0, 0, height);
+      // Deep, colored backdrop straight onto the target — drawn WITHOUT the blur/contrast filter so
+      // it stays a jewel tone instead of being crushed to black.
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
       grad.addColorStop(0, bgTop);
       grad.addColorStop(1, bgBottom);
-      offCtx.fillStyle = grad;
-      offCtx.fillRect(0, 0, width, height);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
 
+      if (!off || !offCtx) return;
+
+      // Blobs on a transparent layer, then composited back through a soft, dpr-scaled blur so they
+      // read as glowing, merging lava. (The old blur(34px)+contrast(11) snapped overlaps into harsh,
+      // aliased edges that looked pixelated — replaced with a soft glow.)
+      offCtx.clearRect(0, 0, width, height);
       for (const b of blobs) {
         const x = b.baseX + Math.sin(t * b.speed + b.phase) * b.ampX;
         const y = b.baseY + Math.cos(t * b.speed * 0.8 + b.phase) * b.ampY;
@@ -650,10 +393,9 @@ export function createLavaLamp(config: CanvasConfig = {}): {
         offCtx.fill();
       }
 
-      ctx.clearRect(0, 0, width, height);
       ctx.save();
-      // blur fattens each blob; high contrast snaps the overlap into a single gooey mass.
-      ctx.filter = "blur(34px) contrast(11)";
+      ctx.globalAlpha = 0.82;
+      ctx.filter = `blur(${(54 * dpr).toFixed(0)}px)`;
       ctx.drawImage(off, 0, 0);
       ctx.restore();
     },

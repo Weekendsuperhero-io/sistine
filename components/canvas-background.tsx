@@ -36,14 +36,19 @@ export function CanvasBackground({
   const [dimensions, setDimensions] = React.useState({
     width: 1920,
     height: 1080,
+    dpr: 1,
   });
 
   // Update dimensions on mount and resize
   React.useEffect(() => {
     const updateDimensions = () => {
+      // Back the canvas at device resolution (capped 2×) so it isn't upscaled — that upscaling is
+      // what made every canvas pattern look blurry/pixelated on HiDPI screens.
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
+        width: Math.round(window.innerWidth * dpr),
+        height: Math.round(window.innerHeight * dpr),
+        dpr,
       });
     };
 
@@ -72,6 +77,7 @@ export function CanvasBackground({
         width: dimensions.width,
         height: dimensions.height,
         colorCount,
+        dpr: dimensions.dpr,
         seed: seed || window.location.pathname,
       });
       if (animated) {
