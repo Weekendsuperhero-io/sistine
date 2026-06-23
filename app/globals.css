@@ -106,7 +106,7 @@
   --glass-tint-a: 0;
   --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
-  --glass-solid-bg: oklch(99% 0 0 / 0.8);
+  --glass-solid-bg: oklch(99% 0 0 / 0.65);
   /* Hue/chroma come from the tint vars; chroma is scaled per stop so the highlights stay
      glassy (low chroma) and the body carries the color. Alphas are unchanged. */
   --glass-bg: linear-gradient(
@@ -169,7 +169,7 @@
   /* Very low opacity for Apple's standard glass effect in dark mode */
   /* Deeper wash lightness so the tint reads as colored glass over dark backdrops. */
   --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
-  --glass-solid-bg: oklch(18% 0 0 / 0.8);
+  --glass-solid-bg: oklch(18% 0 0 / 0.65);
   --glass-bg: linear-gradient(
     135deg,
     oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / 0.08) 0%,
@@ -435,8 +435,14 @@
   background-color: var(--glass-tint-wash) !important;
   backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
   -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
-  border-color: var(--glass-frosted-border) !important;
   box-shadow: var(--glass-frosted-shadow) !important;
+}
+/* border-color only on bordered surfaces — NOT .glass-bg — so a destructive control's red
+   outline (glass-bg + border-destructive) survives the style switch. */
+[data-glass="frosted"] .glass-surface,
+[data-glass="frosted"] .glass-surface-sm,
+[data-glass="frosted"] .glass-surface-lg {
+  border-color: var(--glass-frosted-border) !important;
 }
 
 [data-glass="fluted"] .glass-bg,
@@ -445,6 +451,10 @@
 [data-glass="fluted"] .glass-surface-lg {
   background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
   background-color: var(--glass-tint-wash) !important;
+}
+[data-glass="fluted"] .glass-surface,
+[data-glass="fluted"] .glass-surface-sm,
+[data-glass="fluted"] .glass-surface-lg {
   border-color: var(--glass-border) !important;
 }
 
@@ -461,8 +471,12 @@
     linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
-  border-color: var(--glass-crystal-border) !important;
   box-shadow: var(--glass-crystal-shadow) !important;
+}
+[data-glass="crystal"] .glass-surface,
+[data-glass="crystal"] .glass-surface-sm,
+[data-glass="crystal"] .glass-surface-lg {
+  border-color: var(--glass-crystal-border) !important;
 }
 
 /* Overlays (glass-solid) follow the style switcher too, but keep their opaque floor

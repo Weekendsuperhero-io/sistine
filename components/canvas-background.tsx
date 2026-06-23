@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { type CanvasConfig, generateCanvasBackground } from "@/lib/canvas-background-utils";
+import { type CanvasConfig, createLavaLamp, generateCanvasBackground } from "@/lib/canvas-background-utils";
 
 interface CanvasBackgroundProps extends Omit<CanvasConfig, "width" | "height"> {
   /**
@@ -64,6 +64,35 @@ export function CanvasBackground({
 
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
+
+    // Lava-lamp / metaball pattern: blobs drift + merge every frame, so it can't reuse the
+    // static draw + buffer-drift path the other patterns share — it gets its own loop.
+    if (pattern === "blobs") {
+      const lava = createLavaLamp({
+        width: dimensions.width,
+        height: dimensions.height,
+        colorCount,
+        seed: seed || window.location.pathname,
+      });
+      if (animated) {
+        let last = 0;
+        const paint = (now: number) => {
+          animationFrameRef.current = requestAnimationFrame(paint);
+          // ~30fps cap — the full-screen gooey blur is costly and the motion is slow.
+          if (now - last < 33) return;
+          last = now;
+          lava.step(ctx, now / 1000);
+        };
+        animationFrameRef.current = requestAnimationFrame(paint);
+      } else {
+        lava.step(ctx, 0);
+      }
+      return () => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
+    }
 
     const { draw } = generateCanvasBackground({
       width: dimensions.width,

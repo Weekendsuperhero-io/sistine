@@ -17,6 +17,7 @@ const CANVAS_PATTERNS = [
   "particles",
   "noise",
   "artistic",
+  "blobs",
 ] as const;
 type CanvasPattern = (typeof CANVAS_PATTERNS)[number];
 
@@ -100,7 +101,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [background, setBackgroundState] = React.useState<BackgroundType>("grid");
   const [gradientHue, setGradientHue] = React.useState(DEFAULT_GRADIENT_HUE);
   const [gradientScheme, setGradientScheme] = React.useState<GradientScheme>("complementary");
-  const [canvasPattern, setCanvasPattern] = React.useState<CanvasPattern>("waves");
+  const [canvasPattern, setCanvasPattern] = React.useState<CanvasPattern>("blobs");
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
   const [canvasAnimated, setCanvasAnimated] = React.useState(false);
 

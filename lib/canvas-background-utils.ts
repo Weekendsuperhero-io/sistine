@@ -19,7 +19,7 @@ export interface CanvasConfig {
   /**
    * Pattern type: 'gradient', 'circles', 'waves', 'particles', 'noise', 'artistic'
    */
-  pattern?: "gradient" | "circles" | "waves" | "particles" | "noise" | "artistic";
+  pattern?: "gradient" | "circles" | "waves" | "particles" | "noise" | "artistic" | "blobs";
   /**
    * Seed for consistent generation (optional)
    */
@@ -575,5 +575,87 @@ export function generateCanvasBackground(config: CanvasConfig = {}): {
     draw,
     width,
     height,
+  };
+}
+
+/**
+ * Lava-lamp / metaball field. Returns `step(ctx, t)` which paints slowly drifting, pulsing
+ * blobs that merge gooily — drawn solid onto an offscreen layer, then composited through a
+ * blur()+contrast() filter so overlapping blobs fuse with metaball "necks". Drive it per
+ * frame for animation, or call once at t=0 for a static frame. Used by the "blobs" pattern.
+ */
+export function createLavaLamp(config: CanvasConfig = {}): {
+  step: (ctx: CanvasRenderingContext2D, t: number) => void;
+} {
+  const width = config.width ?? (typeof window !== "undefined" ? window.innerWidth : 1920);
+  const height = config.height ?? (typeof window !== "undefined" ? window.innerHeight : 1080);
+  const colorCount = config.colorCount ?? 5;
+  const random = config.seed ? seededRandom(config.seed) : () => Math.random();
+
+  const paletteSeed = random() * 1000;
+  const bgHue = (paletteSeed * 0.37) % 360;
+  const bgTop = `oklch(17% 0.04 ${bgHue.toFixed(1)})`;
+  const bgBottom = `oklch(11% 0.05 ${((bgHue + 40) % 360).toFixed(1)})`;
+
+  const minDim = Math.min(width, height);
+  const blobCount = Math.max(5, colorCount + 2);
+  const blobs = Array.from(
+    {
+      length: blobCount,
+    },
+    (_, i) => ({
+      baseX: random() * width,
+      baseY: random() * height,
+      r: (random() * 0.14 + 0.13) * minDim,
+      ampX: (random() * 0.05 + 0.03) * width,
+      ampY: (random() * 0.16 + 0.12) * height,
+      speed: random() * 0.16 + 0.05,
+      phase: random() * Math.PI * 2,
+      color: randomColor(paletteSeed + i * 13 + 9),
+    }),
+  );
+
+  // Blobs are drawn opaque here, then composited through the gooey filter onto the target.
+  const off = typeof document !== "undefined" ? document.createElement("canvas") : null;
+  if (off) {
+    off.width = width;
+    off.height = height;
+  }
+  const offCtx =
+    off?.getContext("2d", {
+      colorSpace: "display-p3",
+    }) ?? null;
+
+  return {
+    step: (ctx, t) => {
+      if (!off || !offCtx) {
+        ctx.fillStyle = bgBottom;
+        ctx.fillRect(0, 0, width, height);
+        return;
+      }
+
+      const grad = offCtx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, bgTop);
+      grad.addColorStop(1, bgBottom);
+      offCtx.fillStyle = grad;
+      offCtx.fillRect(0, 0, width, height);
+
+      for (const b of blobs) {
+        const x = b.baseX + Math.sin(t * b.speed + b.phase) * b.ampX;
+        const y = b.baseY + Math.cos(t * b.speed * 0.8 + b.phase) * b.ampY;
+        const r = b.r * (1 + Math.sin(t * b.speed * 1.5 + b.phase) * 0.12);
+        offCtx.beginPath();
+        offCtx.arc(x, y, r, 0, Math.PI * 2);
+        offCtx.fillStyle = b.color;
+        offCtx.fill();
+      }
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      // blur fattens each blob; high contrast snaps the overlap into a single gooey mass.
+      ctx.filter = "blur(34px) contrast(11)";
+      ctx.drawImage(off, 0, 0);
+      ctx.restore();
+    },
   };
 }
