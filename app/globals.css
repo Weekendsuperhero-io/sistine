@@ -111,7 +111,9 @@
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
   --glass-solid-bg: oklch(99% 0 0 / 0.65);
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style. */
-  --glass-opaque-bg: oklch(95% calc(var(--glass-tint-c) * 1.5) var(--glass-tint-h));
+  --glass-opaque-bg: oklch(
+    90% calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h)
+  ); /* L kept lowish so light tints hold their hue (don't wash to pale/pink at near-white) */
   /* Hue/chroma come from the tint vars; chroma is scaled per stop so the highlights stay
      glassy (low chroma) and the body carries the color. Alphas are unchanged. */
   --glass-bg: linear-gradient(
