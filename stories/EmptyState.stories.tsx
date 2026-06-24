@@ -1,28 +1,38 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import {
-  EmptyState,
-  EmptyStateIcon,
-  EmptyStateTitle,
-  EmptyStateDescription,
-} from '@/components/ui/glass/empty-state';
-import { Inbox } from 'lucide-react';
-import { Button } from '@/components/ui/glass/button';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Inbox } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/glass/button";
+import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/glass/empty-state";
 
 const meta = {
-  title: 'Glass UI/EmptyState',
+  title: "Sistine/EmptyState",
   component: EmptyState,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
     },
   },
 } satisfies Meta<typeof EmptyState>;
@@ -32,16 +42,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     children: (
       <>
         <EmptyStateIcon>
           <Inbox className="h-12 w-12" />
         </EmptyStateIcon>
         <EmptyStateTitle>No items found</EmptyStateTitle>
-        <EmptyStateDescription>
-          Get started by creating a new item.
-        </EmptyStateDescription>
+        <EmptyStateDescription>Get started by creating a new item.</EmptyStateDescription>
         <Button variant="glass" className="mt-4">
           Create Item
         </Button>
@@ -52,16 +60,14 @@ export const Default: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
+    variant: "frosted",
     children: (
       <>
         <EmptyStateIcon>
           <Inbox className="h-12 w-12" />
         </EmptyStateIcon>
         <EmptyStateTitle>No items found</EmptyStateTitle>
-        <EmptyStateDescription>
-          Get started by creating a new item.
-        </EmptyStateDescription>
+        <EmptyStateDescription>Get started by creating a new item.</EmptyStateDescription>
         <Button variant="glass" className="mt-4">
           Create Item
         </Button>
@@ -69,4 +75,3 @@ export const Frosted: Story = {
     ),
   },
 };
-

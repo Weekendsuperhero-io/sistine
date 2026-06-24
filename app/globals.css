@@ -3,6 +3,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
+   folds in `var(--glow-layer, …)` so the glow rides INSIDE each style's shadow — surviving the
+   per-style `!important` box-shadow overrides instead of being replaced. inherits:false keeps a
+   glowing surface from lighting up its glass children. */
+@property --glow-layer {
+  syntax: "*";
+  inherits: false;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -45,239 +54,246 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 1.25rem;
   /* Base colors - Light mode with dark text */
   --background: transparent;
-  --foreground: oklch(0.15 0 0); /* Near black - dark text for light mode */
+  --foreground: oklch(0% 0 0); /* Level 0 — darkest extreme; AutoForeground walks the ramp at runtime */
   --card: transparent;
-  --card-foreground: oklch(0.15 0 0); /* Near black - dark text */
+  --card-foreground: var(--foreground);
   --popover: transparent;
-  --popover-foreground: oklch(0.15 0 0); /* Near black - dark text */
-  
+  --popover-foreground: var(--foreground);
+
   /* Primary colors - Light mode */
   --primary: oklch(0.5 0.2 250); /* Blue */
   --primary-foreground: oklch(0.98 0 0); /* White text on primary */
-  
+
   /* Secondary colors - Light mode */
   --secondary: oklch(0.96 0 0); /* Very light gray */
-  --secondary-foreground: oklch(0.15 0 0); /* Dark text */
-  
+  --secondary-foreground: var(--foreground);
+
   /* Muted colors - Light mode */
   --muted: oklch(0.85 0 0); /* Dark gray - darker shade to avoid glass effect override */
-  --muted-foreground: oklch(0.1 0 0); /* Medium gray text */
-  
+  --muted-foreground: oklch(0.14 0.04 var(--glass-tint-h)); /* Level 1 — one ramp step toward the chosen color */
+
   /* Accent colors - Light mode */
   --accent: oklch(0.96 0 0); /* Very light gray */
-  --accent-foreground: oklch(0.15 0 0); /* Dark text */
-  
+  --accent-foreground: var(--foreground);
+
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.55 0.22 25); /* Red - 4.5:1 with white */
   --destructive-foreground: oklch(0.98 0 0); /* White text on red */
-  
+
   /* Border and input - WCAG AA compliant (3:1 for UI components) */
   --border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
   --input: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
   --ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
-  
+
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.6 0.2 250); /* Blue */
   --chart-2: oklch(0.55 0.15 150); /* Green */
   --chart-3: oklch(0.5 0.2 50); /* Yellow */
   --chart-4: oklch(0.65 0.2 300); /* Purple */
   --chart-5: oklch(0.6 0.2 20); /* Orange */
-  
+
   /* Sidebar colors - Light mode */
   --sidebar: oklch(0.98 0 0); /* Near white */
-  --sidebar-foreground: oklch(0.15 0 0); /* Dark text */
+  --sidebar-foreground: var(--foreground);
   --sidebar-primary: oklch(0.5 0.2 250); /* Blue */
   --sidebar-primary-foreground: oklch(0.98 0 0); /* White text on primary */
-  --sidebar-accent: oklch(0.96 0 0); /* Very light gray */
-  --sidebar-accent-foreground: oklch(0.15 0 0); /* Dark text */
+  --sidebar-accent: oklch(0.15 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
+  --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
   --sidebar-ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
 
   /* Apple-standard glassmorphism - Very subtle and refined */
-  /* Low opacity for Apple's standard glass effect */
-  --glass-bg: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.15) 0%, 
-    rgba(255, 255, 255, 0.12) 25%,
-    rgba(240, 248, 255, 0.13) 50%,
-    rgba(255, 255, 255, 0.11) 75%,
-    rgba(230, 240, 255, 0.12) 100%
+  /* Glass tint — recolor ALL glass by changing these; presets set them via [data-glass-tint].
+     -h = hue, -c = chroma (gradient), -a = wash alpha. The gradient alone is too sheer
+     (~6–12% opacity) to show a hue, so -a paints a solid colored floor (--glass-tint-wash)
+     that reads over any backdrop. Neutral keeps -a:0, so the default glass is unchanged. */
+  --glass-tint-h: 250;
+  --glass-tint-c: 0.018;
+  --glass-tint-a: 0;
+  --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Solid accent that tracks the tint hue at a fixed vivid chroma — used by active controls (switch
+     "on", slider range) so they read as the current glass hue instead of plain black/white. */
+  --glass-accent: oklch(0.6 0.15 var(--glass-tint-h));
+  /* Colored glow for the `glow` prop on the Sistine glass components — follows the tint hue
+     (was a hardcoded purple-500). Override this var to control the highlight color. */
+  --glass-glow: oklch(0.62 0.2 var(--glass-tint-h) / 0.45);
+  /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
+  --glass-solid-bg: oklch(99% 0 0 / 0.65);
+  /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style. */
+  --glass-opaque-bg: oklch(
+    90% calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h)
+  ); /* L kept lowish so light tints hold their hue (don't wash to pale/pink at near-white) */
+  /* Hue/chroma come from the tint vars; chroma is scaled per stop so the highlights stay
+     glassy (low chroma) and the body carries the color. Alphas are unchanged. */
+  --glass-bg: linear-gradient(
+    135deg,
+    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / 0.15) 0%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.12) 25%,
+    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / 0.13) 50%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.11) 75%,
+    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / 0.12) 100%
   );
   /* Very subtle white border - Apple standard */
-  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border: oklch(100% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.12);
   /* Minimal shadows with subtle inner glow - Apple standard */
-  --glass-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    0 1px 4px rgba(0, 0, 0, 0.04),
-    0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
-    0 0 12px rgba(255, 255, 255, 0.1) inset;
-  --glass-shadow-lg: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.06),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1) inset,
-    0 0 20px rgba(255, 255, 255, 0.12) inset;
-  --glass-shadow-sm: 
-    0 2px 8px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.03),
-    0 0 0 0.5px rgba(255, 255, 255, 0.06) inset,
-    0 0 8px rgba(255, 255, 255, 0.08) inset;
-  --gradient: linear-gradient(135deg, #a855f7 0%, #3b82f6 100%);
+  --glass-shadow:
+    0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04), 0 0 0 0.5px oklch(100% 0 0 / 0.08) inset, 0 0 12px oklch(100% 0 0 / 0.1) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.06), 0 0 0 0.5px oklch(100% 0 0 / 0.1) inset, 0 0 20px oklch(100% 0 0 / 0.12) inset;
+  --glass-shadow-sm:
+    0 2px 8px oklch(0% 0 0 / 0.06), 0 1px 2px oklch(0% 0 0 / 0.03), 0 0 0 0.5px oklch(100% 0 0 / 0.06) inset, 0 0 8px oklch(100% 0 0 / 0.08) inset;
+  /* Theme-aware brand gradient — follows --glass-tint-h, from the hue 3 ramp-steps out
+     (8/side → step 360/17 ≈ 63.53°) to the base hue, at the accent L/C + medium (0.5) alpha.
+     (Axis/direction variants are computed in JS from lib/oklch-utils.ts — see the /components demo.) */
+  --gradient: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.6 0.15 var(--glass-tint-h) / 0.5) 100%);
   /* Apple-standard blur values - moderate blur */
   --blur: 10px;
-  --blur-sm: 10px;
-  --blur-lg: 10px;
-  
+  --blur-sm: 4px;
+  --blur-lg: 20px;
+
   /* Frosted glass variant - Enhanced opacity and stronger blur */
-  --glass-frosted-bg: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.25) 0%, 
-    rgba(255, 255, 255, 0.22) 25%,
-    rgba(240, 248, 255, 0.23) 50%,
-    rgba(255, 255, 255, 0.21) 75%,
-    rgba(230, 240, 255, 0.22) 100%
+  --glass-frosted-bg: linear-gradient(
+    135deg,
+    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / 0.25) 0%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.22) 25%,
+    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / 0.23) 50%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.21) 75%,
+    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / 0.22) 100%
   );
-  --glass-frosted-border: rgba(255, 255, 255, 0.3);
-  --glass-frosted-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 0 0 0.5px rgba(255, 255, 255, 0.15) inset,
-    0 0 20px rgba(255, 255, 255, 0.18) inset;
+  --glass-frosted-border: oklch(100% 0 0 / 0.3);
+  --glass-frosted-shadow:
+    0 8px 32px oklch(0% 0 0 / 0.12), 0 2px 8px oklch(0% 0 0 / 0.08), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset, 0 0 20px oklch(100% 0 0 / 0.18) inset;
   --blur-frosted: 25px;
-  
+
   /* Fluted glass variant - Vertical ridges pattern */
   --glass-fluted-pattern: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.08) 0px,
-    rgba(255, 255, 255, 0.15) 4px,
-    rgba(255, 255, 255, 0.08) 8px,
-    rgba(255, 255, 255, 0.02) 10px,
-    rgba(255, 255, 255, 0.08) 12px
+    oklch(100% 0 0 / 0.08) 0px,
+    oklch(100% 0 0 / 0.15) 4px,
+    oklch(100% 0 0 / 0.08) 8px,
+    oklch(100% 0 0 / 0.02) 10px,
+    oklch(100% 0 0 / 0.08) 12px
   );
-  
+
   /* Crystal glass variant - Clear glass with highlights and glow */
-  --glass-crystal-bg: rgba(255, 255, 255, 0.3);
-  --glass-crystal-border: rgba(255, 255, 255, 0.3);
-  --glass-crystal-shadow: 
-    0 0 20px rgba(0, 0, 0, 0.2),
-    0 0 30px rgba(255, 255, 255, 0.1);
-  --glass-crystal-shadow-hover: 
-    0 0 25px rgba(0, 0, 0, 0.3),
-    0 0 35px rgba(255, 255, 255, 0.15);
+  --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
+  --glass-crystal-border: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
+  --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(100% 0 0 / 0.4) inset;
+  --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(100% 0 0 / 0.45) inset;
   --blur-crystal: 2px;
 }
 
 .dark {
   /* Apple-standard glassmorphism for dark mode - Very subtle and refined */
   /* Very low opacity for Apple's standard glass effect in dark mode */
-  --glass-bg: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.08) 0%, 
-    rgba(255, 255, 255, 0.06) 25%,
-    rgba(240, 248, 255, 0.07) 50%,
-    rgba(255, 255, 255, 0.05) 75%,
-    rgba(230, 240, 255, 0.06) 100%
+  /* Deeper wash lightness so the tint reads as colored glass over dark backdrops. */
+  --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Lighter accent so the tint hue pops on dark surfaces (see :root for the rationale). */
+  --glass-accent: oklch(0.68 0.14 var(--glass-tint-h));
+  --glass-glow: oklch(0.7 0.18 var(--glass-tint-h) / 0.5);
+  /* Gradient (dark): lifted L like --glass-accent. */
+  --gradient: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.68 0.14 var(--glass-tint-h) / 0.5) 100%);
+  --glass-solid-bg: oklch(18% 0 0 / 0.65);
+  /* L lifted from 22% (less extreme light↔dark switch) + chroma kept low so warm hues like amber
+     stay in-gamut instead of hard-clipping to rust. */
+  --glass-opaque-bg: oklch(32% calc(var(--glass-tint-c) * 0.9) var(--glass-tint-h));
+  --glass-bg: linear-gradient(
+    135deg,
+    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / 0.08) 0%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.06) 25%,
+    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / 0.07) 50%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.05) 75%,
+    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / 0.06) 100%
   );
   /* Very subtle white border - Apple standard */
-  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-border: oklch(100% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.15);
   /* Minimal shadows with subtle inner glow - Apple standard for dark mode */
-  --glass-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    0 1px 4px rgba(0, 0, 0, 0.15),
-    0 0 0 0.5px rgba(255, 255, 255, 0.12) inset,
-    0 0 12px rgba(255, 255, 255, 0.15) inset;
-  --glass-shadow-lg: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    0 0 0 0.5px rgba(255, 255, 255, 0.15) inset,
-    0 0 20px rgba(255, 255, 255, 0.18) inset;
-  --glass-shadow-sm: 
-    0 2px 8px rgba(0, 0, 0, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.12),
-    0 0 0 0.5px rgba(255, 255, 255, 0.1) inset,
-    0 0 8px rgba(255, 255, 255, 0.12) inset;
-  
+  --glass-shadow:
+    0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15), 0 0 0 0.5px oklch(100% 0 0 / 0.12) inset, 0 0 12px oklch(100% 0 0 / 0.15) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.2), 0 0 0 0.5px oklch(100% 0 0 / 0.15) inset, 0 0 20px oklch(100% 0 0 / 0.18) inset;
+  --glass-shadow-sm:
+    0 2px 8px oklch(0% 0 0 / 0.25), 0 1px 2px oklch(0% 0 0 / 0.12), 0 0 0 0.5px oklch(100% 0 0 / 0.1) inset, 0 0 8px oklch(100% 0 0 / 0.12) inset;
+
   /* Frosted glass variant - Enhanced opacity and stronger blur for dark mode */
-  --glass-frosted-bg: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.15) 0%, 
-    rgba(255, 255, 255, 0.12) 25%,
-    rgba(240, 248, 255, 0.13) 50%,
-    rgba(255, 255, 255, 0.11) 75%,
-    rgba(230, 240, 255, 0.12) 100%
+  --glass-frosted-bg: linear-gradient(
+    135deg,
+    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / 0.15) 0%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.12) 25%,
+    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / 0.13) 50%,
+    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / 0.11) 75%,
+    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / 0.12) 100%
   );
-  --glass-frosted-border: rgba(255, 255, 255, 0.25);
-  --glass-frosted-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 0 0 0.5px rgba(255, 255, 255, 0.2) inset,
-    0 0 20px rgba(255, 255, 255, 0.22) inset;
-  
+  --glass-frosted-border: oklch(100% 0 0 / 0.25);
+  --glass-frosted-shadow:
+    0 8px 32px oklch(0% 0 0 / 0.5), 0 2px 8px oklch(0% 0 0 / 0.3), 0 0 0 0.5px oklch(100% 0 0 / 0.2) inset, 0 0 20px oklch(100% 0 0 / 0.22) inset;
+
   /* Fluted glass variant - Vertical ridges pattern for dark mode */
   --glass-fluted-pattern: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05) 0px,
-    rgba(255, 255, 255, 0.12) 4px,
-    rgba(255, 255, 255, 0.05) 8px,
-    rgba(255, 255, 255, 0.01) 10px,
-    rgba(255, 255, 255, 0.05) 12px
+    oklch(100% 0 0 / 0.05) 0px,
+    oklch(100% 0 0 / 0.12) 4px,
+    oklch(100% 0 0 / 0.05) 8px,
+    oklch(100% 0 0 / 0.01) 10px,
+    oklch(100% 0 0 / 0.05) 12px
   );
-  
+
   /* Crystal glass variant - Clear glass with highlights and glow for dark mode */
-  --glass-crystal-bg: rgba(255, 255, 255, 0.1);
-  --glass-crystal-border: rgba(255, 255, 255, 0.3);
-  --glass-crystal-shadow: 
-    0 0 20px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(255, 255, 255, 0.15);
-  --glass-crystal-shadow-hover: 
-    0 0 25px rgba(0, 0, 0, 0.5),
-    0 0 35px rgba(255, 255, 255, 0.2);
-  
+  --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.1);
+  --glass-crystal-border: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
+  --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(100% 0 0 / 0.2) inset;
+  --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(100% 0 0 / 0.25) inset;
+
   /* Base colors - Apple-style white text */
   --background: transparent;
-  --foreground: oklch(1 0 0); /* White - Apple-style */
+  --foreground: oklch(100% 0 0); /* Level 0 — lightest extreme; AutoForeground walks the ramp at runtime */
   --card: transparent;
-  --card-foreground: oklch(1 0 0); /* White - Apple-style */
+  --card-foreground: var(--foreground);
   --popover: transparent;
-  --popover-foreground: oklch(1 0 0); /* White - Apple-style */
-  
+  --popover-foreground: var(--foreground);
+
   /* Primary colors - Apple-style white text */
-  --primary: oklch(0.7 0.15 250); /* Light blue */
+  --primary: oklch(0.56 0.16 250); /* Blue — deepened from L0.7 so white text clears APCA Lc ~76 (was 57) */
   --primary-foreground: oklch(1 0 0); /* White - Apple-style */
-  
+
   /* Secondary colors - Apple-style white text */
   --secondary: oklch(0.25 0 0); /* Dark gray */
-  --secondary-foreground: oklch(1 0 0); /* White - Apple-style */
-  
+  --secondary-foreground: var(--foreground);
+
   /* Muted colors - Apple-style white text */
   --muted: oklch(0.18 0 0); /* Darker gray - darker shade to avoid glass effect override */
-  --muted-foreground: oklch(1 0 0); /* White - Apple-style */
-  
+  --muted-foreground: oklch(0.89 0.04 var(--glass-tint-h)); /* Level 1 — one ramp step toward the chosen color */
+
   /* Accent colors - Apple-style white text */
   --accent: oklch(0.25 0 0); /* Dark gray */
-  --accent-foreground: oklch(1 0 0); /* White - Apple-style */
-  
+  --accent-foreground: var(--foreground);
+
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.65 0.22 25); /* Light red - 4.5:1 with dark background */
-  --destructive-foreground: oklch(0.12 0 0); /* Near black text on red */
-  
+  --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
+
   /* Border and input - WCAG AA compliant (3:1 for UI components) */
   --border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
   --input: oklch(0.25 0 0); /* Dark gray - 3:1 contrast */
   --ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
-  
+
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.65 0.2 250); /* Light blue */
   --chart-2: oklch(0.7 0.15 150); /* Light green */
   --chart-3: oklch(0.75 0.2 50); /* Light yellow */
   --chart-4: oklch(0.7 0.2 300); /* Light purple */
   --chart-5: oklch(0.68 0.2 20); /* Light orange */
-  
+
   /* Sidebar colors - Apple-style white text */
   --sidebar: oklch(0.18 0 0); /* Dark gray */
-  --sidebar-foreground: oklch(1 0 0); /* White - Apple-style */
-  --sidebar-primary: oklch(0.7 0.15 250); /* Light blue */
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: oklch(0.56 0.16 250); /* Match --primary; white text clears APCA */
   --sidebar-primary-foreground: oklch(1 0 0); /* White - Apple-style */
-  --sidebar-accent: oklch(0.25 0 0); /* Dark gray */
-  --sidebar-accent-foreground: oklch(1 0 0); /* White - Apple-style */
+  --sidebar-accent: oklch(1 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
+  --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
   --sidebar-ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
 }
@@ -285,109 +301,447 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
   }
-body {
-  @apply text-foreground;
-  background-color: transparent;
+  body {
+    /* Text defaults to the APCA-picked --auto-fg (set on <html> by AutoForeground on theme/tint
+       change), falling back to the neutral --foreground when it isn't set. */
+    color: var(--auto-fg, var(--foreground));
+    background-color: transparent;
+  }
+  /* Thin, glass-friendly scrollbars (replaces the chunky native bar) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--foreground) 38%, transparent);
   }
 }
 
-@layer utilities {
-  /* Apple-standard glass utility - Very subtle and refined */
-  /* This creates Apple's standard glassmorphism with moderate blur */
-  .glass-bg {
-    /* Low opacity gradient background - Apple standard */
-    background-image: var(--glass-bg);
-    background-color: transparent;
-    /* Moderate backdrop blur - Apple standard (20px) */
-    backdrop-filter: blur(var(--blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
-    /* Very subtle white border - Apple standard */
-    border: 0.5px solid var(--glass-border);
-    /* Minimal shadow with subtle inner glow - Apple standard */
-    box-shadow: var(--glass-shadow);
-  }
-  
-  /* Frosted glass utility - Enhanced blur and higher opacity */
-  .glass-frosted {
-    background-image: var(--glass-frosted-bg) !important;
-    background-color: transparent !important;
-    /* Stronger backdrop blur for frosted effect */
-    backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
-    /* More pronounced border */
-    border: 0.5px solid var(--glass-frosted-border) !important;
-    /* Enhanced shadow for depth */
-    box-shadow: var(--glass-frosted-shadow) !important;
-  }
-  
-  /* Fluted glass utility - Vertical ridges with glass effect */
-  .glass-fluted {
-    /* Base glass background combined with fluted pattern */
-    background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
-    background-color: transparent !important;
-    /* Moderate backdrop blur like standard glass */
-    backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-    /* Standard glass border */
-    border: 0.5px solid var(--glass-border) !important;
-    /* Standard glass shadow */
-    box-shadow: var(--glass-shadow) !important;
-  }
-  
-  /* Crystal glass utility - Clear glass with highlights and glow */
-  .glass-crystal {
-    position: relative;
-    background-color: var(--glass-crystal-bg) !important;
-    /* Minimal backdrop blur for clarity */
-    backdrop-filter: blur(var(--blur-crystal)) !important;
-    -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
-    border: 1px solid var(--glass-crystal-border) !important;
-    box-shadow: var(--glass-crystal-shadow) !important;
-    transition: all 0.3s ease !important;
-    /* Top highlight gradient */
-    background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.15), transparent 50%) !important;
-    background-size: 200% 200% !important;
-  }
-  
-  .glass-crystal::before {
-    content: '';
+/* ── Glass surface utilities ───────────────────────────────────────────────
+   Each glass variant is configured here (the recipe); its values live in the
+   --glass-* / --blur* tokens in :root/.dark. Tailwind v4 @utility blocks are
+   top-level. Components reference these by name — glass-bg, glass-surface,
+   glass-frosted, glass-fluted, glass-crystal — with no inline blur/border/shadow. */
+
+/* The glow itself — a punchy two-layer colored halo, centralized so its strength is tunable in ONE
+   place. `glass-glow` is the resting glow; `glass-glow-lg` (used on hover) intensifies it. Both set
+   --glow-layer, which every glass box-shadow folds in, so the glow shows under EVERY glass style.
+   Full mechanism + tuning + troubleshooting: docs/glow.md */
+@utility glass-glow {
+  --glow-layer: 0 0 8px 1px var(--glass-glow), 0 0 18px 3px var(--glass-glow);
+}
+@utility glass-glow-lg {
+  --glow-layer: 0 0 12px 2px var(--glass-glow), 0 0 28px 5px var(--glass-glow);
+}
+
+/* Borderless base — Apple-standard subtle glass (card, button, etc.) */
+@utility glass-bg {
+  background-image: var(--glass-bg);
+  background-color: var(--glass-tint-wash);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Bordered glass surface — the standard glass variant for panels & overlays */
+@utility glass-surface {
+  background-image: var(--glass-bg);
+  background-color: var(--glass-tint-wash);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Compact frost — smaller blur + shadow for small controls (inputs, badges). */
+@utility glass-surface-sm {
+  background-image: var(--glass-bg);
+  background-color: var(--glass-tint-wash);
+  backdrop-filter: blur(var(--blur-sm)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-sm)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-sm), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Deep frost — larger blur + shadow for big overlays (dialogs, sheets). */
+@utility glass-surface-lg {
+  background-image: var(--glass-bg);
+  background-color: var(--glass-tint-wash);
+  backdrop-filter: blur(var(--blur-lg)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Opaque glass — a near-solid neutral floor (--glass-solid-bg) + the tint wash + the glass
+   sheen, so overlays you read through (tooltips, menus, toasts) stay legible and still tint.
+   Raise --glass-solid-bg's alpha to be more solid, lower it to be more see-through. */
+@utility glass-solid {
+  background-image: var(--glass-bg), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash));
+  background-color: var(--glass-solid-bg);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Opaque — solid (no see-through) but still glassy: an opaque tinted floor under the glass sheen,
+   with the glass border + shadow, and NO backdrop blur (nothing to blur through). Drives the
+   "opaque" style + the matching component variant. */
+@utility glass-opaque {
+  background-image: var(--glass-bg);
+  background-color: var(--glass-opaque-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Gradient glass — the brand purple→blue --gradient (medium strength) layered over the glass
+   sheen + blur. The "gradient" surface; drives the gradient Button variant and is usable on
+   anything via the `glass-gradient` class. */
+@utility glass-gradient {
+  background-image: var(--gradient), var(--glass-bg);
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Frosted — enhanced blur + higher opacity */
+@utility glass-frosted {
+  background-image: var(--glass-frosted-bg) !important;
+  background-color: var(--glass-tint-wash) !important;
+  backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  border: 0.5px solid var(--glass-frosted-border) !important;
+  box-shadow: var(--glass-frosted-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+
+/* Fluted — vertical ridges over standard glass */
+@utility glass-fluted {
+  background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
+  background-color: var(--glass-tint-wash) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  border: 0.5px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+
+/* Crystal — clear glass with highlight sheen and glow */
+@utility glass-crystal {
+  position: relative;
+  background-color: var(--glass-crystal-bg) !important;
+  background-image:
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
+    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+  background-size: 200% 200% !important;
+  backdrop-filter: blur(var(--blur-crystal)) !important;
+  -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
+  border: 1px solid var(--glass-crystal-border) !important;
+  box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+  transition: all 0.3s ease !important;
+
+  &::before {
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent);
     opacity: 0.7;
     pointer-events: none;
     height: 30%;
   }
-  
-  .glass-crystal::after {
-    content: '';
+
+  &::after {
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(circle at 50% 120%, rgba(255, 255, 255, 0.2), transparent 70%);
+    background: radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%);
     opacity: 0.8;
     pointer-events: none;
   }
-  
-  .glass-crystal:hover {
-    box-shadow: var(--glass-crystal-shadow-hover) !important;
+
+  &:hover {
+    box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
     background-position: 100% 100% !important;
   }
+}
 
-  /* Ensure react-day-picker doesn't override glass effect */
-  .glass-bg[class*="rdp"] {
-    background-color: transparent !important;
-  }
-  
-  .glass-bg .rdp {
-    background-color: transparent !important;
-  }
-  
+/* Keep react-day-picker from painting over the glass background */
+@layer utilities {
+  .glass-bg[class*="rdp"],
+  .glass-bg .rdp,
   .glass-bg .rdp-month {
     background-color: transparent !important;
   }
+}
+
+/* ── Site-wide glass style ──────────────────────────────────────────────────
+   Set data-glass on <html> (frosted | fluted | crystal) to re-skin the DEFAULT
+   glass surfaces (glass-bg / glass-surface / -sm / -lg) as that style, so a whole
+   page can preview each look. Menus (glass-solid) stay opaque for legibility, and
+   explicit glass-frosted/fluted/crystal variants are untouched. Plain rules
+   (outside @layer) so they win over the @utility definitions. */
+[data-glass="frosted"] .glass-bg,
+[data-glass="frosted"] .glass-surface,
+[data-glass="frosted"] .glass-surface-sm,
+[data-glass="frosted"] .glass-surface-lg {
+  background-image: var(--glass-frosted-bg) !important;
+  background-color: var(--glass-tint-wash) !important;
+  backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  box-shadow: var(--glass-frosted-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+/* border-color only on bordered surfaces — NOT .glass-bg — so a destructive control's red
+   outline (glass-bg + border-destructive) survives the style switch. */
+[data-glass="frosted"] .glass-surface,
+[data-glass="frosted"] .glass-surface-sm,
+[data-glass="frosted"] .glass-surface-lg {
+  border-color: var(--glass-frosted-border) !important;
+}
+
+[data-glass="fluted"] .glass-bg,
+[data-glass="fluted"] .glass-surface,
+[data-glass="fluted"] .glass-surface-sm,
+[data-glass="fluted"] .glass-surface-lg {
+  background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
+  background-color: var(--glass-tint-wash) !important;
+}
+[data-glass="fluted"] .glass-surface,
+[data-glass="fluted"] .glass-surface-sm,
+[data-glass="fluted"] .glass-surface-lg {
+  border-color: var(--glass-border) !important;
+}
+
+[data-glass="crystal"] .glass-bg,
+[data-glass="crystal"] .glass-surface,
+[data-glass="crystal"] .glass-surface-sm,
+[data-glass="crystal"] .glass-surface-lg {
+  background-color: var(--glass-crystal-bg) !important;
+  /* Sheen + glow baked into the background so it matches the crystal ::before/::after
+     without forcing position:relative (which would break sticky/fixed surfaces). The wash
+     is the bottom layer so the tint shows through the (mostly-transparent) sheen above it. */
+  background-image:
+    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
+    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+  backdrop-filter: blur(var(--blur-crystal)) !important;
+  -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
+  box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+[data-glass="crystal"] .glass-surface,
+[data-glass="crystal"] .glass-surface-sm,
+[data-glass="crystal"] .glass-surface-lg {
+  border-color: var(--glass-crystal-border) !important;
+}
+
+/* Overlays (glass-solid) follow the style switcher too, but keep their opaque floor
+   (--glass-solid-bg) so menus stay legible in every style. */
+[data-glass="frosted"] .glass-solid {
+  background-image: var(--glass-frosted-bg), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+  background-color: var(--glass-solid-bg) !important;
+  backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+  border-color: var(--glass-frosted-border) !important;
+  box-shadow: var(--glass-frosted-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+[data-glass="fluted"] .glass-solid {
+  background-image: var(--glass-fluted-pattern), var(--glass-bg), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+  background-color: var(--glass-solid-bg) !important;
+  border-color: var(--glass-border) !important;
+}
+[data-glass="crystal"] .glass-solid {
+  background-image:
+    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
+    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+  background-color: var(--glass-solid-bg) !important;
+  backdrop-filter: blur(var(--blur-crystal)) !important;
+  -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
+  border-color: var(--glass-crystal-border) !important;
+  box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+
+/* Opaque — re-skin the default glass surfaces as a fully solid (no see-through) tinted panel.
+   Symmetric with frosted/fluted/crystal: both a global data-glass mode AND a per-component variant.
+   Drops the backdrop blur (it's opaque) and overlays (glass-solid) go fully opaque too. */
+[data-glass="opaque"] .glass-bg,
+[data-glass="opaque"] .glass-surface,
+[data-glass="opaque"] .glass-surface-sm,
+[data-glass="opaque"] .glass-surface-lg,
+[data-glass="opaque"] .glass-solid {
+  background-image: var(--glass-bg) !important;
+  background-color: var(--glass-opaque-bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+}
+[data-glass="opaque"] .glass-surface,
+[data-glass="opaque"] .glass-surface-sm,
+[data-glass="opaque"] .glass-surface-lg,
+[data-glass="opaque"] .glass-solid {
+  border-color: var(--glass-border) !important;
+}
+
+/* ── Glass tint presets ─────────────────────────────────────────────────────
+   Set data-glass-tint on <html> to recolor the glass. Most presets just move the
+   tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded gold →
+   terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling. */
+[data-glass-tint="sapphire"] {
+  --glass-tint-h: 255;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="emerald"] {
+  --glass-tint-h: 158;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="amethyst"] {
+  --glass-tint-h: 300;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="rose"] {
+  --glass-tint-h: 8;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="amber"] {
+  --glass-tint-h: 75;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+}
+[data-glass-tint="manila"] {
+  /* Warm off-white / bone — very low chroma so it reads as cream, not yellow. Manila is meant for
+     opaque, so pin its opaque floor to a light bone (both modes) instead of the dark tint formula. */
+  --glass-tint-h: 85;
+  --glass-tint-c: 0.025;
+  --glass-tint-a: 0.18;
+  --glass-opaque-bg: oklch(93% 0.03 85);
+}
+.dark[data-glass-tint="manila"] {
+  /* Manila is paper, not glass — in dark mode make every style a solid-ish, slightly-deeper bone
+     (fairly opaque, so it reads as clean off-white rather than murky translucency). Because the
+     surface stays light, AutoForeground's APCA picks DARK text on it. A touch darker than before. */
+  --glass-bg: linear-gradient(135deg, oklch(82% 0.03 85 / 0.85) 0%, oklch(79% 0.04 85 / 0.83) 50%, oklch(81% 0.03 85 / 0.85) 100%);
+  --glass-frosted-bg: linear-gradient(135deg, oklch(83% 0.03 85 / 0.92) 0%, oklch(80% 0.04 85 / 0.9) 50%, oklch(82% 0.03 85 / 0.92) 100%);
+  --glass-tint-wash: oklch(80% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / 0.5);
+  /* Opaque goes brown at 32% L in dark — pin it to a deep bone (a little darker than light mode). */
+  --glass-opaque-bg: oklch(82% 0.035 85);
+}
+/* Manila's panels are a light bone in dark mode, so their text must go DARK to stay readable — but
+   ONLY inside the glass panels. Bare text on the dark wallpaper (e.g. the hero) keeps the light
+   foreground. A single global flip would dim the hero; this scopes the readable polarity to the bone. */
+.dark[data-glass-tint="manila"]
+:where(
+  .glass-surface,
+  .glass-surface-sm,
+  .glass-surface-lg,
+  .glass-bg,
+  .glass-solid,
+  .glass-opaque,
+  .glass-frosted,
+  .glass-fluted,
+  .glass-crystal,
+  .glass-gradient
+) {
+  --foreground: oklch(23% 0.02 85);
+  --muted-foreground: oklch(45% 0.02 85);
+}
+
+/* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in
+   dark, so it tracks the day/night background. Pick the look with the light/dark/system toggle. */
+[data-glass-tint="muse"] {
+  /* Day: the daytime cityscape — a cool sweep blue → cyan → teal-green (glass towers, sky, foliage),
+     interpolated `in oklch` so it actually reads as a gradient instead of one flat blue. */
+  --glass-tint-h: 230;
+  --glass-tint-c: 0.06;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(94% 0.07 235 / 0.32) 0%, oklch(93% 0.08 205 / 0.28) 50%, oklch(91% 0.08 155 / 0.28) 100%);
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(94% 0.07 235 / 0.46) 0%,
+    oklch(93% 0.08 205 / 0.42) 50%,
+    oklch(91% 0.08 155 / 0.42) 100%
+  );
+  --glass-opaque-bg: oklch(91% 0.06 222);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="muse"] {
+  /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
+     interpolated `in oklch` so the neon stays saturated instead of greying between stops. */
+  --glass-tint-h: 260;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(85% 0.1 222 / 0.24) 0%,
+    oklch(78% 0.2 326 / 0.2) 38%,
+    oklch(79% 0.12 350 / 0.2) 68%,
+    oklch(84% 0.12 74 / 0.22) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(85% 0.1 222 / 0.36) 0%,
+    oklch(78% 0.2 326 / 0.32) 38%,
+    oklch(79% 0.12 350 / 0.32) 68%,
+    oklch(84% 0.12 74 / 0.34) 100%
+  );
+  --glass-opaque-bg: oklch(34% 0.12 288);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
+   in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
+   averaging to grey. Border + crystal + accent pick up the warm amber base via the tint vars. */
+[data-glass-tint="sistine"] {
+  --glass-tint-h: 75;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(90% 0.11 75 / 0.34) 0%,
+    oklch(86% 0.11 8 / 0.3) 33%,
+    oklch(86% 0.11 255 / 0.3) 66%,
+    oklch(87% 0.11 158 / 0.32) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(90% 0.11 75 / 0.46) 0%,
+    oklch(86% 0.11 8 / 0.42) 33%,
+    oklch(86% 0.11 255 / 0.42) 66%,
+    oklch(87% 0.11 158 / 0.44) 100%
+  );
+  /* Crystal composes its own background (not --glass-bg), so hand it the fresco explicitly. */
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="sistine"] {
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(86% 0.11 75 / 0.22) 0%,
+    oklch(82% 0.11 8 / 0.2) 33%,
+    oklch(82% 0.11 255 / 0.2) 66%,
+    oklch(83% 0.11 158 / 0.22) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(86% 0.11 75 / 0.32) 0%,
+    oklch(82% 0.11 8 / 0.3) 33%,
+    oklch(82% 0.11 255 / 0.3) 66%,
+    oklch(83% 0.11 158 / 0.32) 100%
+  );
+  --glass-crystal-fresco: var(--glass-bg);
 }
 
 @keyframes shimmer {
@@ -401,28 +755,30 @@ body {
 
 /* Sonner Toast Notifications - Glass Effect Overrides */
 [data-sonner-toast] {
-  background: var(--glass-bg) !important;
+  /* Glass gradient layered over a mostly-opaque surface so toast text stays legible.
+     Lower the popover % to make toasts more see-through, raise it to make them more solid. */
+  background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
   backdrop-filter: blur(var(--blur)) !important;
   -webkit-backdrop-filter: blur(var(--blur)) !important;
   border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow-lg) !important;
+  box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent) !important;
   color: var(--foreground) !important;
 }
 
 [data-sonner-toast][data-type="success"] {
-  border-color: rgba(34, 197, 94, 0.3) !important;
+  border-color: oklch(72.2746% 0.19201 149.579 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="error"] {
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  border-color: oklch(63.6834% 0.20785 25.3313 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="warning"] {
-  border-color: rgba(234, 179, 8, 0.3) !important;
+  border-color: oklch(79.5243% 0.16167 86.0468 / 0.3) !important;
 }
 
 [data-sonner-toast][data-type="info"] {
-  border-color: rgba(59, 130, 246, 0.3) !important;
+  border-color: oklch(62.3083% 0.18801 259.815 / 0.3) !important;
 }
 
 /* Toast description text */

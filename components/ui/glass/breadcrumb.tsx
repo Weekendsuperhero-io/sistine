@@ -1,48 +1,29 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 import {
   Breadcrumb as BaseBreadcrumb,
+  BreadcrumbList as BaseBreadcrumbList,
   BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
-  BreadcrumbList as BaseBreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { cn } from "@/lib/utils"
+} from "../breadcrumb";
 
 export interface BreadcrumbListProps extends React.ComponentProps<typeof BaseBreadcrumbList> {
-  glow?: boolean
+  glow?: boolean;
 }
 
 /**
- * Glass UI Breadcrumb - Enhanced breadcrumb with glassy effects
+ * Sistine Breadcrumb - Enhanced breadcrumb with glassy effects
  */
-export const BreadcrumbList = React.forwardRef<
-  HTMLOListElement,
-  BreadcrumbListProps
->(({ className, variant = "glass", glow = false, ...props }, ref) => {
-  return (
-    <BaseBreadcrumbList
-      ref={ref}
-      variant={variant}
-      className={cn(
-        glow && "shadow-md shadow-purple-500/20",
-        className
-      )}
-      {...props}
-    />
-  )
-})
-BreadcrumbList.displayName = "BreadcrumbList"
+export const BreadcrumbList = React.forwardRef<HTMLOListElement, BreadcrumbListProps>(
+  ({ className, variant = "glass", glow = false, ...props }, ref) => {
+    return <BaseBreadcrumbList ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
+  },
+);
+BreadcrumbList.displayName = "BreadcrumbList";
 
-export {
-  BaseBreadcrumb as Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
-}
-
+export { BaseBreadcrumb as Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator };

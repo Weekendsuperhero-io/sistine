@@ -1,64 +1,104 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { generateCanvasBackground, type CanvasConfig } from "@/lib/canvas-background-utils"
+import * as React from "react";
+import { type CanvasConfig, createLavaLamp, generateCanvasBackground } from "@/lib/canvas-background-utils";
 
-interface CanvasBackgroundProps extends Omit<CanvasConfig, 'width' | 'height'> {
+interface CanvasBackgroundProps extends Omit<CanvasConfig, "width" | "height"> {
   /**
    * Additional className
    */
-  className?: string
+  className?: string;
   /**
    * Opacity of the background (0-1)
    */
-  opacity?: number
+  opacity?: number;
   /**
    * Blur effect for the background
    */
-  blur?: boolean
+  blur?: boolean;
   /**
    * Whether to animate the background
    */
-  animated?: boolean
+  animated?: boolean;
 }
 
 export function CanvasBackground({
   seed,
-  pattern = 'gradient',
+  pattern = "gradient",
   colorCount = 4,
   className = "",
   opacity = 1,
   blur = false,
   animated = false,
 }: CanvasBackgroundProps) {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null)
-  const animationFrameRef = React.useRef<number | undefined>(undefined)
-  const [dimensions, setDimensions] = React.useState({ width: 1920, height: 1080 })
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const animationFrameRef = React.useRef<number | undefined>(undefined);
+  const [dimensions, setDimensions] = React.useState({
+    width: 1920,
+    height: 1080,
+    dpr: 1,
+  });
 
   // Update dimensions on mount and resize
   React.useEffect(() => {
     const updateDimensions = () => {
+      // Back the canvas at device resolution (capped 2×) so it isn't upscaled — that upscaling is
+      // what made every canvas pattern look blurry/pixelated on HiDPI screens.
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      })
-    }
+        width: Math.round(window.innerWidth * dpr),
+        height: Math.round(window.innerHeight * dpr),
+        dpr,
+      });
+    };
 
-    updateDimensions()
-    window.addEventListener('resize', updateDimensions)
-    return () => window.removeEventListener('resize', updateDimensions)
-  }, [])
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   // Draw canvas
   React.useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const ctx = canvas.getContext("2d", {
+      colorSpace: "display-p3",
+    });
+    if (!ctx) return;
 
-    canvas.width = dimensions.width
-    canvas.height = dimensions.height
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+
+    // Lava-lamp / metaball pattern: blobs drift + merge every frame, so it can't reuse the
+    // static draw + buffer-drift path the other patterns share — it gets its own loop.
+    if (pattern === "blobs") {
+      const lava = createLavaLamp({
+        width: dimensions.width,
+        height: dimensions.height,
+        colorCount,
+        dpr: dimensions.dpr,
+        seed: seed || window.location.pathname,
+      });
+      if (animated) {
+        let last = 0;
+        const paint = (now: number) => {
+          animationFrameRef.current = requestAnimationFrame(paint);
+          // ~30fps cap — the full-screen gooey blur is costly and the motion is slow.
+          if (now - last < 33) return;
+          last = now;
+          lava.step(ctx, now / 1000);
+        };
+        animationFrameRef.current = requestAnimationFrame(paint);
+      } else {
+        lava.step(ctx, 0);
+      }
+      return () => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+      };
+    }
 
     const { draw } = generateCanvasBackground({
       width: dimensions.width,
@@ -66,28 +106,59 @@ export function CanvasBackground({
       colorCount,
       pattern,
       seed: seed || window.location.pathname,
-    })
+    });
 
-    const render = () => {
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
-      // Draw background
-      draw(ctx)
-
-      if (animated) {
-        animationFrameRef.current = requestAnimationFrame(render)
+    if (animated) {
+      // Render the pattern ONCE into an offscreen buffer, then gently drift/breathe that
+      // cached image so it floats smoothly — instead of re-randomizing the pattern each frame.
+      const buffer = document.createElement("canvas");
+      buffer.width = canvas.width;
+      buffer.height = canvas.height;
+      const bufferCtx = buffer.getContext("2d", {
+        colorSpace: "display-p3",
+      });
+      if (bufferCtx) {
+        draw(bufferCtx);
       }
-    }
 
-    render()
+      // Initial static frame (avoids a flash before the first animation frame).
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(buffer, 0, 0);
+
+      const paint = (now: number) => {
+        const t = now / 1000;
+        // Very slow drift + subtle "breathing" scale. The 1.12x base scale keeps the
+        // ~3% drift within bounds so no canvas edges are exposed.
+        const driftX = Math.sin(t * 0.12) * canvas.width * 0.03;
+        const driftY = Math.cos(t * 0.1) * canvas.height * 0.03;
+        const scale = 1.12 + Math.sin(t * 0.08) * 0.015;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.scale(scale, scale);
+        ctx.translate(-canvas.width / 2 + driftX, -canvas.height / 2 + driftY);
+        ctx.drawImage(buffer, 0, 0);
+        ctx.restore();
+        animationFrameRef.current = requestAnimationFrame(paint);
+      };
+      animationFrameRef.current = requestAnimationFrame(paint);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      draw(ctx);
+    }
 
     return () => {
       if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
+        cancelAnimationFrame(animationFrameRef.current);
       }
-    }
-  }, [dimensions, seed, pattern, colorCount, animated])
+    };
+  }, [
+    dimensions,
+    seed,
+    pattern,
+    colorCount,
+    animated,
+  ]);
 
   return (
     <canvas
@@ -103,6 +174,5 @@ export function CanvasBackground({
         height: "100%",
       }}
     />
-  )
+  );
 }
-

@@ -5,16 +5,16 @@
   border-radius: 3em;
   font-weight: 700;
   line-height: 1;
-  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: "Nunito Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .storybook-button--primary {
-  background-color: #555ab9;
+  background-color: oklch(51.3169% 0.14702 277.606);
   color: white;
 }
 .storybook-button--secondary {
-  box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
+  box-shadow: oklch(0% 0 0 / 0.15) 0px 0px 0px 1px inset;
   background-color: transparent;
-  color: #333;
+  color: oklch(32.1093% 0 0);
 }
 .storybook-button--small {
   padding: 10px 16px;

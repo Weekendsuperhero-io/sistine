@@ -1,49 +1,19 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  Table as BaseTable,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Table as BaseTable, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "../table";
 
 export interface TableProps extends React.ComponentProps<typeof BaseTable> {
-  glow?: boolean
+  glow?: boolean;
 }
 
 /**
- * Glass UI Table - Enhanced table with glassy effects
+ * Sistine Table - Enhanced table with glassy effects
  */
-export const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return (
-      <BaseTable
-        ref={ref}
-        variant={variant}
-        className={cn(
-          glow && "shadow-lg shadow-purple-500/20",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-Table.displayName = "Table"
+export const Table = React.forwardRef<HTMLTableElement, TableProps>(({ className, variant = "glass", glow = false, ...props }, ref) => {
+  return <BaseTable ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
+});
+Table.displayName = "Table";
 
-export {
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,
-}
-
+export { TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow };

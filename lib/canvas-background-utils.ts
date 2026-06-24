@@ -7,406 +7,277 @@ export interface CanvasConfig {
   /**
    * Width of the canvas
    */
-  width?: number
+  width?: number;
   /**
    * Height of the canvas
    */
-  height?: number
+  height?: number;
   /**
    * Number of color stops/gradients
    */
-  colorCount?: number
+  colorCount?: number;
   /**
-   * Pattern type: 'gradient', 'circles', 'waves', 'particles', 'noise', 'artistic'
+   * Pattern type: 'gradient', 'circles', 'blobs'
    */
-  pattern?: 'gradient' | 'circles' | 'waves' | 'particles' | 'noise' | 'artistic'
+  pattern?: "gradient" | "circles" | "blobs";
   /**
    * Seed for consistent generation (optional)
    */
-  seed?: string
+  seed?: string;
   /**
    * Animation speed (0 = static, higher = faster)
    */
-  animationSpeed?: number
+  animationSpeed?: number;
+  /**
+   * Device pixel ratio the target canvas is backed at — scales blur radii so the gooey metaball
+   * filter looks the same at any backing resolution. Default 1.
+   */
+  dpr?: number;
 }
 
 /**
- * Curated color palettes for beautiful glassmorphism backgrounds
+ * Curated color palettes in OKLCH for beautiful glassmorphism backgrounds
+ * Values: l (lightness 0-100%), c (chroma 0-0.4), h (hue 0-360)
  */
 const COLOR_PALETTES = {
   // Sunset/Sunrise gradients (warm, vibrant)
   sunset: [
-    { r: 255, g: 107, b: 107 },   // Coral Red
-    { r: 255, g: 159, b: 64 },    // Orange
-    { r: 255, g: 206, b: 84 },    // Golden Yellow
-    { r: 255, g: 119, b: 198 },   // Pink
+    {
+      l: 71.2,
+      c: 0.181,
+      h: 22.8,
+    }, // Coral Red
+    {
+      l: 78.5,
+      c: 0.155,
+      h: 61.3,
+    }, // Orange
+    {
+      l: 87.3,
+      c: 0.147,
+      h: 86.7,
+    }, // Golden Yellow
+    {
+      l: 75.2,
+      c: 0.186,
+      h: 346.6,
+    }, // Pink
   ],
   // Ocean/Sea gradients (calm, refreshing)
   ocean: [
-    { r: 0, g: 180, b: 216 },     // Ocean Blue
-    { r: 72, g: 202, b: 228 },    // Sky Blue
-    { r: 144, g: 224, b: 239 },   // Light Blue
-    { r: 0, g: 150, b: 199 },     // Deep Blue
+    {
+      l: 71.1,
+      c: 0.129,
+      h: 219,
+    }, // Ocean Blue
+    {
+      l: 77.9,
+      c: 0.117,
+      h: 213.7,
+    }, // Sky Blue
+    {
+      l: 86,
+      c: 0.081,
+      h: 210.7,
+    }, // Light Blue
+    {
+      l: 63.1,
+      c: 0.126,
+      h: 230.5,
+    }, // Deep Blue
   ],
   // Forest/Nature gradients (earthy, natural)
   forest: [
-    { r: 34, g: 139, b: 34 },     // Forest Green
-    { r: 46, g: 125, b: 50 },     // Dark Green
-    { r: 76, g: 175, b: 80 },     // Light Green
-    { r: 56, g: 142, b: 60 },     // Green
+    {
+      l: 55.8,
+      c: 0.169,
+      h: 142.9,
+    }, // Forest Green
+    {
+      l: 52.3,
+      c: 0.135,
+      h: 144.2,
+    }, // Dark Green
+    {
+      l: 67.3,
+      c: 0.162,
+      h: 144.2,
+    }, // Light Green
+    {
+      l: 57.5,
+      c: 0.145,
+      h: 144.2,
+    }, // Green
   ],
   // Lavender/Dream gradients (soft, dreamy)
   lavender: [
-    { r: 200, g: 162, b: 200 },   // Lavender
-    { r: 186, g: 104, b: 200 },   // Purple
-    { r: 171, g: 71, b: 188 },    // Deep Purple
-    { r: 224, g: 187, b: 228 },   // Light Lavender
+    {
+      l: 75.9,
+      c: 0.068,
+      h: 326.2,
+    }, // Lavender
+    {
+      l: 64.5,
+      c: 0.162,
+      h: 321.6,
+    }, // Purple
+    {
+      l: 57.6,
+      c: 0.194,
+      h: 321.6,
+    }, // Deep Purple
+    {
+      l: 83.7,
+      c: 0.069,
+      h: 323,
+    }, // Light Lavender
   ],
   // Fire/Ember gradients (intense, dynamic)
   fire: [
-    { r: 255, g: 87, b: 34 },     // Deep Orange
-    { r: 255, g: 152, b: 0 },     // Orange
-    { r: 255, g: 193, b: 7 },     // Amber
-    { r: 244, g: 67, b: 54 },     // Red
+    {
+      l: 67.9,
+      c: 0.213,
+      h: 36.5,
+    }, // Deep Orange
+    {
+      l: 77,
+      c: 0.174,
+      h: 64.1,
+    }, // Orange
+    {
+      l: 84.4,
+      c: 0.172,
+      h: 84.9,
+    }, // Amber
+    {
+      l: 64.3,
+      c: 0.215,
+      h: 28.8,
+    }, // Red
   ],
   // Midnight/Space gradients (mysterious, deep)
   midnight: [
-    { r: 25, g: 25, b: 112 },     // Midnight Blue
-    { r: 72, g: 61, b: 139 },     // Dark Slate Blue
-    { r: 106, g: 90, b: 205 },    // Slate Blue
-    { r: 123, g: 104, b: 238 },   // Medium Slate Blue
+    {
+      l: 28.8,
+      c: 0.144,
+      h: 272.8,
+    }, // Midnight Blue
+    {
+      l: 41.4,
+      c: 0.125,
+      h: 286,
+    }, // Dark Slate Blue
+    {
+      l: 54.4,
+      c: 0.171,
+      h: 285.5,
+    }, // Slate Blue
+    {
+      l: 60.4,
+      c: 0.194,
+      h: 285.5,
+    }, // Medium Slate Blue
   ],
-}
+};
 
 /**
  * Get a curated color palette based on seed
  */
 function getColorPalette(seed: number): typeof COLOR_PALETTES.sunset {
-  const palettes = Object.values(COLOR_PALETTES)
-  const index = Math.floor((Math.abs(Math.sin(seed)) * 10000) % palettes.length)
-  return palettes[index]
+  const palettes = Object.values(COLOR_PALETTES);
+  const index = Math.floor((Math.abs(Math.sin(seed)) * 10000) % palettes.length);
+  return palettes[index];
 }
 
 /**
- * Generate a beautiful color from curated palette
+ * Generate a beautiful color from curated palette (returns oklch string)
  */
 function randomColor(seed?: number): string {
   if (seed === undefined) {
-    seed = Math.random() * 1000
+    seed = Math.random() * 1000;
   }
-  
-  const palette = getColorPalette(seed)
-  const colorIndex = Math.floor((Math.abs(Math.sin(seed * 2)) * 10000) % palette.length)
-  const color = palette[colorIndex]
-  
+
+  const palette = getColorPalette(seed);
+  const colorIndex = Math.floor((Math.abs(Math.sin(seed * 2)) * 10000) % palette.length);
+  const color = palette[colorIndex];
+
   // Add slight variation for more natural look
-  const variation = 0.15 // 15% variation
-  const rVariation = (Math.sin(seed * 3) * variation)
-  const gVariation = (Math.sin(seed * 4) * variation)
-  const bVariation = (Math.sin(seed * 5) * variation)
-  
-  const r = Math.max(0, Math.min(255, Math.floor(color.r * (1 + rVariation))))
-  const g = Math.max(0, Math.min(255, Math.floor(color.g * (1 + gVariation))))
-  const b = Math.max(0, Math.min(255, Math.floor(color.b * (1 + bVariation))))
-  
-  return `rgb(${r}, ${g}, ${b})`
+  const variation = 0.15;
+  const lVariation = Math.sin(seed * 3) * variation;
+  const cVariation = Math.sin(seed * 4) * variation;
+  const hVariation = Math.sin(seed * 5) * 15; // ±15° hue shift
+
+  const l = Math.max(0, Math.min(100, color.l * (1 + lVariation)));
+  const c = Math.max(0, Math.min(0.4, color.c * (1 + cVariation)));
+  const h = (((color.h + hVariation) % 360) + 360) % 360;
+
+  return `oklch(${l.toFixed(1)}% ${c.toFixed(3)} ${h.toFixed(1)})`;
+}
+
+/**
+ * Add alpha to an oklch color string
+ */
+function withAlpha(color: string, alpha: number): string {
+  return color.replace(")", ` / ${alpha})`);
 }
 
 /**
  * Seeded random number generator
  */
 function seededRandom(seed: string): () => number {
-  let value = 0
+  let value = 0;
   for (let i = 0; i < seed.length; i++) {
-    value = ((value << 5) - value) + seed.charCodeAt(i)
-    value = value & value
+    value = (value << 5) - value + seed.charCodeAt(i);
+    value = value & value;
   }
-  let seedValue = Math.abs(value)
-  
+  let seedValue = Math.abs(value);
+
   return () => {
-    seedValue = (seedValue * 9301 + 49297) % 233280
-    return seedValue / 233280
-  }
+    seedValue = (seedValue * 9301 + 49297) % 233280;
+    return seedValue / 233280;
+  };
 }
 
 /**
  * Draw gradient pattern on canvas
  */
-function drawGradient(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
-  const gradient = ctx.createLinearGradient(
-    random() * width,
-    random() * height,
-    random() * width,
-    random() * height
-  )
-  
+function drawGradient(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
+  const gradient = ctx.createLinearGradient(random() * width, random() * height, random() * width, random() * height);
+
   for (let i = 0; i < colorCount; i++) {
-    const offset = i / (colorCount - 1)
-    const color = randomColor(random() * 1000)
-    gradient.addColorStop(offset, color)
+    const offset = i / (colorCount - 1);
+    const color = randomColor(random() * 1000);
+    gradient.addColorStop(offset, color);
   }
-  
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, width, height)
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
 }
 
 /**
  * Draw circles pattern on canvas
  */
-function drawCircles(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
+function drawCircles(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
   // Base gradient background
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, randomColor(random() * 1000))
-  bgGradient.addColorStop(1, randomColor(random() * 1000))
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-  
+  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
+  bgGradient.addColorStop(0, randomColor(random() * 1000));
+  bgGradient.addColorStop(1, randomColor(random() * 1000));
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+
   // Draw circles
-  const circleCount = Math.floor(colorCount * 2)
+  const circleCount = Math.floor(colorCount * 2);
   for (let i = 0; i < circleCount; i++) {
-    const x = random() * width
-    const y = random() * height
-    const radius = (random() * Math.min(width, height) * 0.3) + 50
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.5 + 0.3
-    
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.fillStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.fill()
-  }
-}
+    const x = random() * width;
+    const y = random() * height;
+    const radius = random() * Math.min(width, height) * 0.3 + 50;
+    const color = randomColor(random() * 1000);
+    const alpha = random() * 0.5 + 0.3;
 
-/**
- * Draw waves pattern on canvas
- */
-function drawWaves(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, randomColor(random() * 1000))
-  bgGradient.addColorStop(1, randomColor(random() * 1000))
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-  
-  // Draw waves
-  ctx.strokeStyle = randomColor(random() * 1000)
-  ctx.lineWidth = 3
-  ctx.globalAlpha = 0.6
-  
-  for (let i = 0; i < colorCount; i++) {
-    ctx.beginPath()
-    const y = (height / colorCount) * i
-    const frequency = random() * 0.02 + 0.01
-    const amplitude = random() * 50 + 20
-    
-    for (let x = 0; x < width; x += 2) {
-      const waveY = y + Math.sin(x * frequency) * amplitude
-      if (x === 0) {
-        ctx.moveTo(x, waveY)
-      } else {
-        ctx.lineTo(x, waveY)
-      }
-    }
-    
-    ctx.strokeStyle = randomColor(random() * 1000)
-    ctx.stroke()
-  }
-  
-  ctx.globalAlpha = 1
-}
-
-/**
- * Draw particles pattern on canvas
- */
-function drawParticles(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, randomColor(random() * 1000))
-  bgGradient.addColorStop(1, randomColor(random() * 1000))
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-  
-  // Draw particles
-  const particleCount = colorCount * 20
-  for (let i = 0; i < particleCount; i++) {
-    const x = random() * width
-    const y = random() * height
-    const size = random() * 3 + 1
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.8 + 0.2
-    
-    ctx.fillStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.beginPath()
-    ctx.arc(x, y, size, 0, Math.PI * 2)
-    ctx.fill()
-  }
-}
-
-/**
- * Draw noise pattern on canvas
- */
-function drawNoise(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
-  // Base gradient
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, randomColor(random() * 1000))
-  bgGradient.addColorStop(1, randomColor(random() * 1000))
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-  
-  // Draw noise
-  const imageData = ctx.createImageData(width, height)
-  const data = imageData.data
-  const baseColor = randomColor(random() * 1000).match(/\d+/g) || ['128', '128', '128']
-  
-  for (let i = 0; i < data.length; i += 4) {
-    const noise = (random() - 0.5) * 50
-    data[i] = Math.max(0, Math.min(255, parseInt(baseColor[0]) + noise))     // R
-    data[i + 1] = Math.max(0, Math.min(255, parseInt(baseColor[1]) + noise)) // G
-    data[i + 2] = Math.max(0, Math.min(255, parseInt(baseColor[2]) + noise)) // B
-    data[i + 3] = random() * 100 + 50 // A
-  }
-  
-  ctx.putImageData(imageData, 0, 0)
-}
-
-/**
- * Draw artistic painting pattern with random lines and brush strokes
- */
-function drawArtistic(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  colorCount: number,
-  random: () => number
-): void {
-  // Base gradient background
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height)
-  bgGradient.addColorStop(0, randomColor(random() * 1000))
-  bgGradient.addColorStop(0.5, randomColor(random() * 1000))
-  bgGradient.addColorStop(1, randomColor(random() * 1000))
-  ctx.fillStyle = bgGradient
-  ctx.fillRect(0, 0, width, height)
-  
-  // Draw artistic brush strokes
-  const strokeCount = colorCount * 8
-  for (let i = 0; i < strokeCount; i++) {
-    const x1 = random() * width
-    const y1 = random() * height
-    const x2 = x1 + (random() - 0.5) * width * 0.4
-    const y2 = y1 + (random() - 0.5) * height * 0.4
-    
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.4 + 0.3
-    const lineWidth = random() * 15 + 5
-    
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    
-    // Create curved brush stroke with control points
-    const cp1x = x1 + (random() - 0.5) * width * 0.2
-    const cp1y = y1 + (random() - 0.5) * height * 0.2
-    const cp2x = x2 + (random() - 0.5) * width * 0.2
-    const cp2y = y2 + (random() - 0.5) * height * 0.2
-    
-    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2)
-    
-    ctx.strokeStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.lineWidth = lineWidth
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.stroke()
-  }
-  
-  // Draw abstract shapes (circles and ovals)
-  const shapeCount = colorCount * 3
-  for (let i = 0; i < shapeCount; i++) {
-    const x = random() * width
-    const y = random() * height
-    const radiusX = random() * Math.min(width, height) * 0.15 + 20
-    const radiusY = random() * Math.min(width, height) * 0.15 + 20
-    
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.3 + 0.2
-    
-    ctx.beginPath()
-    ctx.ellipse(x, y, radiusX, radiusY, random() * Math.PI * 2, 0, Math.PI * 2)
-    ctx.fillStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.fill()
-  }
-  
-  // Draw flowing lines
-  const lineCount = colorCount * 5
-  for (let i = 0; i < lineCount; i++) {
-    const startX = random() * width
-    const startY = random() * height
-    const segments = Math.floor(random() * 5) + 3
-    
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.5 + 0.3
-    const lineWidth = random() * 8 + 2
-    
-    ctx.beginPath()
-    ctx.moveTo(startX, startY)
-    
-    let currentX = startX
-    let currentY = startY
-    
-    for (let j = 0; j < segments; j++) {
-      currentX += (random() - 0.5) * width * 0.3
-      currentY += (random() - 0.5) * height * 0.3
-      ctx.lineTo(currentX, currentY)
-    }
-    
-    ctx.strokeStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.lineWidth = lineWidth
-    ctx.lineCap = 'round'
-    ctx.stroke()
-  }
-  
-  // Add some splatter effects (small dots)
-  const splatterCount = colorCount * 15
-  for (let i = 0; i < splatterCount; i++) {
-    const x = random() * width
-    const y = random() * height
-    const size = random() * 4 + 1
-    
-    const color = randomColor(random() * 1000)
-    const alpha = random() * 0.6 + 0.2
-    
-    ctx.fillStyle = color.replace('rgb', 'rgba').replace(')', `, ${alpha})`)
-    ctx.beginPath()
-    ctx.arc(x, y, size, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = withAlpha(color, alpha);
+    ctx.fill();
   }
 }
 
@@ -414,44 +285,119 @@ function drawArtistic(
  * Generate canvas background
  */
 export function generateCanvasBackground(config: CanvasConfig = {}): {
-  draw: (ctx: CanvasRenderingContext2D) => void
-  width: number
-  height: number
+  draw: (ctx: CanvasRenderingContext2D) => void;
+  width: number;
+  height: number;
 } {
   const {
-    width = typeof window !== 'undefined' ? window.innerWidth : 1920,
-    height = typeof window !== 'undefined' ? window.innerHeight : 1080,
+    width = typeof window !== "undefined" ? window.innerWidth : 1920,
+    height = typeof window !== "undefined" ? window.innerHeight : 1080,
     colorCount = 4,
-    pattern = 'gradient',
+    pattern = "gradient",
     seed,
-  } = config
+  } = config;
 
-  const random = seed ? seededRandom(seed) : () => Math.random()
+  const random = seed ? seededRandom(seed) : () => Math.random();
 
   const draw = (ctx: CanvasRenderingContext2D) => {
     switch (pattern) {
-      case 'circles':
-        drawCircles(ctx, width, height, colorCount, random)
-        break
-      case 'waves':
-        drawWaves(ctx, width, height, colorCount, random)
-        break
-      case 'particles':
-        drawParticles(ctx, width, height, colorCount, random)
-        break
-      case 'noise':
-        drawNoise(ctx, width, height, colorCount, random)
-        break
-      case 'artistic':
-        drawArtistic(ctx, width, height, colorCount, random)
-        break
-      case 'gradient':
+      case "circles":
+        drawCircles(ctx, width, height, colorCount, random);
+        break;
       default:
-        drawGradient(ctx, width, height, colorCount, random)
-        break
+        drawGradient(ctx, width, height, colorCount, random);
+        break;
     }
-  }
+  };
 
-  return { draw, width, height }
+  return {
+    draw,
+    width,
+    height,
+  };
 }
 
+/**
+ * Lava-lamp / metaball field. Returns `step(ctx, t)` which paints slowly drifting, pulsing
+ * blobs that merge gooily — drawn solid onto an offscreen layer, then composited through a
+ * blur()+contrast() filter so overlapping blobs fuse with metaball "necks". Drive it per
+ * frame for animation, or call once at t=0 for a static frame. Used by the "blobs" pattern.
+ */
+export function createLavaLamp(config: CanvasConfig = {}): {
+  step: (ctx: CanvasRenderingContext2D, t: number) => void;
+} {
+  const width = config.width ?? (typeof window !== "undefined" ? window.innerWidth : 1920);
+  const height = config.height ?? (typeof window !== "undefined" ? window.innerHeight : 1080);
+  const colorCount = config.colorCount ?? 5;
+  const random = config.seed ? seededRandom(config.seed) : () => Math.random();
+
+  const dpr = config.dpr ?? 1;
+  const paletteSeed = random() * 1000;
+  const bgHue = (paletteSeed * 0.37) % 360;
+  // Deep, colored jewel-tone backdrop (not near-black) so it reads as theme-adjacent.
+  const bgTop = `oklch(28% 0.06 ${bgHue.toFixed(1)})`;
+  const bgBottom = `oklch(19% 0.07 ${((bgHue + 40) % 360).toFixed(1)})`;
+
+  const minDim = Math.min(width, height);
+  const blobCount = Math.max(5, colorCount + 2);
+  const blobs = Array.from(
+    {
+      length: blobCount,
+    },
+    (_, i) => ({
+      baseX: random() * width,
+      baseY: random() * height,
+      r: (random() * 0.14 + 0.13) * minDim,
+      ampX: (random() * 0.05 + 0.03) * width,
+      ampY: (random() * 0.16 + 0.12) * height,
+      speed: random() * 0.16 + 0.05,
+      phase: random() * Math.PI * 2,
+      color: randomColor(paletteSeed + i * 13 + 9),
+    }),
+  );
+
+  // Blobs are drawn opaque here, then composited through the gooey filter onto the target.
+  const off = typeof document !== "undefined" ? document.createElement("canvas") : null;
+  if (off) {
+    off.width = width;
+    off.height = height;
+  }
+  const offCtx =
+    off?.getContext("2d", {
+      colorSpace: "display-p3",
+    }) ?? null;
+
+  return {
+    step: (ctx, t) => {
+      // Deep, colored backdrop straight onto the target — drawn WITHOUT the blur/contrast filter so
+      // it stays a jewel tone instead of being crushed to black.
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, bgTop);
+      grad.addColorStop(1, bgBottom);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      if (!off || !offCtx) return;
+
+      // Blobs on a transparent layer, then composited back through a soft, dpr-scaled blur so they
+      // read as glowing, merging lava. (The old blur(34px)+contrast(11) snapped overlaps into harsh,
+      // aliased edges that looked pixelated — replaced with a soft glow.)
+      offCtx.clearRect(0, 0, width, height);
+      for (const b of blobs) {
+        const x = b.baseX + Math.sin(t * b.speed + b.phase) * b.ampX;
+        const y = b.baseY + Math.cos(t * b.speed * 0.8 + b.phase) * b.ampY;
+        const r = b.r * (1 + Math.sin(t * b.speed * 1.5 + b.phase) * 0.12);
+        offCtx.beginPath();
+        offCtx.arc(x, y, r, 0, Math.PI * 2);
+        offCtx.fillStyle = b.color;
+        offCtx.fill();
+      }
+
+      ctx.save();
+      ctx.globalAlpha = 0.82;
+      ctx.filter = `blur(${(54 * dpr).toFixed(0)}px)`;
+      ctx.drawImage(off, 0, 0);
+      ctx.restore();
+    },
+  };
+}

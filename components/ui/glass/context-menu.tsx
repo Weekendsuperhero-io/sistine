@@ -1,60 +1,52 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   ContextMenu as BaseContextMenu,
-  ContextMenuTrigger as BaseContextMenuTrigger,
   ContextMenuContent as BaseContextMenuContent,
-  ContextMenuItem,
+  ContextMenuTrigger as BaseContextMenuTrigger,
   ContextMenuCheckboxItem,
-  ContextMenuRadioItem,
+  ContextMenuGroup,
+  ContextMenuItem,
   ContextMenuLabel,
+  ContextMenuPortal,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
-  ContextMenuGroup,
-  ContextMenuPortal,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-  ContextMenuRadioGroup,
-} from "@/components/ui/context-menu"
+} from "../context-menu";
 
 /**
- * Glass UI Context Menu - A beautifully designed context menu with glassy effects
+ * Sistine Context Menu - A beautifully designed context menu with glassy effects
  * Built on top of the base ContextMenu component with enhanced visual styling
  */
-export const ContextMenu = BaseContextMenu
-export const ContextMenuTrigger = BaseContextMenuTrigger
+export const ContextMenu = BaseContextMenu;
+export const ContextMenuTrigger = BaseContextMenuTrigger;
 
 export const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof BaseContextMenuContent>,
   React.ComponentProps<typeof BaseContextMenuContent> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, variant = "glass", ...props }, ref) => {
-  return (
-    <BaseContextMenuContent
-      ref={ref}
-      variant={variant}
-      className={className}
-      {...props}
-    />
-  )
-})
-ContextMenuContent.displayName = "ContextMenuContent"
+  return <BaseContextMenuContent ref={ref} variant={variant} className={className} {...props} />;
+});
+ContextMenuContent.displayName = "ContextMenuContent";
 
 export {
-  ContextMenuItem,
   ContextMenuCheckboxItem,
-  ContextMenuRadioItem,
+  ContextMenuGroup,
+  ContextMenuItem,
   ContextMenuLabel,
+  ContextMenuPortal,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
-  ContextMenuGroup,
-  ContextMenuPortal,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-  ContextMenuRadioGroup,
-}
-
+};

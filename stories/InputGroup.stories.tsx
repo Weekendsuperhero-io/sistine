@@ -1,24 +1,39 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { InputGroup } from '@/components/ui/glass/input-group';
-import { Input } from '@/components/ui/glass/input';
-import { Button } from '@/components/ui/glass/button';
-import { Search } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/glass/button";
+import { Input } from "@/components/ui/glass/input";
+import { InputGroup } from "@/components/ui/glass/input-group";
 
 const meta = {
-  title: 'Glass UI/InputGroup',
+  title: "Sistine/InputGroup",
   component: InputGroup,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
     },
   },
 } satisfies Meta<typeof InputGroup>;
@@ -28,12 +43,12 @@ type Story = StoryObj<typeof meta>;
 
 export const WithButton: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
         <Button variant="ghost" size="icon" className="rounded-l-none">
-          <Search className="h-4 w-4" />
+          <MagnifyingGlassIcon className="h-4 w-4" />
         </Button>
       </>
     ),
@@ -42,15 +57,14 @@ export const WithButton: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
+    variant: "frosted",
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
         <Button variant="ghost" size="icon" className="rounded-l-none">
-          <Search className="h-4 w-4" />
+          <MagnifyingGlassIcon className="h-4 w-4" />
         </Button>
       </>
     ),
   },
 };
-

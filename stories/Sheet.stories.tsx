@@ -1,16 +1,18 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/glass/button';
-import { Input } from '@/components/ui/glass/input';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Button } from "@/components/ui/glass/button";
+import { Input } from "@/components/ui/glass/input";
+import { Label } from "@/components/ui/label";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const meta = {
-  title: 'Glass UI/Sheet',
+  title: "Sistine/Sheet",
   component: Sheet,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof Sheet>;
 
 export default meta;
@@ -25,9 +27,7 @@ export const GlassRight: Story = {
       <SheetContent variant="glass" side="right">
         <SheetHeader>
           <SheetTitle>Edit profile</SheetTitle>
-          <SheetDescription>
-            Make changes to your profile here. Click save when you're done.
-          </SheetDescription>
+          <SheetDescription>Make changes to your profile here. Click save when you're done.</SheetDescription>
         </SheetHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -39,7 +39,9 @@ export const GlassRight: Story = {
             <Input id="email" type="email" placeholder="email@example.com" variant="glass" />
           </div>
         </div>
-        <Button variant="glass" className="w-full">Save changes</Button>
+        <Button variant="glass" className="w-full">
+          Save changes
+        </Button>
       </SheetContent>
     </Sheet>
   ),
@@ -54,14 +56,10 @@ export const FrostedLeft: Story = {
       <SheetContent variant="frosted" side="left">
         <SheetHeader>
           <SheetTitle>Frosted Sheet</SheetTitle>
-          <SheetDescription>
-            This sheet slides in from the left with a frosted glass effect.
-          </SheetDescription>
+          <SheetDescription>This sheet slides in from the left with a frosted glass effect.</SheetDescription>
         </SheetHeader>
         <div className="py-4">
-          <p className="text-sm text-muted-foreground">
-            The frosted variant provides enhanced blur and opacity for better content separation.
-          </p>
+          <p className="text-sm text-muted-foreground">The frosted variant provides enhanced blur and opacity for better content separation.</p>
         </div>
       </SheetContent>
     </Sheet>
@@ -77,14 +75,10 @@ export const CrystalTop: Story = {
       <SheetContent variant="crystal" side="top">
         <SheetHeader>
           <SheetTitle>Crystal Sheet</SheetTitle>
-          <SheetDescription>
-            Premium crystal glass sheet sliding from the top.
-          </SheetDescription>
+          <SheetDescription>Premium crystal glass sheet sliding from the top.</SheetDescription>
         </SheetHeader>
         <div className="py-4">
-          <p className="text-sm">
-            Crystal variant features layered effects with gradients and animations.
-          </p>
+          <p className="text-sm">Crystal variant features layered effects with gradients and animations.</p>
         </div>
       </SheetContent>
     </Sheet>
@@ -100,17 +94,12 @@ export const GlassBottom: Story = {
       <SheetContent variant="glass" side="bottom">
         <SheetHeader>
           <SheetTitle>Bottom Sheet</SheetTitle>
-          <SheetDescription>
-            This sheet slides up from the bottom.
-          </SheetDescription>
+          <SheetDescription>This sheet slides up from the bottom.</SheetDescription>
         </SheetHeader>
         <div className="py-4">
-          <p className="text-sm text-muted-foreground">
-            Perfect for mobile-friendly interactions and quick actions.
-          </p>
+          <p className="text-sm text-muted-foreground">Perfect for mobile-friendly interactions and quick actions.</p>
         </div>
       </SheetContent>
     </Sheet>
   ),
 };
-

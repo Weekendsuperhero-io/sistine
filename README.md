@@ -1,16 +1,17 @@
-# Glass UI
+# Sistine
 
 A modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui registry.
 
-![Glass UI](https://img.shields.io/badge/Glass%20UI-v0.1.0-blue)
+![Sistine](https://img.shields.io/badge/Sistine-v0.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black)
 ![React](https://img.shields.io/badge/React-19.1-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
 
 ## ✨ Features
 
-- **40+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
+- **50+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
 - **Apple-Inspired Design** - Glassmorphism effects following Apple's design standards
+- **OKLCH tint system** - Recolor every glass surface from three variables (hue / chroma / wash) or a built-in preset
 - **Theme Support** - Built-in light/dark mode with automatic theme switching
 - **Enhanced Effects** - Glow, shimmer, ripple, and gradient animations
 - **Fully Customizable** - Per-component glass effect customization
@@ -23,26 +24,36 @@ A modern, glassmorphic component library inspired by Apple's design language, bu
 
 ### Installation
 
-Install components using the shadcn CLI with your preferred package manager:
+Sistine is a namespaced shadcn registry. Add the `@sistine` namespace to your project's `components.json` **once**:
+
+```json
+{
+  "registries": {
+    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/sistine/main/public/r/{name}.json"
+  }
+}
+```
+
+Then add any component with the shadcn CLI using your preferred package manager:
 
 **pnpm:**
 ```bash
-pnpm dlx shadcn@latest add @glass-ui/button
+pnpm dlx shadcn@latest add @sistine/button
 ```
 
 **yarn:**
 ```bash
-yarn dlx shadcn@latest add @glass-ui/button
+yarn dlx shadcn@latest add @sistine/button
 ```
 
 **npm:**
 ```bash
-npx shadcn@latest add @glass-ui/button
+npx shadcn@latest add @sistine/button
 ```
 
 **bun:**
 ```bash
-bunx shadcn@latest add @glass-ui/button
+bunx shadcn@latest add @sistine/button
 ```
 
 ### Usage
@@ -74,7 +85,7 @@ export function Example() {
 
 ## 📚 Documentation
 
-Visit the [full documentation](https://glass-ui.crenspire.com) for:
+Visit the [full documentation](https://weekendsuperhero.io) for:
 - Complete component reference
 - Installation guides
 - Customization examples
@@ -105,7 +116,7 @@ Visit `http://localhost:6006` after starting Storybook.
 
 ## 🏗️ Architecture
 
-Glass UI follows a two-layer component architecture:
+Sistine follows a two-layer component architecture:
 
 ### Base Components (`registry/ui/`)
 Foundation components with glassy variants providing:
@@ -114,7 +125,7 @@ Foundation components with glassy variants providing:
 - Accessibility features (Radix UI)
 - TypeScript support
 
-### Glass UI Components (`registry/ui/glass/`)
+### Sistine Components (`registry/ui/glass/`)
 Enhanced components built on top of base components with:
 - Enhanced visual effects (glow, shimmer, ripple)
 - Advanced styling options
@@ -123,23 +134,19 @@ Enhanced components built on top of base components with:
 
 ## 🎨 Customization
 
-### Global CSS Variables
+### Retint all glass
 
-Customize glass effects globally using CSS variables:
+Every color is authored in **oklch** in `app/globals.css` (full reference: [`docs/color-tokens.md`](./docs/color-tokens.md)). The whole glass system is driven by three tint variables — change them, or set a preset on `<html data-glass-tint="…">`, to recolor every surface, border, and accent at once:
 
 ```css
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --blur: 30px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.dark {
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-tint-h: 250; /* hue 0–360 */
+  --glass-tint-c: 0.05; /* chroma (saturation) */
+  --glass-tint-a: 0.16; /* wash alpha */
 }
 ```
+
+Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `fluted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
 ### Per-Component Customization
 
@@ -147,10 +154,10 @@ Customize glass effects globally using CSS variables:
 <Card
   variant="glass"
   glass={{
-    color: "rgba(139, 92, 246, 0.2)",
+    color: "oklch(0.6 0.22 293 / 0.2)",
     blur: 30,
     transparency: 0.3,
-    outline: "rgba(139, 92, 246, 0.5)"
+    outline: "oklch(0.6 0.22 293 / 0.5)"
   }}
 >
   Content
@@ -182,7 +189,7 @@ Customize glass effects globally using CSS variables:
 - Calendar, Chart, Command
 - Slider, Toggle, Toggle Group
 
-And more! See the [full component list](https://glass-ui.crenspire.com/components).
+And more! See the [full component list](https://weekendsuperhero.io/components).
 
 ## 🛠️ Development
 
@@ -195,8 +202,8 @@ And more! See the [full component list](https://glass-ui.crenspire.com/component
 
 ```bash
 # Clone the repository
-git clone https://github.com/crenspire/glass-ui.git
-cd glass-ui
+git clone https://github.com/Weekendsuperhero-io/sistine.git
+cd sistine
 
 # Install dependencies
 pnpm install
@@ -217,14 +224,14 @@ pnpm registry:build
 ### Project Structure
 
 ```
-glass-ui/
+sistine/
 ├── app/                    # Next.js app directory
 ├── components/             # Shared components
 ├── lib/                    # Utilities and helpers
 ├── public/                 # Static assets
 ├── registry/
 │   ├── ui/                # Base components
-│   └── ui/glass/          # Glass UI components
+│   └── ui/glass/          # Sistine components
 ├── stories/               # Storybook stories
 └── registry.json          # Component registry
 ```
@@ -243,9 +250,7 @@ Deploy both the documentation site and Storybook to Vercel:
 3. Set environment variable `NEXT_PUBLIC_STORYBOOK_URL` in main site
 4. Redeploy main site
 
-**Detailed Instructions:**
-- See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment guide
-- See [DEPLOYMENT-QUICKSTART.md](./DEPLOYMENT-QUICKSTART.md) for quick reference
+> Both deploy from the same repo — the main site (default settings) and Storybook (build command `pnpm build-storybook`, output `storybook-static`).
 
 ### Build Commands
 
@@ -271,9 +276,9 @@ This project is licensed under the MIT License.
 
 ## 🔗 Links
 
-- [Documentation](https://glass-ui.crenspire.com)
-- [GitHub Repository](https://github.com/crenspire/glass-ui)
-- [Issue Tracker](https://github.com/crenspire/glass-ui/issues)
+- [Documentation](https://weekendsuperhero.io)
+- [GitHub Repository](https://github.com/Weekendsuperhero-io/sistine)
+- [Issue Tracker](https://github.com/Weekendsuperhero-io/sistine/issues)
 
 ## 🙏 Acknowledgments
 
@@ -283,4 +288,4 @@ This project is licensed under the MIT License.
 
 ---
 
-Made with ❤️ by [Crenspire Technologies](https://crenspire.com)
+Made with ❤️ by Weekend Superhero LLC · Based on [Glass UI](https://github.com/crenspire/glass-ui) by Crenspire Technologies (MIT)

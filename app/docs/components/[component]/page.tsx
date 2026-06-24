@@ -1,32 +1,32 @@
-"use client"
+"use client";
 
-import { use } from "react"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check, BookOpen } from "lucide-react"
-import * as React from "react"
-import { getComponent } from "@/lib/registry"
-import { ComponentPreview } from "@/components/component-preview"
-import { getComponentExampleCode } from "@/lib/component-examples"
-import { InstallationInstructions } from "@/components/installation-instructions"
-import { getStorybookUrl } from "@/lib/storybook-url"
+import { BookOpen, Check, Copy } from "@phosphor-icons/react";
+import { notFound } from "next/navigation";
+import * as React from "react";
+import { use } from "react";
+import { ComponentPreview } from "@/components/component-preview";
+import { InstallationInstructions } from "@/components/installation-instructions";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getComponentExampleCode } from "@/lib/component-examples";
+import { getComponent } from "@/lib/registry";
+import { getStorybookUrl } from "@/lib/storybook-url";
 
 function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = React.useState(false)
+  const [copied, setCopied] = React.useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative">
-      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm">
-        <code className="text-foreground font-mono whitespace-pre break-words">{code}</code>
+      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+        <code className="text-foreground whitespace-pre break-words">{code}</code>
       </pre>
       <Button
         variant="ghost"
@@ -34,29 +34,27 @@ function CodeBlock({ code }: { code: string }) {
         className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
         onClick={copyToClipboard}
       >
-        {copied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
-  )
+  );
 }
 
 export default function ComponentPage({
   params,
 }: {
-  params: Promise<{ component: string }>
+  params: Promise<{
+    component: string;
+  }>;
 }) {
-  const { component: componentName } = use(params)
-  const component = getComponent(componentName)
+  const { component: componentName } = use(params);
+  const component = getComponent(componentName);
 
   if (!component) {
-    notFound()
+    notFound();
   }
 
-  const exampleCode = getComponentExampleCode(component.name)
+  const exampleCode = getComponentExampleCode(component.name);
 
   return (
     <div className="text-foreground">
@@ -64,19 +62,12 @@ export default function ComponentPage({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
-            <Badge variant="glass" className="w-fit">Component</Badge>
+            <Badge variant="glass" className="w-fit">
+              Component
+            </Badge>
           </div>
-          <Button
-            variant="glass"
-            size="sm"
-            asChild
-          >
-            <a
-              href={getStorybookUrl(component.name)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 w-fit"
-            >
+          <Button variant="glass" size="sm" asChild>
+            <a href={getStorybookUrl(component.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-fit">
               <BookOpen className="h-4 w-4" />
               View in Storybook
             </a>
@@ -101,9 +92,7 @@ export default function ComponentPage({
         <Card variant="glass" className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Usage</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Example code for using this component
-            </CardDescription>
+            <CardDescription className="text-muted-foreground">Example code for using this component</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="example" className="w-full">
@@ -126,9 +115,7 @@ export default function ComponentPage({
         <Card variant="glass" className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Props</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Component props and variants
-            </CardDescription>
+            <CardDescription className="text-muted-foreground">Component props and variants</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm text-muted-foreground">
@@ -138,7 +125,7 @@ export default function ComponentPage({
                 <li>glass - Glassmorphism effect (default)</li>
                 {component.name === "button" && (
                   <>
-                    <li>glassSolid - Solid glass variant</li>
+                    <li>gradient - Brand purple→blue gradient glass</li>
                     <li>outline - Outline variant</li>
                     <li>ghost - Ghost variant</li>
                   </>
@@ -149,6 +136,5 @@ export default function ComponentPage({
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

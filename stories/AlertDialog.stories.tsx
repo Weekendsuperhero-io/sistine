@@ -1,14 +1,26 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/glass/button';
+import type { Meta, StoryObj } from "@storybook/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/glass/button";
 
 const meta = {
-  title: 'Glass UI/AlertDialog',
+  title: "Sistine/AlertDialog",
   component: AlertDialog,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof AlertDialog>;
 
 export default meta;
@@ -24,8 +36,7 @@ export const Glass: Story = {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your account
-            and remove your data from our servers.
+            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -46,9 +57,7 @@ export const Frosted: Story = {
       <AlertDialogContent variant="frosted">
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm your action</AlertDialogTitle>
-          <AlertDialogDescription>
-            This dialog uses a frosted glass effect. Are you sure you want to proceed?
-          </AlertDialogDescription>
+          <AlertDialogDescription>This dialog uses a frosted glass effect. Are you sure you want to proceed?</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -68,9 +77,7 @@ export const Crystal: Story = {
       <AlertDialogContent variant="crystal">
         <AlertDialogHeader>
           <AlertDialogTitle>Premium Action</AlertDialogTitle>
-          <AlertDialogDescription>
-            This crystal glass dialog provides a premium feel with layered effects and animations.
-          </AlertDialogDescription>
+          <AlertDialogDescription>This crystal glass dialog provides a premium feel with layered effects and animations.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Go back</AlertDialogCancel>
@@ -91,18 +98,14 @@ export const Destructive: Story = {
         <AlertDialogHeader>
           <AlertDialogTitle className="text-destructive">Warning: Destructive Action</AlertDialogTitle>
           <AlertDialogDescription>
-            You are about to delete all your data. This action is permanent and cannot be reversed.
-            Please type "DELETE" to confirm.
+            You are about to delete all your data. This action is permanent and cannot be reversed. Please type "DELETE" to confirm.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction className="bg-destructive text-destructive-foreground">
-            Delete Everything
-          </AlertDialogAction>
+          <AlertDialogAction className="bg-destructive text-destructive-foreground">Delete Everything</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   ),
 };
-

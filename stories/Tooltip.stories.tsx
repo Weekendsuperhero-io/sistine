@@ -1,15 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/glass/button';
-import { Plus } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Plus } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/glass/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const meta = {
-  title: 'Glass UI/Tooltip',
+  title: "Sistine/Tooltip",
   component: Tooltip,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   decorators: [
     (Story) => (
       <TooltipProvider>
@@ -58,9 +60,7 @@ export const RichContent: Story = {
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
         <p className="font-semibold">Advanced Feature</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          This feature provides advanced functionality for power users.
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">This feature provides advanced functionality for power users.</p>
       </TooltipContent>
     </Tooltip>
   ),
@@ -71,34 +71,42 @@ export const Positions: Story = {
     <div className="flex gap-4">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">Top</Button>
+          <Button variant="glass" size="sm">
+            Top
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="top">
           <p>Tooltip on top</p>
         </TooltipContent>
       </Tooltip>
-      
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">Right</Button>
+          <Button variant="glass" size="sm">
+            Right
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Tooltip on right</p>
         </TooltipContent>
       </Tooltip>
-      
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">Bottom</Button>
+          <Button variant="glass" size="sm">
+            Bottom
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
           <p>Tooltip on bottom</p>
         </TooltipContent>
       </Tooltip>
-      
+
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">Left</Button>
+          <Button variant="glass" size="sm">
+            Left
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="left">
           <p>Tooltip on left</p>
@@ -121,4 +129,3 @@ export const Keyboard: Story = {
     </Tooltip>
   ),
 };
-

@@ -1,18 +1,36 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut } from '@/components/ui/command';
-import { Calculator, Calendar, CreditCard, Settings, Smile, User } from 'lucide-react';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Calculator, Calendar, CreditCard, GearFineIcon, Smile, User } from "@phosphor-icons/react";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command";
 
 const meta = {
-  title: 'Glass UI/Command',
+  title: "Sistine/Command",
   component: Command,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
   },
 } satisfies Meta<typeof Command>;
@@ -53,7 +71,7 @@ export const Glass: Story = {
             <CommandShortcut>⌘B</CommandShortcut>
           </CommandItem>
           <CommandItem>
-            <Settings className="mr-2 h-4 w-4" />
+            <GearFineIcon className="mr-2 h-4 w-4" />
             <span>Settings</span>
             <CommandShortcut>⌘S</CommandShortcut>
           </CommandItem>
@@ -79,7 +97,7 @@ export const Frosted: Story = {
             <span>Add Contact</span>
           </CommandItem>
           <CommandItem>
-            <Settings className="mr-2 h-4 w-4" />
+            <GearFineIcon className="mr-2 h-4 w-4" />
             <span>Preferences</span>
           </CommandItem>
         </CommandGroup>
@@ -128,4 +146,3 @@ export const Simple: Story = {
     </Command>
   ),
 };
-

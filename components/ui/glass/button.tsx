@@ -1,38 +1,34 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Button as BaseButton } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import * as React from "react";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
+import { Button as BaseButton } from "../button";
 
-export interface ButtonProps
-  extends Omit<React.ComponentProps<typeof BaseButton>, "glass"> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+export interface ButtonProps extends Omit<React.ComponentProps<typeof BaseButton>, "glass"> {
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
- * Glass UI Button - A beautifully designed button component with glassy effects
+ * Sistine Button - A beautifully designed button component with glassy effects
  * Built on top of the base Button component with enhanced visual effects
- * 
+ *
  * @example
  * ```tsx
- * <Button 
+ * <Button
  *   glass={{
- *     color: "rgba(59, 130, 246, 0.2)",
+ *     color: "oklch(62.3083% 0.188015 259.814527 / 0.2)",
  *     blur: 25,
- *     outline: "rgba(59, 130, 246, 0.4)"
+ *     outline: "oklch(62.3083% 0.188015 259.814527 / 0.4)"
  *   }}
  * >
  *   Click me
  * </Button>
  * ```
  */
-export const Button = React.forwardRef<
-  HTMLButtonElement,
-  ButtonProps
->(({ className, effect = "glow", variant = "glass", glass, ...props }, ref) => {
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className, effect = "glow", variant = "glass", glass, ...props }, ref) => {
   return (
     <BaseButton
       ref={ref}
@@ -40,12 +36,13 @@ export const Button = React.forwardRef<
       glass={glass}
       className={cn(
         "relative overflow-hidden",
-        hoverEffects({ hover: effect }),
-        className
+        hoverEffects({
+          hover: effect,
+        }),
+        className,
       )}
       {...props}
     />
-  )
-})
-Button.displayName = "Button"
-
+  );
+});
+Button.displayName = "Button";

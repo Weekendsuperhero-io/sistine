@@ -1,26 +1,45 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Spinner } from '@/components/ui/glass/spinner';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Spinner } from "@/components/ui/glass/spinner";
 
 const meta = {
-  title: 'Glass UI/Spinner',
+  title: "Sistine/Spinner",
   component: Spinner,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     size: {
-      control: 'select',
-      options: ['sm', 'md', 'lg'],
+      control: "select",
+      options: [
+        "sm",
+        "md",
+        "lg",
+      ],
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
-      description: 'Hover animation effect',
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
+      description: "Hover animation effect",
     },
   },
 } satisfies Meta<typeof Spinner>;
@@ -30,43 +49,42 @@ type Story = StoryObj<typeof meta>;
 
 export const Glass: Story = {
   args: {
-    variant: 'glass',
-    size: 'md',
+    variant: "glass",
+    size: "md",
   },
 };
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
-    size: 'md',
+    variant: "frosted",
+    size: "md",
   },
 };
 
 export const Fluted: Story = {
   args: {
-    variant: 'fluted',
-    size: 'md',
+    variant: "fluted",
+    size: "md",
   },
 };
 
 export const Crystal: Story = {
   args: {
-    variant: 'crystal',
-    size: 'md',
+    variant: "crystal",
+    size: "md",
   },
 };
 
 export const Small: Story = {
   args: {
-    variant: 'glass',
-    size: 'sm',
+    variant: "glass",
+    size: "sm",
   },
 };
 
 export const Large: Story = {
   args: {
-    variant: 'glass',
-    size: 'lg',
+    variant: "glass",
+    size: "lg",
   },
 };
-

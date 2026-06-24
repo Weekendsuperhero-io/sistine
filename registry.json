@@ -1,16 +1,14 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
-  "name": "crenspire/glass-ui",
-  "homepage": "https://glass-ui.crenspire.com",
+  "name": "weekendsuperhero-io/sistine",
+  "homepage": "https://weekendsuperhero.io",
   "items": [
     {
       "name": "button",
       "type": "registry:component",
       "title": "Button",
       "description": "Displays a button or a component that looks like a button with glassy variants.",
-      "registryDependencies": [
-        "button"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -31,6 +29,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/button.tsx",
+          "type": "registry:component",
+          "target": "components/ui/button.tsx"
         },
         {
           "path": "components/ui/glass/button.tsx",
@@ -39,7 +42,10 @@
         }
       ],
       "dependencies": [
-        "@radix-ui/react-slot"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ]
     },
     {
@@ -47,9 +53,7 @@
       "type": "registry:component",
       "title": "Card",
       "description": "Displays a card with optional glassy variant.",
-      "registryDependencies": [
-        "card"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -72,10 +76,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/card.tsx",
+          "type": "registry:component",
+          "target": "components/ui/card.tsx"
+        },
+        {
           "path": "components/ui/glass/card.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/card.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -83,9 +97,7 @@
       "type": "registry:component",
       "title": "Input",
       "description": "Displays a form input field with optional glassy variant.",
-      "registryDependencies": [
-        "input"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -108,10 +120,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/input.tsx",
+          "type": "registry:component",
+          "target": "components/ui/input.tsx"
+        },
+        {
           "path": "components/ui/glass/input.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/input.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -119,9 +141,7 @@
       "type": "registry:component",
       "title": "Textarea",
       "description": "Displays a form textarea with optional glassy variant.",
-      "registryDependencies": [
-        "textarea"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -144,10 +164,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/textarea.tsx",
+          "type": "registry:component",
+          "target": "components/ui/textarea.tsx"
+        },
+        {
           "path": "components/ui/glass/textarea.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/textarea.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -156,11 +186,12 @@
       "title": "Label",
       "description": "Renders an accessible label associated with controls.",
       "dependencies": [
-        "@radix-ui/react-label"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "label"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -181,6 +212,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/label.tsx",
+          "type": "registry:component",
+          "target": "components/ui/label.tsx"
         },
         {
           "path": "components/ui/glass/label.tsx",
@@ -194,9 +230,7 @@
       "type": "registry:component",
       "title": "Badge",
       "description": "Displays a badge or a component that looks like a badge with glassy variant.",
-      "registryDependencies": [
-        "badge"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -219,10 +253,21 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/badge.tsx",
+          "type": "registry:component",
+          "target": "components/ui/badge.tsx"
+        },
+        {
           "path": "components/ui/glass/badge.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/badge.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ]
     },
     {
@@ -231,11 +276,12 @@
       "title": "Avatar",
       "description": "An image element with a fallback for representing the user.",
       "dependencies": [
-        "@radix-ui/react-avatar"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "avatar"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -256,6 +302,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/avatar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/avatar.tsx"
         },
         {
           "path": "components/ui/glass/avatar.tsx",
@@ -270,11 +321,14 @@
       "title": "Dialog",
       "description": "A window overlaid on either the primary window or another dialog window, rendering the content underneath inert.",
       "dependencies": [
-        "@radix-ui/react-dialog",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "dialog"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -296,6 +350,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/dialog.tsx",
+          "type": "registry:component",
+          "target": "components/ui/dialog.tsx"
         },
         {
           "path": "components/ui/glass/dialog.tsx",
@@ -310,11 +369,13 @@
       "title": "Alert Dialog",
       "description": "A modal dialog that interrupts the user with important content and expects a response.",
       "dependencies": [
-        "@radix-ui/react-alert-dialog"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "alert-dialog",
-        "button"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -336,6 +397,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/alert-dialog.tsx",
+          "type": "registry:component",
+          "target": "components/ui/alert-dialog.tsx"
         },
         {
           "path": "components/ui/glass/alert-dialog.tsx",
@@ -350,11 +416,12 @@
       "title": "Separator",
       "description": "Visually or semantically separates content with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-separator"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "separator"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -375,6 +442,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/separator.tsx",
+          "type": "registry:component",
+          "target": "components/ui/separator.tsx"
         },
         {
           "path": "components/ui/glass/separator.tsx",
@@ -389,11 +461,12 @@
       "title": "Switch",
       "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-switch"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "switch"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -414,6 +487,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/switch.tsx",
+          "type": "registry:component",
+          "target": "components/ui/switch.tsx"
         },
         {
           "path": "components/ui/glass/switch.tsx",
@@ -428,12 +506,13 @@
       "title": "Checkbox",
       "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-checkbox",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "checkbox"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -454,6 +533,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/checkbox.tsx",
+          "type": "registry:component",
+          "target": "components/ui/checkbox.tsx"
         },
         {
           "path": "components/ui/glass/checkbox.tsx",
@@ -468,11 +552,12 @@
       "title": "Tabs",
       "description": "A set of layered sections of content—known as tab panels—that are displayed one at a time with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-tabs"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "tabs"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -493,6 +578,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/tabs.tsx",
+          "type": "registry:component",
+          "target": "components/ui/tabs.tsx"
         },
         {
           "path": "components/ui/glass/tabs.tsx",
@@ -507,11 +597,12 @@
       "title": "Tooltip",
       "description": "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-tooltip"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "tooltip"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -532,6 +623,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/tooltip.tsx",
+          "type": "registry:component",
+          "target": "components/ui/tooltip.tsx"
         },
         {
           "path": "components/ui/glass/tooltip.tsx",
@@ -546,11 +642,12 @@
       "title": "Popover",
       "description": "Displays rich content in a portal, triggered by a button with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-popover"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "popover"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -571,6 +668,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/popover.tsx",
+          "type": "registry:component",
+          "target": "components/ui/popover.tsx"
         },
         {
           "path": "components/ui/glass/popover.tsx",
@@ -585,12 +687,13 @@
       "title": "Dropdown Menu",
       "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-dropdown-menu",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "dropdown-menu"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -611,6 +714,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/dropdown-menu.tsx",
+          "type": "registry:component",
+          "target": "components/ui/dropdown-menu.tsx"
         },
         {
           "path": "components/ui/glass/dropdown-menu.tsx",
@@ -625,12 +733,13 @@
       "title": "Select",
       "description": "Displays a list of options for the user to pick from—triggered by a button with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-select",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "select"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -651,6 +760,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/select.tsx",
+          "type": "registry:component",
+          "target": "components/ui/select.tsx"
         },
         {
           "path": "components/ui/glass/select.tsx",
@@ -665,12 +779,13 @@
       "title": "Radio Group",
       "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glassy variant.",
       "dependencies": [
-        "@radix-ui/react-radio-group",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "radio-group"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -691,6 +806,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/radio-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/radio-group.tsx"
         },
         {
           "path": "components/ui/glass/radio-group.tsx",
@@ -704,9 +824,7 @@
       "type": "registry:component",
       "title": "Skeleton",
       "description": "Use to show a placeholder while content is loading with optional glassy variant.",
-      "registryDependencies": [
-        "skeleton"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -729,10 +847,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/skeleton.tsx",
+          "type": "registry:component",
+          "target": "components/ui/skeleton.tsx"
+        },
+        {
           "path": "components/ui/glass/skeleton.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/skeleton.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -740,9 +868,7 @@
       "type": "registry:component",
       "title": "Alert",
       "description": "Displays a callout for user attention with optional glassy variant.",
-      "registryDependencies": [
-        "alert"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -765,10 +891,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/alert.tsx",
+          "type": "registry:component",
+          "target": "components/ui/alert.tsx"
+        },
+        {
           "path": "components/ui/glass/alert.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/alert.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -777,12 +913,13 @@
       "title": "Accordion",
       "description": "A vertically stacked set of interactive headings that each reveal a section of content.",
       "dependencies": [
-        "@radix-ui/react-accordion",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "accordion"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -803,6 +940,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/accordion.tsx",
+          "type": "registry:component",
+          "target": "components/ui/accordion.tsx"
         },
         {
           "path": "components/ui/glass/accordion.tsx",
@@ -817,12 +959,13 @@
       "title": "Breadcrumb",
       "description": "Displays the path to the current resource using a hierarchy of links.",
       "dependencies": [
-        "@radix-ui/react-slot",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "breadcrumb"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -843,6 +986,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/breadcrumb.tsx",
+          "type": "registry:component",
+          "target": "components/ui/breadcrumb.tsx"
         },
         {
           "path": "components/ui/glass/breadcrumb.tsx",
@@ -857,13 +1005,14 @@
       "title": "Calendar",
       "description": "A date field component that allows users to enter and edit date.",
       "dependencies": [
-        "date-fns",
-        "lucide-react",
-        "react-day-picker"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "react-day-picker",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "button",
-        "calendar"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -885,6 +1034,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/calendar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/calendar.tsx"
         },
         {
           "path": "components/ui/glass/calendar.tsx",
@@ -899,11 +1053,12 @@
       "title": "Chart",
       "description": "Chart components built with Recharts with optional glassy variant.",
       "dependencies": [
-        "recharts"
+        "class-variance-authority",
+        "clsx",
+        "recharts",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "chart"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -924,6 +1079,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/chart.tsx",
+          "type": "registry:component",
+          "target": "components/ui/chart.tsx"
         },
         {
           "path": "components/ui/glass/chart.tsx",
@@ -938,11 +1098,12 @@
       "title": "Collapsible",
       "description": "An interactive component which expands/collapses a panel.",
       "dependencies": [
-        "@radix-ui/react-collapsible"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "collapsible"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -963,6 +1124,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/collapsible.tsx",
+          "type": "registry:component",
+          "target": "components/ui/collapsible.tsx"
         },
         {
           "path": "components/ui/glass/collapsible.tsx",
@@ -977,13 +1143,15 @@
       "title": "Command",
       "description": "Fast, composable, unstyled command menu for React.",
       "dependencies": [
-        "@radix-ui/react-dialog",
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
         "cmdk",
-        "lucide-react"
+        "radix-ui",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "command",
-        "dialog"
+        "@sistine/dialog"
       ],
       "files": [
         {
@@ -1005,6 +1173,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/command.tsx",
+          "type": "registry:component",
+          "target": "components/ui/command.tsx"
         },
         {
           "path": "components/ui/glass/command.tsx",
@@ -1019,13 +1192,15 @@
       "title": "Cropper",
       "description": "An image cropper component with optional glassy variant.",
       "dependencies": [
-        "react-easy-crop"
+        "class-variance-authority",
+        "clsx",
+        "react-easy-crop",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "button",
-        "cropper",
-        "dialog",
-        "slider"
+        "@sistine/button",
+        "@sistine/dialog",
+        "@sistine/slider"
       ],
       "files": [
         {
@@ -1047,6 +1222,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/cropper.tsx",
+          "type": "registry:component",
+          "target": "components/ui/cropper.tsx"
         },
         {
           "path": "components/ui/glass/cropper.tsx",
@@ -1061,11 +1241,12 @@
       "title": "Drawer",
       "description": "A drawer component for mobile with optional glassy variant.",
       "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge",
         "vaul"
       ],
-      "registryDependencies": [
-        "drawer"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1086,6 +1267,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/drawer.tsx",
+          "type": "registry:component",
+          "target": "components/ui/drawer.tsx"
         },
         {
           "path": "components/ui/glass/drawer.tsx",
@@ -1100,11 +1286,12 @@
       "title": "Hover Card",
       "description": "For sighted users to preview content available behind a link.",
       "dependencies": [
-        "@radix-ui/react-hover-card"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "hover-card"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1125,6 +1312,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/hover-card.tsx",
+          "type": "registry:component",
+          "target": "components/ui/hover-card.tsx"
         },
         {
           "path": "components/ui/glass/hover-card.tsx",
@@ -1139,12 +1331,13 @@
       "title": "Input OTP",
       "description": "Accessible one-time password component with copy paste functionality.",
       "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
         "input-otp",
-        "lucide-react"
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "input-otp"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1165,6 +1358,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/input-otp.tsx",
+          "type": "registry:component",
+          "target": "components/ui/input-otp.tsx"
         },
         {
           "path": "components/ui/glass/input-otp.tsx",
@@ -1179,12 +1377,13 @@
       "title": "Navigation Menu",
       "description": "A collection of links for navigating websites.",
       "dependencies": [
-        "@radix-ui/react-navigation-menu",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "navigation-menu"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1205,6 +1404,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/navigation-menu.tsx",
+          "type": "registry:component",
+          "target": "components/ui/navigation-menu.tsx"
         },
         {
           "path": "components/ui/glass/navigation-menu.tsx",
@@ -1219,8 +1423,7 @@
       "title": "Pagination",
       "description": "Pagination with page navigation with optional glassy variant.",
       "registryDependencies": [
-        "button",
-        "pagination"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -1242,6 +1445,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/pagination.tsx",
+          "type": "registry:component",
+          "target": "components/ui/pagination.tsx"
         },
         {
           "path": "components/ui/glass/pagination.tsx",
@@ -1250,7 +1458,10 @@
         }
       ],
       "dependencies": [
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1259,11 +1470,12 @@
       "title": "Scroll Area",
       "description": "Augments native scroll functionality for custom, cross-browser styling.",
       "dependencies": [
-        "@radix-ui/react-scroll-area"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "scroll-area"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1284,6 +1496,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/scroll-area.tsx",
+          "type": "registry:component",
+          "target": "components/ui/scroll-area.tsx"
         },
         {
           "path": "components/ui/glass/scroll-area.tsx",
@@ -1298,12 +1515,13 @@
       "title": "Sheet",
       "description": "Extends the Dialog component to display content that complements the main content of the screen.",
       "dependencies": [
-        "@radix-ui/react-dialog",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "sheet"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1324,6 +1542,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/sheet.tsx",
+          "type": "registry:component",
+          "target": "components/ui/sheet.tsx"
         },
         {
           "path": "components/ui/glass/sheet.tsx",
@@ -1338,7 +1561,12 @@
       "title": "Sidebar",
       "description": "A sidebar component with optional glassy variant.",
       "registryDependencies": [
-        "sidebar"
+        "@sistine/button",
+        "@sistine/input",
+        "@sistine/separator",
+        "@sistine/sheet",
+        "@sistine/skeleton",
+        "@sistine/tooltip"
       ],
       "files": [
         {
@@ -1362,10 +1590,22 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/sidebar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/sidebar.tsx"
+        },
+        {
           "path": "components/ui/glass/sidebar.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/sidebar.tsx"
         }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ]
     },
     {
@@ -1374,11 +1614,12 @@
       "title": "Slider",
       "description": "An input where the user selects a value from within a given range.",
       "dependencies": [
-        "@radix-ui/react-slider"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "slider"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1399,6 +1640,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/slider.tsx",
+          "type": "registry:component",
+          "target": "components/ui/slider.tsx"
         },
         {
           "path": "components/ui/glass/slider.tsx",
@@ -1413,12 +1659,14 @@
       "title": "Sonner",
       "description": "An opinionated toast component for React.",
       "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
         "next-themes",
-        "sonner"
+        "sonner",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "sonner"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1439,6 +1687,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/sonner.tsx",
+          "type": "registry:component",
+          "target": "components/ui/sonner.tsx"
         },
         {
           "path": "components/ui/glass/sonner.tsx",
@@ -1451,10 +1704,8 @@
       "name": "table",
       "type": "registry:component",
       "title": "Table",
-      "description": "A responsive table component with optional glassy variant.",
-      "registryDependencies": [
-        "table"
-      ],
+      "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1477,10 +1728,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/table.tsx",
+          "type": "registry:component",
+          "target": "components/ui/table.tsx"
+        },
+        {
           "path": "components/ui/glass/table.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/table.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1489,11 +1750,12 @@
       "title": "Toggle",
       "description": "A two-state button that can be either on or off.",
       "dependencies": [
-        "@radix-ui/react-toggle"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "toggle"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1514,6 +1776,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/toggle.tsx",
+          "type": "registry:component",
+          "target": "components/ui/toggle.tsx"
         },
         {
           "path": "components/ui/glass/toggle.tsx",
@@ -1528,11 +1795,12 @@
       "title": "Toggle Group",
       "description": "A set of two-state buttons that can be toggled on or off.",
       "dependencies": [
-        "@radix-ui/react-toggle-group"
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "toggle-group"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1553,6 +1821,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/toggle-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/toggle-group.tsx"
         },
         {
           "path": "components/ui/glass/toggle-group.tsx",
@@ -1567,12 +1840,14 @@
       "title": "Mode Toggle",
       "description": "A theme switcher component with optional glassy variant.",
       "dependencies": [
-        "lucide-react",
-        "next-themes"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "next-themes",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "button",
-        "mode-toggle"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -1594,6 +1869,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/mode-toggle.tsx",
+          "type": "registry:component",
+          "target": "components/ui/mode-toggle.tsx"
         },
         {
           "path": "components/ui/glass/mode-toggle.tsx",
@@ -1607,9 +1887,7 @@
       "type": "registry:component",
       "title": "Spinner",
       "description": "A loading spinner component with glassy variants.",
-      "registryDependencies": [
-        "spinner"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1632,10 +1910,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/spinner.tsx",
+          "type": "registry:component",
+          "target": "components/ui/spinner.tsx"
+        },
+        {
           "path": "components/ui/glass/spinner.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/spinner.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1644,7 +1932,7 @@
       "title": "Button Group",
       "description": "A group of buttons with glassy variants.",
       "registryDependencies": [
-        "button-group"
+        "@sistine/separator"
       ],
       "files": [
         {
@@ -1668,10 +1956,21 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/button-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/button-group.tsx"
+        },
+        {
           "path": "components/ui/glass/button-group.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/button-group.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ]
     },
     {
@@ -1680,7 +1979,9 @@
       "title": "Input Group",
       "description": "A group of inputs with glassy variants.",
       "registryDependencies": [
-        "input-group"
+        "@sistine/button",
+        "@sistine/input",
+        "@sistine/textarea"
       ],
       "files": [
         {
@@ -1704,10 +2005,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/input-group.tsx",
+          "type": "registry:component",
+          "target": "components/ui/input-group.tsx"
+        },
+        {
           "path": "components/ui/glass/input-group.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/input-group.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1715,9 +2026,7 @@
       "type": "registry:component",
       "title": "Empty State",
       "description": "An empty state component with glassy variants.",
-      "registryDependencies": [
-        "empty-state"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1740,10 +2049,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/empty-state.tsx",
+          "type": "registry:component",
+          "target": "components/ui/empty-state.tsx"
+        },
+        {
           "path": "components/ui/glass/empty-state.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/empty-state.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1752,8 +2071,7 @@
       "title": "Menu Bar",
       "description": "A menu bar component with glassy variants.",
       "registryDependencies": [
-        "button",
-        "menu-bar"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -1777,10 +2095,20 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/menu-bar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/menu-bar.tsx"
+        },
+        {
           "path": "components/ui/glass/menu-bar.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/menu-bar.tsx"
         }
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ]
     },
     {
@@ -1789,16 +2117,17 @@
       "title": "Date Picker Input",
       "description": "A date picker input component with glassy variants.",
       "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
         "date-fns",
-        "lucide-react",
-        "react-day-picker"
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "button",
-        "calendar",
-        "popover",
-        "input",
-        "date-picker-input"
+        "@sistine/button",
+        "@sistine/calendar",
+        "@sistine/input",
+        "@sistine/popover"
       ],
       "files": [
         {
@@ -1820,6 +2149,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/date-picker-input.tsx",
+          "type": "registry:component",
+          "target": "components/ui/date-picker-input.tsx"
         },
         {
           "path": "components/ui/glass/date-picker-input.tsx",
@@ -1834,12 +2168,13 @@
       "title": "Context Menu",
       "description": "A context menu component with glassy variants.",
       "dependencies": [
-        "@radix-ui/react-context-menu",
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
       ],
-      "registryDependencies": [
-        "context-menu"
-      ],
+      "registryDependencies": [],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1860,6 +2195,11 @@
           "path": "app/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/context-menu.tsx",
+          "type": "registry:component",
+          "target": "components/ui/context-menu.tsx"
         },
         {
           "path": "components/ui/glass/context-menu.tsx",
@@ -1874,11 +2214,13 @@
       "title": "Carousel",
       "description": "A carousel component with glassy variants.",
       "dependencies": [
-        "lucide-react"
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
       ],
       "registryDependencies": [
-        "button",
-        "carousel"
+        "@sistine/button"
       ],
       "files": [
         {
@@ -1902,9 +2244,45 @@
           "target": "app/globals.css"
         },
         {
+          "path": "components/ui/carousel.tsx",
+          "type": "registry:component",
+          "target": "components/ui/carousel.tsx"
+        },
+        {
           "path": "components/ui/glass/carousel.tsx",
           "type": "registry:component",
           "target": "components/ui/glass/carousel.tsx"
+        }
+      ]
+    },
+    {
+      "name": "resizable",
+      "type": "registry:component",
+      "title": "Resizable",
+      "description": "Resizable panel groups and handles with a glassy grip, built on react-resizable-panels.",
+      "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "react-resizable-panels@^3.0.6",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        },
+        {
+          "path": "components/ui/resizable.tsx",
+          "type": "registry:component",
+          "target": "components/ui/resizable.tsx"
         }
       ]
     }

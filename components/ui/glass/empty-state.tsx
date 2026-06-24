@@ -1,23 +1,18 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  EmptyState as BaseEmptyState,
-  EmptyStateIcon,
-  EmptyStateTitle,
-  EmptyStateDescription,
-} from "@/components/ui/empty-state"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import * as React from "react";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
+import { EmptyState as BaseEmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "../empty-state";
 
 export interface EmptyStateProps extends React.ComponentProps<typeof BaseEmptyState> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
- * Glass UI Empty State - A beautifully designed empty state component with glassy effects
+ * Sistine Empty State - A beautifully designed empty state component with glassy effects
  * Built on top of the base EmptyState component with enhanced visual styling
  */
 export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
@@ -28,15 +23,16 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         variant={variant}
         glass={glass}
         className={cn(
-          hoverEffects({ hover: effect }),
-          className
+          hoverEffects({
+            hover: effect,
+          }),
+          className,
         )}
         {...props}
       />
-    )
-  }
-)
-EmptyState.displayName = "EmptyState"
+    );
+  },
+);
+EmptyState.displayName = "EmptyState";
 
-export { EmptyStateIcon, EmptyStateTitle, EmptyStateDescription }
-
+export { EmptyStateDescription, EmptyStateIcon, EmptyStateTitle };

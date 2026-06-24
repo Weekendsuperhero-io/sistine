@@ -1,22 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { DocsSidebar } from "@/components/docs-sidebar"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { ListIcon } from "@phosphor-icons/react";
+import * as React from "react";
+import { DocsSidebar } from "@/components/docs-sidebar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-export default function DocsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
-    <div 
-      className="min-h-screen transition-colors duration-300 relative"
-    >
+    <div className="min-h-screen transition-colors duration-300 relative">
       <div className="container mx-auto px-4 pt-4 pb-8 relative z-10">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {/* Desktop Sidebar */}
@@ -29,7 +23,7 @@ export default function DocsLayout({
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="glass" size="sm" className="mb-4">
-                  <Menu className="h-4 w-4 mr-2" />
+                  <ListIcon className="h-4 w-4 mr-2" />
                   Menu
                 </Button>
               </SheetTrigger>
@@ -41,13 +35,9 @@ export default function DocsLayout({
             </Sheet>
           </div>
 
-          <main className="flex-1 max-w-4xl min-w-0 w-full">
-            <div className="prose prose-invert max-w-none prose-sm sm:prose-base prose-headings:text-foreground prose-p:text-foreground prose-a:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-pre:overflow-x-auto">
-              {children}
-            </div>
-          </main>
+          <main className="flex-1 max-w-4xl min-w-0 w-full">{children}</main>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,19 +1,20 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { use } from "react"
-import { notFound } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Check, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { DashboardBlock } from "@/components/blocks/dashboard"
-import { AuthenticationBlock } from "@/components/blocks/authentication"
-import { SignupBlock } from "@/components/blocks/signup"
-import { ForgotPasswordBlock } from "@/components/blocks/forgot-password"
-import { CalendarBlock } from "@/components/blocks/calendar"
-import { ChartBlock } from "@/components/blocks/chart"
+import { ArrowLeft, Check, Copy } from "@phosphor-icons/react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import * as React from "react";
+import { use } from "react";
+import { AuthenticationBlock } from "@/components/blocks/authentication";
+import { CalendarBlock } from "@/components/blocks/calendar";
+import { ChartBlock } from "@/components/blocks/chart";
+import { DashboardBlock } from "@/components/blocks/dashboard";
+import { DataTableBlock } from "@/components/blocks/data-table";
+import { ForgotPasswordBlock } from "@/components/blocks/forgot-password";
+import { SignupBlock } from "@/components/blocks/signup";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const blocks = {
   dashboard: {
@@ -76,21 +77,31 @@ export default function Page() {
   return <ChartBlock />
 }`,
   },
-}
+  "data-table": {
+    title: "Data Table",
+    description: "Sortable, filterable table with pagination on the glass Table",
+    component: DataTableBlock,
+    code: `import { DataTableBlock } from "@/components/blocks/data-table"
+
+export default function Page() {
+  return <DataTableBlock />
+}`,
+  },
+};
 
 function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = React.useState(false)
+  const [copied, setCopied] = React.useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="relative">
-      <pre className="bg-muted/50 backdrop-blur-sm border border-border rounded-lg p-4 overflow-x-auto">
-        <code className="text-foreground text-sm font-mono whitespace-pre">{code}</code>
+      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+        <code className="text-foreground whitespace-pre">{code}</code>
       </pre>
       <Button
         variant="ghost"
@@ -98,43 +109,40 @@ function CodeBlock({ code }: { code: string }) {
         className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
         onClick={copyToClipboard}
       >
-        {copied ? (
-          <Check className="h-4 w-4" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
+        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
       </Button>
     </div>
-  )
+  );
 }
 
 export default function BlockPage({
   params,
 }: {
-  params: Promise<{ block: string }>
+  params: Promise<{
+    block: string;
+  }>;
 }) {
-  const { block: blockName } = use(params)
-  const block = blocks[blockName as keyof typeof blocks]
+  const { block: blockName } = use(params);
+  const block = blocks[blockName as keyof typeof blocks];
 
   if (!block) {
-    notFound()
+    notFound();
   }
 
-  const Component = block.component
+  const Component = block.component;
 
   return (
-    <div
-      className="min-h-screen transition-colors duration-300 relative"
-    >
-      <div className="container mx-auto px-4 pt-4 pb-8 relative z-10">
-        <div className="mb-6">
-          <Button variant="glass" asChild className="mb-4">
-            <Link href="/blocks">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blocks
-            </Link>
-          </Button>
-          <h1 className="text-4xl font-bold text-foreground mb-2">{block.title}</h1>
+    <div className="min-h-screen relative">
+      <div className="container mx-auto px-4 pt-8 pb-20 relative z-10">
+        <div className="mb-8">
+          <Link
+            href="/blocks"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blocks
+          </Link>
+          <h1 className="text-4xl font-bold text-foreground mb-3">{block.title}</h1>
           <p className="text-lg text-muted-foreground">{block.description}</p>
         </div>
 
@@ -156,9 +164,7 @@ export default function BlockPage({
             <Card variant="glass" className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Implementation</CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Copy this code to use the block in your project
-                </CardDescription>
+                <CardDescription className="text-muted-foreground">Copy this code to use the block in your project</CardDescription>
               </CardHeader>
               <CardContent>
                 <CodeBlock code={block.code} />
@@ -168,6 +174,5 @@ export default function BlockPage({
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
-

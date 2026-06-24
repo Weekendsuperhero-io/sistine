@@ -1,14 +1,16 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 const meta = {
-  title: 'Glass UI/Switch',
+  title: "Sistine/Switch",
   component: Switch,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   decorators: [
     (Story) => (
       <div className="flex items-center space-x-2">
@@ -23,7 +25,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    id: 'switch-default',
+    id: "switch-default",
   },
   render: (args) => (
     <>
@@ -35,9 +37,9 @@ export const Default: Story = {
 
 export const Checked: Story = {
   args: {
-    id: 'switch-checked',
+    id: "switch-checked",
     defaultChecked: true,
-    variant: "glass"
+    variant: "glass",
   },
   render: (args) => (
     <>
@@ -49,7 +51,7 @@ export const Checked: Story = {
 
 export const Disabled: Story = {
   args: {
-    id: 'switch-disabled',
+    id: "switch-disabled",
     disabled: true,
   },
   render: (args) => (
@@ -62,7 +64,7 @@ export const Disabled: Story = {
 
 export const DisabledChecked: Story = {
   args: {
-    id: 'switch-disabled-checked',
+    id: "switch-disabled-checked",
     disabled: true,
     defaultChecked: true,
   },
@@ -73,4 +75,3 @@ export const DisabledChecked: Story = {
     </>
   ),
 };
-

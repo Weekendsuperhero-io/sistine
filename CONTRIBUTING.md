@@ -1,6 +1,6 @@
-# Contributing to Glass UI
+# Contributing to Sistine
 
-Thank you for your interest in contributing to Glass UI! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Sistine! This document provides guidelines and instructions for contributing to the project.
 
 ## 🚀 Getting Started
 
@@ -15,8 +15,8 @@ Thank you for your interest in contributing to Glass UI! This document provides 
 1. **Fork the repository**
    ```bash
    # Fork on GitHub, then clone your fork
-   git clone https://github.com/your-username/glass-ui.git
-   cd glass-ui
+   git clone https://github.com/your-username/sistine.git
+   cd sistine
    ```
 
 2. **Install dependencies**
@@ -43,7 +43,7 @@ Thank you for your interest in contributing to Glass UI! This document provides 
    - Follow the existing component patterns
    - Include glass variant support
 
-2. **Create the Glass UI component**
+2. **Create the Sistine component**
    - Location: `components/ui/glass/[component-name].tsx`
    - Import from base component
    - Add enhanced effects and styling
@@ -273,9 +273,9 @@ All PRs require review before merging. Reviewers will check:
 
 ## 📞 Getting Help
 
-- **Documentation**: [glass-ui.crenspire.com](https://glass-ui.crenspire.com)
-- **Issues**: [GitHub Issues](https://github.com/crenspire/glass-ui/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/crenspire/glass-ui/discussions)
+- **Documentation**: [weekendsuperhero.io](https://weekendsuperhero.io)
+- **Issues**: [GitHub Issues](https://github.com/Weekendsuperhero-io/sistine/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Weekendsuperhero-io/sistine/discussions)
 
 ## 📜 License
 
@@ -283,5 +283,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for contributing to Glass UI! 🎉
-
+Thank you for contributing to Sistine! 🎉

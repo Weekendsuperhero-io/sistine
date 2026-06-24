@@ -1,28 +1,43 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Carousel } from '@/components/ui/glass/carousel';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/glass/card';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/glass/card";
+import { Carousel } from "@/components/ui/glass/carousel";
 
 const meta = {
-  title: 'Glass UI/Carousel',
+  title: "Sistine/Carousel",
   component: Carousel,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     autoPlay: {
-      control: 'boolean',
+      control: "boolean",
     },
     interval: {
-      control: 'number',
+      control: "number",
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
     },
   },
 } satisfies Meta<typeof Carousel>;
@@ -32,9 +47,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     autoPlay: false,
-    className: 'w-[400px] h-[200px]',
+    className: "w-[400px] h-[200px]",
     children: (
       <>
         <Card variant="glass" className="h-full m-2">
@@ -62,10 +77,10 @@ export const Default: Story = {
 
 export const AutoPlay: Story = {
   args: {
-    variant: 'glass',
+    variant: "glass",
     autoPlay: true,
     interval: 3000,
-    className: 'w-[400px] h-[200px]',
+    className: "w-[400px] h-[200px]",
     children: (
       <>
         <Card variant="glass" className="h-full m-2">
@@ -93,9 +108,9 @@ export const AutoPlay: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: 'frosted',
+    variant: "frosted",
     autoPlay: false,
-    className: 'w-[400px] h-[200px]',
+    className: "w-[400px] h-[200px]",
     children: (
       <>
         <Card variant="frosted" className="h-full m-2">
@@ -120,4 +135,3 @@ export const Frosted: Story = {
     ),
   },
 };
-

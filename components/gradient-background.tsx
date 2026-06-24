@@ -1,73 +1,73 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { generateSeededGradient, generateBeautifulGradient, gradientToCSS } from "@/lib/gradient-utils"
+import * as React from "react";
+import { type RampGradientAxis, rampGradient } from "@/lib/oklch-utils";
 
-interface GradientBackgroundProps {
-  /**
-   * Seed for consistent gradient per page (e.g., page pathname)
-   * If not provided, generates a new random gradient on each render
-   */
-  seed?: string
-  /**
-   * Use beautiful complementary colors instead of random
-   */
-  beautiful?: boolean
-  /**
-   * Additional className
-   */
-  className?: string
-  /**
-   * Opacity of the gradient (0-1)
-   */
-  opacity?: number
-  /**
-   * Blur effect for the background
-   */
-  blur?: boolean
-}
-
-export function GradientBackground({
-  seed,
-  beautiful = true,
-  className = "",
-  opacity = 1,
-  blur = true,
-}: GradientBackgroundProps) {
-  const [gradient, setGradient] = React.useState<string>("")
+/**
+ * A ramp-driven gradient wallpaper. The gradient is one of our oklch ramps (hue / lightness / tonal
+ * / chroma) laid left → right, centered on the live glass-tint color (so it recolors with the theme)
+ * with the center as a slightly wider plateau. Pure CSS — crisp at any DPI.
+ */
+export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: RampGradientAxis; angle?: number }) {
+  const [{ hue, dark }, setState] = React.useState({
+    hue: 250,
+    dark: true,
+  });
 
   React.useEffect(() => {
-    const gradientObj = seed
-      ? generateSeededGradient(seed)
-      : beautiful
-      ? generateBeautifulGradient()
-      : generateSeededGradient(Math.random().toString())
+    const root = document.documentElement;
+    const read = () => {
+      const v = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-tint-h"));
+      const next = {
+        hue: Number.isFinite(v) ? v : 250,
+        dark: root.classList.contains("dark"),
+      };
+      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark ? prev : next));
+    };
+    read();
+    // Recolor on theme (class) + tint (preset attribute / custom inline vars) changes.
+    const observer = new MutationObserver(read);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+        "data-glass-tint",
+        "style",
+      ],
+    });
+    return () => observer.disconnect();
+  }, []);
 
-    setGradient(gradientToCSS(gradientObj))
-  }, [seed, beautiful])
-
-  if (!gradient) return null
+  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light.
+  const gradient = rampGradient(
+    axis,
+    {
+      l: dark ? 52 : 72,
+      c: 0.15,
+      h: hue,
+    },
+    5,
+    {
+      angle,
+    },
+  );
 
   return (
     <div
-      className={`fixed inset-0 -z-10 pointer-events-none ${className}`}
+      className="fixed inset-0 -z-10 pointer-events-none transition-[background] duration-500"
       style={{
         background: gradient,
-        opacity,
-        filter: blur ? "blur(15px)" : "none",
       }}
     >
-      {/* Additional organic shapes for liquid glass effect */}
+      {/* Subtle organic highlight/shadow for depth on top of the flat ramp. */}
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                      radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.1) 0%, transparent 50%)`,
+          background:
+            "radial-gradient(circle at 20% 25%, oklch(100% 0 0 / 0.12) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(0% 0 0 / 0.12) 0%, transparent 45%)",
           mixBlendMode: "overlay",
         }}
       />
     </div>
-  )
+  );
 }
-

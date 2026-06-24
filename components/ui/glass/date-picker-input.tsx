@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { DatePickerInput as BaseDatePickerInput } from "@/components/ui/date-picker-input"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import * as React from "react";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
+import { DatePickerInput as BaseDatePickerInput } from "../date-picker-input";
 
 export interface DatePickerInputProps extends React.ComponentProps<typeof BaseDatePickerInput> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
- * Glass UI Date Picker Input - A beautifully designed date picker with glassy effects
+ * Sistine Date Picker Input - A beautifully designed date picker with glassy effects
  * Built on top of the base DatePickerInput component with enhanced visual styling
  */
 export const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>(
@@ -22,13 +22,14 @@ export const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInpu
         ref={ref}
         variant={variant}
         className={cn(
-          hoverEffects({ hover: effect }),
-          className
+          hoverEffects({
+            hover: effect,
+          }),
+          className,
         )}
         {...props}
       />
-    )
-  }
-)
-DatePickerInput.displayName = "DatePickerInput"
-
+    );
+  },
+);
+DatePickerInput.displayName = "DatePickerInput";

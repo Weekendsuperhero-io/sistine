@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { InputGroup as BaseInputGroup } from "@/components/ui/input-group"
-import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
-import { hoverEffects, type HoverEffect } from "@/lib/hover-effects"
+import * as React from "react";
+import type { GlassCustomization } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { cn } from "@/lib/utils";
+import { InputGroup as BaseInputGroup } from "../input-group";
 
 export interface InputGroupProps extends React.ComponentProps<typeof BaseInputGroup> {
-  effect?: HoverEffect
-  glass?: GlassCustomization
+  effect?: HoverEffect;
+  glass?: GlassCustomization;
 }
 
 /**
- * Glass UI Input Group - A beautifully designed input group with glassy effects
+ * Sistine Input Group - A beautifully designed input group with glassy effects
  * Built on top of the base InputGroup component with enhanced visual styling
  */
 export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
@@ -23,13 +23,16 @@ export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
         variant={variant}
         glass={glass}
         className={cn(
-          hoverEffects({ hover: effect }),
-          className
+          hoverEffects({
+            hover: effect,
+          }),
+          className,
         )}
         {...props}
       />
-    )
-  }
-)
-InputGroup.displayName = "InputGroup"
+    );
+  },
+);
+InputGroup.displayName = "InputGroup";
 
+export { InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "../input-group";

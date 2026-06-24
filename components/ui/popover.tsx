@@ -1,50 +1,67 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import { Popover as PopoverPrimitive } from "radix-ui";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-const Popover = PopoverPrimitive.Root
+const Popover = PopoverPrimitive.Root;
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+const PopoverTrigger = PopoverPrimitive.Trigger;
+
+const PopoverAnchor = PopoverPrimitive.Anchor;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal"
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground border"
-    
+    if (variant === "default") return "bg-popover text-popover-foreground border";
+
     const variants = {
-      glass: "glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-      glassSubtle: "glass-bg backdrop-blur-[var(--blur-sm)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] opacity-50",
-      frosted: "glass-frosted backdrop-blur-[var(--blur-frosted)] border border-[var(--glass-frosted-border)] text-foreground shadow-[var(--glass-frosted-shadow)]",
-      fluted: "glass-fluted backdrop-blur-[var(--blur)] border border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)]",
-      crystal: "glass-crystal backdrop-blur-[var(--blur-crystal)] border border-[var(--glass-crystal-border)] text-foreground shadow-[var(--glass-crystal-shadow)]",
-    }
-    return variants[variant] || variants.glass
-  }
-  
+      glass: "glass-solid text-foreground",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
+    };
+    return variants[variant] || variants.glass;
+  };
+
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         ref={ref}
+        data-slot="popover-content"
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          "z-50 w-72 rounded-md p-4 shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          "z-50 w-72 rounded-xl p-4 shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           getVariantClass(),
-          className
+          className,
         )}
         {...props}
       />
     </PopoverPrimitive.Portal>
-  )
-})
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+  );
+});
+PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export { Popover, PopoverTrigger, PopoverContent }
+const PopoverHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div data-slot="popover-header" className={cn("flex flex-col gap-1 text-sm", className)} {...props} />
+);
+PopoverHeader.displayName = "PopoverHeader";
 
+const PopoverTitle = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div data-slot="popover-title" className={cn("font-medium", className)} {...props} />
+);
+PopoverTitle.displayName = "PopoverTitle";
+
+const PopoverDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p data-slot="popover-description" className={cn("text-muted-foreground", className)} {...props} />
+);
+PopoverDescription.displayName = "PopoverDescription";
+
+export { Popover, PopoverAnchor, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger };

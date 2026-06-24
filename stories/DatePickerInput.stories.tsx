@@ -1,22 +1,37 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { DatePickerInput } from '@/components/ui/glass/date-picker-input';
-import * as React from 'react';
+import type { Meta, StoryObj } from "@storybook/react";
+import * as React from "react";
+import { DatePickerInput } from "@/components/ui/glass/date-picker-input";
 
 const meta = {
-  title: 'Glass UI/DatePickerInput',
+  title: "Sistine/DatePickerInput",
   component: DatePickerInput,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
     effect: {
-      control: 'select',
-      options: ['none', 'glow', 'shimmer', 'ripple', 'lift', 'scale'],
+      control: "select",
+      options: [
+        "none",
+        "glow",
+        "shimmer",
+        "ripple",
+        "lift",
+        "scale",
+      ],
     },
   },
 } satisfies Meta<typeof DatePickerInput>;
@@ -30,8 +45,8 @@ export const Default: Story = {
     return <DatePickerInput {...args} value={date} onChange={setDate} />;
   },
   args: {
-    variant: 'glass',
-    placeholder: 'Pick a date',
+    variant: "glass",
+    placeholder: "Pick a date",
   },
 };
 
@@ -41,8 +56,7 @@ export const Frosted: Story = {
     return <DatePickerInput {...args} value={date} onChange={setDate} />;
   },
   args: {
-    variant: 'frosted',
-    placeholder: 'Pick a date',
+    variant: "frosted",
+    placeholder: "Pick a date",
   },
 };
-

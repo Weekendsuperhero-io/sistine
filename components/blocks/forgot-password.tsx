@@ -1,34 +1,35 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function ForgotPasswordBlock() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <Card variant="glass" className="w-full max-w-md text-white">
+      <Card variant="glass" className="w-full max-w-md text-foreground">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-white">Forgot password?</CardTitle>
+          <CardTitle className="text-2xl text-foreground">Forgot password?</CardTitle>
           <CardDescription className="text-muted-foreground">
             Enter your email address and we&apos;ll send you a link to reset your password
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
+            <Label htmlFor="email" className="text-foreground">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
               variant="glass"
-              className="text-white placeholder:text-muted-foreground"
+              className="text-foreground placeholder:text-muted-foreground"
             />
           </div>
-          <Button variant="glass" className="w-full text-white">
+          <Button variant="glass" className="w-full text-foreground">
             Send Reset Link
           </Button>
           <Button variant="link" className="w-full text-muted-foreground" asChild>
@@ -40,6 +41,5 @@ export function ForgotPasswordBlock() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

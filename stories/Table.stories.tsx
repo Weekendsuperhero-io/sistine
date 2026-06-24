@@ -1,17 +1,25 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { Meta, StoryObj } from "@storybook/react";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const meta = {
-  title: 'Glass UI/Table',
+  title: "Sistine/Table",
   component: Table,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
   argTypes: {
     variant: {
-      control: 'select',
-      options: ['default', 'glass', 'glassSubtle', 'frosted', 'fluted', 'crystal'],
+      control: "select",
+      options: [
+        "default",
+        "glass",
+        "frosted",
+        "fluted",
+        "crystal",
+      ],
     },
   },
 } satisfies Meta<typeof Table>;
@@ -160,4 +168,3 @@ export const Simple: Story = {
     </Table>
   ),
 };
-
