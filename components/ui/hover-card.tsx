@@ -12,7 +12,7 @@ const HoverCardTrigger = HoverCardPrimitive.Trigger;
 const HoverCardContent = React.forwardRef<
   React.ElementRef<typeof HoverCardPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -20,10 +20,10 @@ const HoverCardContent = React.forwardRef<
 
     const variants = {
       glass: "glass-solid text-foreground",
-      glassSubtle: "glass-solid text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

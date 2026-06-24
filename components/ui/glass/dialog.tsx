@@ -15,7 +15,7 @@ import {
 } from "../dialog";
 
 export interface DialogContentProps extends Omit<React.ComponentProps<typeof BaseDialogContent>, "glass"> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   animated?: boolean;
   hover?: HoverEffect;
   glass?: GlassCustomization;

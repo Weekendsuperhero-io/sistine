@@ -17,7 +17,7 @@ function Avatar({
       data-slot="avatar"
       data-size={size}
       className={cn(
-        "group/avatar relative flex size-10 shrink-0 overflow-hidden rounded-full select-none data-[size=lg]:size-12 data-[size=sm]:size-8",
+        "group/avatar relative flex size-10 shrink-0 overflow-hidden rounded-full select-none [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)] data-[size=lg]:size-12 data-[size=sm]:size-8",
         className,
       )}
       {...props}

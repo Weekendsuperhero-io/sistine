@@ -10,7 +10,7 @@ import { Input } from "./input";
 import { Textarea } from "./textarea";
 
 interface InputGroupProps extends React.ComponentProps<"div"> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   glass?: GlassCustomization;
 }
 
@@ -19,10 +19,10 @@ function InputGroup({ className, variant = "glass", glass, style, ...props }: In
     if (variant === "default") return "border border-input shadow-xs dark:bg-input/30";
     const variants = {
       glass: "glass-surface",
-      glassSubtle: "glass-surface opacity-50",
       frosted: "glass-frosted",
       fluted: "glass-fluted",
       crystal: "glass-crystal",
+      opaque: "glass-opaque",
     };
     return variants[variant] || variants.glass;
   };

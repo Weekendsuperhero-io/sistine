@@ -14,7 +14,7 @@ const PopoverAnchor = PopoverPrimitive.Anchor;
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -22,10 +22,10 @@ const PopoverContent = React.forwardRef<
 
     const variants = {
       glass: "glass-solid text-foreground",
-      glassSubtle: "glass-solid text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

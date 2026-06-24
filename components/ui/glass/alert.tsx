@@ -28,8 +28,8 @@ export const Alert = React.forwardRef<HTMLDivElement, AlertProps>(({ className, 
       variant={variant}
       className={cn(
         "relative overflow-hidden",
-        glow && "shadow-lg shadow-(color:--glass-glow)",
-        "transition-all duration-200",
+        glow && "glass-glow",
+        "transition duration-200",
         hoverEffects({
           hover,
         }),

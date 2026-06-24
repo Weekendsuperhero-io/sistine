@@ -22,7 +22,7 @@ Tabs.displayName = TabsPrimitive.Root.displayName;
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -30,10 +30,10 @@ const TabsList = React.forwardRef<
 
     const variants = {
       glass: "glass-surface",
-      glassSubtle: "glass-surface opacity-50",
       frosted: "glass-frosted",
       fluted: "glass-fluted",
       crystal: "glass-crystal",
+      opaque: "glass-opaque",
     };
     return variants[variant] || variants.glass;
   };
@@ -55,7 +55,7 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
       ref={ref}
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
         // Active state - lighter, more opaque background with shadow

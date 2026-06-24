@@ -71,7 +71,6 @@ Storybook will start on `http://localhost:6006`
 All components support these glass variants:
 
 - **glass** - Base glass effect with balanced blur and transparency
-- **glassSubtle** - Subtle glass with reduced opacity
 - **frosted** - Frosted glass with stronger blur
 - **fluted** - Textured glass with unique pattern
 - **crystal** - Crystal clear with layered effects and animations

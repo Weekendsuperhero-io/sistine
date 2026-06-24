@@ -3,7 +3,7 @@ import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   glass?: GlassCustomization;
 }
 
@@ -16,10 +16,10 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(({ classNam
 
     const variants = {
       glass: "glass-bg text-foreground",
-      glassSubtle: "glass-bg text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

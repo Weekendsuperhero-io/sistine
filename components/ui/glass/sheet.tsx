@@ -24,7 +24,7 @@ export interface SheetContentProps extends React.ComponentProps<typeof BaseSheet
  */
 export const SheetContent = React.forwardRef<React.ElementRef<typeof BaseSheetContent>, SheetContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseSheetContent ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)} {...props} />;
+    return <BaseSheetContent ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
   },
 );
 SheetContent.displayName = "SheetContent";

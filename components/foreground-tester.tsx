@@ -40,7 +40,7 @@ export function ForegroundTester() {
     l: 60,
     c: 0.15,
     h: 255,
-    count: 4,
+    count: 8,
     dark: true,
   });
 

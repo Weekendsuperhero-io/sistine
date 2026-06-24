@@ -42,7 +42,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "relative overflow-hidden",
             icon && "pl-10",
             error && "border-destructive focus-visible:ring-destructive",
-            "transition-all duration-200 focus-visible:scale-[1.02]",
+            "transition duration-200 focus-visible:scale-[1.02]",
             hoverEffects({
               hover,
             }),

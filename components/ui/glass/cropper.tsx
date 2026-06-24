@@ -30,7 +30,7 @@ export interface CropperProps {
  */
 export function Cropper({ className, variant = "glass", glow = false, ...props }: CropperProps) {
   return (
-    <div className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)}>
+    <div className={cn(glow && "glass-glow", className)}>
       <BaseCropper variant={variant} {...props} />
     </div>
   );

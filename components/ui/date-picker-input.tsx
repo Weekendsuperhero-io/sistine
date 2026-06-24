@@ -13,7 +13,7 @@ export interface DatePickerInputProps extends Omit<React.ComponentProps<typeof I
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
 }
 
 const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>(

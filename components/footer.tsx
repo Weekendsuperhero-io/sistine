@@ -51,7 +51,7 @@ export function Footer() {
                 </Link>
               </Button>
               <Link
-                href="https://github.com/Weekendsuperhero-io/os-glass"
+                href="https://github.com/Weekendsuperhero-io/sistine"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

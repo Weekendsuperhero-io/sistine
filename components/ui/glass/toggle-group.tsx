@@ -17,14 +17,7 @@ export type ToggleGroupProps = Omit<BaseToggleGroupProps, "variant" | "className
  */
 export const ToggleGroup = React.forwardRef<React.ElementRef<typeof BaseToggleGroup>, ToggleGroupProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return (
-      <BaseToggleGroup
-        ref={ref}
-        variant={variant}
-        className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)}
-        {...(props as BaseToggleGroupProps)}
-      />
-    );
+    return <BaseToggleGroup ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...(props as BaseToggleGroupProps)} />;
   },
 );
 ToggleGroup.displayName = "ToggleGroup";

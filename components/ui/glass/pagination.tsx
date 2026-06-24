@@ -21,9 +21,7 @@ export interface PaginationContentProps extends React.ComponentProps<typeof Base
  */
 export const PaginationContent = React.forwardRef<HTMLUListElement, PaginationContentProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return (
-      <BasePaginationContent ref={ref} variant={variant} className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)} {...props} />
-    );
+    return <BasePaginationContent ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
   },
 );
 PaginationContent.displayName = "PaginationContent";

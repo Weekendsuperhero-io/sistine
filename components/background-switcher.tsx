@@ -1,18 +1,18 @@
 "use client";
 
-import { GridFourIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
+import { BuildingsIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
 import { type BackgroundType, RAMP_AXES, useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 const options: {
   value: BackgroundType;
   label: string;
-  Icon: typeof GridFourIcon;
+  Icon: typeof BuildingsIcon;
 }[] = [
   {
     value: "grid",
-    label: "Grid",
-    Icon: GridFourIcon,
+    label: "City",
+    Icon: BuildingsIcon,
   },
   {
     value: "gradient",

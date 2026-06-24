@@ -37,7 +37,7 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
     size?: "default" | "sm";
   }
 >(({ className, variant = "glass", size = "default", ...props }, ref) => {
@@ -46,10 +46,10 @@ const AlertDialogContent = React.forwardRef<
 
     const variants = {
       glass: "glass-surface-lg text-foreground",
-      glassSubtle: "glass-surface-lg text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

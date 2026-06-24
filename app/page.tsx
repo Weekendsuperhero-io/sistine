@@ -56,13 +56,13 @@ export default function Home() {
               50+ Liquid Glass Components
             </Badge>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.08]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.08] text-balance">
               <span className="text-foreground">Beautiful interfaces,</span>
               <br />
               <span className="text-foreground/35">built with liquid glass.</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
               A component library inspired by Apple&apos;s design language. Drop-in replacements for shadcn/ui with blur, depth, and translucency
               baked&nbsp;in.
             </p>
@@ -80,7 +80,7 @@ export default function Home() {
             </div>
 
             <div
-              className="glass-bg max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl"
+              className="glass-bg max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
               onClick={handleCopy}
             >
               <code className="text-foreground/70 truncate select-all">pnpm dlx shadcn@latest add @sistine/button</code>
@@ -302,17 +302,18 @@ export default function Home() {
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct glass variants</h2>
-            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Fluted, and Crystal styles.</p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Five distinct glass variants</h2>
+            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Fluted, Crystal, and Opaque styles.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
             <Tabs defaultValue="glass">
-              <TabsList variant="glass" className="mb-6 w-full grid grid-cols-4">
+              <TabsList variant="glass" className="mb-6 w-full grid grid-cols-5">
                 <TabsTrigger value="glass">Glass</TabsTrigger>
                 <TabsTrigger value="frosted">Frosted</TabsTrigger>
                 <TabsTrigger value="fluted">Fluted</TabsTrigger>
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
+                <TabsTrigger value="opaque">Opaque</TabsTrigger>
               </TabsList>
 
               {(
@@ -321,6 +322,7 @@ export default function Home() {
                   "frosted",
                   "fluted",
                   "crystal",
+                  "opaque",
                 ] as const
               ).map((v) => (
                 <TabsContent key={v} value={v}>
@@ -440,8 +442,8 @@ export default function Home() {
               },
               {
                 icon: Palette,
-                title: "4 Variants",
-                desc: "Glass, Frosted, Fluted, and Crystal. Each component adapts to every variant automatically.",
+                title: "5 Variants",
+                desc: "Glass, Frosted, Fluted, Crystal, and Opaque. Each component adapts to every variant automatically.",
               },
               {
                 icon: Layers,

@@ -21,18 +21,18 @@ export interface InputOTPSlotProps extends React.ComponentProps<typeof BaseInput
  */
 export const InputOTP = React.forwardRef<React.ElementRef<typeof BaseInputOTP>, InputOTPProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseInputOTP ref={ref} variant={variant} className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)} {...props} />;
+    return <BaseInputOTP ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
   },
 );
 InputOTP.displayName = "InputOTP";
 
 export const InputOTPGroup = React.forwardRef<HTMLDivElement, InputOTPGroupProps>(({ className, variant = "glass", glow = false, ...props }, ref) => {
-  return <BaseInputOTPGroup ref={ref} variant={variant} className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)} {...props} />;
+  return <BaseInputOTPGroup ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
 });
 InputOTPGroup.displayName = "InputOTPGroup";
 
 export const InputOTPSlot = React.forwardRef<HTMLDivElement, InputOTPSlotProps>(({ className, variant = "glass", glow = false, ...props }, ref) => {
-  return <BaseInputOTPSlot ref={ref} variant={variant} className={cn(glow && "ring-1 ring-(color:--glass-glow)", className)} {...props} />;
+  return <BaseInputOTPSlot ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
 });
 InputOTPSlot.displayName = "InputOTPSlot";
 

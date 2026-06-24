@@ -13,14 +13,7 @@ export interface AccordionTriggerProps extends React.ComponentProps<typeof BaseA
  */
 export const AccordionTrigger = React.forwardRef<React.ElementRef<typeof BaseAccordionTrigger>, AccordionTriggerProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return (
-      <BaseAccordionTrigger
-        ref={ref}
-        variant={variant}
-        className={cn(glow && "data-[state=open]:shadow-md data-[state=open]:shadow-(color:--glass-glow)", className)}
-        {...props}
-      />
-    );
+    return <BaseAccordionTrigger ref={ref} variant={variant} className={cn(glow && "data-[state=open]:glass-glow", className)} {...props} />;
   },
 );
 AccordionTrigger.displayName = "AccordionTrigger";

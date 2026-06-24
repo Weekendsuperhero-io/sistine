@@ -964,7 +964,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
                     "border-blue-500/30! [&_[data-title]]:text-blue-600! dark:[&_[data-title]]:text-blue-400! [&_[data-description]]:text-blue-600/80! dark:[&_[data-description]]:text-blue-400/80!",
                   action: {
                     label: "View",
-                    onClick: () => console.log("View clicked"),
+                    onClick: () => {},
                   },
                 })
               }

@@ -5,27 +5,24 @@ import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.98] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
         glass:
-          "glass-bg text-foreground hover:opacity-90 transition-all active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
-        glassSubtle:
-          "glass-bg text-foreground opacity-50 backdrop-blur-[var(--blur-sm)] hover:opacity-60 transition-all active:opacity-70 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15)]",
-        glassSolid:
-          "bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-[var(--blur)] border border-white/30 text-foreground shadow-[var(--glass-shadow)] hover:from-purple-500/30 hover:to-blue-500/30 transition-all active:from-purple-500/25 active:to-blue-500/25 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
+          "glass-bg text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
+        gradient: "glass-gradient text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
         frosted:
-          "glass-frosted text-foreground hover:opacity-90 transition-all active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2),inset_0_1px_2px_oklch(0%_0_0/0.15)]",
-        fluted: "glass-fluted text-foreground hover:opacity-90 transition-all active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
+          "glass-frosted text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2),inset_0_1px_2px_oklch(0%_0_0/0.15)]",
+        fluted: "glass-fluted text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
         crystal:
-          "glass-crystal text-foreground transition-all active:opacity-90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.25),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
-        opaque: "glass-opaque text-foreground hover:opacity-90 transition-all active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
+          "glass-crystal text-foreground transition active:opacity-90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.25),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
+        opaque: "glass-opaque text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
         destructive:
-          "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition-all active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
+          "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         outline:
-          "border-2 border-foreground/20 bg-transparent text-foreground shadow-xs hover:bg-foreground/10 hover:border-foreground/40 hover:text-foreground dark:border-white/40 dark:hover:bg-white/5 dark:hover:border-white/60 dark:text-white active:bg-foreground/15 active:border-foreground/50 dark:active:bg-white/10 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.1)]",
+          "glass-bg backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.1)]",
         secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15)]",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[inset_0_1px_2px_oklch(0%_0_0/0.1)]",
@@ -68,12 +65,12 @@ function Button({
   const hasCustomGlass = glass !== undefined;
   const isGlassVariant =
     variant === "glass" ||
-    variant === "glassSubtle" ||
-    variant === "glassSolid" ||
+    variant === "gradient" ||
     variant === "frosted" ||
     variant === "fluted" ||
     variant === "crystal" ||
-    variant === "opaque";
+    variant === "opaque" ||
+    variant === "outline";
 
   const glassStyles = isGlassVariant && hasCustomGlass ? getGlassStyles(glass) : {};
 

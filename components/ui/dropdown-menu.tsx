@@ -62,7 +62,7 @@ DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayNam
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -70,10 +70,10 @@ const DropdownMenuSubContent = React.forwardRef<
 
     const variants = {
       glass: "glass-solid text-foreground",
-      glassSubtle: "glass-solid text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };
@@ -96,7 +96,7 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, sideOffset = 4, variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -104,10 +104,10 @@ const DropdownMenuContent = React.forwardRef<
 
     const variants = {
       glass: "glass-solid text-foreground",
-      glassSubtle: "glass-solid text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

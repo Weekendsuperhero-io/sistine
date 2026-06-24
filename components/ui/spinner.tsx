@@ -3,7 +3,7 @@ import type { GlassCustomization } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   size?: "sm" | "md" | "lg";
   glass?: GlassCustomization;
 }

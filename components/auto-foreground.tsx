@@ -35,7 +35,7 @@ const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
   h: 255,
-  count: 4,
+  count: 8,
 };
 
 /** Read the persisted foreground palette + start level; falls back to tonal / 0. */

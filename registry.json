@@ -2264,7 +2264,7 @@
         "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
-        "react-resizable-panels@^2.1.0",
+        "react-resizable-panels@^3.0.6",
         "tailwind-merge"
       ],
       "registryDependencies": [],

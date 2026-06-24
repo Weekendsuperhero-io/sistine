@@ -15,7 +15,7 @@ const SelectValue = SelectPrimitive.Value;
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
     size?: "sm" | "default";
   }
 >(({ className, children, variant = "glass", size = "default", ...props }, ref) => {
@@ -24,10 +24,10 @@ const SelectTrigger = React.forwardRef<
 
     const variants = {
       glass: "glass-surface",
-      glassSubtle: "glass-surface opacity-50",
       frosted: "glass-frosted",
       fluted: "glass-fluted",
       crystal: "glass-crystal",
+      opaque: "glass-opaque",
     };
     return variants[variant] || variants.glass;
   };
@@ -86,7 +86,7 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   }
 >(({ className, children, position = "popper", align = "center", variant = "glass", ...props }, ref) => {
   const getVariantClass = () => {
@@ -94,10 +94,10 @@ const SelectContent = React.forwardRef<
 
     const variants = {
       glass: "glass-solid text-foreground",
-      glassSubtle: "glass-solid text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

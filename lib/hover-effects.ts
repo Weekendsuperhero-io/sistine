@@ -5,17 +5,17 @@ import { cva } from "class-variance-authority";
  *
  * Effects:
  * - none: No hover effect
- * - glow: Purple glow shadow that intensifies on hover
+ * - glow: Themed glow shadow (--glass-glow, follows the tint hue) that intensifies on hover
  * - shimmer: Moving shimmer effect across the component
  * - ripple: Ripple effect that scales outward on hover
  * - lift: Subtle lift effect with shadow increase
  * - scale: Scale up slightly on hover
  */
-export const hoverEffects = cva("transition-all duration-300", {
+export const hoverEffects = cva("transition duration-300", {
   variants: {
     hover: {
       none: "",
-      glow: "shadow-lg shadow-purple-500/50 hover:shadow-xl hover:shadow-purple-500/70",
+      glow: "glass-glow hover:glass-glow-lg",
       shimmer:
         "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent hover:before:translate-x-full before:transition-transform before:duration-1000",
       ripple:

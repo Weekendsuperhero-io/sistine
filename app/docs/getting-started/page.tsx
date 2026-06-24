@@ -15,7 +15,7 @@ const mcpCode = `{
         "-y",
         "@shadcn/mcp-server",
         "--registry",
-        "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/registry.json"
+        "https://raw.githubusercontent.com/Weekendsuperhero-io/sistine/main/public/r/registry.json"
       ]
     }
   }
@@ -23,7 +23,7 @@ const mcpCode = `{
 
 const registryConfig = `{
   "registries": {
-    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/{name}.json"
+    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/sistine/main/public/r/{name}.json"
   }
 }`;
 

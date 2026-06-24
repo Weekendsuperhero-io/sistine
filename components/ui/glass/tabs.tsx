@@ -21,7 +21,7 @@ export const TabsList = React.forwardRef<React.ElementRef<typeof BaseTabsList>, 
         variant={variant}
         className={cn(
           "relative overflow-hidden",
-          glow && "shadow-lg shadow-(color:--glass-glow)",
+          glow && "glass-glow",
           hoverEffects({
             hover,
           }),

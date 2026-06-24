@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & {
-    variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
     /** When true, rows alternate in brightness and the per-row dividers are removed. */
     striped?: boolean;
   }
@@ -15,10 +15,10 @@ const Table = React.forwardRef<
 
     const variants = {
       glass: "w-full caption-bottom text-sm glass-surface rounded-lg overflow-hidden",
-      glassSubtle: "w-full caption-bottom text-sm glass-surface rounded-lg overflow-hidden opacity-50",
       frosted: "w-full caption-bottom text-sm glass-frosted rounded-lg overflow-hidden",
       fluted: "w-full caption-bottom text-sm glass-fluted rounded-lg overflow-hidden",
       crystal: "w-full caption-bottom text-sm glass-crystal rounded-lg overflow-hidden",
+      opaque: "w-full caption-bottom text-sm glass-opaque rounded-lg overflow-hidden",
     };
     return variants[variant] || variants.glass;
   };

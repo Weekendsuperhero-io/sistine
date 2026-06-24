@@ -99,7 +99,7 @@ export function OklchRampDemo() {
   const [l, setL] = React.useState(60);
   const [c, setC] = React.useState(0.15);
   const [h, setH] = React.useState(255);
-  const [count, setCount] = React.useState(4);
+  const [count, setCount] = React.useState(8);
   const [wideGamut, setWideGamut] = React.useState(false);
   const [mode, setMode] = React.useState<(typeof AUTO_MODES)[number]["key"]>("auto");
   const { resolvedTheme } = useTheme();
@@ -247,7 +247,7 @@ export function OklchRampDemo() {
                 count,
               ]}
               min={3}
-              max={8}
+              max={12}
               step={1}
               onValueChange={(v) => setCount(v[0] ?? count)}
             />

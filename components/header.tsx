@@ -8,7 +8,6 @@ import { useTheme } from "next-themes";
 import * as React from "react";
 import { BackgroundSwitcher } from "@/components/background-switcher";
 import { GlassStyleSwitcher } from "@/components/glass-style-switcher";
-import { GlassTintPicker } from "@/components/glass-tint-picker";
 import { GlassTintSwitcher } from "@/components/glass-tint-switcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,7 @@ export function Header() {
 
   React.useEffect(() => {
     // Fetch GitHub star count
-    fetch("https://api.github.com/repos/Weekendsuperhero-io/os-glass")
+    fetch("https://api.github.com/repos/Weekendsuperhero-io/sistine")
       .then((res) => res.json())
       .then((data) => {
         if (data.stargazers_count) {
@@ -76,7 +75,7 @@ export function Header() {
                   alt="Sistine"
                   width={32}
                   height={32}
-                  className="h-6 w-6 md:h-8 md:w-8 rounded-md"
+                  className="h-6 w-6 md:h-8 md:w-8 rounded-md [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)]"
                   priority
                 />
               )}
@@ -101,21 +100,20 @@ export function Header() {
           <div className="flex items-center gap-2 md:gap-3">
             {starCount !== null && (
               <Link
-                href="https://github.com/Weekendsuperhero-io/os-glass"
+                href="https://github.com/Weekendsuperhero-io/sistine"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hidden sm:flex items-center"
               >
                 <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
                   <GithubLogoIcon className="h-4 w-4" />
-                  <span className="text-xs font-semibold">{starCount.toLocaleString()}</span>
+                  <span className="text-xs font-semibold tabular-nums">{starCount.toLocaleString()}</span>
                 </Badge>
               </Link>
             )}
             <BackgroundSwitcher />
             <GlassStyleSwitcher />
             <GlassTintSwitcher />
-            <GlassTintPicker />
             <ModeToggle variant="glass" />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -132,7 +130,7 @@ export function Header() {
                         alt="Sistine"
                         width={32}
                         height={32}
-                        className="h-8 w-8 rounded-md"
+                        className="h-8 w-8 rounded-md [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)]"
                       />
                     )}
                     {!mounted && <div className="h-8 w-8 bg-muted animate-pulse rounded" />}
@@ -155,7 +153,7 @@ export function Header() {
                   {starCount !== null && (
                     <div className="pt-4 border-t border-border">
                       <Link
-                        href="https://github.com/Weekendsuperhero-io/os-glass"
+                        href="https://github.com/Weekendsuperhero-io/sistine"
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => setMobileMenuOpen(false)}
@@ -163,7 +161,7 @@ export function Header() {
                       >
                         <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
                           <GithubLogoIcon className="h-4 w-4" />
-                          <span className="text-xs font-semibold">{starCount.toLocaleString()}</span>
+                          <span className="text-xs font-semibold tabular-nums">{starCount.toLocaleString()}</span>
                         </Badge>
                       </Link>
                     </div>

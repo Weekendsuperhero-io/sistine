@@ -21,7 +21,7 @@ export interface BreadcrumbListProps extends React.ComponentProps<typeof BaseBre
  */
 export const BreadcrumbList = React.forwardRef<HTMLOListElement, BreadcrumbListProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
-    return <BaseBreadcrumbList ref={ref} variant={variant} className={cn(glow && "shadow-md shadow-(color:--glass-glow)", className)} {...props} />;
+    return <BaseBreadcrumbList ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
   },
 );
 BreadcrumbList.displayName = "BreadcrumbList";

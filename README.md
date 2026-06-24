@@ -9,8 +9,9 @@ A modern, glassmorphic component library inspired by Apple's design language, bu
 
 ## ✨ Features
 
-- **40+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
+- **50+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
 - **Apple-Inspired Design** - Glassmorphism effects following Apple's design standards
+- **OKLCH tint system** - Recolor every glass surface from three variables (hue / chroma / wash) or a built-in preset
 - **Theme Support** - Built-in light/dark mode with automatic theme switching
 - **Enhanced Effects** - Glow, shimmer, ripple, and gradient animations
 - **Fully Customizable** - Per-component glass effect customization
@@ -28,7 +29,7 @@ Sistine is a namespaced shadcn registry. Add the `@sistine` namespace to your pr
 ```json
 {
   "registries": {
-    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/os-glass/main/public/r/{name}.json"
+    "@sistine": "https://raw.githubusercontent.com/Weekendsuperhero-io/sistine/main/public/r/{name}.json"
   }
 }
 ```
@@ -133,23 +134,19 @@ Enhanced components built on top of base components with:
 
 ## 🎨 Customization
 
-### Global CSS Variables
+### Retint all glass
 
-Customize glass effects globally using CSS variables:
+Every color is authored in **oklch** in `app/globals.css` (full reference: [`docs/color-tokens.md`](./docs/color-tokens.md)). The whole glass system is driven by three tint variables — change them, or set a preset on `<html data-glass-tint="…">`, to recolor every surface, border, and accent at once:
 
 ```css
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --blur: 30px;
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.dark {
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-tint-h: 250; /* hue 0–360 */
+  --glass-tint-c: 0.05; /* chroma (saturation) */
+  --glass-tint-a: 0.16; /* wash alpha */
 }
 ```
+
+Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `fluted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
 ### Per-Component Customization
 
@@ -157,10 +154,10 @@ Customize glass effects globally using CSS variables:
 <Card
   variant="glass"
   glass={{
-    color: "rgba(139, 92, 246, 0.2)",
+    color: "oklch(0.6 0.22 293 / 0.2)",
     blur: 30,
     transparency: 0.3,
-    outline: "rgba(139, 92, 246, 0.5)"
+    outline: "oklch(0.6 0.22 293 / 0.5)"
   }}
 >
   Content
@@ -205,8 +202,8 @@ And more! See the [full component list](https://weekendsuperhero.io/components).
 
 ```bash
 # Clone the repository
-git clone https://github.com/Weekendsuperhero-io/os-glass.git
-cd os-glass
+git clone https://github.com/Weekendsuperhero-io/sistine.git
+cd sistine
 
 # Install dependencies
 pnpm install
@@ -227,7 +224,7 @@ pnpm registry:build
 ### Project Structure
 
 ```
-os-glass/
+sistine/
 ├── app/                    # Next.js app directory
 ├── components/             # Shared components
 ├── lib/                    # Utilities and helpers
@@ -253,9 +250,7 @@ Deploy both the documentation site and Storybook to Vercel:
 3. Set environment variable `NEXT_PUBLIC_STORYBOOK_URL` in main site
 4. Redeploy main site
 
-**Detailed Instructions:**
-- See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment guide
-- See [DEPLOYMENT-QUICKSTART.md](./DEPLOYMENT-QUICKSTART.md) for quick reference
+> Both deploy from the same repo — the main site (default settings) and Storybook (build command `pnpm build-storybook`, output `storybook-static`).
 
 ### Build Commands
 
@@ -282,8 +277,8 @@ This project is licensed under the MIT License.
 ## 🔗 Links
 
 - [Documentation](https://weekendsuperhero.io)
-- [GitHub Repository](https://github.com/Weekendsuperhero-io/os-glass)
-- [Issue Tracker](https://github.com/Weekendsuperhero-io/os-glass/issues)
+- [GitHub Repository](https://github.com/Weekendsuperhero-io/sistine)
+- [Issue Tracker](https://github.com/Weekendsuperhero-io/sistine/issues)
 
 ## 🙏 Acknowledgments
 

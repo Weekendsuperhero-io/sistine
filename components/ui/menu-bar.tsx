@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
 export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   glass?: GlassCustomization;
 }
 
@@ -19,10 +19,10 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, var
 
     const variants = {
       glass: "glass-bg text-foreground",
-      glassSubtle: "glass-bg text-foreground opacity-50",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };

@@ -125,7 +125,7 @@ export default function ComponentPage({
                 <li>glass - Glassmorphism effect (default)</li>
                 {component.name === "button" && (
                   <>
-                    <li>glassSolid - Solid glass variant</li>
+                    <li>gradient - Brand purple→blue gradient glass</li>
                     <li>outline - Outline variant</li>
                     <li>ghost - Ghost variant</li>
                   </>

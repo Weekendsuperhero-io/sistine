@@ -3,6 +3,7 @@
 import { CaretRightIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ReadableText } from "@/components/readable-text";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getComponents } from "@/lib/registry";
@@ -83,8 +84,8 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           {isActive && <CaretRightIcon className="h-4 w-4" />}
                           <span className="truncate flex-1">{item.title}</span>
                           {item.isNew === true && (
-                            <Badge variant="glass" className="bg-primary/20 text-primary border-primary/30 text-xs px-1.5 py-0.5">
-                              NEW
+                            <Badge variant="glass" className="border-primary/40 text-xs px-1.5 py-0.5">
+                              <ReadableText accent="--primary">NEW</ReadableText>
                             </Badge>
                           )}
                         </Link>

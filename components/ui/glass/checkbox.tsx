@@ -17,11 +17,7 @@ export const Checkbox = React.forwardRef<React.ElementRef<typeof BaseCheckbox>, 
       <BaseCheckbox
         ref={ref}
         variant={variant}
-        className={cn(
-          glow && "data-[state=checked]:shadow-lg data-[state=checked]:shadow-(color:--glass-glow)",
-          "transition-all duration-200",
-          className,
-        )}
+        className={cn(glow && "data-[state=checked]:glass-glow", "transition duration-200", className)}
         {...props}
       />
     );

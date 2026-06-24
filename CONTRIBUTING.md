@@ -15,8 +15,8 @@ Thank you for your interest in contributing to Sistine! This document provides g
 1. **Fork the repository**
    ```bash
    # Fork on GitHub, then clone your fork
-   git clone https://github.com/your-username/os-glass.git
-   cd os-glass
+   git clone https://github.com/your-username/sistine.git
+   cd sistine
    ```
 
 2. **Install dependencies**
@@ -274,8 +274,8 @@ All PRs require review before merging. Reviewers will check:
 ## 📞 Getting Help
 
 - **Documentation**: [weekendsuperhero.io](https://weekendsuperhero.io)
-- **Issues**: [GitHub Issues](https://github.com/Weekendsuperhero-io/os-glass/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Weekendsuperhero-io/os-glass/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Weekendsuperhero-io/sistine/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Weekendsuperhero-io/sistine/discussions)
 
 ## 📜 License
 
@@ -284,4 +284,3 @@ By contributing, you agree that your contributions will be licensed under the MI
 ---
 
 Thank you for contributing to Sistine! 🎉
-

@@ -9,7 +9,7 @@ function Textarea({
   style,
   ...props
 }: React.ComponentProps<"textarea"> & {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   glass?: GlassCustomization;
 }) {
   const hasCustomGlass = glass !== undefined;
@@ -20,10 +20,10 @@ function Textarea({
 
     const variants = {
       glass: "glass-surface-sm",
-      glassSubtle: "glass-surface-sm opacity-50",
       frosted: "glass-frosted",
       fluted: "glass-fluted",
       crystal: "glass-crystal",
+      opaque: "glass-opaque",
     };
     return variants[variant] || variants.glass;
   };

@@ -9,7 +9,7 @@ function Card({
   style,
   ...props
 }: React.ComponentProps<"div"> & {
-  variant?: "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
   glass?: GlassCustomization;
 }) {
   // When custom glass props are provided, use base glass-bg class and apply custom styles
@@ -23,10 +23,10 @@ function Card({
     // Use variant-specific classes only when no custom glass props
     const variants = {
       glass: "glass-bg text-foreground",
-      glassSubtle: "glass-bg text-foreground opacity-50 backdrop-blur-[var(--blur-sm)]",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
     };
     return variants[variant] || variants.glass;
   };
@@ -60,11 +60,11 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-title" className={cn("leading-none font-semibold", className)} {...props} />;
+  return <div data-slot="card-title" className={cn("leading-none font-semibold text-balance", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-description" className={cn("text-muted-foreground text-sm", className)} {...props} />;
+  return <div data-slot="card-description" className={cn("text-muted-foreground text-sm text-pretty", className)} {...props} />;
 }
 
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {

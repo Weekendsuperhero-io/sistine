@@ -11,7 +11,6 @@ const badgeVariants = cva(
       variant: {
         default: "border-transparent bg-primary text-primary-foreground shadow [a&]:hover:bg-primary/80",
         glass: "glass-surface text-foreground",
-        glassSubtle: "glass-surface text-foreground opacity-50",
         frosted: "glass-frosted text-foreground",
         fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",

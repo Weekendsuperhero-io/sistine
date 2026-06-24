@@ -62,9 +62,9 @@ const InputOTPSlot = React.forwardRef<
 >(({ variant = "glass", className, char, isActive, hasFakeCaret, placeholderChar = "○", ...props }, ref) => {
   const variants = {
     default:
-      "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+      "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
     glass:
-      "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] glass-bg backdrop-blur-[var(--blur-sm)] text-foreground text-lg font-semibold transition-all first:rounded-l-md first:border-l last:rounded-r-md",
+      "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] glass-bg backdrop-blur-[var(--blur-sm)] text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
   };
 
   return (

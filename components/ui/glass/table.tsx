@@ -12,7 +12,7 @@ export interface TableProps extends React.ComponentProps<typeof BaseTable> {
  * Sistine Table - Enhanced table with glassy effects
  */
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(({ className, variant = "glass", glow = false, ...props }, ref) => {
-  return <BaseTable ref={ref} variant={variant} className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)} {...props} />;
+  return <BaseTable ref={ref} variant={variant} className={cn(glow && "glass-glow", className)} {...props} />;
 });
 Table.displayName = "Table";
 

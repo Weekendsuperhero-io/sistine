@@ -14,12 +14,7 @@ export interface ToggleProps extends React.ComponentProps<typeof BaseToggle> {
 export const Toggle = React.forwardRef<React.ElementRef<typeof BaseToggle>, ToggleProps>(
   ({ className, variant = "glass", glow = false, ...props }, ref) => {
     return (
-      <BaseToggle
-        ref={ref}
-        variant={variant}
-        className={cn(glow && "data-[state=on]:shadow-lg data-[state=on]:shadow-(color:--glass-glow)", "transition-all duration-200", className)}
-        {...props}
-      />
+      <BaseToggle ref={ref} variant={variant} className={cn(glow && "data-[state=on]:glass-glow", "transition duration-200", className)} {...props} />
     );
   },
 );

@@ -83,9 +83,9 @@ function toColor(base: OklchColor | string): OklchColor {
   return parsed;
 }
 
-/** Per-side step count, clamped to a sane [3, 8] (rounded). */
+/** Per-side step count, clamped to a sane [3, 12] (rounded). */
 function clampCount(count: number): number {
-  return Math.max(3, Math.min(8, Math.round(count)));
+  return Math.max(3, Math.min(12, Math.round(count)));
 }
 
 /**
@@ -107,7 +107,7 @@ function rangeRamp(seed: number, min: number, max: number, count: number): numbe
 /**
  * Hue ramp covering the FULL wheel: `count` steps each side, the seed centered, hues spread evenly
  * around the wheel (step = 360 / (2·count + 1)) and wrapped into [0, 360). Lightness + chroma are
- * held; `count` clamped to [3, 8]. Unlike chroma/lightness, hue is cyclic — 0° ≡ 360° — so the ramp
+ * held; `count` clamped to [3, 12]. Unlike chroma/lightness, hue is cyclic — 0° ≡ 360° — so the ramp
  * is distributed cyclically instead of running to both endpoints, which keeps the two edge swatches
  * distinct. e.g. seed 120, count 4 → 320, 0, 40, 80, 120, 160, 200, 240, 280.
  */
@@ -133,7 +133,7 @@ export function hueRamp(base: OklchColor | string, count: number): string[] {
 
 /**
  * Chroma ramp covering [0, `max`]: `count` steps each side, the seed centered (left → 0, right →
- * `max`). Lightness + hue are held; `count` clamped to [3, 8]. `max` defaults to MAX_CHROMA (the
+ * `max`). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to MAX_CHROMA (the
  * in-gamut ceiling); pass a larger value (e.g. `1`) to sweep the whole numeric range for a demo —
  * everything above the gamut just clamps when rendered.
  */
@@ -153,7 +153,7 @@ export function chromaRamp(base: OklchColor | string, count: number, max: number
 
 /**
  * Lightness ramp covering the FULL range [0, 100]: `count` steps each side, the seed centered
- * (left → 0, right → 100). Chroma + hue are held; `count` clamped to [3, 8].
+ * (left → 0, right → 100). Chroma + hue are held; `count` clamped to [3, 12].
  */
 export function lightnessRampColors(base: OklchColor | string, count: number): OklchColor[] {
   const color = toColor(base);

@@ -26,7 +26,7 @@ export const Avatar = React.forwardRef<React.ElementRef<typeof BaseAvatar>, Avat
         className={cn(
           sizeClasses[size],
           glow && "ring-2 ring-(color:--glass-glow) shadow-lg shadow-(color:--glass-glow)",
-          "transition-all duration-200",
+          "transition duration-200",
           className,
         )}
         {...props}

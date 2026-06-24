@@ -23,7 +23,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ 
         className={cn(
           icon && "pl-10",
           error && "border-destructive focus-visible:ring-destructive",
-          "transition-all duration-200 focus-visible:scale-[1.01]",
+          "transition duration-200 focus-visible:scale-[1.01]",
           className,
         )}
         {...props}

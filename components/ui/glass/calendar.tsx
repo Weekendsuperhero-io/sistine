@@ -12,7 +12,7 @@ export type CalendarProps = BaseCalendarProps & {
  */
 export function Calendar({ className, variant = "glass", glow = false, ...props }: CalendarProps) {
   return (
-    <div className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)}>
+    <div className={cn(glow && "glass-glow", className)}>
       <BaseCalendar variant={variant} {...props} />
     </div>
   );

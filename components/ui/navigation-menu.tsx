@@ -102,7 +102,7 @@ const NavigationMenuLink = React.forwardRef<
     ref={ref}
     data-slot="navigation-menu-link"
     className={cn(
-      "flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none hover:bg-foreground/10 hover:text-accent-foreground focus:bg-foreground/10 focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-foreground/10/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-foreground/10 data-[active=true]:focus:bg-foreground/10 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
+      "flex flex-col gap-1 rounded-sm p-2 text-sm transition-[color,background-color,box-shadow] outline-none hover:bg-foreground/10 hover:text-accent-foreground focus:bg-foreground/10 focus:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 data-[active=true]:bg-foreground/10/50 data-[active=true]:text-accent-foreground data-[active=true]:hover:bg-foreground/10 data-[active=true]:focus:bg-foreground/10 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
       className,
     )}
     {...props}

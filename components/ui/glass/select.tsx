@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-type SelectVariant = "default" | "glass" | "glassSubtle" | "frosted" | "fluted" | "crystal";
+type SelectVariant = "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
 
 export interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
   variant?: SelectVariant;
@@ -31,7 +31,7 @@ export const SelectTrigger = React.forwardRef<React.ElementRef<typeof BaseSelect
     return (
       <BaseSelectTrigger
         ref={ref}
-        className={cn(glow && "shadow-md shadow-(color:--glass-glow)", "transition-all duration-200", className)}
+        className={cn(glow && "glass-glow", "transition duration-200", className)}
         {...({
           variant,
           ...props,
@@ -47,7 +47,7 @@ export const SelectContent = React.forwardRef<React.ElementRef<typeof BaseSelect
     return (
       <BaseSelectContent
         ref={ref}
-        className={cn(glow && "shadow-lg shadow-(color:--glass-glow)", className)}
+        className={cn(glow && "glass-glow", className)}
         {...({
           variant,
           ...props,
