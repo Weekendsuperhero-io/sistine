@@ -2285,6 +2285,239 @@
           "target": "components/ui/resizable.tsx"
         }
       ]
+    },
+    {
+      "name": "dashboard",
+      "type": "registry:block",
+      "title": "Dashboard",
+      "description": "Complete dashboard layout with stats, charts, and navigation.",
+      "registryDependencies": [
+        "@sistine/badge",
+        "@sistine/card",
+        "@sistine/chart",
+        "@sistine/table"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/dashboard.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/dashboard.tsx"
+        }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react",
+        "recharts"
+      ]
+    },
+    {
+      "name": "authentication",
+      "type": "registry:block",
+      "title": "Authentication",
+      "description": "Login form with glassmorphism effects.",
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/card",
+        "@sistine/checkbox",
+        "@sistine/input",
+        "@sistine/label",
+        "@sistine/separator"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/authentication.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/authentication.tsx"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "signup",
+      "type": "registry:block",
+      "title": "Sign Up",
+      "description": "Registration form with validation.",
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/card",
+        "@sistine/checkbox",
+        "@sistine/input",
+        "@sistine/label",
+        "@sistine/separator"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/signup.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/signup.tsx"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "forgot-password",
+      "type": "registry:block",
+      "title": "Forgot Password",
+      "description": "Password reset form.",
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/card",
+        "@sistine/input",
+        "@sistine/label"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/forgot-password.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/forgot-password.tsx"
+        }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react"
+      ]
+    },
+    {
+      "name": "calendar-block",
+      "type": "registry:block",
+      "title": "Calendar",
+      "description": "Calendar view with events and scheduling.",
+      "registryDependencies": [
+        "@sistine/badge",
+        "@sistine/button",
+        "@sistine/calendar",
+        "@sistine/card",
+        "@sistine/scroll-area"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/calendar.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/calendar.tsx"
+        }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react"
+      ]
+    },
+    {
+      "name": "chart-block",
+      "type": "registry:block",
+      "title": "Chart",
+      "description": "Beautiful charts with bar, line, and area visualizations.",
+      "registryDependencies": [
+        "@sistine/card",
+        "@sistine/chart",
+        "@sistine/tabs"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/chart.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/chart.tsx"
+        }
+      ],
+      "dependencies": [
+        "recharts"
+      ]
+    },
+    {
+      "name": "data-table",
+      "type": "registry:block",
+      "title": "Data Table",
+      "description": "Sortable, filterable table with pagination on the glass Table.",
+      "registryDependencies": [
+        "@sistine/badge",
+        "@sistine/button",
+        "@sistine/input",
+        "@sistine/table"
+      ],
+      "files": [
+        {
+          "path": "components/blocks/data-table.tsx",
+          "type": "registry:component",
+          "target": "components/blocks/data-table.tsx"
+        }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react",
+        "@tanstack/react-table"
+      ]
+    },
+    {
+      "name": "theme",
+      "type": "registry:theme",
+      "title": "Glass Theme",
+      "description": "The Sistine glass design system: OKLCH color tokens, glass surface variables (frosted, fluted, crystal), the runtime tint system, and animations. Adopt the look without pulling components.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "app/globals.css",
+          "type": "registry:style",
+          "target": "app/globals.css"
+        }
+      ],
+      "dependencies": [
+        "tw-animate-css"
+      ]
+    },
+    {
+      "name": "use-mobile",
+      "type": "registry:hook",
+      "title": "use-mobile",
+      "description": "React hook that tracks whether the viewport is below the mobile breakpoint (768px).",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "hooks/use-mobile.ts",
+          "type": "registry:hook",
+          "target": "hooks/use-mobile.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "oklch-utils",
+      "type": "registry:lib",
+      "title": "OKLCH Utils",
+      "description": "Zero-dependency helpers for parsing, formatting, and manipulating OKLCH colors (hue wrapping, chroma clamping, ramps).",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/oklch-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/oklch-utils.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "gradient-utils",
+      "type": "registry:lib",
+      "title": "Gradient Utils",
+      "description": "Generate random, aesthetically balanced gradients in the OKLCH color space and render them to CSS.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/gradient-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/gradient-utils.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "theme-generator",
+      "type": "registry:lib",
+      "title": "Theme Generator",
+      "description": "Generate light/dark theme CSS (including glass-effect variables) from a set of base colors.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/theme-generator.ts",
+          "type": "registry:lib",
+          "target": "lib/theme-generator.ts"
+        }
+      ],
+      "dependencies": []
     }
   ]
 }

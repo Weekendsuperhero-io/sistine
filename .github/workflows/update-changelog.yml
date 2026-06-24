@@ -1,0 +1,20 @@
+name: Update Changelog
+
+# Generates CHANGELOG.md entries from commit messages via the org's Jules-powered reusable
+# workflow (Weekendsuperhero-io/platform-tools), then opens a PR with the result.
+# Run it manually from the Actions tab, or enable the weekly schedule below.
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 0 * * 1"  # every Monday
+
+jobs:
+  changelog:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: weekendsuperhero-io/platform-tools/.github/workflows/reusable-changelog.yml@main
+    with:
+      changelog-path: CHANGELOG.md
+      pr-branch-prefix: "chore/update-changelog-"
+    secrets: inherit

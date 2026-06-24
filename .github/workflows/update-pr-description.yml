@@ -1,0 +1,23 @@
+name: Update PR Description
+
+# Auto-generates the PR title & description from the diff via the org's Jules-powered reusable
+# workflow (Weekendsuperhero-io/platform-tools). Only runs when the PR body contains the trigger
+# phrase "@agent pr-title" — the PR template includes that line by default (delete it to write
+# your own description). Note: GitHub withholds secrets from fork PRs, so this runs only on
+# same-repo branch PRs unless the JULES GitHub App is configured.
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  update-pr:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: weekendsuperhero-io/platform-tools/.github/workflows/reusable-pr-description.yml@main
+    with:
+      trigger-phrase: "@agent pr-title"
+      # Tuned for this TS/CSS/Next repo; skip the generated registry output.
+      diff-file-patterns: "'*.ts' '*.tsx' '*.css' '*.mjs' '*.js' '*.yml' '*.json' '*.md'"
+      diff-exclude-patterns: ":!pnpm-lock.yaml ':!public/r/**'"
+    secrets: inherit

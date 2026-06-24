@@ -89,6 +89,13 @@ export default function Page() {
   },
 };
 
+// Blocks whose registry item name differs from the route key: "calendar"/"chart" collide with
+// the calendar/chart components, so they ship as "<name>-block" in the @sistine registry.
+const REGISTRY_NAMES: Record<string, string> = {
+  calendar: "calendar-block",
+  chart: "chart-block",
+};
+
 function CodeBlock({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false);
 
@@ -130,6 +137,7 @@ export default function BlockPage({
   }
 
   const Component = block.component;
+  const registryName = REGISTRY_NAMES[blockName] ?? blockName;
 
   return (
     <div className="min-h-screen relative">
@@ -160,11 +168,22 @@ export default function BlockPage({
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="code">
+          <TabsContent value="code" className="space-y-4">
             <Card variant="glass" className="text-foreground">
               <CardHeader>
-                <CardTitle className="text-foreground">Implementation</CardTitle>
-                <CardDescription className="text-muted-foreground">Copy this code to use the block in your project</CardDescription>
+                <CardTitle className="text-foreground">Install</CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Add this block and its component dependencies from the @sistine registry
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CodeBlock code={`npx shadcn@latest add @sistine/${registryName}`} />
+              </CardContent>
+            </Card>
+            <Card variant="glass" className="text-foreground">
+              <CardHeader>
+                <CardTitle className="text-foreground">Usage</CardTitle>
+                <CardDescription className="text-muted-foreground">Then use it in your project</CardDescription>
               </CardHeader>
               <CardContent>
                 <CodeBlock code={block.code} />

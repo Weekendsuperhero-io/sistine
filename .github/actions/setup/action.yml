@@ -1,0 +1,18 @@
+name: Setup
+description: Install pnpm + Node and the project dependencies (frozen lockfile).
+
+# Mirrors the toolchain pinned in refresh-registry.yml so every workflow installs identically.
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash

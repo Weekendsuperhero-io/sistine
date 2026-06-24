@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "authentication",
+  "title": "Authentication",
+  "description": "Login form with glassmorphism effects.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@sistine/button",
+    "@sistine/card",
+    "@sistine/checkbox",
+    "@sistine/input",
+    "@sistine/label",
+    "@sistine/separator"
+  ],
+  "files": [
+    {
+      "path": "components/blocks/authentication.tsx",
+      "content": "\"use client\";\n\nimport { Button } from \"@/components/ui/button\";\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { Checkbox } from \"@/components/ui/checkbox\";\nimport { Input } from \"@/components/ui/input\";\nimport { Label } from \"@/components/ui/label\";\nimport { Separator } from \"@/components/ui/separator\";\n\nexport function AuthenticationBlock() {\n  return (\n    <div className=\"flex items-center justify-center min-h-screen p-6\">\n      <Card variant=\"glass\" className=\"w-full max-w-md text-foreground\">\n        <CardHeader className=\"space-y-1\">\n          <CardTitle className=\"text-2xl text-foreground\">Welcome back</CardTitle>\n          <CardDescription className=\"text-muted-foreground\">Enter your credentials to sign in to your account</CardDescription>\n        </CardHeader>\n        <CardContent className=\"space-y-4\">\n          <div className=\"space-y-2\">\n            <Label htmlFor=\"email\" className=\"text-foreground\">\n              Email\n            </Label>\n            <Input\n              id=\"email\"\n              type=\"email\"\n              placeholder=\"name@example.com\"\n              variant=\"glass\"\n              className=\"text-foreground placeholder:text-muted-foreground\"\n            />\n          </div>\n          <div className=\"space-y-2\">\n            <Label htmlFor=\"password\" className=\"text-foreground\">\n              Password\n            </Label>\n            <Input id=\"password\" type=\"password\" variant=\"glass\" className=\"text-foreground placeholder:text-muted-foreground\" />\n          </div>\n          <div className=\"flex items-center justify-between\">\n            <div className=\"flex items-center gap-2\">\n              <Checkbox id=\"remember\" variant=\"glass\" />\n              <Label htmlFor=\"remember\" className=\"text-foreground text-sm cursor-pointer\">\n                Remember me\n              </Label>\n            </div>\n            <Button variant=\"link\" className=\"text-muted-foreground text-sm p-0\">\n              Forgot password?\n            </Button>\n          </div>\n          <Button variant=\"glass\" className=\"w-full text-foreground\">\n            Sign In\n          </Button>\n          <div className=\"relative\">\n            <div className=\"absolute inset-0 flex items-center\">\n              <Separator variant=\"glass\" />\n            </div>\n            <div className=\"relative flex justify-center text-xs uppercase\">\n              <span className=\"bg-background px-2 text-muted-foreground\">Or continue with</span>\n            </div>\n          </div>\n          <div className=\"grid grid-cols-2 gap-4\">\n            <Button variant=\"outline\" className=\"text-foreground\">\n              GitHub\n            </Button>\n            <Button variant=\"outline\" className=\"text-foreground\">\n              Google\n            </Button>\n          </div>\n        </CardContent>\n      </Card>\n    </div>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/blocks/authentication.tsx"
+    }
+  ],
+  "type": "registry:block"
+}

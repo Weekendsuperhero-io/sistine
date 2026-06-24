@@ -1,0 +1,54 @@
+name: CI
+
+# Gate every PR (and main) on the checks CONTRIBUTING.md already asks contributors to run,
+# plus a project-specific check that the published registry output is in sync with its source.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Lint (biome)
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Next build
+        run: pnpm build
+
+  registry:
+    name: Registry in sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - name: Rebuild registry from source
+        run: pnpm registry:check
+      - name: Verify committed registry output is up to date
+        run: |
+          if [ -n "$(git status --porcelain -- registry.json public/r)" ]; then
+            echo "::error::registry.json / public/r is out of date with the source. Run 'pnpm registry:check' locally and commit the result."
+            git --no-pager diff -- registry.json public/r
+            exit 1
+          fi
+          echo "Registry output is in sync."
