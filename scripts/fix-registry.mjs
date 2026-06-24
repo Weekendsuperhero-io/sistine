@@ -9,6 +9,9 @@
  *   3. dependencies     — recompute npm deps from the actual imports of the base + glass
  *                         files, unioned with the shared-lib baseline.
  *
+ * Non-component items (blocks/hooks/libs/themes) are handled separately: their deps are
+ * derived from their OWN shipped files, so this transform never resets them to the baseline.
+ *
  * Run: node scripts/fix-registry.mjs
  */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -58,9 +61,73 @@ function crossDepsOf(absPath, selfName) {
   return [...out];
 }
 
+/** Cross-registry deps from "@/components/ui|blocks/<name>" (and the glass/ subpath) alias imports. */
+function aliasDepsOf(absPath) {
+  if (!existsSync(absPath)) return [];
+  const src = readFileSync(absPath, "utf8");
+  const out = new Set();
+  const re = /from\s+["']@\/components\/(?:ui|blocks)\/(?:glass\/)?([a-z0-9-]+)["']/g;
+  let m;
+  while ((m = re.exec(src))) {
+    if (componentNames.has(m[1])) out.add(m[1]);
+  }
+  return [...out];
+}
+
+/**
+ * Re-apply any version pin already declared for a package (e.g. "react-resizable-panels@^3.0.6"),
+ * so re-running this transform never silently drops a deliberate version constraint — bare
+ * `externalsOf` names carry no version, so without this the pin would be lost on every rebuild.
+ */
+function applyPins(bareNames, existingDeps) {
+  const pinned = new Map();
+  for (const d of existingDeps ?? []) {
+    const at = d.lastIndexOf("@");
+    if (at > 0) pinned.set(d.slice(0, at), d);
+  }
+  return bareNames.map((p) => pinned.get(p) ?? p);
+}
+
+/**
+ * Derive deps for non-component items (blocks, hooks, libs, themes) from their OWN shipped
+ * files. The components/ui/<name> convention used for components doesn't apply here, so without
+ * this their hand-authored deps would be reset to the baseline. CSS-only items (no .ts/.tsx
+ * source to scan, e.g. a theme that ships globals.css) keep their authored deps untouched.
+ */
+function normalizeNonComponent(item) {
+  const name = item.name;
+  const srcFiles = (item.files ?? [])
+    .map((f) => f.path)
+    .filter((p) => p.endsWith(".ts") || p.endsWith(".tsx"));
+  if (srcFiles.length === 0) return;
+
+  const externals = new Set();
+  const cross = new Set();
+  for (const rel of srcFiles) {
+    const abs = join(root, rel);
+    for (const pkg of externalsOf(abs)) externals.add(pkg);
+    for (const dep of aliasDepsOf(abs)) cross.add(dep);
+    for (const dep of crossDepsOf(abs, name)) cross.add(dep);
+  }
+  const existing = (item.registryDependencies ?? [])
+    .map((d) => (d.startsWith("@") ? d : `${NAMESPACE}/${d}`))
+    .filter((d) => d !== `${NAMESPACE}/${name}`);
+  const derived = [...cross].map((d) => `${NAMESPACE}/${d}`);
+  item.registryDependencies = [...new Set([...existing, ...derived])].sort();
+  item.dependencies = applyPins([...externals], item.dependencies).sort();
+}
+
 let changed = 0;
 for (const item of registry.items) {
   const name = item.name;
+
+  // Non-component items (block/hook/lib/style/theme) derive deps from their own files.
+  if (item.type !== "registry:component") {
+    normalizeNonComponent(item);
+    changed++;
+    continue;
+  }
+
   const baseRel = `components/ui/${name}.tsx`;
   const glassRel = `components/ui/glass/${name}.tsx`;
 
@@ -90,7 +157,7 @@ for (const item of registry.items) {
   for (const rel of [baseRel, glassRel]) {
     for (const pkg of externalsOf(join(root, rel))) externals.add(pkg);
   }
-  item.dependencies = [...externals].sort();
+  item.dependencies = applyPins([...externals], item.dependencies).sort();
 
   changed++;
 }

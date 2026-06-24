@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "signup",
+  "title": "Sign Up",
+  "description": "Registration form with validation.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@sistine/button",
+    "@sistine/card",
+    "@sistine/checkbox",
+    "@sistine/input",
+    "@sistine/label",
+    "@sistine/separator"
+  ],
+  "files": [
+    {
+      "path": "components/blocks/signup.tsx",
+      "content": "\"use client\";\n\nimport { Button } from \"@/components/ui/button\";\nimport { Card, CardContent, CardDescription, CardHeader, CardTitle } from \"@/components/ui/card\";\nimport { Checkbox } from \"@/components/ui/checkbox\";\nimport { Input } from \"@/components/ui/input\";\nimport { Label } from \"@/components/ui/label\";\nimport { Separator } from \"@/components/ui/separator\";\n\nexport function SignupBlock() {\n  return (\n    <div className=\"flex items-center justify-center min-h-screen p-6\">\n      <Card variant=\"glass\" className=\"w-full max-w-md text-foreground\">\n        <CardHeader className=\"space-y-1\">\n          <CardTitle className=\"text-2xl text-foreground\">Create an account</CardTitle>\n          <CardDescription className=\"text-muted-foreground\">Enter your information to get started</CardDescription>\n        </CardHeader>\n        <CardContent className=\"space-y-4\">\n          <div className=\"grid grid-cols-2 gap-4\">\n            <div className=\"space-y-2\">\n              <Label htmlFor=\"firstName\" className=\"text-foreground\">\n                First Name\n              </Label>\n              <Input id=\"firstName\" placeholder=\"John\" variant=\"glass\" className=\"text-foreground placeholder:text-muted-foreground\" />\n            </div>\n            <div className=\"space-y-2\">\n              <Label htmlFor=\"lastName\" className=\"text-foreground\">\n                Last Name\n              </Label>\n              <Input id=\"lastName\" placeholder=\"Doe\" variant=\"glass\" className=\"text-foreground placeholder:text-muted-foreground\" />\n            </div>\n          </div>\n          <div className=\"space-y-2\">\n            <Label htmlFor=\"email\" className=\"text-foreground\">\n              Email\n            </Label>\n            <Input\n              id=\"email\"\n              type=\"email\"\n              placeholder=\"name@example.com\"\n              variant=\"glass\"\n              className=\"text-foreground placeholder:text-muted-foreground\"\n            />\n          </div>\n          <div className=\"space-y-2\">\n            <Label htmlFor=\"password\" className=\"text-foreground\">\n              Password\n            </Label>\n            <Input id=\"password\" type=\"password\" variant=\"glass\" className=\"text-foreground placeholder:text-muted-foreground\" />\n          </div>\n          <div className=\"space-y-2\">\n            <Label htmlFor=\"confirmPassword\" className=\"text-foreground\">\n              Confirm Password\n            </Label>\n            <Input id=\"confirmPassword\" type=\"password\" variant=\"glass\" className=\"text-foreground placeholder:text-muted-foreground\" />\n          </div>\n          <div className=\"flex items-center gap-2\">\n            <Checkbox id=\"terms\" variant=\"glass\" />\n            <Label htmlFor=\"terms\" className=\"text-foreground text-sm cursor-pointer\">\n              I agree to the Terms of Service and Privacy Policy\n            </Label>\n          </div>\n          <Button variant=\"glass\" className=\"w-full text-foreground\">\n            Create Account\n          </Button>\n          <div className=\"relative\">\n            <div className=\"absolute inset-0 flex items-center\">\n              <Separator variant=\"glass\" />\n            </div>\n            <div className=\"relative flex justify-center text-xs uppercase\">\n              <span className=\"bg-background px-2 text-muted-foreground\">Or continue with</span>\n            </div>\n          </div>\n          <div className=\"grid grid-cols-2 gap-4\">\n            <Button variant=\"outline\" className=\"text-foreground\">\n              GitHub\n            </Button>\n            <Button variant=\"outline\" className=\"text-foreground\">\n              Google\n            </Button>\n          </div>\n          <div className=\"text-center text-sm text-muted-foreground\">\n            Already have an account?{\" \"}\n            <Button variant=\"link\" className=\"text-foreground p-0 h-auto\">\n              Sign in\n            </Button>\n          </div>\n        </CardContent>\n      </Card>\n    </div>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/blocks/signup.tsx"
+    }
+  ],
+  "type": "registry:block"
+}
