@@ -2,5 +2,6 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build-storybook && pnpm export-storybook && pnpm build",
   "outputDirectory": ".next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "git": { "deploymentEnabled": false }
 }
