@@ -1,10 +1,49 @@
 "use client";
 
 import { CaretRightIcon, Check, Circle } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
+const dropdownMenuSubContentVariants = cva(
+  "z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-xl p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+  {
+    variants: {
+      variant: {
+        default: "bg-popover text-popover-foreground border",
+        glass: "glass-solid text-foreground",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
+        opaque: "glass-opaque text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "glass",
+    },
+  },
+);
+
+const dropdownMenuContentVariants = cva(
+  "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+  {
+    variants: {
+      variant: {
+        default: "bg-popover text-popover-foreground border",
+        glass: "glass-solid text-foreground",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
+        opaque: "glass-opaque text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "glass",
+    },
+  },
+);
 
 const DropdownMenu = ({ ...props }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) => (
   <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
@@ -61,30 +100,16 @@ DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayNam
 
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> & VariantProps<typeof dropdownMenuSubContentVariants>
 >(({ className, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground border";
-
-    const variants = {
-      glass: "glass-solid text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   return (
     <DropdownMenuPrimitive.SubContent
       ref={ref}
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-xl p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        getVariantClass(),
+        dropdownMenuSubContentVariants({
+          variant,
+        }),
         className,
       )}
       {...props}
@@ -95,23 +120,8 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & VariantProps<typeof dropdownMenuContentVariants>
 >(({ className, sideOffset = 4, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground border";
-
-    const variants = {
-      glass: "glass-solid text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
@@ -119,8 +129,9 @@ const DropdownMenuContent = React.forwardRef<
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          getVariantClass(),
+          dropdownMenuContentVariants({
+            variant,
+          }),
           className,
         )}
         {...props}

@@ -1,9 +1,26 @@
 "use client";
 
+import { cva, type VariantProps } from "class-variance-authority";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
+const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", {
+  variants: {
+    variant: {
+      default: "bg-muted",
+      glass: "glass-surface",
+      frosted: "glass-frosted",
+      fluted: "glass-fluted",
+      crystal: "glass-crystal",
+      opaque: "glass-opaque",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
 
 const Tabs = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(
   ({ className, orientation = "horizontal", ...props }, ref) => (
@@ -21,28 +38,18 @@ Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>
 >(({ className, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-muted";
-
-    const variants = {
-      glass: "glass-surface",
-      frosted: "glass-frosted",
-      fluted: "glass-fluted",
-      crystal: "glass-crystal",
-      opaque: "glass-opaque",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   return (
     <TabsPrimitive.List
       ref={ref}
       data-slot="tabs-list"
-      className={cn("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", getVariantClass(), className)}
+      className={cn(
+        tabsListVariants({
+          variant,
+        }),
+        className,
+      )}
       {...props}
     />
   );

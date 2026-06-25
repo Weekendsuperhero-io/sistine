@@ -1,6 +1,23 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
+
+const textareaVariants = cva("", {
+  variants: {
+    variant: {
+      default: "dark:bg-input/30 border-input bg-transparent shadow-xs",
+      glass: "glass-surface-sm",
+      frosted: "glass-frosted",
+      fluted: "glass-fluted",
+      crystal: "glass-crystal",
+      opaque: "glass-opaque",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
 
 function Textarea({
   className,
@@ -8,25 +25,12 @@ function Textarea({
   glass,
   style,
   ...props
-}: React.ComponentProps<"textarea"> & {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  glass?: GlassCustomization;
-}) {
+}: React.ComponentProps<"textarea"> &
+  VariantProps<typeof textareaVariants> & {
+    glass?: GlassCustomization;
+  }) {
   const hasCustomGlass = glass !== undefined;
-
-  const getVariantClass = () => {
-    if (variant === "default") return "dark:bg-input/30 border-input bg-transparent shadow-xs";
-    if (hasCustomGlass) return "glass-surface-sm";
-
-    const variants = {
-      glass: "glass-surface-sm",
-      frosted: "glass-frosted",
-      fluted: "glass-fluted",
-      crystal: "glass-crystal",
-      opaque: "glass-opaque",
-    };
-    return variants[variant] || variants.glass;
-  };
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
 
   const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
@@ -35,7 +39,9 @@ function Textarea({
       data-slot="textarea"
       className={cn(
         "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex field-sizing-content min-h-16 w-full rounded-md px-3 py-2 text-base transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        getVariantClass(),
+        textareaVariants({
+          variant: effectiveVariant,
+        }),
         className,
       )}
       style={{

@@ -254,7 +254,8 @@ export default function ThemesPage() {
             </CardHeader>
             <CardContent>
               <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                {/* Accent-tinted snippet that stays readable on the glass surface as the theme/tint changes. */}
+                {/* Small mono code needs a SOLID, surface-adapted color — gradient fill is illegible at this size on
+                    sheer glass. ReadableText reads the live surface (APCA) and keeps --primary only while it stays readable. */}
                 <ReadableText accent="--primary">
                   <code className="whitespace-pre">{currentCSS}</code>
                 </ReadableText>

@@ -1,11 +1,28 @@
 "use client";
 
 import { X } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
+
+const dialogContentVariants = cva("", {
+  variants: {
+    variant: {
+      default: "bg-background border",
+      glass: "glass-surface-lg text-foreground",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
 
 const Dialog = DialogPrimitive.Root;
 
@@ -33,27 +50,14 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-    glass?: GlassCustomization;
-    showCloseButton?: boolean;
-  }
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> &
+    VariantProps<typeof dialogContentVariants> & {
+      glass?: GlassCustomization;
+      showCloseButton?: boolean;
+    }
 >(({ className, variant = "glass", children, glass, style, showCloseButton = true, ...props }, ref) => {
   const hasCustomGlass = glass !== undefined;
-
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-background border";
-    if (hasCustomGlass) return "glass-surface-lg text-foreground";
-
-    const variants = {
-      glass: "glass-surface-lg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
 
   const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
@@ -66,7 +70,9 @@ const DialogContent = React.forwardRef<
         data-glass={variant === "frosted" || variant === "fluted" || variant === "crystal" ? variant : undefined}
         className={cn(
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-          getVariantClass(),
+          dialogContentVariants({
+            variant: effectiveVariant,
+          }),
           className,
         )}
         style={{

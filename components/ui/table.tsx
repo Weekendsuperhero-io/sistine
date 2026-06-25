@@ -1,33 +1,49 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+const tableVariants = cva("w-full caption-bottom text-sm", {
+  variants: {
+    variant: {
+      default: "",
+      glass: "glass-surface rounded-lg overflow-hidden",
+      frosted: "glass-frosted rounded-lg overflow-hidden",
+      fluted: "glass-fluted rounded-lg overflow-hidden",
+      crystal: "glass-crystal rounded-lg overflow-hidden",
+      opaque: "glass-opaque rounded-lg overflow-hidden",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
+
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-    /** When true, rows alternate in brightness and the per-row dividers are removed. */
-    striped?: boolean;
-  }
+  React.HTMLAttributes<HTMLTableElement> &
+    VariantProps<typeof tableVariants> & {
+      /** When true, rows alternate in brightness and the per-row dividers are removed. */
+      striped?: boolean;
+    }
 >(({ className, variant = "glass", striped = false, ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "w-full caption-bottom text-sm";
-
-    const variants = {
-      glass: "w-full caption-bottom text-sm glass-surface rounded-lg overflow-hidden",
-      frosted: "w-full caption-bottom text-sm glass-frosted rounded-lg overflow-hidden",
-      fluted: "w-full caption-bottom text-sm glass-fluted rounded-lg overflow-hidden",
-      crystal: "w-full caption-bottom text-sm glass-crystal rounded-lg overflow-hidden",
-      opaque: "w-full caption-bottom text-sm glass-opaque rounded-lg overflow-hidden",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   const stripedClass = striped ? "[&_tbody_tr]:border-0 [&_tbody_tr:nth-child(even)]:bg-foreground/[0.04]" : "";
 
   return (
     <div data-slot="table-container" className={variant !== "default" ? "rounded-lg overflow-hidden" : ""}>
-      <table ref={ref} data-slot="table" data-striped={striped} className={cn(getVariantClass(), stripedClass, className)} {...props} />
+      <table
+        ref={ref}
+        data-slot="table"
+        data-striped={striped}
+        className={cn(
+          tableVariants({
+            variant,
+          }),
+          stripedClass,
+          className,
+        )}
+        {...props}
+      />
     </div>
   );
 });
