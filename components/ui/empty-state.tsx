@@ -1,35 +1,44 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  glass?: GlassCustomization;
-}
-
-const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(({ className, variant = "glass", glass, children, ...props }, ref) => {
-  const hasCustomGlass = glass !== undefined;
-
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-card text-card-foreground border shadow-sm";
-    if (hasCustomGlass) return "glass-bg text-foreground";
-
-    const variants = {
+const emptyStateVariants = cva("", {
+  variants: {
+    variant: {
+      default: "bg-card text-card-foreground border shadow-sm",
       glass: "glass-bg text-foreground",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
       opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
+
+export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof emptyStateVariants> {
+  glass?: GlassCustomization;
+}
+
+const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(({ className, variant = "glass", glass, children, ...props }, ref) => {
+  const hasCustomGlass = glass !== undefined;
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
 
   const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
   return (
     <div
       ref={ref}
-      className={cn("flex flex-col items-center justify-center rounded-xl p-12 text-center", getVariantClass(), className)}
+      className={cn(
+        "flex flex-col items-center justify-center rounded-xl p-12 text-center",
+        emptyStateVariants({
+          variant: effectiveVariant,
+        }),
+        className,
+      )}
       style={{
         ...glassStyles,
       }}

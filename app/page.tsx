@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
+import { GradientText } from "@/components/gradient-text";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/glass/badge";
 import { Button } from "@/components/ui/glass/button";
@@ -34,9 +35,34 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+
+/** Glass surface utilities, sheerest → most solid — the showcase cards below swap between these. */
+const SURFACES = [
+  "glass-bg",
+  "glass-surface",
+  "glass-solid",
+  "glass-opaque",
+] as const;
 
 export default function Home() {
   const [copied, setCopied] = React.useState(false);
+  const [surface, setSurface] = React.useState<(typeof SURFACES)[number]>("glass-bg");
+  const [solidAlpha, setSolidAlpha] = React.useState(0.5);
+
+  // --glass-solid-bg resolves var(--glass-solid-a) at :root (where it's declared), so the demo
+  // slider must set --glass-solid-a on <html> — not on a descendant. Reset when not on Solid.
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (surface === "glass-solid") root.style.setProperty("--glass-solid-a", String(solidAlpha));
+    else root.style.removeProperty("--glass-solid-a");
+    return () => {
+      root.style.removeProperty("--glass-solid-a");
+    };
+  }, [
+    surface,
+    solidAlpha,
+  ]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText("npx shadcn@latest add https://weekendsuperhero.io/r/styles/glass");
@@ -59,7 +85,7 @@ export default function Home() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.08] text-balance">
               <span className="text-foreground">Beautiful interfaces,</span>
               <br />
-              <span className="text-foreground/35">built with liquid glass.</span>
+              <GradientText>built with liquid glass.</GradientText>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
@@ -100,9 +126,38 @@ export default function Home() {
             <p className="text-muted-foreground max-w-lg mx-auto">Real UI patterns built entirely with Liquid Glass components.</p>
           </div>
 
+          {/* Surface switcher — swaps the glass surface utility on every card below (styled like the variants tabs). */}
+          <div className="max-w-3xl mx-auto mb-10">
+            <Tabs value={surface} onValueChange={(v) => setSurface(v as (typeof SURFACES)[number])}>
+              <TabsList variant="glass" className="w-full grid grid-cols-4">
+                <TabsTrigger value="glass-bg">Glass</TabsTrigger>
+                <TabsTrigger value="glass-surface">Surface</TabsTrigger>
+                <TabsTrigger value="glass-solid">Solid</TabsTrigger>
+                <TabsTrigger value="glass-opaque">Opaque</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {surface === "glass-solid" && (
+              <div className="mx-auto mt-4 flex max-w-xs items-center gap-3">
+                <span className="whitespace-nowrap text-muted-foreground text-xs">opacity</span>
+                <Slider
+                  variant="glass"
+                  value={[
+                    solidAlpha,
+                  ]}
+                  min={0.25}
+                  max={0.75}
+                  step={0.05}
+                  onValueChange={(v) => setSolidAlpha(v[0] ?? 0.5)}
+                  aria-label="glass-solid floor opacity"
+                />
+                <span className="w-9 text-right text-muted-foreground text-xs tabular-nums">{Math.round(solidAlpha * 100)}%</span>
+              </div>
+            )}
+          </div>
+
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Settings */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -139,10 +194,10 @@ export default function Home() {
                   <Switch variant="glass" defaultChecked />
                 </div>
               </CardContent>
-            </Card>
+            </div>
 
             {/* Chat */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Bot className="h-4 w-4" />
@@ -178,10 +233,10 @@ export default function Home() {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </div>
 
             {/* Profile */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -217,10 +272,10 @@ export default function Home() {
                   View Profile
                 </Button>
               </CardContent>
-            </Card>
+            </div>
 
             {/* Metrics */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
@@ -252,10 +307,10 @@ export default function Home() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
+            </div>
 
             {/* Payment */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
@@ -277,10 +332,10 @@ export default function Home() {
                   Add New Card
                 </Button>
               </CardContent>
-            </Card>
+            </div>
 
             {/* Sign In */}
-            <Card variant="glass">
+            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="h-4 w-4" />
@@ -295,7 +350,7 @@ export default function Home() {
                   Sign In
                 </Button>
               </CardContent>
-            </Card>
+            </div>
           </div>
         </section>
 

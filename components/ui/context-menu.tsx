@@ -1,10 +1,49 @@
 "use client";
 
 import { CaretRightIcon, Check, Circle } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
+const contextMenuSubContentVariants = cva(
+  "z-50 min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-hidden rounded-xl p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+  {
+    variants: {
+      variant: {
+        default: "bg-popover text-popover-foreground border",
+        glass: "glass-solid text-foreground",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
+        opaque: "glass-opaque text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "glass",
+    },
+  },
+);
+
+const contextMenuContentVariants = cva(
+  "z-50 max-h-(--radix-context-menu-content-available-height) min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+  {
+    variants: {
+      variant: {
+        default: "bg-popover text-popover-foreground border",
+        glass: "glass-solid text-foreground",
+        frosted: "glass-frosted text-foreground",
+        fluted: "glass-fluted text-foreground",
+        crystal: "glass-crystal text-foreground",
+        opaque: "glass-opaque text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "glass",
+    },
+  },
+);
 
 const ContextMenu = ({ ...props }: React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>) => (
   <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
@@ -61,30 +100,16 @@ ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
 
 const ContextMenuSubContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> & VariantProps<typeof contextMenuSubContentVariants>
 >(({ className, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground border";
-
-    const variants = {
-      glass: "glass-solid text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   return (
     <ContextMenuPrimitive.SubContent
       ref={ref}
       data-slot="context-menu-sub-content"
       className={cn(
-        "z-50 min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-hidden rounded-xl p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        getVariantClass(),
+        contextMenuSubContentVariants({
+          variant,
+        }),
         className,
       )}
       {...props}
@@ -95,31 +120,17 @@ ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName;
 
 const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & VariantProps<typeof contextMenuContentVariants>
 >(({ className, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground border";
-
-    const variants = {
-      glass: "glass-solid text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
-
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
         ref={ref}
         data-slot="context-menu-content"
         className={cn(
-          "z-50 max-h-(--radix-context-menu-content-available-height) min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl p-1 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          getVariantClass(),
+          contextMenuContentVariants({
+            variant,
+          }),
           className,
         )}
         {...props}

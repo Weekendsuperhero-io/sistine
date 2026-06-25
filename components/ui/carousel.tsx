@@ -1,13 +1,29 @@
 "use client";
 
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
+const carouselVariants = cva("", {
+  variants: {
+    variant: {
+      default: "bg-card text-card-foreground border shadow-sm",
+      glass: "glass-bg text-foreground",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
+
+export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {
   glass?: GlassCustomization;
   autoPlay?: boolean;
   interval?: number;
@@ -46,20 +62,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     };
 
     const hasCustomGlass = glass !== undefined;
-
-    const getVariantClass = () => {
-      if (variant === "default") return "bg-card text-card-foreground border shadow-sm";
-      if (hasCustomGlass) return "glass-bg text-foreground";
-
-      const variants = {
-        glass: "glass-bg text-foreground",
-        frosted: "glass-frosted text-foreground",
-        fluted: "glass-fluted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-      };
-      return variants[variant] || variants.glass;
-    };
+    const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
 
     const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
@@ -68,7 +71,13 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     return (
       <div
         ref={ref}
-        className={cn("relative w-full overflow-hidden rounded-lg", getVariantClass(), className)}
+        className={cn(
+          "relative w-full overflow-hidden rounded-lg",
+          carouselVariants({
+            variant: effectiveVariant,
+          }),
+          className,
+        )}
         style={{
           ...glassStyles,
         }}

@@ -121,7 +121,9 @@
      (was a hardcoded purple-500). Override this var to control the highlight color. */
   --glass-glow: oklch(0.62 0.2 var(--glass-tint-h) / 0.45);
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
-  --glass-solid-bg: oklch(99% 0 0 / 0.65);
+  /* glass-solid floor opacity — the "how solid" dial (0 = sheer, 1 = fully solid). Shared by light/dark. */
+  --glass-solid-a: 0.65;
+  --glass-solid-bg: oklch(99% 0 0 / var(--glass-solid-a));
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style. */
   --glass-opaque-bg: oklch(
     90% calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h)
@@ -149,6 +151,11 @@
      (8/side → step 360/17 ≈ 63.53°) to the base hue, at the accent L/C + medium (0.5) alpha.
      (Axis/direction variants are computed in JS from lib/oklch-utils.ts — see the /components demo.) */
   --gradient: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.6 0.15 var(--glass-tint-h) / 0.5) 100%);
+  /* Full-opacity twin of --gradient for gradient TEXT (background-clip: text) — same hue math, no wash alpha so glyphs stay crisp. */
+  --gradient-text: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.6 0.15 var(--glass-tint-h)) 100%);
+  /* High-contrast gradient text for printing ON a tinted theme surface: a DARK tint-hue gradient in
+     light mode (light one in .dark), so legibility comes from lightness — not just hue. */
+  --gradient-text-contrast: linear-gradient(135deg, oklch(0.32 0.14 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.32 0.14 var(--glass-tint-h)) 100%);
   /* Apple-standard blur values - moderate blur */
   --blur: 10px;
   --blur-sm: 4px;
@@ -196,7 +203,9 @@
   --glass-glow: oklch(0.7 0.18 var(--glass-tint-h) / 0.5);
   /* Gradient (dark): lifted L like --glass-accent. */
   --gradient: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.68 0.14 var(--glass-tint-h) / 0.5) 100%);
-  --glass-solid-bg: oklch(18% 0 0 / 0.65);
+  --gradient-text: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.68 0.14 var(--glass-tint-h)) 100%);
+  --gradient-text-contrast: linear-gradient(135deg, oklch(0.9 0.09 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.9 0.09 var(--glass-tint-h)) 100%);
+  --glass-solid-bg: oklch(18% 0 0 / var(--glass-solid-a));
   /* L lifted from 22% (less extreme light↔dark switch) + chroma kept low so warm hues like amber
      stay in-gamut instead of hard-clipping to rust. */
   --glass-opaque-bg: oklch(32% calc(var(--glass-tint-c) * 0.9) var(--glass-tint-h));
@@ -401,6 +410,10 @@
 @utility glass-opaque {
   background-image: var(--glass-bg);
   background-color: var(--glass-opaque-bg);
+  /* Explicitly no blur — opaque has nothing to blur through, and this also stops a layered
+     glass-bg's blur from leaking when glass-opaque is applied as an override class. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
 }
@@ -441,8 +454,8 @@
   position: relative;
   background-color: var(--glass-crystal-bg) !important;
   background-image:
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
-    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   background-size: 200% 200% !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
@@ -475,6 +488,27 @@
     box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
     background-position: 100% 100% !important;
   }
+}
+
+/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-tint-h).
+   Twin of the brand --gradient but without the wash alpha so the letters stay crisp. Best on
+   large/display text: a gradient fill has no single contrast value, so keep body/UI text solid. */
+@utility text-gradient {
+  background-image: var(--gradient-text);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* High-contrast variant — same clip, but the dark (light-mode) / light (dark-mode) tint gradient so
+   it stays legible printed on a tinted glass surface (e.g. the theme CSS snippet). */
+@utility text-gradient-contrast {
+  background-image: var(--gradient-text-contrast);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Keep react-day-picker from painting over the glass background */
@@ -533,8 +567,8 @@
      is the bottom layer so the tint shows through the (mostly-transparent) sheen above it. */
   background-image:
     linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
-    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
@@ -563,8 +597,8 @@
 [data-glass="crystal"] .glass-solid {
   background-image:
     linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%),
-    var(--glass-crystal-fresco, linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash))) !important;
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   background-color: var(--glass-solid-bg) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;

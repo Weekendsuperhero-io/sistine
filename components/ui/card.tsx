@@ -1,6 +1,23 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
+
+const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6", {
+  variants: {
+    variant: {
+      default: "bg-card text-card-foreground border shadow-sm",
+      glass: "glass-bg text-foreground",
+      frosted: "glass-frosted text-foreground",
+      fluted: "glass-fluted text-foreground",
+      crystal: "glass-crystal text-foreground",
+      opaque: "glass-opaque text-foreground",
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
 
 function Card({
   className,
@@ -8,35 +25,25 @@ function Card({
   glass,
   style,
   ...props
-}: React.ComponentProps<"div"> & {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  glass?: GlassCustomization;
-}) {
-  // When custom glass props are provided, use base glass-bg class and apply custom styles
-  // Otherwise use the variant-specific class
+}: React.ComponentProps<"div"> &
+  VariantProps<typeof cardVariants> & {
+    glass?: GlassCustomization;
+  }) {
+  // Custom glass props apply on top of the base glass-bg surface (so getGlassStyles can override),
+  // which is exactly the "glass" variant; "default" opts out of glass entirely.
   const hasCustomGlass = glass !== undefined;
-
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-card text-card-foreground border shadow-sm";
-    if (hasCustomGlass) return "glass-bg text-foreground"; // Use base glass class when customizing
-
-    // Use variant-specific classes only when no custom glass props
-    const variants = {
-      glass: "glass-bg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      fluted: "glass-fluted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
-
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
   const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
   return (
     <div
       data-slot="card"
-      className={cn("flex flex-col gap-6 rounded-xl py-6", getVariantClass(), className)}
+      className={cn(
+        cardVariants({
+          variant: effectiveVariant,
+        }),
+        className,
+      )}
       style={{
         ...glassStyles,
         ...style,

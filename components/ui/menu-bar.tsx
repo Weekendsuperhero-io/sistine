@@ -1,31 +1,34 @@
 "use client";
 
+import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  glass?: GlassCustomization;
-}
-
-const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, variant = "glass", glass, children, ...props }, ref) => {
-  const hasCustomGlass = glass !== undefined;
-
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-card text-card-foreground border shadow-sm";
-    if (hasCustomGlass) return "glass-bg text-foreground";
-
-    const variants = {
+const menuBarVariants = cva("", {
+  variants: {
+    variant: {
+      default: "bg-card text-card-foreground border shadow-sm",
       glass: "glass-bg text-foreground",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
       opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
+
+export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {
+  glass?: GlassCustomization;
+}
+
+const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, variant = "glass", glass, children, ...props }, ref) => {
+  const hasCustomGlass = glass !== undefined;
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
 
   const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
 
@@ -33,7 +36,13 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, var
     <div
       ref={ref}
       role="menubar"
-      className={cn("inline-flex items-center gap-1 rounded-md p-1", getVariantClass(), className)}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-md p-1",
+        menuBarVariants({
+          variant: effectiveVariant,
+        }),
+        className,
+      )}
       style={{
         ...glassStyles,
       }}

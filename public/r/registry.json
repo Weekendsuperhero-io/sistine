@@ -2601,6 +2601,21 @@
         }
       ],
       "dependencies": []
+    },
+    {
+      "name": "gradient-text",
+      "type": "registry:component",
+      "title": "Gradient Text",
+      "description": "Fills text with a gradient via background-clip. Defaults to the theme's --gradient-text (follows the live glass tint) and falls back to a fixed brand gradient standalone.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "components/gradient-text.tsx",
+          "type": "registry:component",
+          "target": "components/gradient-text.tsx"
+        }
+      ],
+      "dependencies": []
     }
   ]
 }

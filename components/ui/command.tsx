@@ -1,36 +1,43 @@
 "use client";
 
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { Command as CommandPrimitive } from "cmdk";
 import type { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
 
-const Command = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive> & {
-    variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
-  }
->(({ className, variant = "glass", ...props }, ref) => {
-  const getVariantClass = () => {
-    if (variant === "default") return "bg-popover text-popover-foreground";
-
-    const variants = {
+const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded-xl", {
+  variants: {
+    variant: {
+      default: "bg-popover text-popover-foreground",
       glass: "glass-solid text-foreground",
       frosted: "glass-frosted text-foreground",
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
       opaque: "glass-opaque text-foreground",
-    };
-    return variants[variant] || variants.glass;
-  };
+    },
+  },
+  defaultVariants: {
+    variant: "glass",
+  },
+});
 
+const Command = React.forwardRef<
+  React.ElementRef<typeof CommandPrimitive>,
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive> & VariantProps<typeof commandVariants>
+>(({ className, variant = "glass", ...props }, ref) => {
   return (
     <CommandPrimitive
       ref={ref}
       data-slot="command"
-      className={cn("flex h-full w-full flex-col overflow-hidden rounded-xl", getVariantClass(), className)}
+      className={cn(
+        commandVariants({
+          variant,
+        }),
+        className,
+      )}
       {...props}
     />
   );
