@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "hover-effects",
+  "title": "Hover Effects",
+  "description": "Shared CVA hover-effect variants (glow, shimmer, ripple, lift, scale) for any component.",
+  "dependencies": [
+    "class-variance-authority"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "lib/hover-effects.ts",
+      "content": "import { cva } from \"class-variance-authority\";\n\n/**\n * Shared hover effect variants for all Sistine components\n *\n * Effects:\n * - none: No hover effect\n * - glow: Themed glow shadow (--glass-glow, follows the tint hue) that intensifies on hover\n * - shimmer: Moving shimmer effect across the component\n * - ripple: Ripple effect that scales outward on hover\n * - lift: Subtle lift effect with shadow increase\n * - scale: Scale up slightly on hover\n */\nexport const hoverEffects = cva(\"transition duration-300\", {\n  variants: {\n    hover: {\n      none: \"\",\n      glow: \"glass-glow hover:glass-glow-lg\",\n      shimmer:\n        \"relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent hover:before:translate-x-full before:transition-transform before:duration-1000\",\n      ripple:\n        \"relative overflow-hidden after:absolute after:inset-0 after:scale-0 after:rounded-full after:bg-white/30 after:transition-transform after:duration-500 hover:after:scale-150\",\n      lift: \"hover:-translate-y-1 hover:shadow-lg\",\n      scale: \"hover:scale-105\",\n    },\n  },\n  defaultVariants: {\n    hover: \"none\",\n  },\n});\n\nexport type HoverEffect = \"none\" | \"glow\" | \"shimmer\" | \"ripple\" | \"lift\" | \"scale\";\n",
+      "type": "registry:lib",
+      "target": "lib/hover-effects.ts"
+    }
+  ],
+  "type": "registry:lib"
+}

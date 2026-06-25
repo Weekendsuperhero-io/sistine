@@ -2518,6 +2518,89 @@
         }
       ],
       "dependencies": []
+    },
+    {
+      "name": "readable-text",
+      "type": "registry:component",
+      "title": "Readable Text",
+      "description": "APCA contrast guard: renders text in an accent color while it stays readable on the current glass surface, and swaps to a readable foreground otherwise. Reactive to the live glass tint and light/dark.",
+      "registryDependencies": [
+        "@sistine/oklch-utils"
+      ],
+      "files": [
+        {
+          "path": "components/readable-text.tsx",
+          "type": "registry:component",
+          "target": "components/readable-text.tsx"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "glass-utils",
+      "type": "registry:lib",
+      "title": "Glass Utils",
+      "description": "Helpers and the GlassCustomization type for per-component glass tuning (color, blur, outline, glow).",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/glass-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/glass-utils.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "hover-effects",
+      "type": "registry:lib",
+      "title": "Hover Effects",
+      "description": "Shared CVA hover-effect variants (glow, shimmer, ripple, lift, scale) for any component.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        }
+      ],
+      "dependencies": [
+        "class-variance-authority"
+      ]
+    },
+    {
+      "name": "canvas-background-utils",
+      "type": "registry:lib",
+      "title": "Canvas Background Utils",
+      "description": "Ramp-driven canvas background engine: createCanvas({ color, style, ramp, steps, angle, speed }) renders gradient / lava / circle styles from the OKLCH ramps.",
+      "registryDependencies": [
+        "@sistine/oklch-utils"
+      ],
+      "files": [
+        {
+          "path": "lib/canvas-background-utils.ts",
+          "type": "registry:lib",
+          "target": "lib/canvas-background-utils.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "canvas-background",
+      "type": "registry:component",
+      "title": "Canvas Background",
+      "description": "Full-screen animated canvas background that recolors with the live glass tint — gradient, lava, or circle styles driven by the OKLCH ramps.",
+      "registryDependencies": [
+        "@sistine/canvas-background-utils"
+      ],
+      "files": [
+        {
+          "path": "components/canvas-background.tsx",
+          "type": "registry:component",
+          "target": "components/canvas-background.tsx"
+        }
+      ],
+      "dependencies": []
     }
   ]
 }

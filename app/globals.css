@@ -572,25 +572,40 @@
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
 }
 
-/* Opaque — re-skin the default glass surfaces as a fully solid (no see-through) tinted panel.
-   Symmetric with frosted/fluted/crystal: both a global data-glass mode AND a per-component variant.
-   Drops the backdrop blur (it's opaque) and overlays (glass-solid) go fully opaque too. */
-[data-glass="opaque"] .glass-bg,
-[data-glass="opaque"] .glass-surface,
-[data-glass="opaque"] .glass-surface-sm,
-[data-glass="opaque"] .glass-surface-lg,
-[data-glass="opaque"] .glass-solid {
-  background-image: var(--glass-bg) !important;
-  background-color: var(--glass-opaque-bg) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
-}
-[data-glass="opaque"] .glass-surface,
-[data-glass="opaque"] .glass-surface-sm,
-[data-glass="opaque"] .glass-surface-lg,
-[data-glass="opaque"] .glass-solid {
-  border-color: var(--glass-border) !important;
+/* Opaque — re-skin the default glass surfaces AND the explicit frosted/fluted/crystal variants as a
+   fully solid (no see-through) tinted panel. Symmetric with frosted/fluted/crystal: both a global
+   data-glass mode AND a per-component variant. Drops the backdrop blur (it's opaque); overlays
+   (glass-solid) go fully opaque too.
+
+   IN @layer utilities (NOT unlayered): the glass-frosted/fluted/crystal @utilities set their
+   backgrounds with !important inside the utilities layer, and for !important declarations a *layered*
+   rule beats an *unlayered* one regardless of specificity — so an unlayered override loses to
+   glass-crystal's !important and those cards stay see-through. Same layer + higher specificity wins:
+   `[data-glass=opaque] .glass-crystal` (0,2,0) > `.glass-crystal` (0,1,0). */
+@layer utilities {
+  [data-glass="opaque"] .glass-bg,
+  [data-glass="opaque"] .glass-surface,
+  [data-glass="opaque"] .glass-surface-sm,
+  [data-glass="opaque"] .glass-surface-lg,
+  [data-glass="opaque"] .glass-solid,
+  [data-glass="opaque"] .glass-frosted,
+  [data-glass="opaque"] .glass-fluted,
+  [data-glass="opaque"] .glass-crystal {
+    background-image: var(--glass-bg) !important;
+    background-color: var(--glass-opaque-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+  }
+  [data-glass="opaque"] .glass-surface,
+  [data-glass="opaque"] .glass-surface-sm,
+  [data-glass="opaque"] .glass-surface-lg,
+  [data-glass="opaque"] .glass-solid,
+  [data-glass="opaque"] .glass-frosted,
+  [data-glass="opaque"] .glass-fluted,
+  [data-glass="opaque"] .glass-crystal {
+    border-color: var(--glass-border) !important;
+  }
 }
 
 /* ── Glass tint presets ─────────────────────────────────────────────────────

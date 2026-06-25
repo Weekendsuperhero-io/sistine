@@ -9,6 +9,7 @@ import * as React from "react";
 import { BackgroundSwitcher } from "@/components/background-switcher";
 import { GlassStyleSwitcher } from "@/components/glass-style-switcher";
 import { GlassTintSwitcher } from "@/components/glass-tint-switcher";
+import { ReadableText } from "@/components/readable-text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
@@ -80,7 +81,10 @@ export function Header() {
                 />
               )}
               {!mounted && <div className="h-6 w-6 md:h-8 md:w-8 bg-muted animate-pulse rounded" />}
-              <span className="text-lg md:text-xl font-bold text-foreground">Sistine</span>
+              {/* Brand in the live accent — stays readable as the glass tint changes (the switcher is in this same header). */}
+              <ReadableText accent="--primary" className="text-lg md:text-xl font-bold">
+                Sistine
+              </ReadableText>
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               {navigation.map((item) => (

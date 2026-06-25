@@ -9,9 +9,10 @@ import { type RampGradientAxis, rampGradient } from "@/lib/oklch-utils";
  * with the center as a slightly wider plateau. Pure CSS — crisp at any DPI.
  */
 export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: RampGradientAxis; angle?: number }) {
-  const [{ hue, dark }, setState] = React.useState({
+  const [{ hue, dark, p3 }, setState] = React.useState({
     hue: 250,
     dark: true,
+    p3: false,
   });
 
   React.useEffect(() => {
@@ -21,8 +22,9 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
       const next = {
         hue: Number.isFinite(v) ? v : 250,
         dark: root.classList.contains("dark"),
+        p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
       };
-      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark ? prev : next));
+      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 ? prev : next));
     };
     read();
     // Recolor on theme (class) + tint (preset attribute / custom inline vars) changes.
@@ -49,6 +51,7 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
     5,
     {
       angle,
+      gamut: p3 ? "p3" : "srgb",
     },
   );
 

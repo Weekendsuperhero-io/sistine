@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "readable-text",
+  "title": "Readable Text",
+  "description": "APCA contrast guard: renders text in an accent color while it stays readable on the current glass surface, and swaps to a readable foreground otherwise. Reactive to the live glass tint and light/dark.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@sistine/oklch-utils"
+  ],
+  "files": [
+    {
+      "path": "components/readable-text.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { apcaContrast, formatOklch, glassSurface, parseOklch, pickForeground } from \"@/lib/oklch-utils\";\n\n/**\n * Dynamic APCA contrast guard. Renders its text in `accent` (a CSS custom-property name such as\n * \"--primary\") *when that color stays readable* on the current glass surface, and otherwise swaps to\n * a readable foreground via pickForeground. Reactive to the live tint (--glass-tint-h / -c) and\n * light/dark, so it re-decides whenever the theme changes — the dynamic alternative to hard-coding a\n * single text color. Reuses lib/oklch-utils (apcaContrast + pickForeground).\n */\nexport function ReadableText({\n  accent,\n  minLc = 45,\n  className,\n  children,\n}: {\n  /** CSS custom-property name to use when readable, e.g. \"--primary\". */\n  accent: string;\n  /** Minimum |APCA Lc| to keep the accent (≈45 suits small/semibold badge text). */\n  minLc?: number;\n  className?: string;\n  children: React.ReactNode;\n}) {\n  const [color, setColor] = React.useState<string>();\n\n  React.useEffect(() => {\n    const root = document.documentElement;\n    const pick = () => {\n      const cs = getComputedStyle(root);\n      const intended = parseOklch(cs.getPropertyValue(accent).trim());\n      if (!intended) return;\n      const dark = root.classList.contains(\"dark\");\n      const tintH = Number.parseFloat(cs.getPropertyValue(\"--glass-tint-h\"));\n      const tintC = Number.parseFloat(cs.getPropertyValue(\"--glass-tint-c\"));\n      const tintA = Number.parseFloat(cs.getPropertyValue(\"--glass-tint-a\"));\n      // The glass surface the text sits on, via the canonical wash derivation shared with the\n      // glass-* utilities (glassSurface mirrors --glass-tint-wash), so the guard judges against the\n      // same surface the CSS paints — including how tint alpha shifts its lightness and chroma.\n      const surface = glassSurface(dark, {\n        h: Number.isNaN(tintH) ? intended.h : tintH,\n        c: Number.isNaN(tintC) ? 0 : tintC,\n        a: Number.isNaN(tintA) ? 0 : tintA,\n      });\n      const readable = Math.abs(apcaContrast(intended, surface)) >= minLc;\n      setColor(formatOklch(readable ? intended : pickForeground(surface)));\n    };\n    pick();\n    const observer = new MutationObserver(pick);\n    observer.observe(root, {\n      attributes: true,\n      attributeFilter: [\n        \"style\",\n        \"class\",\n        \"data-glass-tint\",\n      ],\n    });\n    return () => observer.disconnect();\n  }, [\n    accent,\n    minLc,\n  ]);\n\n  return (\n    <span\n      className={className}\n      style={\n        color\n          ? {\n              color,\n            }\n          : undefined\n      }\n    >\n      {children}\n    </span>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/readable-text.tsx"
+    }
+  ],
+  "type": "registry:component"
+}

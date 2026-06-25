@@ -132,22 +132,24 @@ export function hueRamp(base: OklchColor | string, count: number): string[] {
 }
 
 /**
- * Chroma ramp covering [0, `max`]: `count` steps each side, the seed centered (left → 0, right →
- * `max`). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to MAX_CHROMA (the
- * in-gamut ceiling); pass a larger value (e.g. `1`) to sweep the whole numeric range for a demo —
- * everything above the gamut just clamps when rendered.
+ * Chroma ramp covering [0, cap]: `count` steps each side, the seed centered (left → 0, right →
+ * cap). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to the largest chroma
+ * actually DISPLAYABLE for this L+hue in sRGB (≈0.32, varies by L/hue) — so the ramp reaches the
+ * visible edge instead of a flat MAX_CHROMA that just clamps on screen. Pass `maxP3Chroma(l, h)` on
+ * P3-capable displays for a punchier top end, or any explicit number to sweep a custom range.
  */
-export function chromaRampColors(base: OklchColor | string, count: number, max: number = MAX_CHROMA): OklchColor[] {
+export function chromaRampColors(base: OklchColor | string, count: number, max?: number): OklchColor[] {
   const color = toColor(base);
-  const seed = Math.max(0, Math.min(max, color.c));
-  return rangeRamp(seed, 0, max, clampCount(count)).map((c) => ({
+  const cap = max ?? maxSrgbChroma(color.l, color.h);
+  const seed = Math.max(0, Math.min(cap, color.c));
+  return rangeRamp(seed, 0, cap, clampCount(count)).map((c) => ({
     ...color,
     c,
   }));
 }
 
 /** Chroma ramp as CSS oklch strings (the seed sits at the center index). */
-export function chromaRamp(base: OklchColor | string, count: number, max: number = MAX_CHROMA): string[] {
+export function chromaRamp(base: OklchColor | string, count: number, max?: number): string[] {
   return chromaRampColors(base, count, max).map((color) => formatOklch(color));
 }
 
@@ -503,18 +505,29 @@ export interface ThemeForegroundOptions {
 
 /**
  * Walk one of the ramp generator's ramps — built from the chosen `base` color — mapping ramp steps
- * to text levels. `palette` picks the axis:
+ * to text levels. The ramp is **base-centered with `count` steps EITHER SIDE** (so it matches the
+ * ramp generator's "steps each side"): level 0 = the readable extreme, level `count` = the base
+ * (center), level `2·count` = the opposite extreme — `2·count + 1` levels total. The readable half
+ * (levels 0..count) is unchanged, so the live --foreground / --muted-foreground cascade (which only
+ * reads that half) is unaffected. `palette` picks the axis:
  *  - tonal / lightness: level 0 is the readable lightness extreme (white in dark mode, black in
- *    light), each step easing toward the base color's lightness (tonal also gains gamut chroma);
- *  - hue: constant L + C — level 0 is the far hue (base + count steps), ramping back to the base, so
- *    e.g. base `oklch(60% 0.15 255)`, count 8 → level 0 `oklch(60% 0.15 64.4)`;
- *  - chroma: constant L + hue, chroma rising 0 → the base's.
+ *    light), easing to the base's lightness at `count`, then on to the opposite extreme;
+ *  - hue: constant L + C — level 0 is base + count steps, ramping through the base and on the
+ *    other way (e.g. base `oklch(60% 0.15 255)`, count 8 → level 0 `oklch(60% 0.15 64.4)`);
+ *  - chroma: constant L + hue, chroma 0 → base → the gamut-displayable max.
  * Gamut-clamped.
  */
 export function themeForeground(options: ThemeForegroundOptions): OklchColor {
   const { palette, level, count, base, dark, gamut = "srgb" } = options;
-  const t = count <= 0 ? 0 : Math.max(0, Math.min(1, level / count));
-  const lerp = (a: number, b: number) => a + (b - a) * t;
+  // Piecewise around the centered base: readable extreme (level 0) → base (level count) → other.
+  const span = (readable: number, mid: number, other: number) => {
+    if (count <= 0) return mid;
+    if (level <= count) return readable + (mid - readable) * (level / count);
+    return mid + (other - mid) * Math.min(1, (level - count) / count);
+  };
+  const readableL = dark ? 100 : 0;
+  const otherL = dark ? 0 : 100;
+  const chromaCap = gamut === "p3" ? maxP3Chroma(base.l, base.h) : maxSrgbChroma(base.l, base.h);
   let color: OklchColor;
   switch (palette) {
     case "hue":
@@ -527,21 +540,21 @@ export function themeForeground(options: ThemeForegroundOptions): OklchColor {
     case "chroma":
       color = {
         l: base.l,
-        c: lerp(0, base.c),
+        c: span(0, base.c, chromaCap),
         h: base.h,
       };
       break;
     case "lightness":
       color = {
-        l: lerp(dark ? 100 : 0, base.l),
+        l: span(readableL, base.l, otherL),
         c: base.c,
         h: base.h,
       };
       break;
     default:
       color = {
-        l: lerp(dark ? 100 : 0, base.l),
-        c: lerp(0, base.c),
+        l: span(readableL, base.l, otherL),
+        c: span(0, base.c, chromaCap),
         h: base.h,
       };
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { BuildingsIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
-import { type BackgroundType, RAMP_AXES, useBackground } from "@/components/background-provider";
+import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 const options: {
@@ -26,10 +26,12 @@ const options: {
   },
 ];
 
+const segmentButton = "inline-flex h-7 items-center justify-center rounded-md transition-colors";
+
 /**
- * Compact segmented control to switch the site-wide background. When Gradient is active it exposes a
- * Hue / Lightness / Tonal / Chroma ramp picker; Canvas exposes shuffle + animate. Great for
- * previewing how glass components read against each backdrop.
+ * Compact segmented control to switch the site-wide background. Gradient exposes a ramp-axis +
+ * angle picker; Canvas exposes style (gradient / lava / circle), ramp axis, steps-per-side, angle,
+ * speed, shuffle, and animate. Great for previewing how glass components read against each backdrop.
  */
 export function BackgroundSwitcher() {
   const {
@@ -39,10 +41,24 @@ export function BackgroundSwitcher() {
     setGradientAxis,
     gradientAngle,
     cycleGradientAngle,
-    shuffleCanvas,
-    toggleCanvasAnimated,
+    canvasStyle,
+    setCanvasStyle,
+    canvasRamp,
+    setCanvasRamp,
+    canvasSteps,
+    cycleCanvasSteps,
+    canvasAngle,
+    cycleCanvasAngle,
+    canvasSpeed,
+    cycleCanvasSpeed,
     canvasAnimated,
+    toggleCanvasAnimated,
+    shuffleCanvas,
   } = useBackground();
+
+  const active = "bg-foreground/10 text-foreground";
+  const idle = "text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
+  const nextStyle = CANVAS_STYLES[(CANVAS_STYLES.indexOf(canvasStyle) + 1) % CANVAS_STYLES.length];
 
   return (
     <div
@@ -58,14 +74,12 @@ export function BackgroundSwitcher() {
           aria-label={`${label} background`}
           aria-pressed={background === value}
           onClick={() => setBackground(value)}
-          className={cn(
-            "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-            background === value ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
-          )}
+          className={cn(segmentButton, "w-7", background === value ? active : idle)}
         >
           <Icon className="h-4 w-4" weight={background === value ? "fill" : "regular"} />
         </button>
       ))}
+
       {background === "gradient" && (
         <div className="flex items-center gap-0.5 border-[var(--glass-border)] border-l pl-0.5" role="group" aria-label="Gradient ramp + angle">
           {RAMP_AXES.map((axis) => (
@@ -76,10 +90,7 @@ export function BackgroundSwitcher() {
               aria-label={`${axis} gradient`}
               aria-pressed={gradientAxis === axis}
               onClick={() => setGradientAxis(axis)}
-              className={cn(
-                "inline-flex h-7 w-7 items-center justify-center rounded-md text-[11px] font-semibold uppercase transition-colors",
-                gradientAxis === axis ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
-              )}
+              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", gradientAxis === axis ? active : idle)}
             >
               {axis[0]}
             </button>
@@ -89,20 +100,79 @@ export function BackgroundSwitcher() {
             title={`Rotate gradient — ${gradientAngle}°`}
             aria-label={`Rotate gradient, currently ${gradientAngle} degrees`}
             onClick={cycleGradientAngle}
-            className="inline-flex h-7 items-center justify-center rounded-md px-1.5 text-[10px] font-semibold text-muted-foreground tabular-nums transition-colors hover:bg-foreground/5 hover:text-foreground"
+            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
           >
             {gradientAngle}°
           </button>
         </div>
       )}
+
       {background === "canvas" && (
-        <>
+        <div className="flex items-center gap-0.5 border-[var(--glass-border)] border-l pl-0.5" role="group" aria-label="Canvas controls">
+          {/* Style: gradient | lava | circle */}
+          <button
+            type="button"
+            title={`Canvas style: ${canvasStyle} — click for ${nextStyle}`}
+            aria-label={`Canvas style ${canvasStyle}, click to change`}
+            onClick={() => setCanvasStyle(nextStyle)}
+            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", active)}
+          >
+            {canvasStyle}
+          </button>
+          {/* Ramp axis (lightness = "linear") */}
+          {RAMP_AXES.map((axis) => (
+            <button
+              key={axis}
+              type="button"
+              title={`${axis === "lightness" ? "linear (lightness)" : axis} ramp`}
+              aria-label={`${axis} ramp`}
+              aria-pressed={canvasRamp === axis}
+              onClick={() => setCanvasRamp(axis)}
+              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", canvasRamp === axis ? active : idle)}
+            >
+              {axis[0]}
+            </button>
+          ))}
+          {/* Steps per side (4–12) */}
+          <button
+            type="button"
+            title={`Steps per side — ${canvasSteps}`}
+            aria-label={`Steps per side, currently ${canvasSteps}`}
+            onClick={cycleCanvasSteps}
+            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
+          >
+            {canvasSteps}×
+          </button>
+          {/* Angle — gradient style only */}
+          {canvasStyle === "gradient" && (
+            <button
+              type="button"
+              title={`Gradient angle — ${canvasAngle}°`}
+              aria-label={`Gradient angle, currently ${canvasAngle} degrees`}
+              onClick={cycleCanvasAngle}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
+            >
+              {canvasAngle}°
+            </button>
+          )}
+          {/* Speed — only meaningful while animating */}
+          {canvasAnimated && (
+            <button
+              type="button"
+              title={`Animation speed — ${canvasSpeed}×`}
+              aria-label={`Animation speed, currently ${canvasSpeed} times`}
+              onClick={cycleCanvasSpeed}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
+            >
+              {canvasSpeed}×
+            </button>
+          )}
           <button
             type="button"
             title="Shuffle canvas"
-            aria-label="Shuffle canvas pattern and palette"
+            aria-label="Shuffle canvas style, ramp, and layout"
             onClick={shuffleCanvas}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+            className={cn(segmentButton, "w-7", idle)}
           >
             <ShuffleIcon className="h-4 w-4" />
           </button>
@@ -112,14 +182,11 @@ export function BackgroundSwitcher() {
             aria-label={canvasAnimated ? "Pause canvas animation" : "Animate canvas"}
             aria-pressed={canvasAnimated}
             onClick={toggleCanvasAnimated}
-            className={cn(
-              "inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors",
-              canvasAnimated ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
-            )}
+            className={cn(segmentButton, "w-7", canvasAnimated ? active : idle)}
           >
             {canvasAnimated ? <PauseIcon className="h-4 w-4" weight="fill" /> : <PlayIcon className="h-4 w-4" />}
           </button>
-        </>
+        </div>
       )}
     </div>
   );

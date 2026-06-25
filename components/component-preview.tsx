@@ -12,6 +12,7 @@ import {
 import * as React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { toast } from "sonner";
+import { ReadableText } from "@/components/readable-text";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -796,7 +797,9 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Sidebar collapsible="none" className="w-64 rounded-xl">
             <SidebarHeader>
               <div className="flex items-center gap-2 px-2 py-1.5">
-                <Sparkles className="size-5 text-primary" />
+                <ReadableText accent="--primary">
+                  <Sparkles className="size-5" />
+                </ReadableText>
                 <span className="text-base font-semibold">Sistine</span>
               </div>
             </SidebarHeader>

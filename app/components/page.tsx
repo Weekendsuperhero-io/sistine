@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button as GlassButton } from "@/components/ui/glass/button";
 import { Input } from "@/components/ui/glass/input";
-import { chromaRampColors, hueRampColors, lightnessRampColors, type OklchColor, tonalScaleColors } from "@/lib/oklch-utils";
+import { chromaRampColors, hueRampColors, lightnessRampColors, maxP3Chroma, type OklchColor, tonalScaleColors } from "@/lib/oklch-utils";
 import { getComponents } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 
@@ -95,11 +95,22 @@ const glowTints = [
   "rose",
 ] as const;
 
+// One button per hover effect so each is hoverable side by side (glow also has its own section above).
+const effectShowcase = [
+  "glow",
+  "shimmer",
+  "ripple",
+  "lift",
+  "scale",
+] as const;
+
 export default function ComponentsPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   // Live tint hue (the tint switcher/picker sets --glass-tint-h on <html>) so the axis demo follows it.
   const [tintH, setTintH] = React.useState(250);
+  // Prefer the wider Display-P3 chroma cap when the screen supports it (else sRGB).
+  const [p3, setP3] = React.useState(false);
   React.useEffect(() => {
     const read = () => {
       const n = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-tint-h"));
@@ -116,6 +127,10 @@ export default function ComponentsPage() {
       ],
     });
     return () => obs.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    setP3(window.matchMedia?.("(color-gamut: p3)").matches ?? false);
   }, []);
 
   // Exact axis gradients from the real ramp functions (the CSS-var parameterization couldn't resolve
@@ -135,12 +150,13 @@ export default function ComponentsPage() {
     };
     const ramps: Record<(typeof GRADIENT_AXES)[number], OklchColor[]> = {
       hue: hueRampColors(base, 8),
-      chroma: chromaRampColors(base, 8),
+      chroma: chromaRampColors(base, 8, p3 ? maxP3Chroma(base.l, base.h) : undefined),
       lightness: lightnessRampColors(base, 8),
       tonal: tonalScaleColors({
         hue: tintH,
         steps: 17,
         chroma: 0.2,
+        gamut: p3 ? "p3" : "srgb",
       }),
     };
     return GRADIENT_AXES.map((key) => ({
@@ -150,6 +166,7 @@ export default function ComponentsPage() {
     }));
   }, [
     tintH,
+    p3,
   ]);
 
   const filteredComponents = components.filter(
@@ -279,6 +296,24 @@ export default function ComponentsPage() {
                   Glow
                 </GlassButton>
                 <span className="font-mono text-muted-foreground text-xs">{tint}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-12">
+          <h2 className="mb-1 font-semibold text-foreground text-xl">Hover effects</h2>
+          <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
+            Every glass component takes an <code className="text-xs">effect</code> (or <code className="text-xs">hover</code>) prop backed by the
+            shared <code className="text-xs">hoverEffects</code> variants. Hover each to see it.
+          </p>
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+            {effectShowcase.map((effect) => (
+              <div key={effect} className="flex flex-col items-center gap-2">
+                <GlassButton effect={effect} size="lg">
+                  {effect.charAt(0).toUpperCase() + effect.slice(1)}
+                </GlassButton>
+                <span className="font-mono text-muted-foreground text-xs">{effect}</span>
               </div>
             ))}
           </div>

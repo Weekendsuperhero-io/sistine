@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { apcaContrast, formatOklch, type OklchColor, parseOklch, pickForeground } from "@/lib/oklch-utils";
+import { apcaContrast, formatOklch, glassSurface, parseOklch, pickForeground } from "@/lib/oklch-utils";
 
 /**
  * Dynamic APCA contrast guard. Renders its text in `accent` (a CSS custom-property name such as
@@ -31,14 +31,18 @@ export function ReadableText({
       const cs = getComputedStyle(root);
       const intended = parseOklch(cs.getPropertyValue(accent).trim());
       if (!intended) return;
+      const dark = root.classList.contains("dark");
       const tintH = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const tintC = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
-      // The glass surface the text sits on: a light (or dark) base at the current tint hue + wash chroma.
-      const surface: OklchColor = {
-        l: root.classList.contains("dark") ? 20 : 94,
-        c: Number.isNaN(tintC) ? 0 : Math.min(0.12, tintC * 4),
+      const tintA = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
+      // The glass surface the text sits on, via the canonical wash derivation shared with the
+      // glass-* utilities (glassSurface mirrors --glass-tint-wash), so the guard judges against the
+      // same surface the CSS paints — including how tint alpha shifts its lightness and chroma.
+      const surface = glassSurface(dark, {
         h: Number.isNaN(tintH) ? intended.h : tintH,
-      };
+        c: Number.isNaN(tintC) ? 0 : tintC,
+        a: Number.isNaN(tintA) ? 0 : tintA,
+      });
       const readable = Math.abs(apcaContrast(intended, surface)) >= minLc;
       setColor(formatOklch(readable ? intended : pickForeground(surface)));
     };
