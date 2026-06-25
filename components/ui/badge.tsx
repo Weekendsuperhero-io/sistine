@@ -28,12 +28,12 @@ const badgeVariants = cva(
   },
 );
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
   asChild?: boolean;
 }
 
 function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
-  const Comp = asChild ? SlotPrimitive.Slot : "div";
+  const Comp = asChild ? SlotPrimitive.Slot : "span";
 
   return (
     <Comp

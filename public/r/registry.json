@@ -1662,7 +1662,6 @@
         "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
-        "next-themes",
         "sonner",
         "tailwind-merge"
       ],
