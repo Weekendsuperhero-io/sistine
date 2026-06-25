@@ -61,12 +61,16 @@ function crossDepsOf(absPath, selfName) {
   return [...out];
 }
 
-/** Cross-registry deps from "@/components/ui|blocks/<name>" (and the glass/ subpath) alias imports. */
+/**
+ * Cross-registry deps from alias imports: "@/components/ui|blocks/<name>" (and the glass/ subpath),
+ * "@/lib/<name>", and "@/hooks/<name>". Only names that are themselves registry items count, so
+ * shared-but-unpublished files (e.g. @/lib/utils) are ignored.
+ */
 function aliasDepsOf(absPath) {
   if (!existsSync(absPath)) return [];
   const src = readFileSync(absPath, "utf8");
   const out = new Set();
-  const re = /from\s+["']@\/components\/(?:ui|blocks)\/(?:glass\/)?([a-z0-9-]+)["']/g;
+  const re = /from\s+["']@\/(?:components\/(?:ui|blocks)\/(?:glass\/)?|lib\/|hooks\/)([a-z0-9-]+)["']/g;
   let m;
   while ((m = re.exec(src))) {
     if (componentNames.has(m[1])) out.add(m[1]);
@@ -121,8 +125,14 @@ let changed = 0;
 for (const item of registry.items) {
   const name = item.name;
 
-  // Non-component items (block/hook/lib/style/theme) derive deps from their own files.
-  if (item.type !== "registry:component") {
+  // Items that don't follow the components/ui/<name> convention — blocks, hooks, libs, themes, and
+  // any component living elsewhere (e.g. components/readable-text.tsx) — derive their deps from
+  // their own shipped files instead of the base+glass pair below.
+  const followsUiConvention =
+    item.type === "registry:component" &&
+    (existsSync(join(root, `components/ui/${name}.tsx`)) ||
+      existsSync(join(root, `components/ui/glass/${name}.tsx`)));
+  if (!followsUiConvention) {
     normalizeNonComponent(item);
     changed++;
     continue;

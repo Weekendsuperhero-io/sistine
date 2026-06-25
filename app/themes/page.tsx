@@ -2,6 +2,7 @@
 
 import { Check, Copy, Palette } from "@phosphor-icons/react";
 import * as React from "react";
+import { ReadableText } from "@/components/readable-text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -253,7 +254,10 @@ export default function ThemesPage() {
             </CardHeader>
             <CardContent>
               <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                <code className="text-foreground whitespace-pre">{currentCSS}</code>
+                {/* Accent-tinted snippet that stays readable on the glass surface as the theme/tint changes. */}
+                <ReadableText accent="--primary">
+                  <code className="whitespace-pre">{currentCSS}</code>
+                </ReadableText>
               </pre>
             </CardContent>
           </Card>

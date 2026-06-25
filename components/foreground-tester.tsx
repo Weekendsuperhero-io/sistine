@@ -102,7 +102,8 @@ export function ForegroundTester() {
   });
   const levels = Array.from(
     {
-      length: count + 1,
+      // count steps EITHER SIDE of the base (centered at index `count`), matching the ramp generator.
+      length: 2 * count + 1,
     },
     (_, level) => {
       const color = themeForeground({
@@ -127,7 +128,7 @@ export function ForegroundTester() {
           Foreground source <span className="font-normal text-muted-foreground text-sm">· experimental</span>
         </CardTitle>
         <CardDescription>
-          Site text walks a ramp built from the base color above ({formatOklch(base)}), {count} steps. Pick the axis, then{" "}
+          Site text walks a ramp built from the base color above ({formatOklch(base)}), {count} steps either side. Pick the axis, then{" "}
           <strong>click a swatch to set the starting color</strong> (<code className="text-xs">--foreground</code>) — the next swatch down becomes{" "}
           <code className="text-xs">--muted-foreground</code> and the ramp continues toward the base.
         </CardDescription>

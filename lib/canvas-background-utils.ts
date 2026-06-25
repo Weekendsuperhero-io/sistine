@@ -1,403 +1,321 @@
 /**
  * Canvas Background Utilities
- * Generate random canvas backgrounds with various patterns and colors
+ *
+ * Ramp-driven canvas backgrounds. Pick a base color (the live glass tint) and a ramp axis
+ * (tonal / lightness ["linear"] / chroma / hue); the colors are generated from the shared
+ * oklch-utils ramps — no hard-coded palettes. Three styles, all returned as a unified
+ * `step(ctx, t)` so the component can either paint one static frame (t = 0) or drive an
+ * animation loop:
+ *   - gradient: a linear gradient of the ramp (base centered), rotatable via `angle`, and
+ *               scrolled "through" the ramp at `speed`.
+ *   - lava:     a deep backdrop derived from the base color, with gooey metaballs colored
+ *               from the ramp (renamed from the old "blobs").
+ *   - circle:   the base color as a backdrop, with soft translucent circles colored from the
+ *               ramp (renamed from the old "circles").
  */
 
+import {
+  chromaRampColors,
+  formatOklch,
+  hueRampColors,
+  lightnessRampColors,
+  maxP3Chroma,
+  maxSrgbChroma,
+  type OklchColor,
+  parseOklch,
+  type RampGradientAxis,
+  tonalScaleColors,
+} from "./oklch-utils";
+
+export type CanvasStyle = "gradient" | "lava" | "circle";
+/** Ramp axis the canvas colors follow. `lightness` is the "linear" ramp. */
+export type CanvasRamp = RampGradientAxis;
+
 export interface CanvasConfig {
-  /**
-   * Width of the canvas
-   */
   width?: number;
-  /**
-   * Height of the canvas
-   */
   height?: number;
-  /**
-   * Number of color stops/gradients
-   */
-  colorCount?: number;
-  /**
-   * Pattern type: 'gradient', 'circles', 'blobs'
-   */
-  pattern?: "gradient" | "circles" | "blobs";
-  /**
-   * Seed for consistent generation (optional)
-   */
+  /** Base color (the chosen tint) as an oklch string or components. Default a mid violet. */
+  color?: OklchColor | string;
+  /** Which canvas style to render. Default "gradient". */
+  style?: CanvasStyle;
+  /** Ramp axis the colors follow. Default "tonal". */
+  ramp?: CanvasRamp;
+  /** Steps PER SIDE (4–12); the ramp yields 2·steps+1 colors. Default 6. */
+  steps?: number;
+  /** Linear-gradient angle in degrees (gradient style; 90 = left → right). Default 90. */
+  angle?: number;
+  /** Animation pace (0 = static, 1 = default). Default 1. */
+  speed?: number;
+  /** Prefer the Display-P3 chroma cap (when the display supports it). Default false. */
+  p3?: boolean;
+  /** Seed for deterministic blob/circle placement. */
   seed?: string;
-  /**
-   * Animation speed (0 = static, higher = faster)
-   */
-  animationSpeed?: number;
-  /**
-   * Device pixel ratio the target canvas is backed at — scales blur radii so the gooey metaball
-   * filter looks the same at any backing resolution. Default 1.
-   */
+  /** Device pixel ratio the canvas is backed at — scales blur radii. Default 1. */
   dpr?: number;
 }
 
-/**
- * Curated color palettes in OKLCH for beautiful glassmorphism backgrounds
- * Values: l (lightness 0-100%), c (chroma 0-0.4), h (hue 0-360)
- */
-const COLOR_PALETTES = {
-  // Sunset/Sunrise gradients (warm, vibrant)
-  sunset: [
-    {
-      l: 71.2,
-      c: 0.181,
-      h: 22.8,
-    }, // Coral Red
-    {
-      l: 78.5,
-      c: 0.155,
-      h: 61.3,
-    }, // Orange
-    {
-      l: 87.3,
-      c: 0.147,
-      h: 86.7,
-    }, // Golden Yellow
-    {
-      l: 75.2,
-      c: 0.186,
-      h: 346.6,
-    }, // Pink
-  ],
-  // Ocean/Sea gradients (calm, refreshing)
-  ocean: [
-    {
-      l: 71.1,
-      c: 0.129,
-      h: 219,
-    }, // Ocean Blue
-    {
-      l: 77.9,
-      c: 0.117,
-      h: 213.7,
-    }, // Sky Blue
-    {
-      l: 86,
-      c: 0.081,
-      h: 210.7,
-    }, // Light Blue
-    {
-      l: 63.1,
-      c: 0.126,
-      h: 230.5,
-    }, // Deep Blue
-  ],
-  // Forest/Nature gradients (earthy, natural)
-  forest: [
-    {
-      l: 55.8,
-      c: 0.169,
-      h: 142.9,
-    }, // Forest Green
-    {
-      l: 52.3,
-      c: 0.135,
-      h: 144.2,
-    }, // Dark Green
-    {
-      l: 67.3,
-      c: 0.162,
-      h: 144.2,
-    }, // Light Green
-    {
-      l: 57.5,
-      c: 0.145,
-      h: 144.2,
-    }, // Green
-  ],
-  // Lavender/Dream gradients (soft, dreamy)
-  lavender: [
-    {
-      l: 75.9,
-      c: 0.068,
-      h: 326.2,
-    }, // Lavender
-    {
-      l: 64.5,
-      c: 0.162,
-      h: 321.6,
-    }, // Purple
-    {
-      l: 57.6,
-      c: 0.194,
-      h: 321.6,
-    }, // Deep Purple
-    {
-      l: 83.7,
-      c: 0.069,
-      h: 323,
-    }, // Light Lavender
-  ],
-  // Fire/Ember gradients (intense, dynamic)
-  fire: [
-    {
-      l: 67.9,
-      c: 0.213,
-      h: 36.5,
-    }, // Deep Orange
-    {
-      l: 77,
-      c: 0.174,
-      h: 64.1,
-    }, // Orange
-    {
-      l: 84.4,
-      c: 0.172,
-      h: 84.9,
-    }, // Amber
-    {
-      l: 64.3,
-      c: 0.215,
-      h: 28.8,
-    }, // Red
-  ],
-  // Midnight/Space gradients (mysterious, deep)
-  midnight: [
-    {
-      l: 28.8,
-      c: 0.144,
-      h: 272.8,
-    }, // Midnight Blue
-    {
-      l: 41.4,
-      c: 0.125,
-      h: 286,
-    }, // Dark Slate Blue
-    {
-      l: 54.4,
-      c: 0.171,
-      h: 285.5,
-    }, // Slate Blue
-    {
-      l: 60.4,
-      c: 0.194,
-      h: 285.5,
-    }, // Medium Slate Blue
-  ],
+const DEFAULT_COLOR: OklchColor = {
+  l: 60,
+  c: 0.15,
+  h: 250,
 };
 
-/**
- * Get a curated color palette based on seed
- */
-function getColorPalette(seed: number): typeof COLOR_PALETTES.sunset {
-  const palettes = Object.values(COLOR_PALETTES);
-  const index = Math.floor((Math.abs(Math.sin(seed)) * 10000) % palettes.length);
-  return palettes[index];
+function resolveColor(color: CanvasConfig["color"]): OklchColor {
+  if (!color) return DEFAULT_COLOR;
+  if (typeof color === "string") return parseOklch(color) ?? DEFAULT_COLOR;
+  return color;
+}
+
+/** Steps per side, clamped to [4, 12]. */
+function clampSteps(steps: number): number {
+  return Math.max(4, Math.min(12, Math.round(steps)));
 }
 
 /**
- * Generate a beautiful color from curated palette (returns oklch string)
+ * Colors for the chosen ramp axis as oklch strings (2·count+1 entries). Chroma is capped to the
+ * gamut-displayable max (sRGB, or P3 when `p3`) so it reaches the visible edge, not a flat 0.37.
  */
-function randomColor(seed?: number): string {
-  if (seed === undefined) {
-    seed = Math.random() * 1000;
+function rampColors(base: OklchColor, ramp: CanvasRamp, count: number, p3: boolean): string[] {
+  let colors: OklchColor[];
+  switch (ramp) {
+    case "hue":
+      colors = hueRampColors(base, count);
+      break;
+    case "lightness":
+      colors = lightnessRampColors(base, count);
+      break;
+    case "chroma":
+      colors = chromaRampColors(base, count, (p3 ? maxP3Chroma : maxSrgbChroma)(base.l, base.h));
+      break;
+    default: // tonal — match the symmetric ramps' length so styles look consistent across axes
+      colors = tonalScaleColors({
+        hue: base.h,
+        steps: 2 * count + 1,
+        chroma: 0.2,
+        gamut: p3 ? "p3" : "srgb",
+      });
+      break;
   }
-
-  const palette = getColorPalette(seed);
-  const colorIndex = Math.floor((Math.abs(Math.sin(seed * 2)) * 10000) % palette.length);
-  const color = palette[colorIndex];
-
-  // Add slight variation for more natural look
-  const variation = 0.15;
-  const lVariation = Math.sin(seed * 3) * variation;
-  const cVariation = Math.sin(seed * 4) * variation;
-  const hVariation = Math.sin(seed * 5) * 15; // ±15° hue shift
-
-  const l = Math.max(0, Math.min(100, color.l * (1 + lVariation)));
-  const c = Math.max(0, Math.min(0.4, color.c * (1 + cVariation)));
-  const h = (((color.h + hVariation) % 360) + 360) % 360;
-
-  return `oklch(${l.toFixed(1)}% ${c.toFixed(3)} ${h.toFixed(1)})`;
+  return colors.map((c) => formatOklch(c));
 }
 
-/**
- * Add alpha to an oklch color string
- */
+/** Add (or replace) the alpha on an oklch() string. */
 function withAlpha(color: string, alpha: number): string {
-  return color.replace(")", ` / ${alpha})`);
+  const body = color
+    .replace(/^oklch\(/i, "")
+    .replace(/\)\s*$/, "")
+    .split("/")[0]
+    .trim();
+  return `oklch(${body} / ${alpha})`;
 }
 
-/**
- * Seeded random number generator
- */
+/** Deterministic PRNG from a string seed, so a given seed always lays out the same field. */
 function seededRandom(seed: string): () => number {
   let value = 0;
   for (let i = 0; i < seed.length; i++) {
     value = (value << 5) - value + seed.charCodeAt(i);
     value = value & value;
   }
-  let seedValue = Math.abs(value);
-
+  let seedValue = Math.abs(value) || 1;
   return () => {
     seedValue = (seedValue * 9301 + 49297) % 233280;
     return seedValue / 233280;
   };
 }
 
-/**
- * Draw gradient pattern on canvas
- */
-function drawGradient(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
-  const gradient = ctx.createLinearGradient(random() * width, random() * height, random() * width, random() * height);
-
-  for (let i = 0; i < colorCount; i++) {
-    const offset = i / (colorCount - 1);
-    const color = randomColor(random() * 1000);
-    gradient.addColorStop(offset, color);
-  }
-
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-}
-
-/**
- * Draw circles pattern on canvas
- */
-function drawCircles(ctx: CanvasRenderingContext2D, width: number, height: number, colorCount: number, random: () => number): void {
-  // Base gradient background
-  const bgGradient = ctx.createLinearGradient(0, 0, width, height);
-  bgGradient.addColorStop(0, randomColor(random() * 1000));
-  bgGradient.addColorStop(1, randomColor(random() * 1000));
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, width, height);
-
-  // Draw circles
-  const circleCount = Math.floor(colorCount * 2);
-  for (let i = 0; i < circleCount; i++) {
-    const x = random() * width;
-    const y = random() * height;
-    const radius = random() * Math.min(width, height) * 0.3 + 50;
-    const color = randomColor(random() * 1000);
-    const alpha = random() * 0.5 + 0.3;
-
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = withAlpha(color, alpha);
-    ctx.fill();
-  }
-}
-
-/**
- * Generate canvas background
- */
-export function generateCanvasBackground(config: CanvasConfig = {}): {
-  draw: (ctx: CanvasRenderingContext2D) => void;
-  width: number;
-  height: number;
-} {
-  const {
-    width = typeof window !== "undefined" ? window.innerWidth : 1920,
-    height = typeof window !== "undefined" ? window.innerHeight : 1080,
-    colorCount = 4,
-    pattern = "gradient",
-    seed,
-  } = config;
-
-  const random = seed ? seededRandom(seed) : () => Math.random();
-
-  const draw = (ctx: CanvasRenderingContext2D) => {
-    switch (pattern) {
-      case "circles":
-        drawCircles(ctx, width, height, colorCount, random);
-        break;
-      default:
-        drawGradient(ctx, width, height, colorCount, random);
-        break;
-    }
-  };
-
+/** Endpoints of the gradient line across w×h for a CSS-like angle (90° = left → right, 0° = up). */
+function gradientLine(angle: number, w: number, h: number) {
+  const rad = ((angle - 90) * Math.PI) / 180;
+  const dx = Math.cos(rad);
+  const dy = Math.sin(rad);
+  const half = (Math.abs(dx) * w + Math.abs(dy) * h) / 2;
+  const cx = w / 2;
+  const cy = h / 2;
   return {
-    draw,
-    width,
-    height,
+    x0: cx - dx * half,
+    y0: cy - dy * half,
+    x1: cx + dx * half,
+    y1: cy + dy * half,
   };
 }
 
-/**
- * Lava-lamp / metaball field. Returns `step(ctx, t)` which paints slowly drifting, pulsing
- * blobs that merge gooily — drawn solid onto an offscreen layer, then composited through a
- * blur()+contrast() filter so overlapping blobs fuse with metaball "necks". Drive it per
- * frame for animation, or call once at t=0 for a static frame. Used by the "blobs" pattern.
- */
-export function createLavaLamp(config: CanvasConfig = {}): {
-  step: (ctx: CanvasRenderingContext2D, t: number) => void;
-} {
-  const width = config.width ?? (typeof window !== "undefined" ? window.innerWidth : 1920);
-  const height = config.height ?? (typeof window !== "undefined" ? window.innerHeight : 1080);
-  const colorCount = config.colorCount ?? 5;
-  const random = config.seed ? seededRandom(config.seed) : () => Math.random();
+function makeGradient(w: number, h: number, angle: number, speed: number, colors: string[]): (ctx: CanvasRenderingContext2D, t: number) => void {
+  // Ping-pong the ramp (out, then back) so the sequence is cyclic and the scroll wraps seamlessly:
+  // the last color (c1) is adjacent to the first (c0) in the original ramp.
+  const cyc =
+    colors.length > 2
+      ? [
+          ...colors,
+          ...colors.slice(1, -1).reverse(),
+        ]
+      : colors;
+  const m = cyc.length;
+  const line = gradientLine(angle, w, h);
+  // Start with the base color (the ramp's middle swatch) centered at the gradient midpoint, then
+  // scroll "through" the ramp over time. The ping-pong keeps that scroll seamless.
+  const mid = Math.floor(colors.length / 2);
+  const phase0 = 0.5 - mid / m;
 
-  const dpr = config.dpr ?? 1;
-  const paletteSeed = random() * 1000;
-  const bgHue = (paletteSeed * 0.37) % 360;
-  // Deep, colored jewel-tone backdrop (not near-black) so it reads as theme-adjacent.
-  const bgTop = `oklch(28% 0.06 ${bgHue.toFixed(1)})`;
-  const bgBottom = `oklch(19% 0.07 ${((bgHue + 40) % 360).toFixed(1)})`;
+  return (ctx, t) => {
+    const g = ctx.createLinearGradient(line.x0, line.y0, line.x1, line.y1);
+    const scroll = speed === 0 ? 0 : t * speed * 0.05;
+    const phase = (((phase0 + scroll) % 1) + 1) % 1;
+    for (let j = 0; j < m; j++) {
+      let off = j / m + phase;
+      off -= Math.floor(off); // wrap into [0, 1)
+      g.addColorStop(off, cyc[j]);
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+  };
+}
 
-  const minDim = Math.min(width, height);
-  const blobCount = Math.max(5, colorCount + 2);
+function makeLava(
+  w: number,
+  h: number,
+  dpr: number,
+  speed: number,
+  base: OklchColor,
+  colors: string[],
+  random: () => number,
+): (ctx: CanvasRenderingContext2D, t: number) => void {
+  // The chosen color IS the backdrop, with a gentle vertical darkening for depth.
+  const bgTop = formatOklch(base);
+  const bgBottom = formatOklch({
+    l: Math.max(12, base.l * 0.72),
+    c: base.c,
+    h: base.h,
+  });
+
+  const minDim = Math.min(w, h);
+  const blobCount = Math.max(colors.length, 6);
   const blobs = Array.from(
     {
       length: blobCount,
     },
     (_, i) => ({
-      baseX: random() * width,
-      baseY: random() * height,
+      baseX: random() * w,
+      baseY: random() * h,
       r: (random() * 0.14 + 0.13) * minDim,
-      ampX: (random() * 0.05 + 0.03) * width,
-      ampY: (random() * 0.16 + 0.12) * height,
-      speed: random() * 0.16 + 0.05,
+      ampX: (random() * 0.05 + 0.03) * w,
+      ampY: (random() * 0.16 + 0.12) * h,
+      spd: random() * 0.16 + 0.05,
       phase: random() * Math.PI * 2,
-      color: randomColor(paletteSeed + i * 13 + 9),
+      color: colors[i % colors.length],
     }),
   );
 
-  // Blobs are drawn opaque here, then composited through the gooey filter onto the target.
   const off = typeof document !== "undefined" ? document.createElement("canvas") : null;
   if (off) {
-    off.width = width;
-    off.height = height;
+    off.width = w;
+    off.height = h;
   }
-  const offCtx =
-    off?.getContext("2d", {
-      colorSpace: "display-p3",
-    }) ?? null;
+  const offCtx = off?.getContext("2d", {
+    colorSpace: "display-p3",
+  });
 
-  return {
-    step: (ctx, t) => {
-      // Deep, colored backdrop straight onto the target — drawn WITHOUT the blur/contrast filter so
-      // it stays a jewel tone instead of being crushed to black.
-      const grad = ctx.createLinearGradient(0, 0, 0, height);
-      grad.addColorStop(0, bgTop);
-      grad.addColorStop(1, bgBottom);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
+  return (ctx, t) => {
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, bgTop);
+    grad.addColorStop(1, bgBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
 
-      if (!off || !offCtx) return;
-
-      // Blobs on a transparent layer, then composited back through a soft, dpr-scaled blur so they
-      // read as glowing, merging lava. (The old blur(34px)+contrast(11) snapped overlaps into harsh,
-      // aliased edges that looked pixelated — replaced with a soft glow.)
-      offCtx.clearRect(0, 0, width, height);
-      for (const b of blobs) {
-        const x = b.baseX + Math.sin(t * b.speed + b.phase) * b.ampX;
-        const y = b.baseY + Math.cos(t * b.speed * 0.8 + b.phase) * b.ampY;
-        const r = b.r * (1 + Math.sin(t * b.speed * 1.5 + b.phase) * 0.12);
-        offCtx.beginPath();
-        offCtx.arc(x, y, r, 0, Math.PI * 2);
-        offCtx.fillStyle = b.color;
-        offCtx.fill();
-      }
-
-      ctx.save();
-      ctx.globalAlpha = 0.82;
-      ctx.filter = `blur(${(54 * dpr).toFixed(0)}px)`;
-      ctx.drawImage(off, 0, 0);
-      ctx.restore();
-    },
+    if (!off || !offCtx) return;
+    offCtx.clearRect(0, 0, w, h);
+    const tt = t * speed;
+    for (const b of blobs) {
+      const x = b.baseX + Math.sin(tt * b.spd + b.phase) * b.ampX;
+      const y = b.baseY + Math.cos(tt * b.spd * 0.8 + b.phase) * b.ampY;
+      const r = b.r * (1 + Math.sin(tt * b.spd * 1.5 + b.phase) * 0.12);
+      offCtx.beginPath();
+      offCtx.arc(x, y, r, 0, Math.PI * 2);
+      offCtx.fillStyle = b.color;
+      offCtx.fill();
+    }
+    ctx.save();
+    ctx.globalAlpha = 0.82;
+    ctx.filter = `blur(${(54 * dpr).toFixed(0)}px)`;
+    ctx.drawImage(off, 0, 0);
+    ctx.restore();
   };
+}
+
+function makeCircle(
+  w: number,
+  h: number,
+  speed: number,
+  baseCss: string,
+  colors: string[],
+  random: () => number,
+): (ctx: CanvasRenderingContext2D, t: number) => void {
+  const minDim = Math.min(w, h);
+  const circles = Array.from(
+    {
+      length: colors.length * 2,
+    },
+    (_, i) => ({
+      x: random() * w,
+      y: random() * h,
+      r: random() * minDim * 0.3 + 50,
+      ampX: (random() * 0.04 + 0.02) * w,
+      ampY: (random() * 0.04 + 0.02) * h,
+      spd: random() * 0.1 + 0.03,
+      phase: random() * Math.PI * 2,
+      color: colors[i % colors.length],
+      alpha: random() * 0.4 + 0.25,
+    }),
+  );
+
+  return (ctx, t) => {
+    ctx.fillStyle = baseCss;
+    ctx.fillRect(0, 0, w, h);
+    const tt = t * speed;
+    for (const circle of circles) {
+      const x = circle.x + Math.sin(tt * circle.spd + circle.phase) * circle.ampX;
+      const y = circle.y + Math.cos(tt * circle.spd * 0.9 + circle.phase) * circle.ampY;
+      ctx.beginPath();
+      ctx.arc(x, y, circle.r, 0, Math.PI * 2);
+      ctx.fillStyle = withAlpha(circle.color, circle.alpha);
+      ctx.fill();
+    }
+  };
+}
+
+/**
+ * Build a ramp-driven canvas background. Returns `step(ctx, t)`: call once at `t = 0` for a static
+ * frame, or per animation frame (t in seconds) to animate. The base color + ramp axis drive every
+ * style, so the canvas recolors with the theme just like the CSS gradient background.
+ */
+export function createCanvas(config: CanvasConfig = {}): {
+  step: (ctx: CanvasRenderingContext2D, t: number) => void;
+} {
+  const width = config.width ?? (typeof window !== "undefined" ? window.innerWidth : 1920);
+  const height = config.height ?? (typeof window !== "undefined" ? window.innerHeight : 1080);
+  const base = resolveColor(config.color);
+  const style = config.style ?? "gradient";
+  const ramp = config.ramp ?? "tonal";
+  const count = clampSteps(config.steps ?? 6);
+  const angle = config.angle ?? 90;
+  const speed = config.speed ?? 1;
+  const p3 = config.p3 ?? false;
+  const dpr = config.dpr ?? 1;
+  const random = config.seed ? seededRandom(config.seed) : () => Math.random();
+
+  const colors = rampColors(base, ramp, count, p3);
+
+  switch (style) {
+    case "lava":
+      return {
+        step: makeLava(width, height, dpr, speed, base, colors, random),
+      };
+    case "circle":
+      return {
+        step: makeCircle(width, height, speed, formatOklch(base), colors, random),
+      };
+    default:
+      return {
+        step: makeGradient(width, height, angle, speed, colors),
+      };
+  }
 }
