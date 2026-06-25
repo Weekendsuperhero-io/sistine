@@ -105,20 +105,45 @@ export function writeRampConfig(config: RampConfig): void {
   window.dispatchEvent(new Event(FG_EVENT));
 }
 
+export interface AutoForegroundProps {
+  /** Foreground ramp palette. Overrides the persisted config when set. */
+  palette?: FgPalette;
+  /** Which ramp level is `--foreground` (the next level down is `--muted-foreground`). Overrides persisted. */
+  start?: number;
+  /** Ramp base color + step count. Overrides the persisted ramp when set. */
+  ramp?: RampConfig;
+}
+
 /**
- * Sets `--foreground` + `--muted-foreground` on <html> by walking the ramp generator's ramp (chosen
- * palette + base color + step count, persisted from /colors). `start` picks which level is
- * `--foreground`; the next level down is `--muted-foreground`. Recomputed on theme / config change
- * only. globals.css carries the level-0/level-1 defaults as a static fallback, so there's no flash.
+ * Sets `--foreground` + `--muted-foreground` on <html> by walking an OKLCH ramp (palette + base color +
+ * step count) so text contrast tracks light/dark automatically. `start` picks which level is
+ * `--foreground`; the next level down is `--muted-foreground`. globals.css carries the level-0/level-1
+ * defaults as a static fallback, so there's no flash.
+ *
+ * Configure declaratively — `<AutoForeground palette="tonal" start={0} ramp={{ l, c, h, count }} />` — or,
+ * with no props, it reads a persisted config (`writeFgConfig` / `writeRampConfig`, e.g. a live generator)
+ * and re-applies on the `sistine-fg` event. It intentionally mutates the global `--foreground` /
+ * `--muted-foreground`, so mount it once at the app root.
  */
-export function AutoForeground() {
+export function AutoForeground({ palette: paletteProp, start: startProp, ramp: rampProp }: AutoForegroundProps = {}) {
+  const rl = rampProp?.l;
+  const rc = rampProp?.c;
+  const rh = rampProp?.h;
+  const rcount = rampProp?.count;
+
   React.useEffect(() => {
     const root = document.documentElement;
 
     const update = () => {
       const dark = root.classList.contains("dark");
-      const { palette, start } = readFgConfig();
-      const { l, c, h, count } = readRampConfig();
+      const storedFg = readFgConfig();
+      const storedRamp = readRampConfig();
+      const palette = paletteProp ?? storedFg.palette;
+      const start = startProp ?? storedFg.start;
+      const l = rl ?? storedRamp.l;
+      const c = rc ?? storedRamp.c;
+      const h = rh ?? storedRamp.h;
+      const count = rcount ?? storedRamp.count;
       const base = {
         l,
         c,
@@ -154,7 +179,14 @@ export function AutoForeground() {
       observer.disconnect();
       window.removeEventListener(FG_EVENT, update);
     };
-  }, []);
+  }, [
+    paletteProp,
+    startProp,
+    rl,
+    rc,
+    rh,
+    rcount,
+  ]);
 
   return null;
 }

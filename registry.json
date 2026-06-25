@@ -1662,7 +1662,6 @@
         "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
-        "next-themes",
         "sonner",
         "tailwind-merge"
       ],
@@ -2532,6 +2531,23 @@
           "path": "components/readable-text.tsx",
           "type": "registry:component",
           "target": "components/readable-text.tsx"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "auto-foreground",
+      "type": "registry:component",
+      "title": "Auto Foreground",
+      "description": "Sets --foreground / --muted-foreground from an OKLCH ramp so text contrast tracks light/dark automatically. Configure declaratively via props (palette, start, ramp) or a persisted config; re-applies on theme change.",
+      "registryDependencies": [
+        "@sistine/oklch-utils"
+      ],
+      "files": [
+        {
+          "path": "components/auto-foreground.tsx",
+          "type": "registry:component",
+          "target": "components/auto-foreground.tsx"
         }
       ],
       "dependencies": []

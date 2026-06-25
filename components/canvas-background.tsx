@@ -6,6 +6,8 @@ import { type CanvasRamp, type CanvasStyle, createCanvas } from "@/lib/canvas-ba
 interface CanvasBackgroundProps {
   /** Canvas style: gradient | lava | circle. */
   style?: CanvasStyle;
+  /** Hue override (deg). When set, drives the canvas color instead of the live --glass-tint-h. */
+  hue?: number;
   /** Ramp axis the colors follow (lightness = "linear"). */
   ramp?: CanvasRamp;
   /** Steps per side (4–12). */
@@ -27,6 +29,7 @@ interface CanvasBackgroundProps {
 
 export function CanvasBackground({
   style: canvasStyle = "gradient",
+  hue,
   ramp = "tonal",
   steps = 6,
   angle = 90,
@@ -104,7 +107,7 @@ export function CanvasBackground({
     const base = {
       l: tint.dark ? 52 : 72,
       c: 0.15,
-      h: tint.hue,
+      h: hue ?? tint.hue,
     };
     const { step } = createCanvas({
       width: dimensions.width,
@@ -141,6 +144,7 @@ export function CanvasBackground({
   }, [
     dimensions,
     tint,
+    hue,
     canvasStyle,
     ramp,
     steps,

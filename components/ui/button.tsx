@@ -9,7 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
+        default:
+          "bg-primary text-primary-foreground [background-image:var(--glass-bg)] shadow-md hover:bg-primary/90 transition active:opacity-90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
         glass:
           "glass-bg text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         gradient: "glass-gradient text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
@@ -23,7 +24,8 @@ const buttonVariants = cva(
           "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         outline:
           "glass-bg backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.1)]",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15)]",
+        secondary:
+          "glass-surface text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)]",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[inset_0_1px_2px_oklch(0%_0_0/0.1)]",
         link: "text-primary underline-offset-4 hover:underline active:opacity-80",

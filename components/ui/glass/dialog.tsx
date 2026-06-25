@@ -45,7 +45,10 @@ export const DialogContent = React.forwardRef<React.ElementRef<typeof BaseDialog
         variant={variant}
         glass={glass}
         className={cn(
-          "relative overflow-hidden",
+          // NB: no `relative` here — the base DialogContent is `fixed` (viewport-centered) and
+          // this className is merged last, so `relative` would win the tailwind-merge position
+          // conflict and drop the modal in-flow (off-screen). `fixed` already anchors children.
+          "overflow-hidden",
           animated && "backdrop-blur-[var(--blur-lg)]",
           hoverEffects({
             hover,
