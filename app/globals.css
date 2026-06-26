@@ -104,7 +104,14 @@
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
   --sidebar-ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
+}
 
+/* Glass tokens live on :root AND [data-glass-tint] so the tint-DERIVED ones (--glass-bg, --glass-border,
+   --glass-accent, --gradient*, --glass-crystal-*, --glass-tint-wash, …) RE-RESOLVE at any element carrying
+   a data-glass-tint preset — so scoped tints (not just on <html>) fully apply. Foreground tokens stay on
+   :root above (AutoForeground owns them). Preset blocks below override --glass-tint-h/c/a by source order. */
+:root,
+[data-glass-tint] {
   /* Apple-standard glassmorphism - Very subtle and refined */
   /* Glass tint — recolor ALL glass by changing these; presets set them via [data-glass-tint].
      -h = hue, -c = chroma (gradient), -a = wash alpha. The gradient alone is too sheer
@@ -193,7 +200,9 @@
   --blur-crystal: 2px;
 }
 
-.dark {
+.dark,
+.dark [data-glass-tint],
+.dark[data-glass-tint] {
   /* Apple-standard glassmorphism for dark mode - Very subtle and refined */
   /* Very low opacity for Apple's standard glass effect in dark mode */
   /* Deeper wash lightness so the tint reads as colored glass over dark backdrops. */
@@ -255,7 +264,9 @@
   --glass-crystal-border: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(100% 0 0 / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(100% 0 0 / 0.25) inset;
+}
 
+.dark {
   /* Base colors - Apple-style white text */
   --background: transparent;
   --foreground: oklch(100% 0 0); /* Level 0 — lightest extreme; AutoForeground walks the ramp at runtime */
@@ -645,19 +656,8 @@
 /* ── Glass tint presets ─────────────────────────────────────────────────────
    Set data-glass-tint on any element (commonly <html>) to recolor the glass in that subtree.
    Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
-   gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling. */
-/* Re-resolve the wash AT the tinted element. --glass-tint-wash composes var(--glass-tint-a), and
-   CSS resolves that where the property is DECLARED — so a preset scoped to a subtree (not :root)
-   sets --glass-tint-a but the :root-declared wash never updates, leaving the wash floor (e.g.
-   crystal under a fresco) transparent. Redeclaring it on [data-glass-tint] makes the wash track
-   the attribute at any scope. Manila's bespoke wash (below) still wins by source order. */
-[data-glass-tint] {
-  --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
-}
-.dark [data-glass-tint],
-.dark[data-glass-tint] {
-  --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
-}
+   gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling.
+   Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.07;
