@@ -18,6 +18,8 @@ const selectTriggerVariants = cva(
         fluted: "glass-fluted",
         crystal: "glass-crystal",
         opaque: "glass-opaque",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
       },
     },
     defaultVariants: {
@@ -37,6 +39,8 @@ const selectContentVariants = cva(
         fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
       },
     },
     defaultVariants: {

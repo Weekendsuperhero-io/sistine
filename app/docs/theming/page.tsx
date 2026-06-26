@@ -117,8 +117,8 @@ export default function ThemingPage() {
               </li>
             </ul>
             <p className="text-muted-foreground">
-              <IC>glass</IC> and <IC>opaque</IC> are exposed as component <IC>variant</IC>s; for <IC>glass-surface</IC> / <IC>glass-solid</IC> apply
-              the utility class directly:
+              All four tiers are component <IC>variant</IC>s — <IC>glass</IC> / <IC>surface</IC> / <IC>solid</IC> / <IC>opaque</IC> — or apply the raw{" "}
+              <IC>glass-*</IC> class on a bare element:
             </p>
             <Code>{`<div className="glass-solid rounded-xl p-4">Legible overlay</div>`}</Code>
           </CardContent>

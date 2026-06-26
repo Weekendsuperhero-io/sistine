@@ -15,7 +15,8 @@
  *   3. [preset] Every GlassTintSwitcher preset (except neutral) has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
- *   6. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
+ *   7. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
  *
  * Run: pnpm test   (node scripts/check-theme.mjs)
  */
@@ -163,7 +164,19 @@ for (const p of frescoPresets) {
   }
 }
 
-// 6. [sync] shipped theme.json embeds the current globals.css
+// 6. [variants] every glass component (defines a crystal: variant) also defines surface: + solid:,
+//    so the four tier names (glass/surface/solid/opaque) are uniformly available on the variant prop.
+for (const rel of componentFiles) {
+  const src = readFileSync(join(root, "components", rel), "utf8");
+  if (!/\bcrystal:\s*"glass-crystal/.test(src)) continue;
+  for (const k of ["surface", "solid"]) {
+    if (!new RegExp(`\\b${k}:\\s*"glass-${k}`).test(src)) {
+      fail(`[variants] ${rel} has the glass variant set but no "${k}" variant (→ glass-${k}). Add it so glass/surface/solid/opaque are all available.`);
+    }
+  }
+}
+
+// 7. [sync] shipped theme.json embeds the current globals.css
 try {
   const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
   const shipped = theme.files?.find((f) => f.path === "app/globals.css")?.content;

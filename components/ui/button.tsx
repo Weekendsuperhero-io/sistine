@@ -20,6 +20,8 @@ const buttonVariants = cva(
         crystal:
           "glass-crystal text-foreground transition active:opacity-90 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.25),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         opaque: "glass-opaque text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.2)]",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
         destructive:
           "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.15),inset_0_1px_2px_oklch(0%_0_0/0.1)] dark:active:shadow-[inset_0_2px_4px_oklch(0%_0_0/0.3),inset_0_1px_2px_oklch(0%_0_0/0.2)]",
         outline:
@@ -72,6 +74,8 @@ function Button({
     variant === "fluted" ||
     variant === "crystal" ||
     variant === "opaque" ||
+    variant === "surface" ||
+    variant === "solid" ||
     variant === "outline";
 
   const glassStyles = isGlassVariant && hasCustomGlass ? getGlassStyles(glass) : {};
