@@ -27,6 +27,94 @@ export default function ThemingPage() {
       </div>
 
       <div className="space-y-8">
+        <Card variant="glass" id="model" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Mental model</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Every glass surface is two axes you compose — <strong>material</strong> × <strong>tier</strong> — with color on top.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
+              <li>
+                <strong>Tier</strong> (how see-through): <IC>bg</IC> → <IC>surface</IC> → <IC>solid</IC> → <IC>opaque</IC>. Set with <IC>variant</IC>{" "}
+                or the <IC>glass-*</IC> class.
+              </li>
+              <li>
+                <strong>Material</strong> (the look): <IC>glass</IC> · <IC>frosted</IC> · <IC>fluted</IC> · <IC>crystal</IC>. Set with{" "}
+                <IC>data-glass</IC> on an ancestor (or the <IC>variant</IC> shortcut).
+              </li>
+            </ul>
+            <p className="text-muted-foreground">
+              Pick a cell — row = material (<IC>data-glass</IC>), column = tier (<IC>variant</IC>):
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-foreground">
+                    {[
+                      "",
+                      "bg",
+                      "surface",
+                      "solid",
+                      "opaque",
+                    ].map((h) => (
+                      <th key={h || "_"} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  <tr>
+                    <td className="border border-foreground/15 px-3 py-2 font-semibold text-foreground">glass</td>
+                    {[
+                      "glass",
+                      "surface",
+                      "solid",
+                      "opaque",
+                    ].map((t) => (
+                      <td key={t} className="border border-foreground/15 px-3 py-2">
+                        <IC>variant=&quot;{t}&quot;</IC>
+                      </td>
+                    ))}
+                  </tr>
+                  {[
+                    "frosted",
+                    "fluted",
+                    "crystal",
+                  ].map((m) => (
+                    <tr key={m}>
+                      <td className="border border-foreground/15 px-3 py-2 font-semibold text-foreground">{m}</td>
+                      <td className="border border-foreground/15 px-3 py-2" colSpan={4}>
+                        <IC>data-glass=&quot;{m}&quot;</IC> on an ancestor + any tier <IC>variant</IC> above
+                        {m === "crystal" ? " (e.g. the solid tier here = a solid crystal)" : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-muted-foreground">
+              <strong>Shortcut:</strong> <IC>variant=&quot;frosted&quot;</IC> / <IC>&quot;fluted&quot;</IC> / <IC>&quot;crystal&quot;</IC> jumps to
+              that material at its own (sheer) default tier — use the full <IC>data-glass</IC> × <IC>variant</IC> form only to put a material at a
+              different tier. <IC>opaque</IC> is the solid endpoint: a surface is solid regardless of material.
+            </p>
+            <p className="text-muted-foreground">To build any surface, answer three questions:</p>
+            <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
+              <li>
+                <strong>Texture?</strong> → <IC>data-glass</IC> (or skip for plain glass)
+              </li>
+              <li>
+                <strong>How solid?</strong> → <IC>variant</IC> / <IC>glass-*</IC> class
+              </li>
+              <li>
+                <strong>What color?</strong> → <IC>data-glass-tint</IC> (+ <IC>--glass-solid-a</IC> to dial the solid tier)
+              </li>
+            </ol>
+          </CardContent>
+        </Card>
+
         <Card variant="glass" id="tint" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">

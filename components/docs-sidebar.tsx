@@ -51,8 +51,12 @@ const docsNav = [
     title: "Theming",
     items: [
       {
-        title: "Glass Tint",
+        title: "Mental model",
         href: "/docs/theming",
+      },
+      {
+        title: "Glass Tint",
+        href: "/docs/theming#tint",
       },
       {
         title: "Glass Style",
