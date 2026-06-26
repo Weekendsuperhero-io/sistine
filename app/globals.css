@@ -643,9 +643,21 @@
 }
 
 /* ── Glass tint presets ─────────────────────────────────────────────────────
-   Set data-glass-tint on <html> to recolor the glass. Most presets just move the
-   tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded gold →
-   terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling. */
+   Set data-glass-tint on any element (commonly <html>) to recolor the glass in that subtree.
+   Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
+   gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling. */
+/* Re-resolve the wash AT the tinted element. --glass-tint-wash composes var(--glass-tint-a), and
+   CSS resolves that where the property is DECLARED — so a preset scoped to a subtree (not :root)
+   sets --glass-tint-a but the :root-declared wash never updates, leaving the wash floor (e.g.
+   crystal under a fresco) transparent. Redeclaring it on [data-glass-tint] makes the wash track
+   the attribute at any scope. Manila's bespoke wash (below) still wins by source order. */
+[data-glass-tint] {
+  --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
+}
+.dark [data-glass-tint],
+.dark[data-glass-tint] {
+  --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.07;
