@@ -31,11 +31,42 @@ export type CanvasStyle = "gradient" | "lava" | "circle";
 /** Ramp axis the canvas colors follow. `lightness` is the "linear" ramp. */
 export type CanvasRamp = RampGradientAxis;
 
+/**
+ * Signature hues for the bespoke multi-hue fresco tints. Backgrounds build a multi-hue ramp/gradient
+ * from these (at the canvas's standard L/C) instead of the single `--glass-tint-h`, so a fresco's
+ * canvas/gradient matches its glass instead of collapsing to one color.
+ */
+export const FRESCO_HUES: Record<string, number[]> = {
+  sistine: [
+    75,
+    8,
+    255,
+    158,
+  ],
+  muse: [
+    222,
+    326,
+    74,
+  ],
+  aurora: [
+    152,
+    196,
+    292,
+  ],
+  gloaming: [
+    62,
+    350,
+    278,
+  ],
+};
+
 export interface CanvasConfig {
   width?: number;
   height?: number;
   /** Base color (the chosen tint) as an oklch string or components. Default a mid violet. */
   color?: OklchColor | string;
+  /** Explicit color stops to use directly, bypassing the ramp — e.g. a fresco's multi-hue palette. */
+  colors?: string[];
   /** Which canvas style to render. Default "gradient". */
   style?: CanvasStyle;
   /** Ramp axis the colors follow. Default "tonal". */
@@ -302,7 +333,8 @@ export function createCanvas(config: CanvasConfig = {}): {
   const dpr = config.dpr ?? 1;
   const random = config.seed ? seededRandom(config.seed) : () => Math.random();
 
-  const colors = rampColors(base, ramp, count, p3);
+  // Explicit stops (a fresco palette) win; otherwise generate the single-base ramp.
+  const colors = config.colors && config.colors.length > 1 ? config.colors : rampColors(base, ramp, count, p3);
 
   switch (style) {
     case "lava":

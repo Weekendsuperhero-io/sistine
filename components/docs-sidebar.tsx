@@ -48,6 +48,31 @@ const docsNav = [
     ] as NavItem[],
   },
   {
+    title: "Theming",
+    items: [
+      {
+        title: "Glass Tint",
+        href: "/docs/theming",
+      },
+      {
+        title: "Glass Style",
+        href: "/docs/theming#style",
+      },
+      {
+        title: "Surface Tiers",
+        href: "/docs/theming#surfaces",
+      },
+      {
+        title: "Tuning",
+        href: "/docs/theming#tuning",
+      },
+      {
+        title: "Backgrounds",
+        href: "/docs/theming#backgrounds",
+      },
+    ] as NavItem[],
+  },
+  {
     title: "Components",
     items: components.map((comp) => ({
       title: comp.title || comp.name,

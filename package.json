@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
+    "test": "node scripts/check-theme.mjs",
     "registry:build": "shadcn build",
     "registry:check": "node scripts/fix-registry.mjs && shadcn build",
     "storybook": "storybook dev -p 6006",

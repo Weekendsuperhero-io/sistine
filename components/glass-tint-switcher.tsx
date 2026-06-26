@@ -13,7 +13,7 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
 
 /**
  * Each preset is just a starting point — hue + saturation + wash — that the sliders below can then
- * adjust. "Manila" is a warm, very-low-chroma off-white/bone you can't reach from a hue slider alone.
+ * adjust. "Bone" is a warm, very-low-chroma off-white you can nudge further with the Saturation/Wash sliders.
  * "Sistine" is bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border /
  * accent / wash still respond to the sliders via the inline tint vars.
  */
@@ -45,12 +45,30 @@ const PRESETS = [
     swatch: "linear-gradient(135deg in oklch, oklch(85% 0.1 222), oklch(78% 0.2 326), oklch(84% 0.12 74))",
   },
   {
-    value: "manila",
-    label: "Manila",
-    h: 85,
-    c: 0.025,
+    value: "aurora",
+    label: "Aurora",
+    h: 178,
+    c: 0.07,
+    a: 0.16,
+    bespoke: true,
+    swatch: "linear-gradient(135deg in oklch, oklch(85% 0.14 152), oklch(82% 0.11 196), oklch(74% 0.15 292))",
+  },
+  {
+    value: "gloaming",
+    label: "Gloaming",
+    h: 32,
+    c: 0.07,
+    a: 0.16,
+    bespoke: true,
+    swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
+  },
+  {
+    value: "bone",
+    label: "Bone",
+    h: 82,
+    c: 0.05,
     a: 0.18,
-    swatch: "oklch(92% 0.035 85)",
+    swatch: "oklch(90% 0.05 82)",
   },
   {
     value: "amber",
@@ -92,16 +110,57 @@ const PRESETS = [
     a: 0.15,
     swatch: "oklch(80% 0.13 158)",
   },
+  {
+    value: "carnelian",
+    label: "Carnelian",
+    h: 38,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(78% 0.14 38)",
+  },
+  {
+    value: "peridot",
+    label: "Peridot",
+    h: 128,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(86% 0.16 128)",
+  },
+  {
+    value: "turquoise",
+    label: "Turquoise",
+    h: 190,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(82% 0.1 190)",
+  },
+  {
+    value: "aquamarine",
+    label: "Aquamarine",
+    h: 215,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(80% 0.11 215)",
+  },
+  {
+    value: "tourmaline",
+    label: "Tourmaline",
+    h: 342,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(76% 0.16 342)",
+  },
 ] as const;
 
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 
 // Presets that own a bespoke [data-glass-tint] block in globals.css (their own --glass-bg / overrides)
-// rather than just driving the tint vars: Sistine (the jewel fresco) + Manila (a dark-mode wash lift).
+// rather than just driving the tint vars: the frescoes (Sistine / Muse / Aurora / Gloaming).
 const BESPOKE = new Set<string>([
   "sistine",
   "muse",
-  "manila",
+  "aurora",
+  "gloaming",
 ]);
 
 function applyTint(h: number, c: number, a: number, tint: string | null) {
@@ -175,7 +234,7 @@ export function GlassTintSwitcher() {
     persist(p.value, p.h, p.c, p.a);
   };
 
-  // Dragging a slider keeps a bespoke base (Sistine jewels / Manila wash) — data-glass-tint stays —
+  // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —
   // but overrides the tint vars; for any other base it becomes a free "custom" color.
   const tweak = (nh: number, nc: number, na: number) => {
     setH(nh);

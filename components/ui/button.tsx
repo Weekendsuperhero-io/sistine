@@ -81,6 +81,7 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      data-glass-tint={variant === "destructive" ? "destructive" : undefined}
       className={cn(
         buttonVariants({
           variant,
