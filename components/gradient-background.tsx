@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { FRESCO_HUES } from "@/lib/canvas-background-utils";
 import { type RampGradientAxis, rampGradient } from "@/lib/oklch-utils";
 
 /**
@@ -9,10 +10,16 @@ import { type RampGradientAxis, rampGradient } from "@/lib/oklch-utils";
  * with the center as a slightly wider plateau. Pure CSS — crisp at any DPI.
  */
 export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: RampGradientAxis; angle?: number }) {
-  const [{ hue, dark, p3 }, setState] = React.useState({
+  const [{ hue, dark, p3, preset }, setState] = React.useState<{
+    hue: number;
+    dark: boolean;
+    p3: boolean;
+    preset: string | undefined;
+  }>({
     hue: 250,
     dark: true,
     p3: false,
+    preset: undefined,
   });
 
   React.useEffect(() => {
@@ -23,8 +30,9 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
         hue: Number.isFinite(v) ? v : 250,
         dark: root.classList.contains("dark"),
         p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
+        preset: root.dataset.glassTint,
       };
-      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 ? prev : next));
+      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 && prev.preset === next.preset ? prev : next));
     };
     read();
     // Recolor on theme (class) + tint (preset attribute / custom inline vars) changes.
@@ -40,20 +48,25 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
     return () => observer.disconnect();
   }, []);
 
-  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light.
-  const gradient = rampGradient(
-    axis,
-    {
-      l: dark ? 52 : 72,
-      c: 0.15,
-      h: hue,
-    },
-    5,
-    {
-      angle,
-      gamut: p3 ? "p3" : "srgb",
-    },
-  );
+  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light. A fresco
+  // tint lays its multi-hue palette across the gradient (same L/C) so it matches the fresco glass.
+  const l = dark ? 52 : 72;
+  const frescoHues = preset ? FRESCO_HUES[preset] : undefined;
+  const gradient = frescoHues
+    ? `linear-gradient(${angle}deg in oklch, ${frescoHues.map((h) => `oklch(${l}% 0.15 ${h})`).join(", ")})`
+    : rampGradient(
+        axis,
+        {
+          l,
+          c: 0.15,
+          h: hue,
+        },
+        5,
+        {
+          angle,
+          gamut: p3 ? "p3" : "srgb",
+        },
+      );
 
   return (
     <div

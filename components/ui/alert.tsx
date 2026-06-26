@@ -35,7 +35,17 @@ const Alert = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEleme
       ref={ref}
       data-slot="alert"
       role="alert"
-      data-glass-tint={variant === "destructive" ? "destructive" : undefined}
+      data-glass-tint={
+        variant &&
+        [
+          "info",
+          "success",
+          "warning",
+          "destructive",
+        ].includes(variant)
+          ? variant
+          : undefined
+      }
       className={cn(
         alertVariants({
           variant,

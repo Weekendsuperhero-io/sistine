@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { type CanvasRamp, type CanvasStyle, createCanvas } from "@/lib/canvas-background-utils";
+import { type CanvasRamp, type CanvasStyle, createCanvas, FRESCO_HUES } from "@/lib/canvas-background-utils";
 
 interface CanvasBackgroundProps {
   /** Canvas style: gradient | lava | circle. */
@@ -49,9 +49,14 @@ export function CanvasBackground({
   });
   // Live base color tracks the glass tint, so the canvas recolors with the theme (like the CSS
   // gradient background).
-  const [tint, setTint] = React.useState({
+  const [tint, setTint] = React.useState<{
+    hue: number;
+    dark: boolean;
+    preset: string | undefined;
+  }>({
     hue: 250,
     dark: true,
+    preset: undefined,
   });
 
   React.useEffect(() => {
@@ -76,8 +81,9 @@ export function CanvasBackground({
       const next = {
         hue: Number.isFinite(v) ? v : 250,
         dark: root.classList.contains("dark"),
+        preset: root.dataset.glassTint,
       };
-      setTint((prev) => (prev.hue === next.hue && prev.dark === next.dark ? prev : next));
+      setTint((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.preset === next.preset ? prev : next));
     };
     read();
     const observer = new MutationObserver(read);
@@ -109,11 +115,16 @@ export function CanvasBackground({
       c: 0.15,
       h: hue ?? tint.hue,
     };
+    // A fresco tint (sistine/muse/…) feeds its multi-hue palette at the canvas's standard L/C, so the
+    // canvas matches the fresco glass instead of using just its base hue. The `hue` prop override wins.
+    const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
+    const colors = frescoHues?.map((h) => `oklch(${tint.dark ? 52 : 72}% 0.15 ${h})`);
     const { step } = createCanvas({
       width: dimensions.width,
       height: dimensions.height,
       dpr: dimensions.dpr,
       color: base,
+      colors,
       style: canvasStyle,
       ramp,
       steps,

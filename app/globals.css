@@ -719,8 +719,24 @@
   --glass-tint-a: 0.18;
 }
 
-/* Destructive surfaces always read as danger — a red glass regardless of the page's tint. The
-   destructive variant renders data-glass-tint="destructive", reusing the grouped re-resolution above. */
+/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
+   data-glass-tint="<status>" so their glass picks up the status hue regardless of the page tint,
+   reusing the grouped re-resolution above. */
+[data-glass-tint="info"] {
+  --glass-tint-h: 255;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-glass-tint="success"] {
+  --glass-tint-h: 150;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-glass-tint="warning"] {
+  --glass-tint-h: 85;
+  --glass-tint-c: 0.11;
+  --glass-tint-a: 0.18;
+}
 [data-glass-tint="destructive"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.1;
