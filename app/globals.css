@@ -712,11 +712,15 @@
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="manila"] {
-  /* Warm off-white / bone — very low chroma so it reads as cream, not yellow. Manila is meant for
-     opaque, so pin its opaque floor to a light bone (both modes) instead of the dark tint formula. */
+  /* Warm off-white / bone — very low chroma so it reads as cream, not yellow. Manila is paper, not
+     glass: pin an opaque light-bone SURFACE in both modes (here + .dark below) so it stays a visible
+     cream with dark text either way (light-mode --foreground is already dark, so it reads). Frosted
+     keeps ~0.8 alpha so a hint of blur survives instead of going flat. */
   --glass-tint-h: 85;
   --glass-tint-c: 0.025;
   --glass-tint-a: 0.18;
+  --glass-bg: linear-gradient(135deg, oklch(93% 0.03 85 / 0.85) 0%, oklch(91% 0.04 85 / 0.83) 50%, oklch(92% 0.03 85 / 0.85) 100%);
+  --glass-frosted-bg: linear-gradient(135deg, oklch(94% 0.03 85 / 0.8) 0%, oklch(91% 0.04 85 / 0.78) 50%, oklch(93% 0.03 85 / 0.8) 100%);
   --glass-opaque-bg: oklch(93% 0.03 85);
 }
 .dark[data-glass-tint="manila"] {
@@ -724,7 +728,7 @@
      (fairly opaque, so it reads as clean off-white rather than murky translucency). Because the
      surface stays light, AutoForeground's APCA picks DARK text on it. A touch darker than before. */
   --glass-bg: linear-gradient(135deg, oklch(82% 0.03 85 / 0.85) 0%, oklch(79% 0.04 85 / 0.83) 50%, oklch(81% 0.03 85 / 0.85) 100%);
-  --glass-frosted-bg: linear-gradient(135deg, oklch(83% 0.03 85 / 0.92) 0%, oklch(80% 0.04 85 / 0.9) 50%, oklch(82% 0.03 85 / 0.92) 100%);
+  --glass-frosted-bg: linear-gradient(135deg, oklch(83% 0.03 85 / 0.8) 0%, oklch(80% 0.04 85 / 0.78) 50%, oklch(82% 0.03 85 / 0.8) 100%);
   --glass-tint-wash: oklch(80% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / 0.5);
   /* Opaque goes brown at 32% L in dark — pin it to a deep bone (a little darker than light mode). */
   --glass-opaque-bg: oklch(82% 0.035 85);
