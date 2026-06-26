@@ -13,11 +13,13 @@
  *   2. [fg]     The grouped [data-glass-tint] blocks carry NO foreground token (a scoped tint must
  *               not reset a subtree's text color — AutoForeground owns those on :root).
  *   3. [preset] Every GlassTintSwitcher preset (except neutral) has a [data-glass-tint="x"] block.
- *   4. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
+ *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
+ *   6. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
  *
  * Run: pnpm test   (node scripts/check-theme.mjs)
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -129,7 +131,39 @@ for (const v of presets) {
   }
 }
 
-// 4. [sync] shipped theme.json embeds the current globals.css
+// 4. [status] every status a component renders via data-glass-tint has a matching block
+const componentFiles = readdirSync(join(root, "components"), { recursive: true }).filter((f) => typeof f === "string" && f.endsWith(".tsx"));
+const statuses = new Set();
+for (const rel of componentFiles) {
+  const src = readFileSync(join(root, "components", rel), "utf8");
+  for (const m of src.matchAll(/data-glass-tint=\{([^}]*)\}/g)) {
+    for (const lit of m[1].matchAll(/"([a-z-]+)"/g)) statuses.add(lit[1]);
+  }
+}
+for (const s of statuses) {
+  if (!css.includes(`[data-glass-tint="${s}"]`)) {
+    fail(`[status] a component renders data-glass-tint="${s}" but globals.css has no [data-glass-tint="${s}"] block.`);
+  }
+}
+
+// 5. [fresco] every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry, so its
+//    canvas/gradient background matches it instead of collapsing to one hue.
+const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "utf8");
+const huesStart = canvasUtils.indexOf("FRESCO_HUES");
+const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
+const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
+const frescoPresets = new Set();
+for (const r of rules) {
+  const m = r.selector.match(/\[data-glass-tint="([a-z]+)"\]/);
+  if (m && /--glass-crystal-fresco/.test(r.body)) frescoPresets.add(m[1]);
+}
+for (const p of frescoPresets) {
+  if (!frescoHues.has(p)) {
+    fail(`[fresco] preset "${p}" sets --glass-crystal-fresco but has no FRESCO_HUES entry — its canvas/gradient background won't match.`);
+  }
+}
+
+// 6. [sync] shipped theme.json embeds the current globals.css
 try {
   const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
   const shipped = theme.files?.find((f) => f.path === "app/globals.css")?.content;
@@ -144,5 +178,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `✓ theme invariants pass — ${rules.length} rules checked: scope-aware tint tokens, foreground isolation, ${presets.length} presets wired, theme.json in sync`,
+  `✓ theme invariants pass — ${rules.length} rules: scope-aware tints, fg isolation, ${presets.length} presets wired, ${statuses.size} component tints + ${frescoPresets.size} frescoes consistent, theme.json in sync`,
 );
