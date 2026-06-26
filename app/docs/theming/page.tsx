@@ -52,8 +52,12 @@ export default function ThemingPage() {
                 <strong>Jewels</strong> (single hue): neutral, rose, carnelian, amber, bone, peridot, emerald, turquoise, aquamarine, sapphire,
                 amethyst, tourmaline.
               </p>
-              <p className="text-muted-foreground">
+              <p className="mb-2 text-muted-foreground">
                 <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Status</strong>: info, success, warning, destructive — used by Alert/Button, but settable on any element to tint it that
+                status (e.g. <IC>data-glass-tint="info"</IC>).
               </p>
             </div>
             <div>
@@ -146,6 +150,25 @@ export default function ThemingPage() {
             <Code>{`<aside style={{ "--glass-solid-a": 0.8 }}>
   <div className="glass-solid …">extra-solid here only</div>
 </aside>`}</Code>
+          </CardContent>
+        </Card>
+
+        <Card variant="glass" id="backgrounds" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Backgrounds</CardTitle>
+            <CardDescription className="text-muted-foreground">Theme- and tint-aware wallpapers — installable, and fresco-aware.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Two background styles ship in the registry and recolor with the live tint — a fresco preset lays its full multi-hue palette across them,
+              not just one color:
+            </p>
+            <Code>{`npx shadcn@latest add @sistine/canvas-background    # animated canvas (gradient / lava / circle)
+npx shadcn@latest add @sistine/gradient-background  # pure-CSS gradient wallpaper`}</Code>
+            <p className="text-muted-foreground">
+              Mount one at your app root as a <IC>fixed inset-0 -z-10</IC> element — and keep it out of any <IC>transform</IC> / <IC>filter</IC> /{" "}
+              <IC>contain</IC> ancestor, or it gets clipped to that box instead of the viewport.
+            </p>
           </CardContent>
         </Card>
       </div>

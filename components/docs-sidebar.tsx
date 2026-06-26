@@ -66,6 +66,10 @@ const docsNav = [
         title: "Tuning",
         href: "/docs/theming#tuning",
       },
+      {
+        title: "Backgrounds",
+        href: "/docs/theming#backgrounds",
+      },
     ] as NavItem[],
   },
   {

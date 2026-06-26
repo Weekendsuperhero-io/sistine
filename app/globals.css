@@ -111,7 +111,8 @@
    a data-glass-tint preset — so scoped tints (not just on <html>) fully apply. Foreground tokens stay on
    :root above (AutoForeground owns them). Preset blocks below override --glass-tint-h/c/a by source order. */
 :root,
-[data-glass-tint] {
+[data-glass-tint],
+[data-sonner-toast][data-type] {
   /* Apple-standard glassmorphism - Very subtle and refined */
   /* Glass tint — recolor ALL glass by changing these; presets set them via [data-glass-tint].
      -h = hue, -c = chroma (gradient), -a = wash alpha. The gradient alone is too sheer
@@ -202,7 +203,8 @@
 
 .dark,
 .dark [data-glass-tint],
-.dark[data-glass-tint] {
+.dark[data-glass-tint],
+.dark [data-sonner-toast][data-type] {
   /* Apple-standard glassmorphism for dark mode - Very subtle and refined */
   /* Very low opacity for Apple's standard glass effect in dark mode */
   /* Deeper wash lightness so the tint reads as colored glass over dark backdrops. */
@@ -738,6 +740,29 @@
   --glass-tint-a: 0.18;
 }
 [data-glass-tint="destructive"] {
+  --glass-tint-h: 25;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+
+/* Sonner toasts: status fill from sonner's data-type — these selectors join the grouped re-resolution
+   above (so --glass-bg / wash re-resolve at the toast). Hues mirror the semantic alert statuses. */
+[data-sonner-toast][data-type="info"] {
+  --glass-tint-h: 255;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-sonner-toast][data-type="success"] {
+  --glass-tint-h: 150;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-sonner-toast][data-type="warning"] {
+  --glass-tint-h: 85;
+  --glass-tint-c: 0.11;
+  --glass-tint-a: 0.18;
+}
+[data-sonner-toast][data-type="error"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
