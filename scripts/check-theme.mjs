@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+/**
+ * Theme invariants — a fast, dependency-free guard for the glass tint system.
+ *
+ * The recurring failure mode this protects against is the CSS-variable-composition gotcha: a token
+ * whose value composes `var(--glass-tint-*)` only re-resolves where it's DECLARED. So such a token
+ * must live on the grouped `:root, [data-glass-tint]` selector (not bare `:root`/`.dark`), or a
+ * `data-glass-tint` scoped to a subtree stops tinting it. See the memory note
+ * `css-var-composition-resolves-at-declaration`.
+ *
+ * Invariants:
+ *   1. [scope]  No tint-composing glass token is declared on a BARE :root/.dark (must be grouped).
+ *   2. [fg]     The grouped [data-glass-tint] blocks carry NO foreground token (a scoped tint must
+ *               not reset a subtree's text color — AutoForeground owns those on :root).
+ *   3. [preset] Every GlassTintSwitcher preset (except neutral) has a [data-glass-tint="x"] block.
+ *   4. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *
+ * Run: pnpm test   (node scripts/check-theme.mjs)
+ */
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const css = readFileSync(join(root, "app/globals.css"), "utf8");
+
+// Tint-composing tokens intentionally kept on bare :root/.dark: foreground is AutoForeground's, and
+// must NOT move into the grouped block or a scoped tint would reset a subtree's text color.
+const FOREGROUND_ALLOW = new Set(["--muted-foreground"]);
+
+const failures = [];
+const fail = (m) => failures.push(m);
+
+const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
+
+/** Top-level CSS rules (selector + body) via brace-depth tracking — :root/.dark/[data-glass-tint] are flat. */
+function topLevelRules(source) {
+  const s = stripComments(source);
+  const rules = [];
+  let depth = 0;
+  let segStart = 0;
+  let selector = "";
+  let bodyStart = 0;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "{") {
+      if (depth === 0) {
+        selector = s.slice(segStart, i).trim();
+        bodyStart = i + 1;
+      }
+      depth++;
+    } else if (s[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        rules.push({ selector, body: s.slice(bodyStart, i) });
+        segStart = i + 1;
+      }
+    }
+  }
+  return rules;
+}
+
+function decls(body) {
+  const out = [];
+  const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
+  let m;
+  while ((m = re.exec(body))) out.push({ name: m[1], value: m[2].trim() });
+  return out;
+}
+
+const composesTint = (v) => /var\(--glass-tint-[hca]\)/.test(v);
+const selectors = (sel) => sel.split(",").map((s) => s.trim());
+const isBareRootOrDark = (sel) => {
+  const l = selectors(sel);
+  return l.length === 1 && (l[0] === ":root" || l[0] === ".dark");
+};
+// matches the GENERAL grouped blocks only — preset blocks are [data-glass-tint="x"], not the bare attr
+const coversScopedTint = (sel) => sel.includes("[data-glass-tint]");
+
+const rules = topLevelRules(css);
+
+// 1. [scope] no tint-composing glass token on a bare :root/.dark
+for (const r of rules) {
+  if (!isBareRootOrDark(r.selector)) continue;
+  for (const d of decls(r.body)) {
+    if (composesTint(d.value) && !FOREGROUND_ALLOW.has(d.name)) {
+      fail(
+        `[scope] ${d.name} composes var(--glass-tint-*) but is on bare "${r.selector}". ` +
+          `Move it to the ":root, [data-glass-tint]" group, or scoped data-glass-tint won't re-resolve it.`,
+      );
+    }
+  }
+}
+
+// 2. [fg] grouped [data-glass-tint] blocks must not carry foreground tokens
+for (const r of rules) {
+  if (!coversScopedTint(r.selector)) continue;
+  for (const d of decls(r.body)) {
+    if (d.name === "--foreground" || d.name === "--muted-foreground") {
+      fail(
+        `[fg] ${d.name} is on the grouped "${r.selector.replace(/\s+/g, " ")}". ` +
+          `A scoped data-glass-tint would reset a subtree's text color — keep foreground tokens on bare :root/.dark.`,
+      );
+    }
+  }
+}
+
+// 3. [preset] every switcher preset (except neutral) has a [data-glass-tint="x"] block
+const switcher = readFileSync(join(root, "components/glass-tint-switcher.tsx"), "utf8");
+const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter(
+  (v) => v !== "neutral" && v !== "custom",
+);
+for (const v of presets) {
+  if (!css.includes(`[data-glass-tint="${v}"]`)) {
+    fail(`[preset] switcher preset "${v}" has no [data-glass-tint="${v}"] block in globals.css.`);
+  }
+}
+
+// 4. [sync] shipped theme.json embeds the current globals.css
+try {
+  const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
+  const shipped = theme.files?.find((f) => f.path === "app/globals.css")?.content;
+  if (shipped == null) fail(`[sync] public/r/theme.json has no app/globals.css file.`);
+  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit public/r.`);
+} catch (e) {
+  fail(`[sync] could not read public/r/theme.json: ${e.message}`);
+}
+
+if (failures.length) {
+  console.error(`✗ theme invariants: ${failures.length} failure(s)\n${failures.map((f) => `  - ${f}`).join("\n")}`);
+  process.exit(1);
+}
+console.log(
+  `✓ theme invariants pass — ${rules.length} rules checked: scope-aware tint tokens, foreground isolation, ${presets.length} presets wired, theme.json in sync`,
+);

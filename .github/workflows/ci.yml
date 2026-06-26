@@ -26,6 +26,8 @@ jobs:
         run: pnpm lint
       - name: Typecheck
         run: pnpm typecheck
+      - name: Theme invariants
+        run: pnpm test
 
   build:
     name: Build
