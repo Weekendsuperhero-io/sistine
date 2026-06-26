@@ -39,6 +39,7 @@ function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
     <Comp
       data-slot="badge"
       data-variant={variant ?? "glass"}
+      data-glass-tint={variant === "destructive" ? "destructive" : undefined}
       className={cn(
         badgeVariants({
           variant,

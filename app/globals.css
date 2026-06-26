@@ -711,46 +711,20 @@
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.15;
 }
-[data-glass-tint="manila"] {
-  /* Warm off-white / bone — very low chroma so it reads as cream, not yellow. Manila is paper, not
-     glass: pin an opaque light-bone SURFACE in both modes (here + .dark below) so it stays a visible
-     cream with dark text either way (light-mode --foreground is already dark, so it reads). Frosted
-     keeps ~0.8 alpha so a hint of blur survives instead of going flat. */
-  --glass-tint-h: 85;
-  --glass-tint-c: 0.025;
+[data-glass-tint="bone"] {
+  /* Bone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
+     tint: texture-preserving and light-text in both modes, just a desaturated warm hue. */
+  --glass-tint-h: 82;
+  --glass-tint-c: 0.05;
   --glass-tint-a: 0.18;
-  --glass-bg: linear-gradient(135deg, oklch(93% 0.03 85 / 0.85) 0%, oklch(91% 0.04 85 / 0.83) 50%, oklch(92% 0.03 85 / 0.85) 100%);
-  --glass-frosted-bg: linear-gradient(135deg, oklch(94% 0.03 85 / 0.8) 0%, oklch(91% 0.04 85 / 0.78) 50%, oklch(93% 0.03 85 / 0.8) 100%);
-  --glass-opaque-bg: oklch(93% 0.03 85);
 }
-.dark[data-glass-tint="manila"] {
-  /* Manila is paper, not glass — in dark mode make every style a solid-ish, slightly-deeper bone
-     (fairly opaque, so it reads as clean off-white rather than murky translucency). Because the
-     surface stays light, AutoForeground's APCA picks DARK text on it. A touch darker than before. */
-  --glass-bg: linear-gradient(135deg, oklch(82% 0.03 85 / 0.85) 0%, oklch(79% 0.04 85 / 0.83) 50%, oklch(81% 0.03 85 / 0.85) 100%);
-  --glass-frosted-bg: linear-gradient(135deg, oklch(83% 0.03 85 / 0.8) 0%, oklch(80% 0.04 85 / 0.78) 50%, oklch(82% 0.03 85 / 0.8) 100%);
-  --glass-tint-wash: oklch(80% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / 0.5);
-  /* Opaque goes brown at 32% L in dark — pin it to a deep bone (a little darker than light mode). */
-  --glass-opaque-bg: oklch(82% 0.035 85);
-}
-/* Manila's panels are a light bone in dark mode, so their text must go DARK to stay readable — but
-   ONLY inside the glass panels. Bare text on the dark wallpaper (e.g. the hero) keeps the light
-   foreground. A single global flip would dim the hero; this scopes the readable polarity to the bone. */
-.dark[data-glass-tint="manila"]
-:where(
-  .glass-surface,
-  .glass-surface-sm,
-  .glass-surface-lg,
-  .glass-bg,
-  .glass-solid,
-  .glass-opaque,
-  .glass-frosted,
-  .glass-fluted,
-  .glass-crystal,
-  .glass-gradient
-) {
-  --foreground: oklch(23% 0.02 85);
-  --muted-foreground: oklch(45% 0.02 85);
+
+/* Destructive surfaces always read as danger — a red glass regardless of the page's tint. The
+   destructive variant renders data-glass-tint="destructive", reusing the grouped re-resolution above. */
+[data-glass-tint="destructive"] {
+  --glass-tint-h: 25;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
 }
 
 /* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in

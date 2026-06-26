@@ -49,14 +49,11 @@ export default function ThemingPage() {
             <div>
               <h3 className="mb-2 font-semibold">Presets</h3>
               <p className="mb-2 text-muted-foreground">
-                <strong>Jewels</strong> (single hue): neutral, rose, carnelian, amber, peridot, emerald, turquoise, aquamarine, sapphire, amethyst,
-                tourmaline.
-              </p>
-              <p className="mb-2 text-muted-foreground">
-                <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
+                <strong>Jewels</strong> (single hue): neutral, rose, carnelian, amber, bone, peridot, emerald, turquoise, aquamarine, sapphire,
+                amethyst, tourmaline.
               </p>
               <p className="text-muted-foreground">
-                <strong>Special</strong>: manila (warm bone / paper).
+                <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
               </p>
             </div>
             <div>

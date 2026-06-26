@@ -13,7 +13,7 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
 
 /**
  * Each preset is just a starting point — hue + saturation + wash — that the sliders below can then
- * adjust. "Manila" is a warm, very-low-chroma off-white/bone you can't reach from a hue slider alone.
+ * adjust. "Bone" is a warm, very-low-chroma off-white you can nudge further with the Saturation/Wash sliders.
  * "Sistine" is bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border /
  * accent / wash still respond to the sliders via the inline tint vars.
  */
@@ -63,12 +63,12 @@ const PRESETS = [
     swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
   },
   {
-    value: "manila",
-    label: "Manila",
-    h: 85,
-    c: 0.025,
+    value: "bone",
+    label: "Bone",
+    h: 82,
+    c: 0.05,
     a: 0.18,
-    swatch: "oklch(92% 0.035 85)",
+    swatch: "oklch(90% 0.05 82)",
   },
   {
     value: "amber",
@@ -155,13 +155,12 @@ const PRESETS = [
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 
 // Presets that own a bespoke [data-glass-tint] block in globals.css (their own --glass-bg / overrides)
-// rather than just driving the tint vars: Sistine (the jewel fresco) + Manila (a dark-mode wash lift).
+// rather than just driving the tint vars: the frescoes (Sistine / Muse / Aurora / Gloaming).
 const BESPOKE = new Set<string>([
   "sistine",
   "muse",
   "aurora",
   "gloaming",
-  "manila",
 ]);
 
 function applyTint(h: number, c: number, a: number, tint: string | null) {
@@ -235,7 +234,7 @@ export function GlassTintSwitcher() {
     persist(p.value, p.h, p.c, p.a);
   };
 
-  // Dragging a slider keeps a bespoke base (Sistine jewels / Manila wash) — data-glass-tint stays —
+  // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —
   // but overrides the tint vars; for any other base it becomes a free "custom" color.
   const tweak = (nh: number, nc: number, na: number) => {
     setH(nh);
