@@ -24,51 +24,8 @@ import {
 } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
-// Theme-color quick-picks — clicking one seeds the base; the L/C/H sliders are the "custom" control.
-const PRESETS = [
-  {
-    label: "Sapphire",
-    l: 60,
-    c: 0.15,
-    h: 255,
-  },
-  {
-    label: "Emerald",
-    l: 62,
-    c: 0.15,
-    h: 158,
-  },
-  {
-    label: "Amethyst",
-    l: 60,
-    c: 0.15,
-    h: 300,
-  },
-  {
-    label: "Rose",
-    l: 64,
-    c: 0.14,
-    h: 8,
-  },
-  {
-    label: "Amber",
-    l: 74,
-    c: 0.13,
-    h: 75,
-  },
-  {
-    label: "Sistine",
-    l: 70,
-    c: 0.1,
-    h: 78,
-  },
-  {
-    label: "Neutral",
-    l: 66,
-    c: 0.02,
-    h: 250,
-  },
-];
+// The base hue tracks the CHOSEN THEME COLOR (the header's glass tint, via --glass-tint-h); the
+// L / C / steps sliders refine it. No color-picking here — selecting a theme tint drives the ramps.
 
 const AUTO_MODES = [
   {
@@ -98,13 +55,33 @@ const PREVIEW_TINT_A = 0.24;
 export function OklchRampDemo() {
   const [l, setL] = React.useState(60);
   const [c, setC] = React.useState(0.15);
-  const [h, setH] = React.useState(255);
   const [count, setCount] = React.useState(8);
   const [wideGamut, setWideGamut] = React.useState(false);
   const [mode, setMode] = React.useState<(typeof AUTO_MODES)[number]["key"]>("auto");
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+  // The base HUE tracks the chosen theme color: read the live glass tint (--glass-tint-h) and follow
+  // it, so picking a tint from the top menu immediately re-rolls the foreground-source ramps below.
+  const [h, setH] = React.useState(255);
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const read = () => {
+      const hv = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-tint-h"));
+      if (!Number.isNaN(hv)) setH(hv);
+    };
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "data-glass-tint",
+        "style",
+        "class",
+      ],
+    });
+    return () => obs.disconnect();
+  }, []);
   // Share the base color + step count with AutoForeground — it drives the site-wide foreground.
   React.useEffect(() => {
     writeRampConfig({
@@ -160,38 +137,20 @@ export function OklchRampDemo() {
       <CardHeader>
         <CardTitle>OKLCH ramps</CardTitle>
         <CardDescription>
-          Pick a theme color (or tune L/C/H), then compare its hue, chroma, lightness and tonal ramps — all built from the same base via{" "}
-          <code className="text-xs">lib/oklch-utils</code>. The base is centered in each; click a swatch to copy it.
+          Ramps for your current theme color — its hue tracks the top-menu tint, so picking a theme instantly re-rolls these. Tune lightness, chroma
+          and steps below; all four ramps build from the same base via <code className="text-xs">lib/oklch-utils</code>. The base is centered in each;
+          click a swatch to copy it.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex flex-wrap items-center gap-2">
-          {PRESETS.map((p) => {
-            const active = p.l === l && p.c === c && p.h === h;
-            return (
-              <button
-                type="button"
-                key={p.label}
-                onClick={() => {
-                  setL(p.l);
-                  setC(p.c);
-                  setH(p.h);
-                }}
-                className={cn(
-                  "glass-surface flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1.5 text-xs transition-transform active:scale-[0.96]",
-                  active && "ring-2 ring-foreground/60",
-                )}
-              >
-                <span
-                  className="size-4 rounded-full border border-[var(--glass-border)]"
-                  style={{
-                    background: formatOklch(p),
-                  }}
-                />
-                {p.label}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span
+            className="size-4 shrink-0 rounded-full border border-[var(--glass-border)]"
+            style={{
+              background: `oklch(60% 0.15 ${h})`,
+            }}
+          />
+          Tracking your theme color — hue {Math.round(h)}°. Change it from the top-menu tint switcher.
         </div>
 
         <div className="flex items-center gap-3">
@@ -228,17 +187,6 @@ export function OklchRampDemo() {
               max={0.37}
               step={0.005}
               onValueChange={(v) => setC(v[0] ?? c)}
-            />
-          </Control>
-          <Control label="Hue" value={`${h}°`}>
-            <Slider
-              value={[
-                h,
-              ]}
-              min={0}
-              max={360}
-              step={1}
-              onValueChange={(v) => setH(v[0] ?? h)}
             />
           </Control>
           <Control label="Steps each side" value={String(count)}>

@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/check-theme.mjs",
+    "test": "node scripts/check-theme.mjs && pnpm test:apca",
+    "test:apca": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/apca-oracle.mjs",
     "registry:build": "shadcn build",
     "registry:check": "node scripts/fix-registry.mjs && shadcn build",
     "storybook": "storybook dev -p 6006",
@@ -54,6 +55,7 @@
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "apca-w3": "^0.1.9",
     "storybook": "^10.4.6",
     "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3"

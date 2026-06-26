@@ -377,14 +377,17 @@ export function rampGradient(
   return `linear-gradient(${angle}deg in oklch, ${parts.join(", ")})`;
 }
 
-// ── APCA contrast (WCAG-3 draft) ──────────────────────────────────────────────
-// Inlined from the APCA-W3 0.1.9 reference — no dependency. Lc is signed: positive = dark text on
-// a light background, negative = light text on a dark one; |Lc| is the perceptual level (~45 for
-// large/UI text, ~60 headings, ~75 body, ~90 fine text). APCA is polarity-aware — which WCAG-2's
-// ratio is not — so it fits dark mode + tinted glass far better.
+// ── APCA contrast (APCA-W3 / ARC) ─────────────────────────────────────────────
+// Inlined port of the APCA-W3 reference (© Andrew Somers / Myndex Research, licensed to the W3/AGWG).
+// The APCA constants below are the LOCKED beta set (0.1.x) and are used UNMODIFIED. APCA/ARC measures
+// readability contrast — it is NOT a means to claim WCAG 2 conformance. Verified to match apca-w3's
+// APCAcontrast() — see scripts/apca-oracle.mjs. Lc is signed: positive = dark text on a light
+// background, negative = light text on a dark one; |Lc| is the perceptual level (~45 large/UI, ~60
+// other content, ~75 body, ~90 fine). Polarity-aware — which WCAG-2's ratio is not — so it fits dark
+// mode + tinted glass far better.
 
 /** OKLCH (l 0–100) → gamma-encoded sRGB channels in [0, 1] (out-of-gamut values are clipped). */
-function oklchToSrgb(
+export function oklchToSrgb(
   l: number,
   c: number,
   h: number,
@@ -559,4 +562,137 @@ export function themeForeground(options: ThemeForegroundOptions): OklchColor {
       };
   }
   return clampToGamut(color, gamut);
+}
+
+// ── Readable foreground (soft contrast / ARC Bronze Simple Mode) ──────────────
+// pickForeground() maximizes contrast — it slams to the lightness extreme (pure white / near-black),
+// which reads as a glare/heaviness "spike". readableForeground() instead AIMS for a target APCA Lc
+// and stops: legible, but soft. The usage presets follow the ARC "Bronze Simple Mode" criterion
+// (readtech.org/ARC) — content-text thresholds, no font-lookup table: body Lc 75 (preferred 90),
+// other content Lc 60, large-fluent (>36px) Lc 45 with a MAX of Lc 90 to "prevent excessive contrast"
+// (so the ceiling is straight from the spec). floor = legible minimum, target = aim, ceiling = the cap.
+// `ui` / `non-text` / `disabled` are OUR extension — Bronze scopes to content text, excluding spot text.
+
+/** APCA-derived contrast bands per use case. floor = legible minimum, target = aim, ceiling = cap. */
+export const READABLE_USAGE = {
+  /** Fine / thin / small text — needs the most contrast; little soft room. */
+  small: {
+    floor: 90,
+    target: 90,
+    ceiling: 100,
+  },
+  /** Body text (~16px / 400) — ARC Bronze body: min 75, preferred 90. */
+  body: {
+    floor: 75,
+    target: 80,
+    ceiling: 90,
+  },
+  /** Large or fluent body (~18–24px) / semibold. */
+  "body-large": {
+    floor: 60,
+    target: 72,
+    ceiling: 88,
+  },
+  /** Headings / other content text — ARC Bronze "other content": min 60. */
+  heading: {
+    floor: 60,
+    target: 66,
+    ceiling: 82,
+  },
+  /** Large fluent text >36px (or ≥24px bold) — ARC Bronze: min 45, max 90. */
+  large: {
+    floor: 45,
+    target: 58,
+    ceiling: 76,
+  },
+  /** UI labels, icons, focus rings — beyond ARC Bronze scope (Bronze is content-text only). */
+  ui: {
+    floor: 45,
+    target: 52,
+    ceiling: 70,
+  },
+  /** Non-text: borders, dividers, graphics — beyond ARC Bronze scope. */
+  "non-text": {
+    floor: 30,
+    target: 40,
+    ceiling: 58,
+  },
+  /** Disabled / placeholder — beyond ARC Bronze scope (spot text). */
+  disabled: {
+    floor: 30,
+    target: 33,
+    ceiling: 46,
+  },
+} as const;
+
+export type ReadableUsage = keyof typeof READABLE_USAGE;
+
+/** Options for {@link readableForeground}. */
+export interface ReadableForegroundOptions {
+  /** Use-case preset that sets the {floor, target, ceiling} band (default "body"). */
+  usage?: ReadableUsage;
+  /** Aim for this |APCA Lc| — overrides the usage preset's target. */
+  target?: number;
+  /** Never exceed this |Lc| — the anti-spike cap; overrides the usage preset. */
+  ceiling?: number;
+  /** Legibility minimum; if even the extreme can't reach it you get max contrast (add a scrim). */
+  floor?: number;
+  /** Hue to keep for tinted-but-readable text. Defaults to the background's hue. */
+  hue?: number;
+  /** Chroma to keep, gamut-clamped at the chosen lightness. 0 = neutral gray. */
+  chroma?: number;
+  gamut?: "srgb" | "p3";
+}
+
+/**
+ * A foreground that AIMS for a target APCA contrast on `bg` instead of maximizing it — legible
+ * without the harsh pure-black / pure-white spike. Picks the lightness direction with headroom and
+ * binary-searches the NEAREST lightness whose |Lc| meets the target (capped at the ceiling); keeps an
+ * optional hue/chroma for tinted-but-readable text. The soft-contrast companion to {@link pickForeground}.
+ * If even the lightness extreme can't reach the floor (a mid-gray background), it returns the maximum
+ * contrast available — the signal that the text needs a scrim / solid backing.
+ */
+export function readableForeground(bg: OklchColor | string, opts: ReadableForegroundOptions = {}): OklchColor {
+  const band = READABLE_USAGE[opts.usage ?? "body"];
+  const target = opts.target ?? band.target;
+  const ceiling = opts.ceiling ?? band.ceiling;
+  const floor = opts.floor ?? band.floor;
+  const { chroma = 0, gamut = "srgb" } = opts;
+
+  const b = toColor(bg);
+  const h = opts.hue ?? b.h;
+  const cAt = (l: number) => Math.min(chroma, gamut === "p3" ? maxP3Chroma(l, h) : maxSrgbChroma(l, h));
+  const lcAt = (l: number) =>
+    Math.abs(
+      apcaContrast(
+        {
+          l,
+          c: cAt(l),
+          h,
+        },
+        b,
+      ),
+    );
+
+  const extreme = lcAt(0) >= lcAt(100) ? 0 : 100; // the lightness direction with headroom
+  const reach = lcAt(extreme); // the most contrast this background can give
+  // Aim for the target, never past the ceiling; if we can't even clear the floor, take the max.
+  const want = reach < floor ? reach : Math.min(target, ceiling, reach);
+
+  // |Lc| rises monotonically from bg.l → the extreme, so binary-search the nearest L meeting `want`.
+  let lo = b.l;
+  let hi = extreme;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (lcAt(mid) < want) lo = mid;
+    else hi = mid;
+  }
+  return clampToGamut(
+    {
+      l: hi,
+      c: cAt(hi),
+      h,
+    },
+    gamut,
+  );
 }

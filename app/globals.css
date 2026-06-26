@@ -15,6 +15,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-strong: var(--foreground-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -58,6 +60,10 @@
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(0% 0 0); /* Level 0 — darkest extreme; AutoForeground walks the ramp at runtime */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(40% 0 0); /* large/heading text — eased off the pure-black spike */
+  --foreground-strong: oklch(0% 0 0); /* fine/small text — crisp */
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
@@ -272,6 +278,10 @@
   /* Base colors - Apple-style white text */
   --background: transparent;
   --foreground: oklch(100% 0 0); /* Level 0 — lightest extreme; AutoForeground walks the ramp at runtime */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(78% 0 0); /* large/heading text — eased off the pure-white spike */
+  --foreground-strong: oklch(100% 0 0); /* fine/small text — crisp */
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;

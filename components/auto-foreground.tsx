@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import { formatOklch, glassSurface, readableForeground, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -123,7 +123,9 @@ export interface AutoForegroundProps {
  * Configure declaratively — `<AutoForeground palette="tonal" start={0} ramp={{ l, c, h, count }} />` — or,
  * with no props, it reads a persisted config (`writeFgConfig` / `writeRampConfig`, e.g. a live generator)
  * and re-applies on the `sistine-fg` event. It intentionally mutates the global `--foreground` /
- * `--muted-foreground`, so mount it once at the app root.
+ * `--muted-foreground`, so mount it once at the app root. It also sets the ARC-Bronze size tiers
+ * `--foreground-soft` (large/heading) and `--foreground-strong` (fine), banded via readableForeground
+ * against the live glass surface — exposed as the `text-foreground-soft` / `text-foreground-strong` utilities.
  */
 export function AutoForeground({ palette: paletteProp, start: startProp, ramp: rampProp }: AutoForegroundProps = {}) {
   const rl = rampProp?.l;
@@ -163,6 +165,34 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
       root.style.setProperty("--foreground", at(s));
       root.style.setProperty("--auto-fg", at(s));
       root.style.setProperty("--muted-foreground", at(Math.min(s + 1, count)));
+
+      // Size-tiered foregrounds (ARC Bronze Simple Mode bands), judged against the glass surface text
+      // sits on — headings ease off the pure-extreme spike (large band) while fine print stays crisp.
+      const cs = getComputedStyle(root);
+      const tintH = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
+      const tintC = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
+      const tintA = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
+      const surface = glassSurface(dark, {
+        h: Number.isNaN(tintH) ? 255 : tintH,
+        c: Number.isNaN(tintC) ? 0 : tintC,
+        a: Number.isNaN(tintA) ? 0 : tintA,
+      });
+      root.style.setProperty(
+        "--foreground-soft",
+        formatOklch(
+          readableForeground(surface, {
+            usage: "large",
+          }),
+        ),
+      );
+      root.style.setProperty(
+        "--foreground-strong",
+        formatOklch(
+          readableForeground(surface, {
+            usage: "small",
+          }),
+        ),
+      );
     };
 
     update();
@@ -172,6 +202,7 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
       attributes: true,
       attributeFilter: [
         "class",
+        "data-glass-tint",
       ],
     });
     window.addEventListener(FG_EVENT, update);
