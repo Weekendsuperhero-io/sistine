@@ -2619,6 +2619,24 @@
       "dependencies": []
     },
     {
+      "name": "gradient-background",
+      "type": "registry:component",
+      "title": "Gradient Background",
+      "description": "A ramp-driven gradient wallpaper that recolors with the live glass tint, and lays a fresco preset (sistine/muse/aurora/gloaming) multi-hue palette across the gradient. Pure CSS, crisp at any DPI.",
+      "registryDependencies": [
+        "@sistine/canvas-background-utils",
+        "@sistine/oklch-utils"
+      ],
+      "files": [
+        {
+          "path": "components/gradient-background.tsx",
+          "type": "registry:component",
+          "target": "components/gradient-background.tsx"
+        }
+      ],
+      "dependencies": []
+    },
+    {
       "name": "gradient-text",
       "type": "registry:component",
       "title": "Gradient Text",

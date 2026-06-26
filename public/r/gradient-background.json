@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "gradient-background",
+  "title": "Gradient Background",
+  "description": "A ramp-driven gradient wallpaper that recolors with the live glass tint, and lays a fresco preset (sistine/muse/aurora/gloaming) multi-hue palette across the gradient. Pure CSS, crisp at any DPI.",
+  "dependencies": [],
+  "registryDependencies": [
+    "@sistine/canvas-background-utils",
+    "@sistine/oklch-utils"
+  ],
+  "files": [
+    {
+      "path": "components/gradient-background.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { FRESCO_HUES } from \"@/lib/canvas-background-utils\";\nimport { type RampGradientAxis, rampGradient } from \"@/lib/oklch-utils\";\n\n/**\n * A ramp-driven gradient wallpaper. The gradient is one of our oklch ramps (hue / lightness / tonal\n * / chroma) laid left → right, centered on the live glass-tint color (so it recolors with the theme)\n * with the center as a slightly wider plateau. Pure CSS — crisp at any DPI.\n */\nexport function GradientBackground({ axis = \"tonal\", angle = 90 }: { axis?: RampGradientAxis; angle?: number }) {\n  const [{ hue, dark, p3, preset }, setState] = React.useState<{\n    hue: number;\n    dark: boolean;\n    p3: boolean;\n    preset: string | undefined;\n  }>({\n    hue: 250,\n    dark: true,\n    p3: false,\n    preset: undefined,\n  });\n\n  React.useEffect(() => {\n    const root = document.documentElement;\n    const read = () => {\n      const v = Number.parseFloat(getComputedStyle(root).getPropertyValue(\"--glass-tint-h\"));\n      const next = {\n        hue: Number.isFinite(v) ? v : 250,\n        dark: root.classList.contains(\"dark\"),\n        p3: window.matchMedia?.(\"(color-gamut: p3)\").matches ?? false,\n        preset: root.dataset.glassTint,\n      };\n      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 && prev.preset === next.preset ? prev : next));\n    };\n    read();\n    // Recolor on theme (class) + tint (preset attribute / custom inline vars) changes.\n    const observer = new MutationObserver(read);\n    observer.observe(root, {\n      attributes: true,\n      attributeFilter: [\n        \"class\",\n        \"data-glass-tint\",\n        \"style\",\n      ],\n    });\n    return () => observer.disconnect();\n  }, []);\n\n  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light. A fresco\n  // tint lays its multi-hue palette across the gradient (same L/C) so it matches the fresco glass.\n  const l = dark ? 52 : 72;\n  const frescoHues = preset ? FRESCO_HUES[preset] : undefined;\n  const gradient = frescoHues\n    ? `linear-gradient(${angle}deg in oklch, ${frescoHues.map((h) => `oklch(${l}% 0.15 ${h})`).join(\", \")})`\n    : rampGradient(\n        axis,\n        {\n          l,\n          c: 0.15,\n          h: hue,\n        },\n        5,\n        {\n          angle,\n          gamut: p3 ? \"p3\" : \"srgb\",\n        },\n      );\n\n  return (\n    <div\n      className=\"fixed inset-0 -z-10 pointer-events-none transition-[background] duration-500\"\n      style={{\n        background: gradient,\n      }}\n    >\n      {/* Subtle organic highlight/shadow for depth on top of the flat ramp. */}\n      <div\n        className=\"absolute inset-0\"\n        style={{\n          background:\n            \"radial-gradient(circle at 20% 25%, oklch(100% 0 0 / 0.12) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(0% 0 0 / 0.12) 0%, transparent 45%)\",\n          mixBlendMode: \"overlay\",\n        }}\n      />\n    </div>\n  );\n}\n",
+      "type": "registry:component",
+      "target": "components/gradient-background.tsx"
+    }
+  ],
+  "type": "registry:component"
+}
