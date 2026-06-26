@@ -671,6 +671,31 @@
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
 }
+[data-glass-tint="carnelian"] {
+  --glass-tint-h: 38;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="peridot"] {
+  --glass-tint-h: 128;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="turquoise"] {
+  --glass-tint-h: 190;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="aquamarine"] {
+  --glass-tint-h: 215;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="tourmaline"] {
+  --glass-tint-h: 342;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
 [data-glass-tint="manila"] {
   /* Warm off-white / bone — very low chroma so it reads as cream, not yellow. Manila is meant for
      opaque, so pin its opaque floor to a light bone (both modes) instead of the dark tint formula. */
@@ -790,6 +815,38 @@
     oklch(82% 0.11 255 / 0.3) 66%,
     oklch(83% 0.11 158 / 0.32) 100%
   );
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Aurora — northern lights: spring-green → teal → violet, interpolated `in oklch` so the cool sweep
+   stays vivid. Border + crystal + accent pick up the teal base via the tint vars. */
+[data-glass-tint="aurora"] {
+  --glass-tint-h: 178;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.32) 0%, oklch(89% 0.1 196 / 0.3) 50%, oklch(84% 0.13 292 / 0.3) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.44) 0%, oklch(89% 0.1 196 / 0.42) 50%, oklch(84% 0.13 292 / 0.42) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="aurora"] {
+  --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 152 / 0.22) 0%, oklch(85% 0.1 196 / 0.2) 50%, oklch(80% 0.13 292 / 0.22) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 152 / 0.32) 0%, oklch(85% 0.1 196 / 0.3) 50%, oklch(80% 0.13 292 / 0.32) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
+   glow. The warm gold base drives border + crystal + accent. */
+[data-glass-tint="gloaming"] {
+  --glass-tint-h: 32;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="gloaming"] {
+  --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
   --glass-crystal-fresco: var(--glass-bg);
 }
 

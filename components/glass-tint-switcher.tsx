@@ -45,6 +45,24 @@ const PRESETS = [
     swatch: "linear-gradient(135deg in oklch, oklch(85% 0.1 222), oklch(78% 0.2 326), oklch(84% 0.12 74))",
   },
   {
+    value: "aurora",
+    label: "Aurora",
+    h: 178,
+    c: 0.07,
+    a: 0.16,
+    bespoke: true,
+    swatch: "linear-gradient(135deg in oklch, oklch(85% 0.14 152), oklch(82% 0.11 196), oklch(74% 0.15 292))",
+  },
+  {
+    value: "gloaming",
+    label: "Gloaming",
+    h: 32,
+    c: 0.07,
+    a: 0.16,
+    bespoke: true,
+    swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
+  },
+  {
     value: "manila",
     label: "Manila",
     h: 85,
@@ -92,6 +110,46 @@ const PRESETS = [
     a: 0.15,
     swatch: "oklch(80% 0.13 158)",
   },
+  {
+    value: "carnelian",
+    label: "Carnelian",
+    h: 38,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(78% 0.14 38)",
+  },
+  {
+    value: "peridot",
+    label: "Peridot",
+    h: 128,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(86% 0.16 128)",
+  },
+  {
+    value: "turquoise",
+    label: "Turquoise",
+    h: 190,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(82% 0.1 190)",
+  },
+  {
+    value: "aquamarine",
+    label: "Aquamarine",
+    h: 215,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(80% 0.11 215)",
+  },
+  {
+    value: "tourmaline",
+    label: "Tourmaline",
+    h: 342,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(76% 0.16 342)",
+  },
 ] as const;
 
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
@@ -101,6 +159,8 @@ type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 const BESPOKE = new Set<string>([
   "sistine",
   "muse",
+  "aurora",
+  "gloaming",
   "manila",
 ]);
 
