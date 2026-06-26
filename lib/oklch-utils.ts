@@ -131,6 +131,43 @@ export function hueRamp(base: OklchColor | string, count: number): string[] {
   return hueRampColors(base, count).map((color) => formatOklch(color));
 }
 
+// ── Hue harmonies ─────────────────────────────────────────────────────────────
+// Rotate the base hue to derive complementary / harmonious colors (lightness + chroma held). oklch
+// hue is perceptually even, so a 180° "complement" is a balanced opposite — not the skewed HSL/RGB one.
+
+/** The perceptual complement: same L + C, hue rotated 180° (alpha preserved), gamut-clamped. */
+export function complement(base: OklchColor | string, gamut: "srgb" | "p3" = "srgb"): OklchColor {
+  const c = toColor(base);
+  return clampToGamut(
+    {
+      ...c,
+      h: wrapHue(c.h + 180),
+    },
+    gamut,
+  );
+}
+
+/**
+ * Hue-harmony set: the base plus a color at each rotation `angle` in degrees (same L + C),
+ * gamut-clamped. Returns `[base, …rotations]`. Common sets — analogous `[-30, 30]`, triadic
+ * `[120, 240]`, split-complement `[150, 210]`, tetradic `[90, 180, 270]`.
+ */
+export function harmony(base: OklchColor | string, angles: number[], gamut: "srgb" | "p3" = "srgb"): OklchColor[] {
+  const c = toColor(base);
+  return [
+    clampToGamut(c, gamut),
+    ...angles.map((a) =>
+      clampToGamut(
+        {
+          ...c,
+          h: wrapHue(c.h + a),
+        },
+        gamut,
+      ),
+    ),
+  ];
+}
+
 /**
  * Chroma ramp covering [0, cap]: `count` steps each side, the seed centered (left → 0, right →
  * cap). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to the largest chroma
