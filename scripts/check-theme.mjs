@@ -104,6 +104,20 @@ for (const r of rules) {
   }
 }
 
+// 2b. [solid] --glass-solid-a must be composed on the ELEMENT (in @utility glass-solid), never in a
+//     token context (:root/.dark/grouped) — else a scoped --glass-solid-a wouldn't resolve there.
+for (const r of rules) {
+  if (!(isBareRootOrDark(r.selector) || coversScopedTint(r.selector))) continue;
+  for (const d of decls(r.body)) {
+    if (/var\(--glass-solid-a\)/.test(d.value)) {
+      fail(
+        `[solid] ${d.name} composes var(--glass-solid-a) in "${r.selector}". ` +
+          `Compose it in @utility glass-solid (resolves at the element) so a scoped --glass-solid-a works.`,
+      );
+    }
+  }
+}
+
 // 3. [preset] every switcher preset (except neutral) has a [data-glass-tint="x"] block
 const switcher = readFileSync(join(root, "components/glass-tint-switcher.tsx"), "utf8");
 const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter(

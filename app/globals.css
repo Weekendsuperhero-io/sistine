@@ -130,7 +130,7 @@
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
   /* glass-solid floor opacity — the "how solid" dial (0 = sheer, 1 = fully solid). Shared by light/dark. */
   --glass-solid-a: 0.65;
-  --glass-solid-bg: oklch(99% 0 0 / var(--glass-solid-a));
+  --glass-solid-l: 99%; /* mode-aware floor lightness; composed with --glass-solid-a in @utility glass-solid (so a scoped --glass-solid-a resolves on the element) */
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style. */
   --glass-opaque-bg: oklch(
     90% calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h)
@@ -214,7 +214,7 @@
   --gradient: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.68 0.14 var(--glass-tint-h) / 0.5) 100%);
   --gradient-text: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.68 0.14 var(--glass-tint-h)) 100%);
   --gradient-text-contrast: linear-gradient(135deg, oklch(0.9 0.09 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.9 0.09 var(--glass-tint-h)) 100%);
-  --glass-solid-bg: oklch(18% 0 0 / var(--glass-solid-a));
+  --glass-solid-l: 18%;
   /* L lifted from 22% (less extreme light↔dark switch) + chroma kept low so warm hues like amber
      stay in-gamut instead of hard-clipping to rust. */
   --glass-opaque-bg: oklch(32% calc(var(--glass-tint-c) * 0.9) var(--glass-tint-h));
@@ -403,10 +403,13 @@
   box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent);
 }
 
-/* Opaque glass — a near-solid neutral floor (--glass-solid-bg) + the tint wash + the glass
-   sheen, so overlays you read through (tooltips, menus, toasts) stay legible and still tint.
-   Raise --glass-solid-bg's alpha to be more solid, lower it to be more see-through. */
+/* Solid glass — a near-solid neutral floor + the tint wash + the glass sheen, so overlays you read
+   through (tooltips, menus, toasts) stay legible and still tint. Raise --glass-solid-a to be more
+   solid, lower to be more see-through — settable on any ancestor (composed on the element below). */
 @utility glass-solid {
+  /* Compose the floor HERE (not at :root) so --glass-solid-a + the mode lightness --glass-solid-l
+     resolve on the element — a consumer can scope solid opacity by setting --glass-solid-a anywhere. */
+  --glass-solid-bg: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
   background-image: var(--glass-bg), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash));
   background-color: var(--glass-solid-bg);
   backdrop-filter: blur(var(--blur)) saturate(180%);
