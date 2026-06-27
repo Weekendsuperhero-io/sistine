@@ -212,6 +212,226 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
+        <Card variant="glass" id="text" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Readable text &amp; contrast</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Legible foreground without the harsh pure-black / pure-white spike — APCA contrast, banded to the ARC &ldquo;Bronze Simple Mode&rdquo;
+              criterion.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-muted-foreground">
+              Contrast is a <strong>band</strong>, not a maximum: enough to read (floor), capped so it doesn&apos;t glare (ceiling). Each role maps to
+              an APCA <IC>Lc</IC> band, and it all routes through <IC>readableForeground()</IC> — which aims for the band&apos;s target instead of
+              maxing out.
+            </p>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Size tiers — the easy path</h3>
+              <p className="mb-3 text-muted-foreground">
+                Three foreground utilities, computed once by <IC>AutoForeground</IC> and tinted with the theme. Swap the class by text size — no JS
+                per element:
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="text-foreground">
+                      {[
+                        "utility",
+                        "band",
+                        "for",
+                      ].map((htxt) => (
+                        <th key={htxt} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                          {htxt}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    {[
+                      [
+                        "text-foreground",
+                        "~body",
+                        "body text (default)",
+                      ],
+                      [
+                        "text-foreground-soft",
+                        "Lc ~58",
+                        "headings / large — eased off the spike",
+                      ],
+                      [
+                        "text-foreground-strong",
+                        "Lc ~90",
+                        "fine / small print",
+                      ],
+                    ].map(([util, band, forr]) => (
+                      <tr key={util}>
+                        <td className="border border-foreground/15 px-3 py-2">
+                          <IC>{util}</IC>
+                        </td>
+                        <td className="border border-foreground/15 px-3 py-2">{band}</td>
+                        <td className="border border-foreground/15 px-3 py-2">{forr}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-3">
+                <Code>{`<h1 className="text-foreground-soft">Heading</h1>
+<p className="text-foreground">Body copy…</p>
+<small className="text-foreground-strong">Fine print</small>`}</Code>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Icons</h3>
+              <p className="text-muted-foreground">
+                Icons are <strong>non-text</strong>, so the rule is <IC>Lc ≥ 45</IC> (the <IC>ui</IC> band — the APCA analog of WCAG&apos;s 3:1). A
+                labeled icon just inherits <IC>currentColor</IC>; a standalone meaningful icon has to stand on its own. Stroke weight is the dial —
+                thin outlines need more contrast, bold / filled glyphs can go softer (use Phosphor&apos;s <IC>weight</IC> prop).
+              </p>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Off-theme surfaces</h3>
+              <p className="mb-3 text-muted-foreground">
+                For a surface that isn&apos;t the theme — a colored tool-call bubble, a status pill — band against <em>its</em> color. The hook is
+                pure (no DOM read, memoized), so it scales to hundreds of them:
+              </p>
+              <Code>{`const bubble = { l: 70, c: 0.18, h: 50 };          // your orange (oklch)
+const text = useReadableForeground(bubble, "body");
+const icon = useReadableForeground(bubble, "ui");  // Lc ≥ 45`}</Code>
+              <p className="mt-3 mb-2 text-muted-foreground">Or, for the accent-guard on a custom surface:</p>
+              <Code>{`<ReadableText accent="--primary" on="oklch(70% 0.18 50)" usage="body">
+  Brand color when legible, soft fallback when not
+</ReadableText>`}</Code>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Usage bands</h3>
+              <p className="mb-3 text-muted-foreground">
+                The <IC>usage</IC> preset picks the band. Floors are spec-fed (ARC Bronze / WCAG); targets &amp; ceilings are tuned margins. Aim
+                small, go softer as text gets larger:
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="text-foreground">
+                      {[
+                        "usage",
+                        "floor",
+                        "for",
+                      ].map((htxt) => (
+                        <th key={htxt} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                          {htxt}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    {[
+                      [
+                        "small",
+                        "90",
+                        "fine / thin text",
+                      ],
+                      [
+                        "body",
+                        "75",
+                        "body (default)",
+                      ],
+                      [
+                        "large",
+                        "45",
+                        "large text / headings",
+                      ],
+                      [
+                        "ui",
+                        "45",
+                        "icons, controls, focus rings",
+                      ],
+                      [
+                        "non-text",
+                        "30",
+                        "borders, dividers",
+                      ],
+                      [
+                        "disabled",
+                        "30",
+                        "placeholder / disabled",
+                      ],
+                    ].map(([u, f, forr]) => (
+                      <tr key={u}>
+                        <td className="border border-foreground/15 px-3 py-2">
+                          <IC>{u}</IC>
+                        </td>
+                        <td className="border border-foreground/15 px-3 py-2">{f}</td>
+                        <td className="border border-foreground/15 px-3 py-2">{forr}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Complementary accents</h3>
+              <p className="mb-3 text-muted-foreground">
+                <IC>complement()</IC> / <IC>harmony()</IC> derive accent hues off the theme color (oklch hue rotation — a balanced opposite, not the
+                skewed HSL one); pair with the hook for readable text on them:
+              </p>
+              <Code>{`const accent   = complement({ l: 60, c: 0.15, h: themeHue });  // opposite hue
+const onAccent = useReadableForeground(accent, "large");
+// harmony(base, [120, 240]) → triadic · [-30, 30] → analogous`}</Code>
+            </div>
+
+            <div>
+              <h3 className="mb-2 font-semibold">Which to reach for</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="text-foreground">
+                      {[
+                        "text on…",
+                        "use",
+                        "cost",
+                      ].map((htxt) => (
+                        <th key={htxt} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                          {htxt}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    <tr>
+                      <td className="border border-foreground/15 px-3 py-2">the theme surface, in bulk</td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>text-foreground</IC> / <IC>-soft</IC> / <IC>-strong</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">zero JS / element</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-foreground/15 px-3 py-2">an accent that must stay legible</td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>ReadableText</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">1 effect + observer / instance</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-foreground/15 px-3 py-2">an off-theme surface (many)</td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>useReadableForeground</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">pure memo, no DOM</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card variant="glass" id="tuning" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Tuning — CSS variables</CardTitle>

@@ -67,6 +67,10 @@ const docsNav = [
         href: "/docs/theming#surfaces",
       },
       {
+        title: "Readable Text",
+        href: "/docs/theming#text",
+      },
+      {
         title: "Tuning",
         href: "/docs/theming#tuning",
       },
