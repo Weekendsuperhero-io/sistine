@@ -136,7 +136,7 @@ export function ReadableTiersDemo() {
     },
     solidA,
   );
-  // The readable half of the ramp the decisions draw from: extreme (black/white) → base color.
+  // The full ramp: one extreme (black/white) → base (center) → the opposite extreme; picks come from the readable side.
   const ramp: OklchColor[] = Array.from(
     {
       length: 2 * env.count + 1,
