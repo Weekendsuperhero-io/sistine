@@ -151,9 +151,12 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // its lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
       // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
       const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
+      const tintA = num("--glass-tint-a", 0);
+      // A neutral tint (no wash → --glass-tint-a 0) yields ACHROMATIC foregrounds — black / white / gray
+      // picked by lightness; an active tint builds its tonal/linear ramp at the config's vividness.
       const base = {
         l: rl ?? storedRamp.l,
-        c: rc ?? storedRamp.c,
+        c: tintA > 0 ? (rc ?? storedRamp.c) : 0,
         h: tintH,
       };
       const surface = glassSolidSurface(
@@ -161,7 +164,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         {
           h: tintH,
           c: num("--glass-tint-c", 0),
-          a: num("--glass-tint-a", 0),
+          a: tintA,
         },
         num("--glass-solid-a", 0.65),
       );
