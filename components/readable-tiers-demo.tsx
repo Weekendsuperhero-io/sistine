@@ -139,7 +139,7 @@ export function ReadableTiersDemo() {
   // The readable half of the ramp the decisions draw from: extreme (black/white) → base color.
   const ramp: OklchColor[] = Array.from(
     {
-      length: env.count + 1,
+      length: 2 * env.count + 1,
     },
     (_, level) =>
       themeForeground({
@@ -178,8 +178,11 @@ export function ReadableTiersDemo() {
       t,
     ]),
   );
-  const marks = new Map<number, string>();
-  for (const t of tiers) marks.set(t.idx, marks.has(t.idx) ? `${marks.get(t.idx)}/${t.mark}` : t.mark);
+  const pickMarks = new Map<number, string>();
+  for (const t of tiers) pickMarks.set(t.idx, pickMarks.has(t.idx) ? `${pickMarks.get(t.idx)}/${t.mark}` : t.mark);
+  const baseIdx = env.count; // the base color sits at the center of the full ramp
+  const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
+  const rightLabel = leftLabel === "white" ? "black" : "white";
 
   return (
     <div className="space-y-4">
@@ -217,20 +220,25 @@ export function ReadableTiersDemo() {
       {/* The ramp the decisions draw from — extreme (black/white) → base; picked swatches are ringed. */}
       <div>
         <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
-          <span>extreme (black / white)</span>
-          <span>base color</span>
+          <span>{leftLabel} (readable)</span>
+          <span>base</span>
+          <span>{rightLabel} (toward bg)</span>
         </div>
         <div className="flex gap-0.5">
           {ramp.map((c, i) => (
             <div key={`${i}-${formatOklch(c)}`} className="flex flex-1 flex-col items-center gap-1">
               <div
-                className={cn("h-8 w-full rounded-sm", marks.has(i) && "ring-2 ring-foreground ring-offset-1 ring-offset-transparent")}
+                className={cn(
+                  "h-8 w-full rounded-sm",
+                  pickMarks.has(i) && "ring-2 ring-foreground ring-offset-1 ring-offset-transparent",
+                  i === baseIdx && !pickMarks.has(i) && "ring-1 ring-foreground/40",
+                )}
                 style={{
                   background: formatOklch(c),
                 }}
                 title={formatOklch(c)}
               />
-              <span className="h-3 text-[9px] leading-none text-muted-foreground">{marks.get(i) ?? ""}</span>
+              <span className="h-3 text-[9px] leading-none text-muted-foreground">{pickMarks.get(i) ?? (i === baseIdx ? "base" : "")}</span>
             </div>
           ))}
         </div>
@@ -303,10 +311,10 @@ export function ReadableTiersDemo() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        The strip is the <strong>{palette === "lightness" ? "linear" : "tonal"}</strong> ramp the picks are drawn from (via{" "}
-        <code className="text-[11px]">themeForeground</code>) — it drifts from the readable extreme toward the base color; each tier takes the swatch
-        closest to its contrast target. <strong>Linear</strong> holds the theme&apos;s chroma (soft tinted white); <strong>Tonal</strong> fades chroma
-        to gray at the extreme. Measured on the glass-solid surface.
+        The strip is the full <strong>{palette === "lightness" ? "linear" : "tonal"}</strong> ramp (via{" "}
+        <code className="text-[11px]">themeForeground</code>) — both sides, from one extreme through the <strong>base</strong> (center) to the other;
+        foregrounds are picked from the readable side (the high-contrast end). <strong>Linear</strong> holds the theme&apos;s chroma (soft tinted
+        white); <strong>Tonal</strong> fades chroma to gray at the extreme. Measured on the glass-solid surface.
       </p>
     </div>
   );
