@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, glassSolidSurface, readableForeground, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import { formatOklch, glassSolidSurface, pickByContrast, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -115,19 +115,19 @@ export interface AutoForegroundProps {
 }
 
 /**
- * Sets `--foreground` + `--muted-foreground` on <html> by walking an OKLCH ramp (palette + base color +
- * step count) so text contrast tracks light/dark automatically. `start` picks which level is
- * `--foreground`; the next level down is `--muted-foreground`. globals.css carries the level-0/level-1
- * defaults as a static fallback, so there's no flash.
+ * Sets the foreground tokens on <html> by drawing COLORS from the chosen OKLCH ramp (palette + base
+ * color + step count): `--foreground`, `--muted-foreground`, and the ARC-Bronze size tiers
+ * `--foreground-soft` (large) / `--foreground-strong` (fine). Each is picked from that tonal/lightness
+ * ramp to hit its contrast target on the glass-SOLID surface text sits on — so foregrounds are real
+ * theme colors, not neutral gray, and track light/dark + tint automatically. globals.css carries static
+ * fallbacks (no flash); the tiers are exposed as the `text-foreground-soft` / `text-foreground-strong` utilities.
  *
- * Configure declaratively — `<AutoForeground palette="tonal" start={0} ramp={{ l, c, h, count }} />` — or,
- * with no props, it reads a persisted config (`writeFgConfig` / `writeRampConfig`, e.g. a live generator)
- * and re-applies on the `sistine-fg` event. It intentionally mutates the global `--foreground` /
- * `--muted-foreground`, so mount it once at the app root. It also sets the ARC-Bronze size tiers
- * `--foreground-soft` (large/heading) and `--foreground-strong` (fine), banded via readableForeground
- * against the live glass surface — exposed as the `text-foreground-soft` / `text-foreground-strong` utilities.
+ * Configure declaratively — `<AutoForeground palette="tonal" ramp={{ l, c, h, count }} />` — or, with no
+ * props, it reads a persisted config (`writeRampConfig`, e.g. the /colors generator) and re-applies on the
+ * `sistine-fg` event. Mount it once at the app root. (`start` is accepted for back-compat but the
+ * foreground level is now contrast-target-driven, not a manual ramp index.)
  */
-export function AutoForeground({ palette: paletteProp, start: startProp, ramp: rampProp }: AutoForegroundProps = {}) {
+export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoForegroundProps = {}) {
   const rl = rampProp?.l;
   const rc = rampProp?.c;
   const rh = rampProp?.h;
@@ -141,7 +141,6 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
       const storedFg = readFgConfig();
       const storedRamp = readRampConfig();
       const palette = paletteProp ?? storedFg.palette;
-      const start = startProp ?? storedFg.start;
       const l = rl ?? storedRamp.l;
       const c = rc ?? storedRamp.c;
       const h = rh ?? storedRamp.h;
@@ -151,9 +150,31 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
         c,
         h,
       };
-      const s = Math.max(0, Math.min(start, count)); // --foreground level; the rest ramp down to base
-      const at = (level: number) =>
-        formatOklch(
+
+      // The glass-SOLID surface body text sits on (live tint + --glass-solid-a) — a known surface, so
+      // the contrast picks below are real, not a sheer-glass estimate.
+      const cs = getComputedStyle(root);
+      const num = (name: string, fb: number) => {
+        const v = Number.parseFloat(cs.getPropertyValue(name));
+        return Number.isNaN(v) ? fb : v;
+      };
+      const surface = glassSolidSurface(
+        dark,
+        {
+          h: num("--glass-tint-h", h),
+          c: num("--glass-tint-c", 0),
+          a: num("--glass-tint-a", 0),
+        },
+        num("--glass-solid-a", 0.65),
+      );
+
+      // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
+      // gray — each picked to hit its ARC-Bronze contrast target on that surface.
+      const ramp = Array.from(
+        {
+          length: count + 1,
+        },
+        (_, level) =>
           themeForeground({
             palette,
             level,
@@ -161,43 +182,14 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
             base,
             dark,
           }),
-        );
-      root.style.setProperty("--foreground", at(s));
-      root.style.setProperty("--auto-fg", at(s));
-      root.style.setProperty("--muted-foreground", at(Math.min(s + 1, count)));
-
-      // Size-tiered foregrounds (ARC Bronze bands), judged against the glass-SOLID surface — body text
-      // lives on the solid tier (never sheer glass), so banding there gives a real, reliable contrast.
-      const cs = getComputedStyle(root);
-      const tintH = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
-      const tintC = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
-      const tintA = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
-      const solidA = Number.parseFloat(cs.getPropertyValue("--glass-solid-a"));
-      const surface = glassSolidSurface(
-        dark,
-        {
-          h: Number.isNaN(tintH) ? 255 : tintH,
-          c: Number.isNaN(tintC) ? 0 : tintC,
-          a: Number.isNaN(tintA) ? 0 : tintA,
-        },
-        Number.isNaN(solidA) ? 0.65 : solidA,
       );
-      root.style.setProperty(
-        "--foreground-soft",
-        formatOklch(
-          readableForeground(surface, {
-            usage: "large",
-          }),
-        ),
-      );
-      root.style.setProperty(
-        "--foreground-strong",
-        formatOklch(
-          readableForeground(surface, {
-            usage: "small",
-          }),
-        ),
-      );
+      const tier = (target: number) => formatOklch(pickByContrast(ramp, surface, target));
+      const fg = tier(READABLE_USAGE.body.target);
+      root.style.setProperty("--foreground", fg);
+      root.style.setProperty("--auto-fg", fg);
+      root.style.setProperty("--muted-foreground", tier(60));
+      root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large.target));
+      root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small.target));
     };
 
     update();
@@ -217,7 +209,6 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
     };
   }, [
     paletteProp,
-    startProp,
     rl,
     rc,
     rh,

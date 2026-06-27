@@ -502,6 +502,24 @@ export function pickForeground(bg: OklchColor | string, light: OklchColor = FG_L
 }
 
 /**
+ * From a ramp of candidate colors, the one whose |APCA Lc| on `surface` is closest to `targetLc`. Lets
+ * you draw a readable foreground from a real palette — a tonal / lightness ramp — instead of a neutral
+ * gray, so text keeps the theme's color while still hitting its contrast band.
+ */
+export function pickByContrast(ramp: OklchColor[], surface: OklchColor | string, targetLc: number): OklchColor {
+  let best = ramp[0];
+  let bestErr = Number.POSITIVE_INFINITY;
+  for (const color of ramp) {
+    const err = Math.abs(Math.abs(apcaContrast(color, surface)) - targetLc);
+    if (err < bestErr) {
+      bestErr = err;
+      best = color;
+    }
+  }
+  return best;
+}
+
+/**
  * The effective glass surface color for the active theme + tint — the theme's light/dark floor
  * blended with the tint wash, mirroring the glass-* utilities (the wash sits at a FIXED lightness,
  * 72 light / 58 dark; only hue, chroma and alpha vary). Pair with pickForeground to choose readable

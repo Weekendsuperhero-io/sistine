@@ -2,49 +2,50 @@
 
 import * as React from "react";
 import { Slider } from "@/components/ui/slider";
-import { apcaContrast, formatOklch, glassSolidSurface, READABLE_USAGE, type ReadableUsage, readableForeground } from "@/lib/oklch-utils";
+import { apcaContrast, glassSolidSurface, parseOklch } from "@/lib/oklch-utils";
 
 const TIERS: {
-  usage: ReadableUsage;
   token: string;
+  label: string;
   cls: string;
   sample: string;
 }[] = [
   {
-    usage: "large",
-    token: "text-foreground-soft",
+    token: "--foreground-soft",
+    label: "large / heading",
     cls: "text-2xl font-semibold",
     sample: "Large heading",
   },
   {
-    usage: "body",
-    token: "text-foreground",
+    token: "--foreground",
+    label: "body (default)",
     cls: "text-base",
     sample: "Body copy — the quick brown fox jumps over the lazy dog.",
   },
   {
-    usage: "small",
-    token: "text-foreground-strong",
+    token: "--foreground-strong",
+    label: "fine / small",
     cls: "text-xs",
     sample: "Fine print — the quick brown fox jumps over the lazy dog.",
-  },
-  {
-    usage: "ui",
-    token: 'usage: "ui"',
-    cls: "text-sm font-medium",
-    sample: "◎ Control label",
   },
 ];
 
 /**
- * Live demo of the size-tiered foregrounds on the glass-SOLID tier — where body text actually lives.
- * Samples render on a real glass-solid panel, tinted with the current theme color, at an adjustable
- * 30–75% opacity; the Lc is computed against that solid floor (a KNOWN surface) so it's a REAL number,
- * not the sheer-glass estimate. Updates on tint / light-dark. App-only; reuses lib/oklch-utils.
+ * Live demo of the size-tiered foregrounds. Each tier is read straight from the token AutoForeground
+ * sets — a COLOR drawn from the theme's tonal/lightness ramp (not gray) — shown on a real glass-solid
+ * panel (where body text lives) at an adjustable 30–75% opacity, with its landed L, chroma, and the
+ * APCA Lc against that solid floor (a real number). Updates on tint / light-dark. App-only.
  */
 export function ReadableTiersDemo() {
   const [solidA, setSolidA] = React.useState(0.65);
-  const [tint, setTint] = React.useState({
+  const [state, setState] = React.useState<{
+    vals: Record<string, string>;
+    h: number;
+    c: number;
+    a: number;
+    dark: boolean;
+  }>({
+    vals: {},
     h: 255,
     c: 0,
     a: 0,
@@ -59,7 +60,10 @@ export function ReadableTiersDemo() {
         const v = Number.parseFloat(cs.getPropertyValue(n));
         return Number.isNaN(v) ? fb : v;
       };
-      setTint({
+      const vals: Record<string, string> = {};
+      for (const t of TIERS) vals[t.token] = cs.getPropertyValue(t.token).trim();
+      setState({
+        vals,
         h: num("--glass-tint-h", 255),
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
@@ -79,16 +83,24 @@ export function ReadableTiersDemo() {
     return () => obs.disconnect();
   }, []);
 
-  const surface = glassSolidSurface(tint.dark, tint, solidA);
+  const surface = glassSolidSurface(
+    state.dark,
+    {
+      h: state.h,
+      c: state.c,
+      a: state.a,
+    },
+    solidA,
+  );
   const rows = TIERS.map((t) => {
-    const fg = readableForeground(surface, {
-      usage: t.usage,
-    });
+    const color = state.vals[t.token] || "currentColor";
+    const parsed = parseOklch(color);
     return {
       ...t,
-      color: formatOklch(fg),
-      l: Math.round(fg.l),
-      lc: Math.round(Math.abs(apcaContrast(fg, surface))),
+      color,
+      l: parsed ? Math.round(parsed.l) : null,
+      chroma: parsed ? parsed.c.toFixed(3) : "—",
+      lc: parsed ? Math.round(Math.abs(apcaContrast(parsed, surface))) : null,
     };
   });
 
@@ -104,7 +116,7 @@ export function ReadableTiersDemo() {
       >
         {rows.map((r) => (
           <div
-            key={r.usage}
+            key={r.token}
             className={r.cls}
             style={{
               color: r.color,
@@ -136,39 +148,35 @@ export function ReadableTiersDemo() {
               {[
                 "tier",
                 "L",
+                "chroma",
                 "Lc",
-                "floor/target/ceiling",
-              ].map((h) => (
-                <th key={h} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
-                  {h}
+              ].map((htxt) => (
+                <th key={htxt} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
+                  {htxt}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="text-muted-foreground">
-            {rows.map((r) => {
-              const band = READABLE_USAGE[r.usage];
-              return (
-                <tr key={r.usage}>
-                  <td className="border border-foreground/15 px-3 py-1.5">
-                    <code className="rounded bg-foreground/10 px-1.5 py-0.5 font-mono text-xs">{r.token}</code>
-                  </td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.l}%</td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">{r.lc}</td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center text-xs tabular-nums">
-                    {band.floor}/{band.target}/{band.ceiling}
-                  </td>
-                </tr>
-              );
-            })}
+            {rows.map((r) => (
+              <tr key={r.token}>
+                <td className="border border-foreground/15 px-3 py-1.5">
+                  <code className="rounded bg-foreground/10 px-1.5 py-0.5 font-mono text-xs">{r.token}</code>
+                  <div className="mt-1 text-xs">{r.label}</div>
+                </td>
+                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.l == null ? "—" : `${r.l}%`}</td>
+                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.chroma}</td>
+                <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">{r.lc ?? "—"}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Rendered on the <strong>glass-solid</strong> tier — where body text actually lives — tinted with your theme color at{" "}
-        {Math.round(solidA * 100)}%. The Lc is <strong>real</strong> here (the solid floor is a known surface, unlike sheer glass over a wallpaper).
-        Drag the opacity, or change the theme tint / light-dark up top, and watch it hold its band.
+        Each foreground is a <strong>real color from the theme&apos;s tonal ramp</strong> (note the non-zero chroma), picked to hit its contrast band
+        on the glass-solid surface — body &amp; large carry the theme color; fine stays crisp (high contrast ⇒ near-neutral). Drag the opacity or
+        change the theme up top.
       </p>
     </div>
   );
