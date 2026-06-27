@@ -107,8 +107,8 @@ const WEIGHTS = [
 /**
  * Live demo of the size-tiered foregrounds. Shows the full linear/tonal ramp (via themeForeground, the
  * utility the decisions use), drifting extreme → base → opposite, with each tier's PICKED swatch ringed.
- * Picks are band-aware (floor ≤ Lc ≤ ceiling, aiming for target) on the glass-SOLID surface — and the
- * panel is pinned to that modeled base, so the displayed Lc matches what's rendered. App-only.
+ * Picks are band-aware (floor ≤ Lc ≤ ceiling, aiming for target) on the glass-SOLID surface. The panel
+ * is real glass over the page (the opacity slider changes it); the Lc shown is the modeled value. App-only.
  */
 export function ReadableTiersDemo() {
   const [solidA, setSolidA] = React.useState(0.65);
@@ -226,7 +226,6 @@ export function ReadableTiersDemo() {
   const baseIdx = env.count;
   const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
   const rightLabel = leftLabel === "white" ? "black" : "white";
-  const baseTone = env.dark ? "oklch(20% 0 0)" : "oklch(95% 0 0)"; // the surface model's assumed backdrop
 
   return (
     <div className="space-y-4">
@@ -288,58 +287,51 @@ export function ReadableTiersDemo() {
         </div>
       </div>
 
-      {/* Picks rendered on glass-solid — pinned over the modeled base so the displayed Lc matches what's shown. */}
+      {/* Picks rendered on a real glass-solid panel over the page — the opacity slider visibly changes it. */}
       <div
-        className="rounded-xl"
-        style={{
-          background: baseTone,
-        }}
+        className="glass-solid space-y-3 rounded-xl p-4"
+        style={
+          {
+            "--glass-solid-a": String(solidA),
+          } as React.CSSProperties
+        }
       >
-        <div
-          className="glass-solid space-y-3 rounded-xl p-4"
-          style={
-            {
-              "--glass-solid-a": String(solidA),
-            } as React.CSSProperties
-          }
-        >
-          {tiers
-            .filter((t) => t.kind === "text")
-            .map((t) => (
-              <div
-                key={t.key}
-                className={t.cls}
-                style={{
-                  color: t.fmt,
-                }}
-              >
-                {t.sample}
-              </div>
-            ))}
-          <div
-            style={{
-              color: byKey.ui?.fmt,
-            }}
-          >
-            <div className="mb-2 text-xs font-medium">ui / icons — every icon × weight (same ui color); thin reads weaker than bold / fill</div>
-            <div className="grid grid-cols-[auto_repeat(5,minmax(0,1fr))] items-center gap-x-2 gap-y-1.5">
-              <span />
-              {WEIGHTS.map((w) => (
-                <span key={w} className="text-center text-[9px] text-muted-foreground">
-                  {w}
-                </span>
-              ))}
-              {ICONS.map(({ Icon, name }) => (
-                <React.Fragment key={name}>
-                  <span className="text-[9px] text-muted-foreground">{name}</span>
-                  {WEIGHTS.map((w) => (
-                    <span key={w} className="flex justify-center">
-                      <Icon size={20} weight={w} />
-                    </span>
-                  ))}
-                </React.Fragment>
-              ))}
+        {tiers
+          .filter((t) => t.kind === "text")
+          .map((t) => (
+            <div
+              key={t.key}
+              className={t.cls}
+              style={{
+                color: t.fmt,
+              }}
+            >
+              {t.sample}
             </div>
+          ))}
+        <div
+          style={{
+            color: byKey.ui?.fmt,
+          }}
+        >
+          <div className="mb-2 text-xs font-medium">ui / icons — every icon × weight (same ui color); thin reads weaker than bold / fill</div>
+          <div className="grid grid-cols-[auto_repeat(5,minmax(0,1fr))] items-center gap-x-2 gap-y-1.5">
+            <span />
+            {WEIGHTS.map((w) => (
+              <span key={w} className="text-center text-[9px] text-muted-foreground">
+                {w}
+              </span>
+            ))}
+            {ICONS.map(({ Icon, name }) => (
+              <React.Fragment key={name}>
+                <span className="text-[9px] text-muted-foreground">{name}</span>
+                {WEIGHTS.map((w) => (
+                  <span key={w} className="flex justify-center">
+                    <Icon size={20} weight={w} />
+                  </span>
+                ))}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>
@@ -384,9 +376,9 @@ export function ReadableTiersDemo() {
       <p className="text-xs text-muted-foreground">
         The strip is the full <strong>{palette === "lightness" ? "linear" : "tonal"}</strong> ramp (via{" "}
         <code className="text-[11px]">themeForeground</code>) — extreme → base → extreme. Each tier takes the swatch landing in its{" "}
-        <strong>[floor–ceiling]</strong> band closest to target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). The panel is pinned over
-        the surface model&apos;s base, so the <strong>Lc matches what&apos;s rendered</strong>. <strong>Linear</strong> holds the theme&apos;s chroma;{" "}
-        <strong>Tonal</strong> fades to gray at the extreme.
+        <strong>[floor–ceiling]</strong> band closest to target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). The Lc is the modeled value
+        on the solid floor — accurate as opacity rises; at lower opacity more of the page shows through. <strong>Linear</strong> holds the
+        theme&apos;s chroma; <strong>Tonal</strong> fades to gray at the extreme.
       </p>
     </div>
   );
