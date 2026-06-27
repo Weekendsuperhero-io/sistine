@@ -149,8 +149,9 @@ export function ReadableTiersDemo() {
         </tbody>
       </table>
       <p className="mt-2 text-xs text-muted-foreground">
-        Live against the current theme surface — change the tint or light/dark in the top menu and watch <strong>L</strong> &amp; <strong>Lc</strong>{" "}
-        move. Body lands on its <strong>target ~80</strong> (not the 90 ceiling); large eases to ~58; fine holds ~90; icons ~52.
+        Body aims for its <strong>target ~80</strong> (not the 90 ceiling); large eases to ~58; fine holds ~90; icons ~52. Note: the{" "}
+        <strong>Lc is calculated</strong> against the token-estimated glass surface — exact on <strong>solid / opaque</strong>, but on sheer glass
+        over a wallpaper the true value depends on what shows through (sample the rendered pixel for the measured number).
       </p>
     </div>
   );

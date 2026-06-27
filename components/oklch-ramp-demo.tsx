@@ -55,7 +55,7 @@ const PREVIEW_TINT_A = 0.24;
 export function OklchRampDemo() {
   const [l, setL] = React.useState(60);
   const [c, setC] = React.useState(0.15);
-  const [count, setCount] = React.useState(8);
+  const [count, setCount] = React.useState(12);
   const [wideGamut, setWideGamut] = React.useState(false);
   const [mode, setMode] = React.useState<(typeof AUTO_MODES)[number]["key"]>("auto");
   const { resolvedTheme } = useTheme();

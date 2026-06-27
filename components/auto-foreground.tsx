@@ -35,7 +35,7 @@ const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
   h: 255,
-  count: 8,
+  count: 12, // finest ramp (12 steps/side) — the most cohesive foreground set in practice
 };
 
 /** Read the persisted foreground palette + start level; falls back to tonal / 0. */
