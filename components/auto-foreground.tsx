@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, glassSolidSurface, pickByContrast, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import { formatOklch, glassSolidSurface, pickInBand, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -181,13 +181,21 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             dark,
           }),
       );
-      const tier = (target: number) => formatOklch(pickByContrast(ramp, surface, target));
-      const fg = tier(READABLE_USAGE.body.target);
+      // Band-aware pick: honor each tier's floor (minimum) and ceiling (anti-spike), aiming for target.
+      const tier = (band: { floor: number; target: number; ceiling: number }) => formatOklch(pickInBand(ramp, surface, band));
+      const fg = tier(READABLE_USAGE.body);
       root.style.setProperty("--foreground", fg);
       root.style.setProperty("--auto-fg", fg);
-      root.style.setProperty("--muted-foreground", tier(60));
-      root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large.target));
-      root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small.target));
+      root.style.setProperty(
+        "--muted-foreground",
+        tier({
+          floor: 45,
+          target: 60,
+          ceiling: 75,
+        }),
+      );
+      root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
+      root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
     };
 
     update();

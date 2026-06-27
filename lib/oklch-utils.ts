@@ -520,6 +520,31 @@ export function pickByContrast(ramp: OklchColor[], surface: OklchColor | string,
 }
 
 /**
+ * Band-aware sibling of {@link pickByContrast}: from `ramp`, prefer colors whose |APCA Lc| on
+ * `surface` falls within [floor, ceiling] and sit closest to `target` — so the floor is honored as a
+ * MINIMUM (never undershot) and the ceiling caps the spike. If nothing lands in band (ramp too coarse
+ * or the surface can't support it), returns the color nearest the band edge.
+ */
+export function pickInBand(
+  ramp: OklchColor[],
+  surface: OklchColor | string,
+  band: {
+    floor: number;
+    target: number;
+    ceiling: number;
+  },
+): OklchColor {
+  const scored = ramp.map((c) => ({
+    c,
+    lc: Math.abs(apcaContrast(c, surface)),
+  }));
+  const inBand = scored.filter((s) => s.lc >= band.floor && s.lc <= band.ceiling);
+  const pool = inBand.length ? inBand : scored;
+  const err = (lc: number) => (inBand.length ? Math.abs(lc - band.target) : Math.min(Math.abs(lc - band.floor), Math.abs(lc - band.ceiling)));
+  return pool.reduce((best, s) => (err(s.lc) < err(best.lc) ? s : best), pool[0]).c;
+}
+
+/**
  * The effective glass surface color for the active theme + tint — the theme's light/dark floor
  * blended with the tint wash, mirroring the glass-* utilities (the wash sits at a FIXED lightness,
  * 72 light / 58 dark; only hue, chroma and alpha vary). Pair with pickForeground to choose readable

@@ -4,14 +4,22 @@ import { BellIcon, GearIcon, HeartIcon, MagnifyingGlassIcon, StarIcon } from "@p
 import * as React from "react";
 import { readRampConfig } from "@/components/auto-foreground";
 import { Slider } from "@/components/ui/slider";
-import { apcaContrast, formatOklch, glassSolidSurface, type OklchColor, themeForeground } from "@/lib/oklch-utils";
+import {
+  apcaContrast,
+  formatOklch,
+  glassSolidSurface,
+  type OklchColor,
+  READABLE_USAGE,
+  type ReadableUsage,
+  themeForeground,
+} from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
 type Tier = {
   key: string;
   label: string;
   mark: string;
-  target: number;
+  usage: ReadableUsage;
   kind: "text" | "icon";
   cls: string;
   sample: string;
@@ -21,7 +29,7 @@ const TIERS: Tier[] = [
     key: "large",
     label: "large / heading",
     mark: "Lg",
-    target: 58,
+    usage: "large",
     kind: "text",
     cls: "text-2xl font-semibold",
     sample: "Large heading",
@@ -30,7 +38,7 @@ const TIERS: Tier[] = [
     key: "body",
     label: "body (default)",
     mark: "Bd",
-    target: 80,
+    usage: "body",
     kind: "text",
     cls: "text-base",
     sample: "Body copy — the quick brown fox jumps over the lazy dog.",
@@ -39,7 +47,7 @@ const TIERS: Tier[] = [
     key: "fine",
     label: "fine / small",
     mark: "Fn",
-    target: 90,
+    usage: "small",
     kind: "text",
     cls: "text-xs",
     sample: "Fine print — the quick brown fox jumps over the lazy dog.",
@@ -48,7 +56,7 @@ const TIERS: Tier[] = [
     key: "ui",
     label: "ui / icons",
     mark: "UI",
-    target: 52,
+    usage: "ui",
     kind: "icon",
     cls: "",
     sample: "",
@@ -66,11 +74,34 @@ const PALETTES = [
   },
 ] as const;
 
+const ICON_WEIGHTS = [
+  {
+    Icon: GearIcon,
+    weight: "thin" as const,
+  },
+  {
+    Icon: HeartIcon,
+    weight: "light" as const,
+  },
+  {
+    Icon: StarIcon,
+    weight: "regular" as const,
+  },
+  {
+    Icon: BellIcon,
+    weight: "bold" as const,
+  },
+  {
+    Icon: MagnifyingGlassIcon,
+    weight: "fill" as const,
+  },
+];
+
 /**
- * Live demo of the size-tiered foregrounds. Shows the actual linear/tonal ramp (via themeForeground —
- * the utility the decisions use) drifting from the readable extreme (black/white) toward the base
- * color, with the swatch each tier PICKS ringed. The picks render as real text + icons on a glass-solid
- * panel; the Lc is measured against that solid floor. Toggle Linear↔Tonal to see chroma hold vs fade.
+ * Live demo of the size-tiered foregrounds. Shows the full linear/tonal ramp (via themeForeground, the
+ * utility the decisions use), drifting extreme → base → opposite, with each tier's PICKED swatch ringed.
+ * Picks are band-aware (floor ≤ Lc ≤ ceiling, aiming for target) on the glass-SOLID surface — and the
+ * panel is pinned to that modeled base, so the displayed Lc matches what's rendered. App-only.
  */
 export function ReadableTiersDemo() {
   const [solidA, setSolidA] = React.useState(0.65);
@@ -153,16 +184,20 @@ export function ReadableTiersDemo() {
   );
   const lcOf = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
 
+  // Band-aware pick (honor floor ≤ Lc ≤ ceiling, aim for target), returning the ramp index.
+  const pickIdx = (band: { floor: number; target: number; ceiling: number }) => {
+    const scored = ramp.map((c, i) => ({
+      i,
+      lc: lcOf(c),
+    }));
+    const inBand = scored.filter((s) => s.lc >= band.floor && s.lc <= band.ceiling);
+    const pool = inBand.length ? inBand : scored;
+    const err = (lc: number) => (inBand.length ? Math.abs(lc - band.target) : Math.min(Math.abs(lc - band.floor), Math.abs(lc - band.ceiling)));
+    return pool.reduce((best, s) => (err(s.lc) < err(best.lc) ? s : best), pool[0]).i;
+  };
+
   const tiers = TIERS.map((t) => {
-    let idx = 0;
-    let err = Number.POSITIVE_INFINITY;
-    ramp.forEach((c, i) => {
-      const e = Math.abs(lcOf(c) - t.target);
-      if (e < err) {
-        err = e;
-        idx = i;
-      }
-    });
+    const idx = pickIdx(READABLE_USAGE[t.usage]);
     const color = ramp[idx];
     return {
       ...t,
@@ -181,9 +216,10 @@ export function ReadableTiersDemo() {
   );
   const pickMarks = new Map<number, string>();
   for (const t of tiers) pickMarks.set(t.idx, pickMarks.has(t.idx) ? `${pickMarks.get(t.idx)}/${t.mark}` : t.mark);
-  const baseIdx = env.count; // the base color sits at the center of the full ramp
+  const baseIdx = env.count;
   const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
   const rightLabel = leftLabel === "white" ? "black" : "white";
+  const baseTone = env.dark ? "oklch(20% 0 0)" : "oklch(95% 0 0)"; // the surface model's assumed backdrop
 
   return (
     <div className="space-y-4">
@@ -218,7 +254,7 @@ export function ReadableTiersDemo() {
         </div>
       </div>
 
-      {/* The ramp the decisions draw from — extreme (black/white) → base; picked swatches are ringed. */}
+      {/* The full ramp the decisions draw from — extreme → base (center) → opposite; picked swatches ringed. */}
       <div>
         <div className="mb-1 flex justify-between text-[10px] text-muted-foreground">
           <span>{leftLabel} (readable)</span>
@@ -245,40 +281,48 @@ export function ReadableTiersDemo() {
         </div>
       </div>
 
-      {/* The picks rendered as real text + icons on the solid surface. */}
+      {/* Picks rendered on glass-solid — pinned over the modeled base so the displayed Lc matches what's shown. */}
       <div
-        className="glass-solid space-y-2 rounded-xl p-4"
-        style={
-          {
-            "--glass-solid-a": String(solidA),
-          } as React.CSSProperties
-        }
+        className="rounded-xl"
+        style={{
+          background: baseTone,
+        }}
       >
-        {tiers
-          .filter((t) => t.kind === "text")
-          .map((t) => (
-            <div
-              key={t.key}
-              className={t.cls}
-              style={{
-                color: t.fmt,
-              }}
-            >
-              {t.sample}
-            </div>
-          ))}
         <div
-          className="flex items-center gap-3"
-          style={{
-            color: byKey.ui?.fmt,
-          }}
+          className="glass-solid space-y-3 rounded-xl p-4"
+          style={
+            {
+              "--glass-solid-a": String(solidA),
+            } as React.CSSProperties
+          }
         >
-          <GearIcon size={20} weight="bold" />
-          <HeartIcon size={20} weight="fill" />
-          <StarIcon size={20} weight="fill" />
-          <BellIcon size={20} weight="bold" />
-          <MagnifyingGlassIcon size={20} weight="bold" />
-          <span className="text-sm font-medium">UI / icons</span>
+          {tiers
+            .filter((t) => t.kind === "text")
+            .map((t) => (
+              <div
+                key={t.key}
+                className={t.cls}
+                style={{
+                  color: t.fmt,
+                }}
+              >
+                {t.sample}
+              </div>
+            ))}
+          <div
+            className="flex flex-wrap items-end gap-4"
+            style={{
+              color: byKey.ui?.fmt,
+            }}
+          >
+            {ICON_WEIGHTS.map(({ Icon, weight }) => (
+              <div key={weight} className="flex flex-col items-center gap-1">
+                <Icon size={22} weight={weight} />
+                <span className="text-[9px] text-muted-foreground">{weight}</span>
+              </div>
+            ))}
+            <span className="self-center text-xs font-medium">ui / icons — thin glyphs need more contrast than bold / fill</span>
+          </div>
         </div>
       </div>
 
@@ -290,7 +334,7 @@ export function ReadableTiersDemo() {
                 "tier",
                 "L",
                 "chroma",
-                "Lc",
+                "Lc / band",
               ].map((h) => (
                 <th key={h} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
                   {h}
@@ -299,23 +343,32 @@ export function ReadableTiersDemo() {
             </tr>
           </thead>
           <tbody className="text-muted-foreground">
-            {tiers.map((t) => (
-              <tr key={t.key}>
-                <td className="border border-foreground/15 px-3 py-1.5">{t.label}</td>
-                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.l}%</td>
-                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.chroma}</td>
-                <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">{t.lc}</td>
-              </tr>
-            ))}
+            {tiers.map((t) => {
+              const band = READABLE_USAGE[t.usage];
+              return (
+                <tr key={t.key}>
+                  <td className="border border-foreground/15 px-3 py-1.5">{t.label}</td>
+                  <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.l}%</td>
+                  <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.chroma}</td>
+                  <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">
+                    {t.lc}{" "}
+                    <span className="font-normal text-[10px] text-muted-foreground">
+                      / {band.floor}–{band.ceiling}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       <p className="text-xs text-muted-foreground">
         The strip is the full <strong>{palette === "lightness" ? "linear" : "tonal"}</strong> ramp (via{" "}
-        <code className="text-[11px]">themeForeground</code>) — both sides, from one extreme through the <strong>base</strong> (center) to the other;
-        foregrounds are picked from the readable side (the high-contrast end). <strong>Linear</strong> holds the theme&apos;s chroma (soft tinted
-        white); <strong>Tonal</strong> fades chroma to gray at the extreme. Measured on the glass-solid surface.
+        <code className="text-[11px]">themeForeground</code>) — extreme → base → extreme. Each tier takes the swatch landing in its{" "}
+        <strong>[floor–ceiling]</strong> band closest to target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). The panel is pinned over
+        the surface model&apos;s base, so the <strong>Lc matches what&apos;s rendered</strong>. <strong>Linear</strong> holds the theme&apos;s chroma;{" "}
+        <strong>Tonal</strong> fades to gray at the extreme.
       </p>
     </div>
   );
