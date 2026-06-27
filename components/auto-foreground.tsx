@@ -28,7 +28,7 @@ const FG_PALETTES: FgPalette[] = [
   "chroma",
 ];
 const DEFAULT_FG: FgConfig = {
-  palette: "tonal",
+  palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
   start: 0,
 };
 const DEFAULT_RAMP: RampConfig = {

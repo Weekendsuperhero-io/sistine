@@ -1,55 +1,68 @@
 "use client";
 
 import * as React from "react";
+import { readRampConfig } from "@/components/auto-foreground";
 import { Slider } from "@/components/ui/slider";
-import { apcaContrast, glassSolidSurface, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, formatOklch, glassSolidSurface, pickByContrast, themeForeground } from "@/lib/oklch-utils";
+import { cn } from "@/lib/utils";
 
 const TIERS: {
-  token: string;
   label: string;
+  target: number;
   cls: string;
   sample: string;
 }[] = [
   {
-    token: "--foreground-soft",
     label: "large / heading",
+    target: 58,
     cls: "text-2xl font-semibold",
     sample: "Large heading",
   },
   {
-    token: "--foreground",
     label: "body (default)",
+    target: 80,
     cls: "text-base",
     sample: "Body copy — the quick brown fox jumps over the lazy dog.",
   },
   {
-    token: "--foreground-strong",
     label: "fine / small",
+    target: 90,
     cls: "text-xs",
     sample: "Fine print — the quick brown fox jumps over the lazy dog.",
   },
 ];
 
+const PALETTES = [
+  {
+    key: "lightness",
+    label: "Linear",
+  },
+  {
+    key: "tonal",
+    label: "Tonal",
+  },
+] as const;
+
 /**
- * Live demo of the size-tiered foregrounds. Each tier is read straight from the token AutoForeground
- * sets — a COLOR drawn from the theme's tonal/lightness ramp (not gray) — shown on a real glass-solid
- * panel (where body text lives) at an adjustable 30–75% opacity, with its landed L, chroma, and the
- * APCA Lc against that solid floor (a real number). Updates on tint / light-dark. App-only.
+ * Live demo of the size-tiered foregrounds, drawn from the theme's LINEAR (lightness) ramp — which
+ * holds the theme chroma, so high-contrast text reads as a soft tinted white, not gray. Toggle to the
+ * Tonal ramp to watch it desaturate toward gray. Rendered on a real glass-solid panel at adjustable
+ * opacity; each tier is picked to hit its contrast band on that solid floor (a real Lc). App-only.
  */
 export function ReadableTiersDemo() {
   const [solidA, setSolidA] = React.useState(0.65);
-  const [state, setState] = React.useState<{
-    vals: Record<string, string>;
-    h: number;
-    c: number;
-    a: number;
-    dark: boolean;
-  }>({
-    vals: {},
+  const [palette, setPalette] = React.useState<"lightness" | "tonal">("lightness");
+  const [env, setEnv] = React.useState({
     h: 255,
     c: 0,
     a: 0,
     dark: true,
+    base: {
+      l: 60,
+      c: 0.15,
+      h: 255,
+    },
+    count: 12,
   });
 
   React.useEffect(() => {
@@ -60,14 +73,18 @@ export function ReadableTiersDemo() {
         const v = Number.parseFloat(cs.getPropertyValue(n));
         return Number.isNaN(v) ? fb : v;
       };
-      const vals: Record<string, string> = {};
-      for (const t of TIERS) vals[t.token] = cs.getPropertyValue(t.token).trim();
-      setState({
-        vals,
+      const r = readRampConfig();
+      setEnv({
         h: num("--glass-tint-h", 255),
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
+        base: {
+          l: r.l,
+          c: r.c,
+          h: r.h,
+        },
+        count: r.count,
       });
     };
     read();
@@ -80,32 +97,79 @@ export function ReadableTiersDemo() {
         "style",
       ],
     });
-    return () => obs.disconnect();
+    window.addEventListener("sistine-fg", read);
+    return () => {
+      obs.disconnect();
+      window.removeEventListener("sistine-fg", read);
+    };
   }, []);
 
   const surface = glassSolidSurface(
-    state.dark,
+    env.dark,
     {
-      h: state.h,
-      c: state.c,
-      a: state.a,
+      h: env.h,
+      c: env.c,
+      a: env.a,
     },
     solidA,
   );
+  const ramp = Array.from(
+    {
+      length: env.count + 1,
+    },
+    (_, level) =>
+      themeForeground({
+        palette,
+        level,
+        count: env.count,
+        base: env.base,
+        dark: env.dark,
+      }),
+  );
   const rows = TIERS.map((t) => {
-    const color = state.vals[t.token] || "currentColor";
-    const parsed = parseOklch(color);
+    const fg = pickByContrast(ramp, surface, t.target);
     return {
       ...t,
-      color,
-      l: parsed ? Math.round(parsed.l) : null,
-      chroma: parsed ? parsed.c.toFixed(3) : "—",
-      lc: parsed ? Math.round(Math.abs(apcaContrast(parsed, surface))) : null,
+      color: formatOklch(fg),
+      l: Math.round(fg.l),
+      chroma: fg.c.toFixed(3),
+      lc: Math.round(Math.abs(apcaContrast(fg, surface))),
     };
   });
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex rounded-lg border border-foreground/15 p-0.5 text-xs">
+          {PALETTES.map((p) => (
+            <button
+              type="button"
+              key={p.key}
+              onClick={() => setPalette(p.key)}
+              className={cn(
+                "rounded-md px-2.5 py-1 font-medium transition-colors",
+                palette === p.key ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p.label} ramp
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="whitespace-nowrap">Solid {Math.round(solidA * 100)}%</span>
+          <Slider
+            value={[
+              solidA,
+            ]}
+            min={0.3}
+            max={0.75}
+            step={0.01}
+            onValueChange={(v) => setSolidA(v[0] ?? solidA)}
+            className="w-28"
+          />
+        </div>
+      </div>
+
       <div
         className="glass-solid space-y-2 rounded-xl p-4"
         style={
@@ -116,7 +180,7 @@ export function ReadableTiersDemo() {
       >
         {rows.map((r) => (
           <div
-            key={r.token}
+            key={r.label}
             className={r.cls}
             style={{
               color: r.color,
@@ -125,20 +189,6 @@ export function ReadableTiersDemo() {
             {r.sample}
           </div>
         ))}
-      </div>
-
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="whitespace-nowrap">Solid opacity {Math.round(solidA * 100)}%</span>
-        <Slider
-          value={[
-            solidA,
-          ]}
-          min={0.3}
-          max={0.75}
-          step={0.01}
-          onValueChange={(v) => setSolidA(v[0] ?? solidA)}
-          className="flex-1"
-        />
       </div>
 
       <div className="overflow-x-auto">
@@ -150,23 +200,20 @@ export function ReadableTiersDemo() {
                 "L",
                 "chroma",
                 "Lc",
-              ].map((htxt) => (
-                <th key={htxt} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
-                  {htxt}
+              ].map((h) => (
+                <th key={h} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
+                  {h}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="text-muted-foreground">
             {rows.map((r) => (
-              <tr key={r.token}>
-                <td className="border border-foreground/15 px-3 py-1.5">
-                  <code className="rounded bg-foreground/10 px-1.5 py-0.5 font-mono text-xs">{r.token}</code>
-                  <div className="mt-1 text-xs">{r.label}</div>
-                </td>
-                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.l == null ? "—" : `${r.l}%`}</td>
+              <tr key={r.label}>
+                <td className="border border-foreground/15 px-3 py-1.5">{r.label}</td>
+                <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.l}%</td>
                 <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{r.chroma}</td>
-                <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">{r.lc ?? "—"}</td>
+                <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">{r.lc}</td>
               </tr>
             ))}
           </tbody>
@@ -174,9 +221,9 @@ export function ReadableTiersDemo() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Each foreground is a <strong>real color from the theme&apos;s tonal ramp</strong> (note the non-zero chroma), picked to hit its contrast band
-        on the glass-solid surface — body &amp; large carry the theme color; fine stays crisp (high contrast ⇒ near-neutral). Drag the opacity or
-        change the theme up top.
+        <strong>Linear</strong> holds the theme&apos;s chroma, so high-contrast text pushes toward a soft tinted white (note the higher chroma).{" "}
+        <strong>Tonal</strong> eases chroma to 0 at the extreme, desaturating toward gray. Both hit the same Lc — Linear just keeps more color. Picked
+        on the glass-solid surface, where body text lives.
       </p>
     </div>
   );
