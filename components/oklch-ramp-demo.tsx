@@ -64,11 +64,15 @@ export function OklchRampDemo() {
   // The base HUE tracks the chosen theme color: read the live glass tint (--glass-tint-h) and follow
   // it, so picking a tint from the top menu immediately re-rolls the foreground-source ramps below.
   const [h, setH] = React.useState(255);
+  const [tintActive, setTintActive] = React.useState(false);
   React.useEffect(() => {
     const root = document.documentElement;
     const read = () => {
-      const hv = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-tint-h"));
+      const cs = getComputedStyle(root);
+      const hv = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       if (!Number.isNaN(hv)) setH(hv);
+      const av = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
+      setTintActive(!Number.isNaN(av) && av > 0);
     };
     read();
     const obs = new MutationObserver(read);
@@ -98,9 +102,12 @@ export function OklchRampDemo() {
   ]);
   const dark = !mounted || resolvedTheme === "dark";
 
+  // A neutral theme (no active tint) → achromatic base / ramps (gray), matching the foreground; an
+  // active tint adds the color. The chroma slider tunes the vividness used while a tint is active.
+  const effectiveC = tintActive ? c : 0;
   const base = {
     l,
-    c,
+    c: effectiveC,
     h,
   };
   const baseCss = formatOklch(base);
@@ -120,7 +127,7 @@ export function OklchRampDemo() {
   // style) and APCA-pick the glass text. `dark` is hydration-safe (matches the SSR default first).
   const previewSurface = glassSurface(dark, {
     h,
-    c,
+    c: effectiveC,
     a: PREVIEW_TINT_A,
   });
   const autoFg = formatOklch(pickForeground(previewSurface));
@@ -128,7 +135,7 @@ export function OklchRampDemo() {
   const textColor = mode === "white" ? "oklch(100% 0 0)" : mode === "black" ? "oklch(15% 0 0)" : autoFg;
   const previewTintStyle = {
     "--glass-tint-h": String(h),
-    "--glass-tint-c": String(c),
+    "--glass-tint-c": String(effectiveC),
     "--glass-tint-a": String(PREVIEW_TINT_A),
   } as React.CSSProperties;
 
@@ -147,10 +154,11 @@ export function OklchRampDemo() {
           <span
             className="size-4 shrink-0 rounded-full border border-[var(--glass-border)]"
             style={{
-              background: `oklch(60% 0.15 ${h})`,
+              background: `oklch(60% ${tintActive ? 0.15 : 0} ${h})`,
             }}
           />
-          Tracking your theme color — hue {Math.round(h)}°. Change it from the top-menu tint switcher.
+          {tintActive ? `Tracking your theme color — hue ${Math.round(h)}°.` : "Neutral theme → achromatic (gray)."} Change it from the top-menu tint
+          switcher.
         </div>
 
         <div className="flex items-center gap-3">
@@ -178,7 +186,7 @@ export function OklchRampDemo() {
               onValueChange={(v) => setL(v[0] ?? l)}
             />
           </Control>
-          <Control label="Chroma" value={c.toFixed(3)}>
+          <Control label="Chroma" value={tintActive ? c.toFixed(3) : "0 · neutral"}>
             <Slider
               value={[
                 c,
@@ -186,6 +194,7 @@ export function OklchRampDemo() {
               min={0}
               max={0.37}
               step={0.005}
+              disabled={!tintActive}
               onValueChange={(v) => setC(v[0] ?? c)}
             />
           </Control>
