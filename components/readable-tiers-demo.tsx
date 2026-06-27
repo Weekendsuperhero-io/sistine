@@ -74,28 +74,35 @@ const PALETTES = [
   },
 ] as const;
 
-const ICON_WEIGHTS = [
+const ICONS = [
   {
     Icon: GearIcon,
-    weight: "thin" as const,
+    name: "gear",
   },
   {
     Icon: HeartIcon,
-    weight: "light" as const,
+    name: "heart",
   },
   {
     Icon: StarIcon,
-    weight: "regular" as const,
+    name: "star",
   },
   {
     Icon: BellIcon,
-    weight: "bold" as const,
+    name: "bell",
   },
   {
     Icon: MagnifyingGlassIcon,
-    weight: "fill" as const,
+    name: "search",
   },
 ];
+const WEIGHTS = [
+  "thin",
+  "light",
+  "regular",
+  "bold",
+  "fill",
+] as const;
 
 /**
  * Live demo of the size-tiered foregrounds. Shows the full linear/tonal ramp (via themeForeground, the
@@ -310,18 +317,29 @@ export function ReadableTiersDemo() {
               </div>
             ))}
           <div
-            className="flex flex-wrap items-end gap-4"
             style={{
               color: byKey.ui?.fmt,
             }}
           >
-            {ICON_WEIGHTS.map(({ Icon, weight }) => (
-              <div key={weight} className="flex flex-col items-center gap-1">
-                <Icon size={22} weight={weight} />
-                <span className="text-[9px] text-muted-foreground">{weight}</span>
-              </div>
-            ))}
-            <span className="self-center text-xs font-medium">ui / icons — thin glyphs need more contrast than bold / fill</span>
+            <div className="mb-2 text-xs font-medium">ui / icons — every icon × weight (same ui color); thin reads weaker than bold / fill</div>
+            <div className="grid grid-cols-[auto_repeat(5,minmax(0,1fr))] items-center gap-x-2 gap-y-1.5">
+              <span />
+              {WEIGHTS.map((w) => (
+                <span key={w} className="text-center text-[9px] text-muted-foreground">
+                  {w}
+                </span>
+              ))}
+              {ICONS.map(({ Icon, name }) => (
+                <React.Fragment key={name}>
+                  <span className="text-[9px] text-muted-foreground">{name}</span>
+                  {WEIGHTS.map((w) => (
+                    <span key={w} className="flex justify-center">
+                      <Icon size={20} weight={w} />
+                    </span>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
       </div>
