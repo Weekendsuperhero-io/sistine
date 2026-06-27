@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, glassSurface, readableForeground, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import { formatOklch, glassSolidSurface, readableForeground, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -166,17 +166,22 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
       root.style.setProperty("--auto-fg", at(s));
       root.style.setProperty("--muted-foreground", at(Math.min(s + 1, count)));
 
-      // Size-tiered foregrounds (ARC Bronze Simple Mode bands), judged against the glass surface text
-      // sits on — headings ease off the pure-extreme spike (large band) while fine print stays crisp.
+      // Size-tiered foregrounds (ARC Bronze bands), judged against the glass-SOLID surface — body text
+      // lives on the solid tier (never sheer glass), so banding there gives a real, reliable contrast.
       const cs = getComputedStyle(root);
       const tintH = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const tintC = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
       const tintA = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
-      const surface = glassSurface(dark, {
-        h: Number.isNaN(tintH) ? 255 : tintH,
-        c: Number.isNaN(tintC) ? 0 : tintC,
-        a: Number.isNaN(tintA) ? 0 : tintA,
-      });
+      const solidA = Number.parseFloat(cs.getPropertyValue("--glass-solid-a"));
+      const surface = glassSolidSurface(
+        dark,
+        {
+          h: Number.isNaN(tintH) ? 255 : tintH,
+          c: Number.isNaN(tintC) ? 0 : tintC,
+          a: Number.isNaN(tintA) ? 0 : tintA,
+        },
+        Number.isNaN(solidA) ? 0.65 : solidA,
+      );
       root.style.setProperty(
         "--foreground-soft",
         formatOklch(

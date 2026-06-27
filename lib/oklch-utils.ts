@@ -524,6 +524,32 @@ export function glassSurface(
   };
 }
 
+/**
+ * The effective glass-SOLID surface color — the legible floor body text actually sits on (never sheer
+ * glass). The solid floor (neutral `--glass-solid-l`, 99 light / 18 dark) is composited over the base
+ * at `solidA` (the `--glass-solid-a` opacity, ~0.3–0.75), then the tint wash on top. Because that floor
+ * is a KNOWN surface, banding text against this — rather than the sheer estimate — gives a real Lc.
+ */
+export function glassSolidSurface(
+  dark: boolean,
+  tint: {
+    h: number;
+    c: number;
+    a: number;
+  },
+  solidA: number,
+): OklchColor {
+  const baseL = dark ? 20 : 95;
+  const solidL = dark ? 18 : 99;
+  const washL = dark ? 58 : 72;
+  const floorL = baseL * (1 - solidA) + solidL * solidA;
+  return {
+    l: floorL * (1 - tint.a) + washL * tint.a,
+    c: tint.c * 2.5 * tint.a,
+    h: tint.h,
+  };
+}
+
 /** Options for {@link themeForeground}. */
 export interface ThemeForegroundOptions {
   /** Which of the ramp generator's axes the text levels follow. */
