@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ReadableTiersDemo } from "@/components/readable-tiers-demo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /** Block code sample. */
@@ -19,7 +20,7 @@ export default function ThemingPage() {
   return (
     <div className="text-foreground">
       <div className="mb-6 md:mb-8">
-        <h1 className="mb-4 font-bold text-2xl text-foreground sm:text-3xl md:text-4xl">Theming</h1>
+        <h1 className="mb-4 font-bold text-2xl text-foreground-soft sm:text-3xl md:text-4xl">Theming</h1>
         <p className="text-base text-muted-foreground sm:text-lg">
           Recolor and restyle the glass with a few CSS hooks. They ship in <IC>@sistine/theme</IC> (and are embedded in every component), so they work
           the moment you install anything — these are the same knobs the demo&apos;s header switchers drive.
@@ -281,6 +282,9 @@ export default function ThemingPage() {
                 <Code>{`<h1 className="text-foreground-soft">Heading</h1>
 <p className="text-foreground">Body copy…</p>
 <small className="text-foreground-strong">Fine print</small>`}</Code>
+              </div>
+              <div className="mt-4">
+                <ReadableTiersDemo />
               </div>
             </div>
 
