@@ -269,7 +269,8 @@ export function ReadableTiersDemo() {
         </div>
         <div className="flex gap-0.5">
           {ramp.map((c, i) => (
-            <div key={`${i}-${formatOklch(c)}`} className="flex flex-1 flex-col items-center gap-1">
+            <div key={`${i}-${formatOklch(c)}`} className="flex flex-1 flex-col items-center gap-0.5">
+              <span className="h-3 text-[8px] font-semibold leading-none text-foreground">{pickMarks.get(i) ?? (i === baseIdx ? "base" : "")}</span>
               <div
                 className={cn(
                   "h-8 w-full rounded-sm",
@@ -281,7 +282,7 @@ export function ReadableTiersDemo() {
                 }}
                 title={formatOklch(c)}
               />
-              <span className="h-3 text-[9px] leading-none text-muted-foreground">{pickMarks.get(i) ?? (i === baseIdx ? "base" : "")}</span>
+              <span className="text-[8px] leading-none text-muted-foreground tabular-nums">{Math.round(lcOf(c))}</span>
             </div>
           ))}
         </div>
@@ -342,6 +343,7 @@ export function ReadableTiersDemo() {
             <tr className="text-foreground">
               {[
                 "tier",
+                "color",
                 "L",
                 "chroma",
                 "Lc / band",
@@ -358,6 +360,15 @@ export function ReadableTiersDemo() {
               return (
                 <tr key={t.key}>
                   <td className="border border-foreground/15 px-3 py-1.5">{t.label}</td>
+                  <td className="border border-foreground/15 px-3 py-1.5">
+                    <span
+                      className="inline-block size-5 rounded border border-foreground/20 align-middle"
+                      style={{
+                        background: t.fmt,
+                      }}
+                      title={t.fmt}
+                    />
+                  </td>
                   <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.l}%</td>
                   <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.chroma}</td>
                   <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">
