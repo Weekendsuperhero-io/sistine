@@ -102,10 +102,11 @@ export function ReadableTiersDemo() {
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
+        // ramp base follows the chosen theme color (the live tint hue); l/c/count from the ramp config
         base: {
           l: r.l,
           c: r.c,
-          h: r.h,
+          h: num("--glass-tint-h", r.h),
         },
         count: r.count,
       });

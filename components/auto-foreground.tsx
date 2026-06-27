@@ -141,27 +141,25 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const storedFg = readFgConfig();
       const storedRamp = readRampConfig();
       const palette = paletteProp ?? storedFg.palette;
-      const l = rl ?? storedRamp.l;
-      const c = rc ?? storedRamp.c;
-      const h = rh ?? storedRamp.h;
       const count = rcount ?? storedRamp.count;
-      const base = {
-        l,
-        c,
-        h,
-      };
-
-      // The glass-SOLID surface body text sits on (live tint + --glass-solid-a) — a known surface, so
-      // the contrast picks below are real, not a sheer-glass estimate.
       const cs = getComputedStyle(root);
       const num = (name: string, fb: number) => {
         const v = Number.parseFloat(cs.getPropertyValue(name));
         return Number.isNaN(v) ? fb : v;
       };
+      // Foregrounds FOLLOW THE CHOSEN THEME COLOR: the ramp's hue is the live glass tint (--glass-tint-h);
+      // its lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
+      // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
+      const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
+      const base = {
+        l: rl ?? storedRamp.l,
+        c: rc ?? storedRamp.c,
+        h: tintH,
+      };
       const surface = glassSolidSurface(
         dark,
         {
-          h: num("--glass-tint-h", h),
+          h: tintH,
           c: num("--glass-tint-c", 0),
           a: num("--glass-tint-a", 0),
         },
