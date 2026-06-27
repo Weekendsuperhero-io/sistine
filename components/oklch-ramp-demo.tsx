@@ -102,23 +102,26 @@ export function OklchRampDemo() {
   ]);
   const dark = !mounted || resolvedTheme === "dark";
 
+  const gamut = wideGamut ? "p3" : "srgb";
+  // Cap chroma at the in-gamut max for this L+hue (sRGB, or P3 when the wide-gamut toggle is on), so the
+  // slider and value can never show a color the screen can't render.
+  const chromaMax = wideGamut ? maxP3Chroma(l, h) : maxSrgbChroma(l, h);
+  const cInGamut = Math.min(c, chromaMax);
   // A neutral theme (no active tint) → achromatic base / ramps (gray), matching the foreground; an
-  // active tint adds the color. The chroma slider tunes the vividness used while a tint is active.
-  const effectiveC = tintActive ? c : 0;
+  // active tint adds the (gamut-clamped) color. The chroma slider tunes the vividness while tinted.
+  const effectiveC = tintActive ? cInGamut : 0;
   const base = {
     l,
     c: effectiveC,
     h,
   };
   const baseCss = formatOklch(base);
-  const gamut = wideGamut ? "p3" : "srgb";
 
   // Each ramp covers the FULL range of its axis (the utility derives the steps from `count`),
   // with the seed centered at index `count`.
   const hues = hueRamp(base, count);
   // Cap the chroma sweep at the in-gamut max for THIS lightness+hue (per the wide-gamut toggle), so
   // every swatch is a distinct, real color — instead of several past the gamut all clamping to one.
-  const chromaMax = wideGamut ? maxP3Chroma(l, h) : maxSrgbChroma(l, h);
   const chromas = chromaRamp(base, count, chromaMax);
   const lights = lightnessRamp(base, count);
   const tonal = lightnessRampColors(base, count).map((color) => formatOklch(clampToGamut(color, gamut)));
@@ -186,13 +189,13 @@ export function OklchRampDemo() {
               onValueChange={(v) => setL(v[0] ?? l)}
             />
           </Control>
-          <Control label="Chroma" value={tintActive ? c.toFixed(3) : "0 · neutral"}>
+          <Control label="Chroma" value={tintActive ? `${cInGamut.toFixed(3)} / ${chromaMax.toFixed(2)} max` : "0 · neutral"}>
             <Slider
               value={[
-                c,
+                cInGamut,
               ]}
               min={0}
-              max={0.37}
+              max={chromaMax}
               step={0.005}
               disabled={!tintActive}
               onValueChange={(v) => setC(v[0] ?? c)}
