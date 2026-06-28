@@ -136,7 +136,7 @@
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
      == surface); frescoes override it to anchor text off their multi-hue surface (Muse night: surface
-     260, text 310). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
+     222, text 310). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
   --glass-fg-h: var(--glass-tint-h);
   --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
   /* Solid accent that tracks the FOREGROUND hue (--glass-fg-h) at a fixed vivid chroma — used by active
@@ -818,7 +818,7 @@
   /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
      interpolated `in oklch` so the neon stays saturated instead of greying between stops. The text/accent
      anchor is a purple-magenta (off the cyan gradient start) so night text reads legibly, not washed-blue. */
-  --glass-tint-h: 260; /* surface: the night design hue (cool) — unaffected by the text anchor */
+  --glass-tint-h: 222; /* surface: the night cyan (the gradient's cyan start) — kept exactly as before */
   --glass-fg-h: 310; /* text/accent anchor: purple-magenta, off the cyan gradient start */
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
@@ -844,8 +844,7 @@
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
    averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {
-  --glass-tint-h: 75; /* surface: amber, the fresco's first jewel (kept as designed) */
-  --glass-fg-h: 18; /* text/accent anchor: rose */
+  --glass-tint-h: 18; /* rose — text shares the surface hue (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
@@ -902,8 +901,7 @@
 /* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
    glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
-  --glass-tint-h: 32; /* surface: warm dusk (matches night) */
-  --glass-fg-h: 350; /* text/accent anchor: dusk-rose (warm reads muddy as light-mode text) */
+  --glass-tint-h: 350; /* dusk-rose — text shares the surface hue (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
@@ -911,8 +909,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="gloaming"] {
-  --glass-tint-h: 32; /* surface: warm dusk */
-  --glass-fg-h: 32; /* night text stays warm — overrides the day block's rose anchor */
+  --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
   --glass-crystal-fresco: var(--glass-bg);
