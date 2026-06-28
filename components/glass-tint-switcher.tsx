@@ -163,44 +163,16 @@ const BESPOKE = new Set<string>([
   "gloaming",
 ]);
 
-function applyTint(h: number, c: number, a: number, tint: string | null, customize = false) {
+function applyTint(h: number, c: number, a: number, tint: string | null) {
   const root = document.documentElement;
   if (tint) {
     root.dataset.glassTint = tint;
   } else {
     delete root.dataset.glassTint;
   }
-  // A fresco selected as-is is driven by its [data-glass-tint] CSS block (which carries the dark/light hue
-  // variants AND the surface/foreground split --glass-tint-h vs --glass-fg-h); writing inline vars would
-  // shadow that block — AutoForeground reads the computed value, so the inline number would win and the CSS
-  // anchor be ignored. Inline ONLY for jewels, a custom hue, or an explicit slider override on a fresco.
-  if (tint && !customize) {
-    root.style.removeProperty("--glass-tint-h");
-    root.style.removeProperty("--glass-tint-c");
-    root.style.removeProperty("--glass-tint-a");
-    root.style.removeProperty("--glass-fg-h");
-  } else {
-    // Inline override: the chosen hue drives BOTH the surface tint and the foreground (text/accent), so
-    // dragging Hue on a jewel or a customized fresco moves text + glass together.
-    root.style.setProperty("--glass-tint-h", String(h));
-    root.style.setProperty("--glass-tint-c", String(c));
-    root.style.setProperty("--glass-tint-a", String(a));
-    root.style.setProperty("--glass-fg-h", String(h));
-  }
-}
-
-/** Read the live computed tint vars off <html> — used to seed the sliders from a fresco's CSS block. */
-function computedTint() {
-  const cs = getComputedStyle(document.documentElement);
-  const num = (n: string, fb: number) => {
-    const v = Number.parseFloat(cs.getPropertyValue(n));
-    return Number.isNaN(v) ? fb : v;
-  };
-  return {
-    h: num("--glass-tint-h", 250),
-    c: num("--glass-tint-c", 0.018),
-    a: num("--glass-tint-a", 0),
-  };
+  root.style.setProperty("--glass-tint-h", String(h));
+  root.style.setProperty("--glass-tint-c", String(c));
+  root.style.setProperty("--glass-tint-a", String(a));
 }
 
 /**
@@ -231,22 +203,10 @@ export function GlassTintSwitcher() {
       // ignore malformed storage
     }
     setBase(storedBase);
-    const fresco = BESPOKE.has(storedBase);
-    // A fresco is "customized" only if the stored values diverge from its preset; otherwise its CSS block drives.
-    const customized = fresco && !!preset && (nh !== preset.h || nc !== preset.c || na !== preset.a);
-    applyTint(nh, nc, na, fresco ? storedBase : null, customized);
-    // Seed the sliders from the live CSS value for an as-is fresco; from the stored values otherwise.
-    const seed =
-      fresco && !customized
-        ? computedTint()
-        : {
-            h: nh,
-            c: nc,
-            a: na,
-          };
-    setH(seed.h);
-    setC(seed.c);
-    setA(seed.a);
+    setH(nh);
+    setC(nc);
+    setA(na);
+    applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
   }, []);
 
   const persist = (b: PresetValue, nh: number, nc: number, na: number) => {
@@ -267,19 +227,10 @@ export function GlassTintSwitcher() {
 
   const choose = (p: (typeof PRESETS)[number]) => {
     setBase(p.value);
-    const fresco = BESPOKE.has(p.value);
-    applyTint(p.h, p.c, p.a, fresco ? p.value : null);
-    // Sliders reflect the fresco's live (mode-aware) CSS value, not the display-only PRESETS numbers.
-    const seed = fresco
-      ? computedTint()
-      : {
-          h: p.h,
-          c: p.c,
-          a: p.a,
-        };
-    setH(seed.h);
-    setC(seed.c);
-    setA(seed.a);
+    setH(p.h);
+    setC(p.c);
+    setA(p.a);
+    applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
     persist(p.value, p.h, p.c, p.a);
   };
 
@@ -292,8 +243,7 @@ export function GlassTintSwitcher() {
     const tint = BESPOKE.has(base) ? base : null;
     const next: PresetValue = tint ?? "custom";
     setBase(next);
-    // A slider drag is an explicit override — write inline even on a fresco (customize = true).
-    applyTint(nh, nc, na, tint, true);
+    applyTint(nh, nc, na, tint);
     persist(next, nh, nc, na);
   };
 
