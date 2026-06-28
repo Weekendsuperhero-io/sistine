@@ -1,6 +1,6 @@
+import { ForegroundTester } from "@/components/foreground-tester";
 import { GradientSchemesDemo } from "@/components/gradient-schemes-demo";
 import { OklchRampDemo } from "@/components/oklch-ramp-demo";
-import { ReadableTiersDemo } from "@/components/readable-tiers-demo";
 
 export const metadata = {
   title: "OKLCH ramps · Sistine",
@@ -19,19 +19,17 @@ export default function ColorsPage() {
         <div className="space-y-1.5">
           <h2 className="font-semibold text-lg">Foreground source</h2>
           <p className="text-sm text-muted-foreground">
-            Pick the foreground ramp — <strong>Tonal / Linear / Hue / Chroma</strong> — and it sets the site&apos;s text palette live (via
+            Pick the text foreground ramp — <strong>Tonal</strong> or <strong>Linear</strong> — and it sets the site&apos;s text palette live (via
             AutoForeground), band-picked for legibility (ARC Bronze). The panel below is a{" "}
             <strong>single glass-solid card on the page background</strong> — the real surface text sits on — so its Lc matches production. Tune the
-            base color in the generator above; Hue / Chroma are constant-lightness (see the note).
+            base color in the generator above; icons are demoed separately (lightness solved for the ui band at any hue).
           </p>
         </div>
-        <ReadableTiersDemo
+        <ForegroundTester
           live
           palettes={[
-            "tonal",
             "lightness",
-            "hue",
-            "chroma",
+            "tonal",
           ]}
         />
       </section>

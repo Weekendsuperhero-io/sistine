@@ -1,15 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  formatOklch,
-  glassSolidSurface,
-  pickInBand,
-  READABLE_USAGE,
-  readableForeground,
-  type ThemeForegroundOptions,
-  themeForeground,
-} from "@/lib/oklch-utils";
+import { formatOklch, glassSolidSurface, pickInBand, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -18,10 +10,6 @@ const FG_EVENT = "sistine-fg";
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
-  /** Which ramp level is `--foreground`; the next level down is `--muted-foreground`. */
-  start: number;
-  /** Icon foreground hue (0–360) for `--foreground-ui`; null → icons follow the theme/text color. */
-  iconHue: number | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -39,8 +27,6 @@ const FG_PALETTES: FgPalette[] = [
 ];
 const DEFAULT_FG: FgConfig = {
   palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
-  start: 0,
-  iconHue: null,
 };
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
@@ -49,7 +35,7 @@ const DEFAULT_RAMP: RampConfig = {
   count: 12, // finest ramp (12 steps/side) — the most cohesive foreground set in practice
 };
 
-/** Read the persisted foreground palette + start level; falls back to tonal / 0. */
+/** Read the persisted foreground palette; falls back to the default (Linear). */
 export function readFgConfig(): FgConfig {
   try {
     const raw = localStorage.getItem(FG_STORAGE_KEY);
@@ -58,8 +44,6 @@ export function readFgConfig(): FgConfig {
       if (FG_PALETTES.includes(parsed.palette as FgPalette)) {
         return {
           palette: parsed.palette as FgPalette,
-          start: typeof parsed.start === "number" ? parsed.start : 0,
-          iconHue: typeof parsed.iconHue === "number" ? parsed.iconHue : null,
         };
       }
     }
@@ -126,8 +110,6 @@ export function writeRampConfig(config: RampConfig): void {
 export interface AutoForegroundProps {
   /** Foreground ramp palette. Overrides the persisted config when set. */
   palette?: FgPalette;
-  /** Which ramp level is `--foreground` (the next level down is `--muted-foreground`). Overrides persisted. */
-  start?: number;
   /** Ramp base color + step count. Overrides the persisted ramp when set. */
   ramp?: RampConfig;
 }
@@ -142,8 +124,8 @@ export interface AutoForegroundProps {
  *
  * Configure declaratively — `<AutoForeground palette="tonal" ramp={{ l, c, h, count }} />` — or, with no
  * props, it reads a persisted config (`writeRampConfig`, e.g. the /colors generator) and re-applies on the
- * `sistine-fg` event. Mount it once at the app root. (`start` is accepted for back-compat but the
- * foreground level is now contrast-target-driven, not a manual ramp index.)
+ * `sistine-fg` event. Mount it once at the app root. The foreground level is contrast-target-driven
+ * (the ARC-Bronze band per tier), not a manual ramp index.
  */
 export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoForegroundProps = {}) {
   const rl = rampProp?.l;
@@ -208,7 +190,6 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const tier = (band: { floor: number; target: number; ceiling: number }) => formatOklch(pickInBand(ramp, surface, band));
       const fg = tier(READABLE_USAGE.body);
       root.style.setProperty("--foreground", fg);
-      root.style.setProperty("--auto-fg", fg);
       root.style.setProperty(
         "--muted-foreground",
         tier({
@@ -219,25 +200,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       );
       root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
       root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
-
-      // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
-      // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
-      // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
-      const iconHue = storedFg.iconHue;
-      root.style.setProperty(
-        "--foreground-ui",
-        formatOklch(
-          readableForeground(surface, {
-            usage: "ui",
-            hue: iconHue ?? tintH,
-            chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
-          }),
-        ),
-      );
     };
 
     update();
-    // Theme class drives the light/dark extreme; palette/base/count/start changes come through FG_EVENT.
+    // Theme class drives the light/dark extreme; palette/base/count changes come through FG_EVENT.
     const observer = new MutationObserver(update);
     observer.observe(root, {
       attributes: true,

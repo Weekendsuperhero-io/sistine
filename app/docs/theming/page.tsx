@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ReadableTiersDemo } from "@/components/readable-tiers-demo";
+import { ForegroundTester } from "@/components/foreground-tester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /** Block code sample. */
@@ -283,9 +283,6 @@ export default function ThemingPage() {
 <p className="text-foreground">Body copy…</p>
 <small className="text-foreground-strong">Fine print</small>`}</Code>
               </div>
-              <div className="mt-4">
-                <ReadableTiersDemo />
-              </div>
             </div>
 
             <div>
@@ -435,6 +432,13 @@ const onAccent = useReadableForeground(accent, "large");
             </div>
           </CardContent>
         </Card>
+
+        {/* Live preview sits on the page background (one glass-solid card on the canvas) — not nested in a
+            glass card — so its modeled Lc matches what ships. */}
+        <section className="space-y-2 text-foreground">
+          <h3 className="font-semibold">Foreground tier preview</h3>
+          <ForegroundTester />
+        </section>
 
         <Card variant="glass" id="tuning" className="scroll-mt-24 text-foreground">
           <CardHeader>
