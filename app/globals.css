@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Class-based dark mode, v4-standard form: matches the `.dark` element ITSELF and its descendants, so
+   consumers can toggle `.dark` on any wrapper (not just <html> / next-themes), at zero specificity
+   (`:where`) so `dark:` overrides by cascade order like every other variant. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
    folds in `var(--glow-layer, …)` so the glow rides INSIDE each style's shadow — surviving the
