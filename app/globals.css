@@ -805,7 +805,7 @@
 .dark[data-glass-tint="muse"] {
   /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
      interpolated `in oklch` so the neon stays saturated instead of greying between stops. */
-  --glass-tint-h: 260;
+  --glass-tint-h: 222;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
   --glass-bg: linear-gradient(
@@ -828,9 +828,9 @@
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
-   averaging to grey. Border + crystal + accent pick up the warm amber base via the tint vars. */
+   averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {
-  --glass-tint-h: 75;
+  --glass-tint-h: 18;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
@@ -885,9 +885,9 @@
 }
 
 /* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
-   glow. The warm gold base drives border + crystal + accent. */
+   glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
-  --glass-tint-h: 32;
+  --glass-tint-h: 350;
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
@@ -895,6 +895,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="gloaming"] {
+  --glass-tint-h: 32; /* night keeps the warm glow; light mode uses the dusk-rose anchor above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
   --glass-crystal-fresco: var(--glass-bg);
