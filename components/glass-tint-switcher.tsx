@@ -16,6 +16,11 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
  * adjust. "Bone" is a warm, very-low-chroma off-white you can nudge further with the Saturation/Wash sliders.
  * "Sistine" is bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border /
  * accent / wash still respond to the sliders via the inline tint vars.
+ *
+ * IMPORTANT: applyTint() INLINES h/c/a onto <html>, which shadows the [data-glass-tint] CSS block. For the
+ * frescoes (sistine/muse/aurora/gloaming) the h/c/a here MUST stay identical to those CSS blocks in
+ * app/globals.css (the CSS is the fallback for static, no-switcher consumers) — otherwise the demo and a
+ * static page render different fresco surfaces.
  */
 const PRESETS = [
   {
