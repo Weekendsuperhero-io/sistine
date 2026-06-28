@@ -711,10 +711,11 @@ export const READABLE_USAGE = {
     target: 58,
     ceiling: 76,
   },
-  /** UI labels, icons, focus rings — beyond ARC Bronze scope (Bronze is content-text only). */
+  /** UI labels, icons, focus rings — beyond ARC Bronze scope (Bronze is content-text only). Target at the
+   * APCA "other content" level (60); ceiling 70 stays below body's 75 floor, so icons read quieter than text. */
   ui: {
     floor: 45,
-    target: 52,
+    target: 60,
     ceiling: 70,
   },
   /** Non-text: borders, dividers, graphics — beyond ARC Bronze scope. */
