@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
   apcaContrast,
+  complement,
   formatOklch,
   glassSolidSurface,
   type OklchColor,
@@ -343,7 +344,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
               icons · <code>readableForeground</code>(ui{iconHue != null ? `, hue ${Math.round(iconHue)}°` : ""}) — Lc {iconLc}
             </span>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? (iconHue ?? Math.round(env.h)) : null)} />
+              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? (iconHue ?? Math.round(complement(env.base).h)) : null)} />
               <span className="whitespace-nowrap">color</span>
               {iconHue != null && (
                 <Slider

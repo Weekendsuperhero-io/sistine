@@ -135,16 +135,16 @@ export function hueRamp(base: OklchColor | string, count: number): string[] {
 // Rotate the base hue to derive complementary / harmonious colors (lightness + chroma held). oklch
 // hue is perceptually even, so a 180° "complement" is a balanced opposite — not the skewed HSL/RGB one.
 
-/** The perceptual complement: same L + C, hue rotated 180° (alpha preserved), gamut-clamped. */
+/** The perceptual complement: same L + C, hue rotated 180° (alpha preserved), gamut-clamped — the
+ * 180° case of {@link harmony}. */
 export function complement(base: OklchColor | string, gamut: "srgb" | "p3" = "srgb"): OklchColor {
-  const c = toColor(base);
-  return clampToGamut(
-    {
-      ...c,
-      h: wrapHue(c.h + 180),
-    },
+  return harmony(
+    base,
+    [
+      180,
+    ],
     gamut,
-  );
+  )[1];
 }
 
 /**
@@ -334,8 +334,8 @@ export interface TonalScaleOptions {
 /**
  * Generate a tonal color scale — a single hue with lightness eased light→dark and chroma that
  * rises with the scale but is capped by the chosen gamut (sRGB by default; pass `gamut: "p3"` for a
- * punchier wide-gamut peak). Returns lightest → darkest oklch strings.
- * `tonalScale({ hue: 252 })` gives a Radix/Tailwind-shaped 12-step blue scale.
+ * punchier wide-gamut peak). Returns lightest → darkest as OklchColor[].
+ * `tonalScaleColors({ hue: 252 })` gives a Radix/Tailwind-shaped 12-step blue scale.
  */
 export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
   const {
@@ -365,11 +365,6 @@ export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
     });
   }
   return out;
-}
-
-/** Tonal scale as CSS oklch strings (lightest → darkest). */
-export function tonalScale(options: TonalScaleOptions): string[] {
-  return tonalScaleColors(options).map((color) => formatOklch(color));
 }
 
 /** Which ramp drives a {@link rampGradient}. */
@@ -506,28 +501,11 @@ export function pickForeground(bg: OklchColor | string, light: OklchColor = FG_L
 }
 
 /**
- * From a ramp of candidate colors, the one whose |APCA Lc| on `surface` is closest to `targetLc`. Lets
- * you draw a readable foreground from a real palette — a tonal / lightness ramp — instead of a neutral
- * gray, so text keeps the theme's color while still hitting its contrast band.
- */
-export function pickByContrast(ramp: OklchColor[], surface: OklchColor | string, targetLc: number): OklchColor {
-  let best = ramp[0];
-  let bestErr = Number.POSITIVE_INFINITY;
-  for (const color of ramp) {
-    const err = Math.abs(Math.abs(apcaContrast(color, surface)) - targetLc);
-    if (err < bestErr) {
-      bestErr = err;
-      best = color;
-    }
-  }
-  return best;
-}
-
-/**
- * Band-aware sibling of {@link pickByContrast}: from `ramp`, prefer colors whose |APCA Lc| on
- * `surface` falls within [floor, ceiling] and sit closest to `target` — so the floor is honored as a
- * MINIMUM (never undershot) and the ceiling caps the spike. If nothing lands in band (ramp too coarse
- * or the surface can't support it), returns the color nearest the band edge.
+ * From `ramp`, prefer colors whose |APCA Lc| on `surface` falls within [floor, ceiling] and sit closest
+ * to `target` — so the floor is honored as a MINIMUM (never undershot) and the ceiling caps the spike.
+ * Draws a readable foreground from a real palette (a tonal / lightness ramp) instead of a neutral gray,
+ * so text keeps the theme's color while hitting its band. If nothing lands in band (ramp too coarse or
+ * the surface can't support it), returns the color nearest the band edge.
  */
 export function pickInBand(
   ramp: OklchColor[],
