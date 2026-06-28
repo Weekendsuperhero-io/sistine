@@ -29,7 +29,9 @@ const Table = React.forwardRef<
       striped?: boolean;
     }
 >(({ className, variant = "glass", striped = false, ...props }, ref) => {
-  const stripedClass = striped ? "[&_tbody_tr]:border-0 [&_tbody_tr:nth-child(even)]:bg-foreground/[0.04]" : "";
+  const stripedClass = striped
+    ? "[&_tbody_tr]:border-0 [&_tbody_tr:nth-child(even)]:bg-black/[0.07] dark:[&_tbody_tr:nth-child(even)]:bg-black/[0.22] [&_tbody_tr:nth-child(even):hover]:bg-muted/50"
+    : "";
 
   return (
     <div data-slot="table-container" className={variant !== "default" ? "rounded-lg overflow-hidden" : ""}>
@@ -52,7 +54,7 @@ const Table = React.forwardRef<
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(({ className, ...props }, ref) => (
-  <thead ref={ref} data-slot="table-header" className={cn("[&_tr]:border-b bg-foreground/[0.08]", className)} {...props} />
+  <thead ref={ref} data-slot="table-header" className={cn("[&_tr]:border-b bg-black/[0.12] dark:bg-black/[0.35]", className)} {...props} />
 ));
 TableHeader.displayName = "TableHeader";
 
