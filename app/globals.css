@@ -487,7 +487,8 @@
   box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
 }
 
-/* Crystal — clear glass. Sheen + glow are OPT-IN: add the `glass-sheen` utility (e.g. `glass-crystal glass-sheen`). */
+/* Crystal — glass with a STATIC gloss (top highlight + diagonal streak + bottom glow), always on so it
+   reads as crystal at rest. The hover SHIMMER (the gloss sliding on hover) is OPT-IN: add `glass-sheen`. */
 @utility glass-crystal {
   position: relative;
   background-color: var(--glass-crystal-bg) !important;
@@ -499,14 +500,38 @@
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
   transition: all 0.3s ease !important;
 
+  /* Static gloss: top highlight + diagonal streak. No background-size/position, so it doesn't move.
+     glass-sheen redeclares ::before later in the file with the 200%/hover shift to add the shimmer. */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
   &:hover {
     box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
   }
 }
 
-/* Sheen — OPT-IN crystalline gloss (a highlight streak, a bottom glow, and a hover shimmer). Add it
-   alongside any glass surface, e.g. `glass-crystal glass-sheen`. Pseudo-element based, so it sets
-   position:relative — avoid on sticky/fixed surfaces. Default crystal ships clear (opt in deliberately). */
+/* Sheen — the OPT-IN hover shimmer (the gloss slides across on hover). Self-contained (highlight + diagonal
+   + glow + the 200%/hover shift), so it works on any glass surface AND, layered on glass-crystal (which
+   already has the static gloss), its ::before/::after override crystal's to add the motion. Pseudo-element
+   based → position:relative; avoid on sticky/fixed surfaces. */
 @utility glass-sheen {
   position: relative;
 
@@ -611,10 +636,13 @@
 [data-glass="crystal"] .glass-surface-sm,
 [data-glass="crystal"] .glass-surface-lg {
   background-color: var(--glass-crystal-bg) !important;
-  /* Clear crystal re-skin: the fresco gradient over the wash, no baked sheen (sheen is opt-in via the
-     glass-sheen utility). The wash is the bottom layer so the tint shows through. */
+  /* Static gloss BAKED into the background (this re-skin can't use ::before/::after — those need
+     position:relative, which would break sticky/fixed surfaces): top highlight + bottom glow + diagonal
+     streak over the fresco + wash. The hover shimmer stays the opt-in glass-sheen utility. */
   background-image:
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
@@ -642,7 +670,9 @@
 }
 [data-glass="crystal"] .glass-solid {
   background-image:
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
+    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
+    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   background-color: var(--glass-solid-bg) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
@@ -825,7 +855,7 @@
      interpolated `in oklch` so the neon stays saturated instead of greying between stops. The text/accent
      anchor is a purple-magenta (off the cyan gradient start) so night text reads legibly, not washed-blue. */
   --glass-tint-h: 230; /* surface: mirrors the Muse switcher preset (same as day); night character is the --glass-bg below */
-  --glass-fg-h: 310; /* text/accent anchor: purple-magenta — the ONE fresco with a surface≠text split */
+  --glass-fg-h: 300; /* text/accent anchor: purple-magenta — the ONE fresco with a surface≠text split */
   --glass-tint-c: 0.06;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
