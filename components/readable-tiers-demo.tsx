@@ -154,10 +154,10 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
-        // ramp base follows the theme color: hue = tint; chroma = config's, or 0 when the tint is neutral (→ achromatic)
+        // ramp base follows the theme color: hue = tint, chroma = the config's (raw; gated per-palette in render)
         base: {
           l: r.l,
-          c: num("--glass-tint-a", 0) > 0 ? r.c : 0,
+          c: r.c,
           h: num("--glass-tint-h", r.h),
         },
         count: r.count,
@@ -189,6 +189,13 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
     },
     solidA,
   );
+  // neutral → achromatic base, EXCEPT the Hue ramp, which stays a full-spectrum color wheel even on neutral.
+  const baseChroma = palette === "hue" ? env.base.c || 0.15 : env.a > 0 ? env.base.c : 0;
+  const base = {
+    l: env.base.l,
+    c: baseChroma,
+    h: env.base.h,
+  };
   // The full ramp: one extreme (black/white) → base (center) → the opposite extreme; picks come from the readable side.
   const ramp: OklchColor[] = Array.from(
     {
@@ -199,7 +206,7 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
         palette,
         level,
         count: env.count,
-        base: env.base,
+        base,
         dark: env.dark,
       }),
   );

@@ -119,7 +119,14 @@ export function OklchRampDemo() {
 
   // Each ramp covers the FULL range of its axis (the utility derives the steps from `count`),
   // with the seed centered at index `count`.
-  const hues = hueRamp(base, count);
+  // The hue ramp stays a full color wheel even when neutral (base.c 0) — there's no hue to rotate otherwise.
+  const hues = hueRamp(
+    {
+      ...base,
+      c: base.c || 0.15,
+    },
+    count,
+  );
   // Cap the chroma sweep at the in-gamut max for THIS lightness+hue (per the wide-gamut toggle), so
   // every swatch is a distinct, real color — instead of several past the gamut all clamping to one.
   const chromas = chromaRamp(base, count, chromaMax);

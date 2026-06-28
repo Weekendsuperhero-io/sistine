@@ -152,11 +152,13 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
       const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
       const tintA = num("--glass-tint-a", 0);
-      // A neutral tint (no wash → --glass-tint-a 0) yields ACHROMATIC foregrounds — black / white / gray
-      // picked by lightness; an active tint builds its tonal/linear ramp at the config's vividness.
+      const cfgC = rc ?? storedRamp.c;
+      // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue
+      // palette stays a full-spectrum color wheel even when neutral — there's no base hue to rotate, so a
+      // gray hue ramp is pointless; show all hues. An active tint uses the config's vividness.
       const base = {
         l: rl ?? storedRamp.l,
-        c: tintA > 0 ? (rc ?? storedRamp.c) : 0,
+        c: palette === "hue" ? cfgC || 0.15 : tintA > 0 ? cfgC : 0,
         h: tintH,
       };
       const surface = glassSolidSurface(
