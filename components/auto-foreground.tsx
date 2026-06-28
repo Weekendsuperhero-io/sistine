@@ -162,10 +162,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const v = Number.parseFloat(cs.getPropertyValue(name));
         return Number.isNaN(v) ? fb : v;
       };
-      // Foregrounds FOLLOW THE CHOSEN THEME COLOR: the ramp's hue is the live glass tint (--glass-tint-h);
-      // its lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
+      // Foregrounds FOLLOW THE CHOSEN FOREGROUND HUE: the ramp's hue is --glass-fg-h (which defaults to
+      // the glass tint --glass-tint-h, but frescoes set it apart so text anchors off their surface).
+      // Lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
       // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
-      const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
+      const tintH = num("--glass-fg-h", num("--glass-tint-h", rh ?? storedRamp.h));
       const tintA = num("--glass-tint-a", 0);
       const cfgC = rc ?? storedRamp.c;
       // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue

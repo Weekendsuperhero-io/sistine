@@ -171,17 +171,21 @@ function applyTint(h: number, c: number, a: number, tint: string | null, customi
     delete root.dataset.glassTint;
   }
   // A fresco selected as-is is driven by its [data-glass-tint] CSS block (which carries the dark/light hue
-  // variants); writing inline vars would shadow that block — AutoForeground reads the computed value, so the
-  // inline number would win and the CSS anchor be ignored. Inline ONLY for jewels, a custom hue, or an
-  // explicit slider override on a fresco.
+  // variants AND the surface/foreground split --glass-tint-h vs --glass-fg-h); writing inline vars would
+  // shadow that block — AutoForeground reads the computed value, so the inline number would win and the CSS
+  // anchor be ignored. Inline ONLY for jewels, a custom hue, or an explicit slider override on a fresco.
   if (tint && !customize) {
     root.style.removeProperty("--glass-tint-h");
     root.style.removeProperty("--glass-tint-c");
     root.style.removeProperty("--glass-tint-a");
+    root.style.removeProperty("--glass-fg-h");
   } else {
+    // Inline override: the chosen hue drives BOTH the surface tint and the foreground (text/accent), so
+    // dragging Hue on a jewel or a customized fresco moves text + glass together.
     root.style.setProperty("--glass-tint-h", String(h));
     root.style.setProperty("--glass-tint-c", String(c));
     root.style.setProperty("--glass-tint-a", String(a));
+    root.style.setProperty("--glass-fg-h", String(h));
   }
 }
 

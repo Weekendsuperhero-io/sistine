@@ -157,7 +157,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       };
       const r = readRampConfig();
       setEnv({
-        h: num("--glass-tint-h", 255),
+        h: num("--glass-fg-h", num("--glass-tint-h", 255)),
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
@@ -165,7 +165,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         base: {
           l: r.l,
           c: r.c,
-          h: num("--glass-tint-h", r.h),
+          h: num("--glass-fg-h", num("--glass-tint-h", r.h)),
         },
         count: r.count,
       });
