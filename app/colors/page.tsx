@@ -15,14 +15,23 @@ export default function ColorsPage() {
       <GradientSchemesDemo />
       <Card variant="glass" className="w-full max-w-3xl">
         <CardHeader>
-          <CardTitle>Readable text</CardTitle>
+          <CardTitle>Foreground source</CardTitle>
           <CardDescription>
-            Text and icons drawn from the ramp above, banded for legibility (ARC Bronze) on the glass-solid surface — body / large / fine each take
-            the swatch that hits its contrast target. Toggle Linear/Tonal and the solid opacity; tune the base color in the generator above.
+            Pick the foreground ramp — <strong>Tonal / Linear / Hue / Chroma</strong> — and it sets the site&apos;s text palette live (via
+            AutoForeground), band-picked for legibility (ARC Bronze) on the glass-solid surface. Tune the base color in the generator above; Hue /
+            Chroma are constant-lightness (see the note).
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ReadableTiersDemo />
+          <ReadableTiersDemo
+            live
+            palettes={[
+              "tonal",
+              "lightness",
+              "hue",
+              "chroma",
+            ]}
+          />
         </CardContent>
       </Card>
     </div>

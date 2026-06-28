@@ -2,7 +2,7 @@
 
 import { BellIcon, GearIcon, HeartIcon, MagnifyingGlassIcon, StarIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { readRampConfig } from "@/components/auto-foreground";
+import { type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
 import { Slider } from "@/components/ui/slider";
 import {
   apcaContrast,
@@ -63,16 +63,16 @@ const TIERS: Tier[] = [
   },
 ];
 
-const PALETTES = [
-  {
-    key: "lightness",
-    label: "Linear",
-  },
-  {
-    key: "tonal",
-    label: "Tonal",
-  },
-] as const;
+const PALETTE_LABELS: Record<FgPalette, string> = {
+  tonal: "Tonal",
+  lightness: "Linear",
+  hue: "Hue",
+  chroma: "Chroma",
+};
+const DEFAULT_PALETTES: FgPalette[] = [
+  "lightness",
+  "tonal",
+];
 
 const ICONS = [
   {
@@ -105,14 +105,28 @@ const WEIGHTS = [
 ] as const;
 
 /**
- * Live demo of the size-tiered foregrounds. Shows the full linear/tonal ramp (via themeForeground, the
- * utility the decisions use), drifting extreme → base → opposite, with each tier's PICKED swatch ringed.
- * Picks are band-aware (floor ≤ Lc ≤ ceiling, aiming for target) on the glass-SOLID surface. The panel
- * is real glass over the page (the opacity slider changes it); the Lc shown is the modeled value. App-only.
+ * Demo of the size-tiered foregrounds, drawn from the chosen ramp (via themeForeground) and band-picked
+ * (floor ≤ Lc ≤ ceiling) on the glass-SOLID surface; each tier's picked swatch is ringed. With `live`, the
+ * ramp tabs set the site's foreground palette (fgConfig → AutoForeground); `palettes` chooses which tabs
+ * show (Tonal / Linear / Hue / Chroma). Without `live` it's a read-only preview. App-only.
  */
-export function ReadableTiersDemo() {
+export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }: { live?: boolean; palettes?: FgPalette[] } = {}) {
   const [solidA, setSolidA] = React.useState(0.65);
-  const [palette, setPalette] = React.useState<"lightness" | "tonal">("lightness");
+  const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
+  // When `live`, the ramp drives the site foreground (via fgConfig → AutoForeground); sync from the saved config.
+  React.useEffect(() => {
+    if (live) setPaletteState(readFgConfig().palette);
+  }, [
+    live,
+  ]);
+  const setPalette = (p: FgPalette) => {
+    setPaletteState(p);
+    if (live)
+      writeFgConfig({
+        palette: p,
+        start: 0,
+      });
+  };
   const [env, setEnv] = React.useState({
     h: 255,
     c: 0,
@@ -231,17 +245,17 @@ export function ReadableTiersDemo() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex rounded-lg border border-foreground/15 p-0.5 text-xs">
-          {PALETTES.map((p) => (
+          {palettes.map((p) => (
             <button
               type="button"
-              key={p.key}
-              onClick={() => setPalette(p.key)}
+              key={p}
+              onClick={() => setPalette(p)}
               className={cn(
                 "rounded-md px-2.5 py-1 font-medium transition-colors",
-                palette === p.key ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+                palette === p ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {p.label} ramp
+              {PALETTE_LABELS[p]}
             </button>
           ))}
         </div>
@@ -385,11 +399,17 @@ export function ReadableTiersDemo() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        The strip is the full <strong>{palette === "lightness" ? "linear" : "tonal"}</strong> ramp (via{" "}
-        <code className="text-[11px]">themeForeground</code>) — extreme → base → extreme. Each tier takes the swatch landing in its{" "}
+        {live ? "Picking a ramp sets the site's --foreground live. " : ""}The strip is the full <strong>{PALETTE_LABELS[palette]}</strong> ramp (via{" "}
+        <code className="text-[11px]">themeForeground</code>) — extreme → base → extreme. Each tier takes the swatch in its{" "}
         <strong>[floor–ceiling]</strong> band closest to target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). The Lc is the modeled value
-        on the solid floor — accurate as opacity rises; at lower opacity more of the page shows through. <strong>Linear</strong> holds the
-        theme&apos;s chroma; <strong>Tonal</strong> fades to gray at the extreme.
+        on the solid floor — accurate as opacity rises; at lower opacity more of the page shows through.{" "}
+        {palette === "hue" || palette === "chroma" ? (
+          <strong>Hue / Chroma hold lightness constant, so contrast barely varies — they can&apos;t size-tier; use Tonal / Linear for that.</strong>
+        ) : (
+          <>
+            <strong>Linear</strong> holds the theme&apos;s chroma; <strong>Tonal</strong> fades to gray at the extreme.
+          </>
+        )}
       </p>
     </div>
   );
