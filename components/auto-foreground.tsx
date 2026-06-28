@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, glassSolidSurface, pickInBand, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import {
+  formatOklch,
+  glassSolidSurface,
+  pickInBand,
+  READABLE_USAGE,
+  readableForeground,
+  type ThemeForegroundOptions,
+  themeForeground,
+} from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -12,6 +20,8 @@ export interface FgConfig {
   palette: FgPalette;
   /** Which ramp level is `--foreground`; the next level down is `--muted-foreground`. */
   start: number;
+  /** Icon foreground hue (0–360) for `--foreground-ui`; null → icons follow the theme/text color. */
+  iconHue: number | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -30,6 +40,7 @@ const FG_PALETTES: FgPalette[] = [
 const DEFAULT_FG: FgConfig = {
   palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
   start: 0,
+  iconHue: null,
 };
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
@@ -48,6 +59,7 @@ export function readFgConfig(): FgConfig {
         return {
           palette: parsed.palette as FgPalette,
           start: typeof parsed.start === "number" ? parsed.start : 0,
+          iconHue: typeof parsed.iconHue === "number" ? parsed.iconHue : null,
         };
       }
     }
@@ -58,9 +70,15 @@ export function readFgConfig(): FgConfig {
 }
 
 /** Persist the foreground config + notify AutoForeground to re-apply it site-wide. */
-export function writeFgConfig(config: FgConfig): void {
+export function writeFgConfig(config: Partial<FgConfig>): void {
   try {
-    localStorage.setItem(FG_STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(
+      FG_STORAGE_KEY,
+      JSON.stringify({
+        ...readFgConfig(),
+        ...config,
+      }),
+    );
   } catch {
     // ignore storage failures
   }
@@ -201,6 +219,21 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       );
       root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
       root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
+
+      // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
+      // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
+      // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
+      const iconHue = storedFg.iconHue;
+      root.style.setProperty(
+        "--foreground-ui",
+        formatOklch(
+          readableForeground(surface, {
+            usage: "ui",
+            hue: iconHue ?? tintH,
+            chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
+          }),
+        ),
+      );
     };
 
     update();

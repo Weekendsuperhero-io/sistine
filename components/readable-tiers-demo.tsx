@@ -4,6 +4,7 @@ import { BellIcon, GearIcon, HeartIcon, MagnifyingGlassIcon, StarIcon } from "@p
 import * as React from "react";
 import { type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   apcaContrast,
   formatOklch,
@@ -11,6 +12,7 @@ import {
   type OklchColor,
   READABLE_USAGE,
   type ReadableUsage,
+  readableForeground,
   themeForeground,
 } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
@@ -113,9 +115,14 @@ const WEIGHTS = [
 export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }: { live?: boolean; palettes?: FgPalette[] } = {}) {
   const [solidA, setSolidA] = React.useState(0.65);
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
-  // When `live`, the ramp drives the site foreground (via fgConfig → AutoForeground); sync from the saved config.
+  const [iconHue, setIconHueState] = React.useState<number | null>(null);
+  // When `live`, the demo drives the site foreground (via fgConfig → AutoForeground); sync from the saved config.
   React.useEffect(() => {
-    if (live) setPaletteState(readFgConfig().palette);
+    if (live) {
+      const fg = readFgConfig();
+      setPaletteState(fg.palette);
+      setIconHueState(fg.iconHue);
+    }
   }, [
     live,
   ]);
@@ -124,7 +131,13 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
     if (live)
       writeFgConfig({
         palette: p,
-        start: 0,
+      });
+  };
+  const setIconHue = (hue: number | null) => {
+    setIconHueState(hue);
+    if (live)
+      writeFgConfig({
+        iconHue: hue,
       });
   };
   const [env, setEnv] = React.useState({
@@ -247,6 +260,16 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
   const baseIdx = env.count;
   const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
   const rightLabel = leftLabel === "white" ? "black" : "white";
+  // Icons get their own ui-band-legible color (lightness solved for contrast) at an optional chosen hue;
+  // null → follow the theme (neutral → gray, tinted → tint hue). Mirrors AutoForeground's --foreground-ui.
+  const iconChroma = iconHue != null ? 0.15 : env.a > 0 ? env.base.c : 0;
+  const iconFg = readableForeground(surface, {
+    usage: "ui",
+    hue: iconHue ?? env.base.h,
+    chroma: iconChroma,
+  });
+  const iconColor = formatOklch(iconFg);
+  const iconLc = Math.round(Math.abs(apcaContrast(iconFg, surface)));
 
   return (
     <div className="space-y-4">
@@ -266,18 +289,38 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="whitespace-nowrap">Solid {Math.round(solidA * 100)}%</span>
-          <Slider
-            value={[
-              solidA,
-            ]}
-            min={0.3}
-            max={0.75}
-            step={0.01}
-            onValueChange={(v) => setSolidA(v[0] ?? solidA)}
-            className="w-28"
-          />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="whitespace-nowrap">Solid {Math.round(solidA * 100)}%</span>
+            <Slider
+              value={[
+                solidA,
+              ]}
+              min={0.3}
+              max={0.75}
+              step={0.01}
+              onValueChange={(v) => setSolidA(v[0] ?? solidA)}
+              className="w-28"
+            />
+          </div>
+          {live && (
+            <div className="flex items-center gap-2">
+              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? (iconHue ?? Math.round(env.h)) : null)} />
+              <span className="whitespace-nowrap">Icon hue{iconHue != null ? ` ${Math.round(iconHue)}°` : ""}</span>
+              {iconHue != null && (
+                <Slider
+                  value={[
+                    iconHue,
+                  ]}
+                  min={0}
+                  max={360}
+                  step={1}
+                  onValueChange={(v) => setIconHue(v[0] ?? iconHue)}
+                  className="w-24"
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -333,10 +376,13 @@ export function ReadableTiersDemo({ live = false, palettes = DEFAULT_PALETTES }:
           ))}
         <div
           style={{
-            color: byKey.ui?.fmt,
+            color: iconColor,
           }}
         >
-          <div className="mb-2 text-xs font-medium">ui / icons — every icon × weight (same ui color); thin reads weaker than bold / fill</div>
+          <div className="mb-2 text-xs font-medium">
+            ui / icons — every icon × weight in <code className="text-[11px]">--foreground-ui</code> (Lc {iconLc}
+            {iconHue != null ? ` · hue ${Math.round(iconHue)}°` : ""}); thin reads weaker than bold / fill
+          </div>
           <div className="grid grid-cols-[auto_repeat(5,minmax(0,1fr))] items-center gap-x-2 gap-y-1.5">
             <span />
             {WEIGHTS.map((w) => (
