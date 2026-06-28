@@ -804,8 +804,9 @@
 }
 .dark[data-glass-tint="muse"] {
   /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
-     interpolated `in oklch` so the neon stays saturated instead of greying between stops. */
-  --glass-tint-h: 222;
+     interpolated `in oklch` so the neon stays saturated instead of greying between stops. The text/accent
+     anchor is a purple-magenta (off the cyan gradient start) so night text reads legibly, not washed-blue. */
+  --glass-tint-h: 315;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
   --glass-bg: linear-gradient(

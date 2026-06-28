@@ -163,16 +163,40 @@ const BESPOKE = new Set<string>([
   "gloaming",
 ]);
 
-function applyTint(h: number, c: number, a: number, tint: string | null) {
+function applyTint(h: number, c: number, a: number, tint: string | null, customize = false) {
   const root = document.documentElement;
   if (tint) {
     root.dataset.glassTint = tint;
   } else {
     delete root.dataset.glassTint;
   }
-  root.style.setProperty("--glass-tint-h", String(h));
-  root.style.setProperty("--glass-tint-c", String(c));
-  root.style.setProperty("--glass-tint-a", String(a));
+  // A fresco selected as-is is driven by its [data-glass-tint] CSS block (which carries the dark/light hue
+  // variants); writing inline vars would shadow that block — AutoForeground reads the computed value, so the
+  // inline number would win and the CSS anchor be ignored. Inline ONLY for jewels, a custom hue, or an
+  // explicit slider override on a fresco.
+  if (tint && !customize) {
+    root.style.removeProperty("--glass-tint-h");
+    root.style.removeProperty("--glass-tint-c");
+    root.style.removeProperty("--glass-tint-a");
+  } else {
+    root.style.setProperty("--glass-tint-h", String(h));
+    root.style.setProperty("--glass-tint-c", String(c));
+    root.style.setProperty("--glass-tint-a", String(a));
+  }
+}
+
+/** Read the live computed tint vars off <html> — used to seed the sliders from a fresco's CSS block. */
+function computedTint() {
+  const cs = getComputedStyle(document.documentElement);
+  const num = (n: string, fb: number) => {
+    const v = Number.parseFloat(cs.getPropertyValue(n));
+    return Number.isNaN(v) ? fb : v;
+  };
+  return {
+    h: num("--glass-tint-h", 250),
+    c: num("--glass-tint-c", 0.018),
+    a: num("--glass-tint-a", 0),
+  };
 }
 
 /**
@@ -203,10 +227,22 @@ export function GlassTintSwitcher() {
       // ignore malformed storage
     }
     setBase(storedBase);
-    setH(nh);
-    setC(nc);
-    setA(na);
-    applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
+    const fresco = BESPOKE.has(storedBase);
+    // A fresco is "customized" only if the stored values diverge from its preset; otherwise its CSS block drives.
+    const customized = fresco && !!preset && (nh !== preset.h || nc !== preset.c || na !== preset.a);
+    applyTint(nh, nc, na, fresco ? storedBase : null, customized);
+    // Seed the sliders from the live CSS value for an as-is fresco; from the stored values otherwise.
+    const seed =
+      fresco && !customized
+        ? computedTint()
+        : {
+            h: nh,
+            c: nc,
+            a: na,
+          };
+    setH(seed.h);
+    setC(seed.c);
+    setA(seed.a);
   }, []);
 
   const persist = (b: PresetValue, nh: number, nc: number, na: number) => {
@@ -227,10 +263,19 @@ export function GlassTintSwitcher() {
 
   const choose = (p: (typeof PRESETS)[number]) => {
     setBase(p.value);
-    setH(p.h);
-    setC(p.c);
-    setA(p.a);
-    applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
+    const fresco = BESPOKE.has(p.value);
+    applyTint(p.h, p.c, p.a, fresco ? p.value : null);
+    // Sliders reflect the fresco's live (mode-aware) CSS value, not the display-only PRESETS numbers.
+    const seed = fresco
+      ? computedTint()
+      : {
+          h: p.h,
+          c: p.c,
+          a: p.a,
+        };
+    setH(seed.h);
+    setC(seed.c);
+    setA(seed.a);
     persist(p.value, p.h, p.c, p.a);
   };
 
@@ -243,7 +288,8 @@ export function GlassTintSwitcher() {
     const tint = BESPOKE.has(base) ? base : null;
     const next: PresetValue = tint ?? "custom";
     setBase(next);
-    applyTint(nh, nc, na, tint);
+    // A slider drag is an explicit override — write inline even on a fresco (customize = true).
+    applyTint(nh, nc, na, tint, true);
     persist(next, nh, nc, na);
   };
 
