@@ -12,6 +12,8 @@ const emptyStateVariants = cva("", {
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
       opaque: "glass-opaque text-foreground",
+      surface: "glass-surface text-foreground",
+      solid: "glass-solid text-foreground",
     },
   },
   defaultVariants: {
@@ -51,7 +53,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(({ classNam
 EmptyState.displayName = "EmptyState";
 
 function EmptyStateIcon({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("mb-4 text-muted-foreground", className)} {...props} />;
+  return <div className={cn("mb-4 text-foreground-ui", className)} {...props} />;
 }
 
 function EmptyStateTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {

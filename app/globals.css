@@ -1,7 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Class-based dark mode, v4-standard form: matches the `.dark` element ITSELF and its descendants, so
+   consumers can toggle `.dark` on any wrapper (not just <html> / next-themes), at zero specificity
+   (`:where`) so `dark:` overrides by cascade order like every other variant. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
    folds in `var(--glow-layer, …)` so the glow rides INSIDE each style's shadow — surviving the
@@ -15,6 +18,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-strong: var(--foreground-strong);
+  --color-foreground-ui: var(--foreground-ui);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -58,6 +64,11 @@
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(0% 0 0); /* Level 0 — darkest extreme; AutoForeground walks the ramp at runtime */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(40% 0 0); /* large/heading text — eased off the pure-black spike */
+  --foreground-strong: oklch(0% 0 0); /* fine/small text — crisp */
+  --foreground-ui: oklch(50% 0 0); /* icons / standalone UI glyphs — ui-band legible; AutoForeground re-bands (+ optional hue) */
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
@@ -272,6 +283,11 @@
   /* Base colors - Apple-style white text */
   --background: transparent;
   --foreground: oklch(100% 0 0); /* Level 0 — lightest extreme; AutoForeground walks the ramp at runtime */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(78% 0 0); /* large/heading text — eased off the pure-white spike */
+  --foreground-strong: oklch(100% 0 0); /* fine/small text — crisp */
+  --foreground-ui: oklch(72% 0 0); /* icons / standalone UI glyphs — ui-band legible; AutoForeground re-bands (+ optional hue) */
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
@@ -327,9 +343,9 @@
     scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
   }
   body {
-    /* Text defaults to the APCA-picked --auto-fg (set on <html> by AutoForeground on theme/tint
-       change), falling back to the neutral --foreground when it isn't set. */
-    color: var(--auto-fg, var(--foreground));
+    /* Text uses the band-picked --foreground (set on <html> by AutoForeground on theme/tint change;
+       globals carries a static fallback so there's no flash). */
+    color: var(--foreground);
     background-color: transparent;
   }
   /* Thin, glass-friendly scrollbars (replaces the chunky native bar) */
@@ -789,7 +805,7 @@
 .dark[data-glass-tint="muse"] {
   /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
      interpolated `in oklch` so the neon stays saturated instead of greying between stops. */
-  --glass-tint-h: 260;
+  --glass-tint-h: 222;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
   --glass-bg: linear-gradient(
@@ -812,9 +828,9 @@
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
-   averaging to grey. Border + crystal + accent pick up the warm amber base via the tint vars. */
+   averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {
-  --glass-tint-h: 75;
+  --glass-tint-h: 18;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
@@ -869,9 +885,9 @@
 }
 
 /* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
-   glow. The warm gold base drives border + crystal + accent. */
+   glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
-  --glass-tint-h: 32;
+  --glass-tint-h: 350;
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
@@ -879,6 +895,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="gloaming"] {
+  --glass-tint-h: 32; /* night keeps the warm glow; light mode uses the dusk-rose anchor above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
   --glass-crystal-fresco: var(--glass-bg);

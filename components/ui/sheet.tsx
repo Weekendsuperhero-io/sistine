@@ -50,7 +50,7 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, VariantProps<typeof sheetVariants> {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
+  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque" | "surface" | "solid";
   showCloseButton?: boolean;
 }
 
@@ -65,6 +65,8 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
         fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
       };
       return variants[variant] || variants.glass;
     };

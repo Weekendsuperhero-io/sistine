@@ -1,7 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import {
+  complement,
+  formatOklch,
+  glassSolidSurface,
+  pickInBand,
+  READABLE_USAGE,
+  readableForeground,
+  type ThemeForegroundOptions,
+  themeForeground,
+} from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -10,8 +19,9 @@ const FG_EVENT = "sistine-fg";
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
-  /** Which ramp level is `--foreground`; the next level down is `--muted-foreground`. */
-  start: number;
+  /** Icon foreground hue for `--foreground-ui`: a number (0–360) pins a hue, "complement" tracks the
+   * theme's opposite hue live, null → icons follow the theme/text color. */
+  iconHue: number | "complement" | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -28,17 +38,17 @@ const FG_PALETTES: FgPalette[] = [
   "chroma",
 ];
 const DEFAULT_FG: FgConfig = {
-  palette: "tonal",
-  start: 0,
+  palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
+  iconHue: null,
 };
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
   h: 255,
-  count: 8,
+  count: 12, // finest ramp (12 steps/side) — the most cohesive foreground set in practice
 };
 
-/** Read the persisted foreground palette + start level; falls back to tonal / 0. */
+/** Read the persisted foreground palette; falls back to the default (Linear). */
 export function readFgConfig(): FgConfig {
   try {
     const raw = localStorage.getItem(FG_STORAGE_KEY);
@@ -47,7 +57,7 @@ export function readFgConfig(): FgConfig {
       if (FG_PALETTES.includes(parsed.palette as FgPalette)) {
         return {
           palette: parsed.palette as FgPalette,
-          start: typeof parsed.start === "number" ? parsed.start : 0,
+          iconHue: parsed.iconHue === "complement" ? "complement" : typeof parsed.iconHue === "number" ? parsed.iconHue : null,
         };
       }
     }
@@ -58,9 +68,15 @@ export function readFgConfig(): FgConfig {
 }
 
 /** Persist the foreground config + notify AutoForeground to re-apply it site-wide. */
-export function writeFgConfig(config: FgConfig): void {
+export function writeFgConfig(config: Partial<FgConfig>): void {
   try {
-    localStorage.setItem(FG_STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(
+      FG_STORAGE_KEY,
+      JSON.stringify({
+        ...readFgConfig(),
+        ...config,
+      }),
+    );
   } catch {
     // ignore storage failures
   }
@@ -108,24 +124,25 @@ export function writeRampConfig(config: RampConfig): void {
 export interface AutoForegroundProps {
   /** Foreground ramp palette. Overrides the persisted config when set. */
   palette?: FgPalette;
-  /** Which ramp level is `--foreground` (the next level down is `--muted-foreground`). Overrides persisted. */
-  start?: number;
   /** Ramp base color + step count. Overrides the persisted ramp when set. */
   ramp?: RampConfig;
 }
 
 /**
- * Sets `--foreground` + `--muted-foreground` on <html> by walking an OKLCH ramp (palette + base color +
- * step count) so text contrast tracks light/dark automatically. `start` picks which level is
- * `--foreground`; the next level down is `--muted-foreground`. globals.css carries the level-0/level-1
- * defaults as a static fallback, so there's no flash.
+ * Sets the foreground tokens on <html> by drawing COLORS from the chosen OKLCH ramp (palette + base
+ * color + step count): `--foreground`, `--muted-foreground`, and the ARC-Bronze size tiers
+ * `--foreground-soft` (large) / `--foreground-strong` (fine), plus the icon foreground `--foreground-ui`
+ * (ui band, optional hue). Each is picked from that ramp to hit its contrast target on the glass-SOLID
+ * surface text sits on — so foregrounds are real theme colors, not neutral gray, and track light/dark +
+ * tint automatically. globals.css carries static fallbacks (no flash); the tiers are exposed as the
+ * `text-foreground-soft` / `-strong` / `-ui` utilities.
  *
- * Configure declaratively — `<AutoForeground palette="tonal" start={0} ramp={{ l, c, h, count }} />` — or,
- * with no props, it reads a persisted config (`writeFgConfig` / `writeRampConfig`, e.g. a live generator)
- * and re-applies on the `sistine-fg` event. It intentionally mutates the global `--foreground` /
- * `--muted-foreground`, so mount it once at the app root.
+ * Configure declaratively — `<AutoForeground palette="tonal" ramp={{ l, c, h, count }} />` — or, with no
+ * props, it reads a persisted config (`writeRampConfig`, e.g. the /colors generator) and re-applies on the
+ * `sistine-fg` event. Mount it once at the app root. The foreground level is contrast-target-driven
+ * (the ARC-Bronze band per tier), not a manual ramp index.
  */
-export function AutoForeground({ palette: paletteProp, start: startProp, ramp: rampProp }: AutoForegroundProps = {}) {
+export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoForegroundProps = {}) {
   const rl = rampProp?.l;
   const rc = rampProp?.c;
   const rh = rampProp?.h;
@@ -139,19 +156,43 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
       const storedFg = readFgConfig();
       const storedRamp = readRampConfig();
       const palette = paletteProp ?? storedFg.palette;
-      const start = startProp ?? storedFg.start;
-      const l = rl ?? storedRamp.l;
-      const c = rc ?? storedRamp.c;
-      const h = rh ?? storedRamp.h;
       const count = rcount ?? storedRamp.count;
-      const base = {
-        l,
-        c,
-        h,
+      const cs = getComputedStyle(root);
+      const num = (name: string, fb: number) => {
+        const v = Number.parseFloat(cs.getPropertyValue(name));
+        return Number.isNaN(v) ? fb : v;
       };
-      const s = Math.max(0, Math.min(start, count)); // --foreground level; the rest ramp down to base
-      const at = (level: number) =>
-        formatOklch(
+      // Foregrounds FOLLOW THE CHOSEN THEME COLOR: the ramp's hue is the live glass tint (--glass-tint-h);
+      // its lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
+      // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
+      const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
+      const tintA = num("--glass-tint-a", 0);
+      const cfgC = rc ?? storedRamp.c;
+      // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue
+      // palette stays a full-spectrum color wheel even when neutral — there's no base hue to rotate, so a
+      // gray hue ramp is pointless; show all hues. An active tint uses the config's vividness.
+      const base = {
+        l: rl ?? storedRamp.l,
+        c: palette === "hue" ? cfgC || 0.15 : tintA > 0 ? cfgC : 0,
+        h: tintH,
+      };
+      const surface = glassSolidSurface(
+        dark,
+        {
+          h: tintH,
+          c: num("--glass-tint-c", 0),
+          a: tintA,
+        },
+        num("--glass-solid-a", 0.65),
+      );
+
+      // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
+      // gray — each picked to hit its ARC-Bronze contrast target on that surface.
+      const ramp = Array.from(
+        {
+          length: count + 1,
+        },
+        (_, level) =>
           themeForeground({
             palette,
             level,
@@ -159,19 +200,48 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
             base,
             dark,
           }),
-        );
-      root.style.setProperty("--foreground", at(s));
-      root.style.setProperty("--auto-fg", at(s));
-      root.style.setProperty("--muted-foreground", at(Math.min(s + 1, count)));
+      );
+      // Band-aware pick: honor each tier's floor (minimum) and ceiling (anti-spike), aiming for target.
+      const tier = (band: { floor: number; target: number; ceiling: number }) => formatOklch(pickInBand(ramp, surface, band));
+      const fg = tier(READABLE_USAGE.body);
+      root.style.setProperty("--foreground", fg);
+      root.style.setProperty(
+        "--muted-foreground",
+        tier({
+          floor: 45,
+          target: 60,
+          ceiling: 75,
+        }),
+      );
+      root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
+      root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
+
+      // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
+      // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
+      // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
+      const iconHue = storedFg.iconHue;
+      // "complement" tracks the theme's opposite hue live; a number pins one; null → follow the theme.
+      const iconH = iconHue === "complement" ? complement(base).h : typeof iconHue === "number" ? iconHue : tintH;
+      root.style.setProperty(
+        "--foreground-ui",
+        formatOklch(
+          readableForeground(surface, {
+            usage: "ui",
+            hue: iconH,
+            chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
+          }),
+        ),
+      );
     };
 
     update();
-    // Theme class drives the light/dark extreme; palette/base/count/start changes come through FG_EVENT.
+    // Theme class drives the light/dark extreme; palette/base/count changes come through FG_EVENT.
     const observer = new MutationObserver(update);
     observer.observe(root, {
       attributes: true,
       attributeFilter: [
         "class",
+        "data-glass-tint",
       ],
     });
     window.addEventListener(FG_EVENT, update);
@@ -181,7 +251,6 @@ export function AutoForeground({ palette: paletteProp, start: startProp, ramp: r
     };
   }, [
     paletteProp,
-    startProp,
     rl,
     rc,
     rh,

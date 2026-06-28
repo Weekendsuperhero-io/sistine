@@ -73,7 +73,7 @@ export function GlassStyleSwitcher() {
           <DiamondIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[9rem]">
+      <DropdownMenuContent align="end" className="min-w-36">
         {STYLES.map((s) => (
           <DropdownMenuItem key={s.value} onClick={() => choose(s.value)} className="justify-between gap-4">
             {s.label}

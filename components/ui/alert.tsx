@@ -14,6 +14,8 @@ const alertVariants = cva(
         fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
         info: "glass-bg backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
           "glass-bg backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",

@@ -17,6 +17,8 @@ const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded
       fluted: "glass-fluted text-foreground",
       crystal: "glass-crystal text-foreground",
       opaque: "glass-opaque text-foreground",
+      surface: "glass-surface text-foreground",
+      solid: "glass-solid text-foreground",
     },
   },
   defaultVariants: {

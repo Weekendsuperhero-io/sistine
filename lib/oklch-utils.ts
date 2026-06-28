@@ -131,6 +131,43 @@ export function hueRamp(base: OklchColor | string, count: number): string[] {
   return hueRampColors(base, count).map((color) => formatOklch(color));
 }
 
+// ── Hue harmonies ─────────────────────────────────────────────────────────────
+// Rotate the base hue to derive complementary / harmonious colors (lightness + chroma held). oklch
+// hue is perceptually even, so a 180° "complement" is a balanced opposite — not the skewed HSL/RGB one.
+
+/** The perceptual complement: same L + C, hue rotated 180° (alpha preserved), gamut-clamped — the
+ * 180° case of {@link harmony}. */
+export function complement(base: OklchColor | string, gamut: "srgb" | "p3" = "srgb"): OklchColor {
+  return harmony(
+    base,
+    [
+      180,
+    ],
+    gamut,
+  )[1];
+}
+
+/**
+ * Hue-harmony set: the base plus a color at each rotation `angle` in degrees (same L + C),
+ * gamut-clamped. Returns `[base, …rotations]`. Common sets — analogous `[-30, 30]`, triadic
+ * `[120, 240]`, split-complement `[150, 210]`, tetradic `[90, 180, 270]`.
+ */
+export function harmony(base: OklchColor | string, angles: number[], gamut: "srgb" | "p3" = "srgb"): OklchColor[] {
+  const c = toColor(base);
+  return [
+    clampToGamut(c, gamut),
+    ...angles.map((a) =>
+      clampToGamut(
+        {
+          ...c,
+          h: wrapHue(c.h + a),
+        },
+        gamut,
+      ),
+    ),
+  ];
+}
+
 /**
  * Chroma ramp covering [0, cap]: `count` steps each side, the seed centered (left → 0, right →
  * cap). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to the largest chroma
@@ -246,7 +283,11 @@ function maxChromaFor(l: number, h: number, test: (l: number, c: number, h: numb
     if (test(l, mid, h)) lo = mid;
     else hi = mid;
   }
-  return lo;
+  // Sit 3% inside the boundary. A color exactly at the gamut edge renders fine in Chrome (CSS Color 4
+  // hue-preserving gamut mapping) but Safari per-channel-clamps it toward GREY — so edge-chroma
+  // foregrounds/icons went grey in Safari while staying tinted in Chrome. This margin keeps every emitted
+  // color clearly in-gamut, so both engines show the same tint.
+  return lo * 0.97;
 }
 
 /** Largest chroma keeping (l, h) inside the sRGB gamut. */
@@ -293,8 +334,8 @@ export interface TonalScaleOptions {
 /**
  * Generate a tonal color scale — a single hue with lightness eased light→dark and chroma that
  * rises with the scale but is capped by the chosen gamut (sRGB by default; pass `gamut: "p3"` for a
- * punchier wide-gamut peak). Returns lightest → darkest oklch strings.
- * `tonalScale({ hue: 252 })` gives a Radix/Tailwind-shaped 12-step blue scale.
+ * punchier wide-gamut peak). Returns lightest → darkest as OklchColor[].
+ * `tonalScaleColors({ hue: 252 })` gives a Radix/Tailwind-shaped 12-step blue scale.
  */
 export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
   const {
@@ -324,11 +365,6 @@ export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
     });
   }
   return out;
-}
-
-/** Tonal scale as CSS oklch strings (lightest → darkest). */
-export function tonalScale(options: TonalScaleOptions): string[] {
-  return tonalScaleColors(options).map((color) => formatOklch(color));
 }
 
 /** Which ramp drives a {@link rampGradient}. */
@@ -377,14 +413,17 @@ export function rampGradient(
   return `linear-gradient(${angle}deg in oklch, ${parts.join(", ")})`;
 }
 
-// ── APCA contrast (WCAG-3 draft) ──────────────────────────────────────────────
-// Inlined from the APCA-W3 0.1.9 reference — no dependency. Lc is signed: positive = dark text on
-// a light background, negative = light text on a dark one; |Lc| is the perceptual level (~45 for
-// large/UI text, ~60 headings, ~75 body, ~90 fine text). APCA is polarity-aware — which WCAG-2's
-// ratio is not — so it fits dark mode + tinted glass far better.
+// ── APCA contrast (APCA-W3 / ARC) ─────────────────────────────────────────────
+// Inlined port of the APCA-W3 reference (© Andrew Somers / Myndex Research, licensed to the W3/AGWG).
+// The APCA constants below are the LOCKED beta set (0.1.x) and are used UNMODIFIED. APCA/ARC measures
+// readability contrast — it is NOT a means to claim WCAG 2 conformance. Verified to match apca-w3's
+// APCAcontrast() — see scripts/apca-oracle.mjs. Lc is signed: positive = dark text on a light
+// background, negative = light text on a dark one; |Lc| is the perceptual level (~45 large/UI, ~60
+// other content, ~75 body, ~90 fine). Polarity-aware — which WCAG-2's ratio is not — so it fits dark
+// mode + tinted glass far better.
 
 /** OKLCH (l 0–100) → gamma-encoded sRGB channels in [0, 1] (out-of-gamut values are clipped). */
-function oklchToSrgb(
+export function oklchToSrgb(
   l: number,
   c: number,
   h: number,
@@ -462,6 +501,32 @@ export function pickForeground(bg: OklchColor | string, light: OklchColor = FG_L
 }
 
 /**
+ * From `ramp`, prefer colors whose |APCA Lc| on `surface` falls within [floor, ceiling] and sit closest
+ * to `target` — so the floor is honored as a MINIMUM (never undershot) and the ceiling caps the spike.
+ * Draws a readable foreground from a real palette (a tonal / lightness ramp) instead of a neutral gray,
+ * so text keeps the theme's color while hitting its band. If nothing lands in band (ramp too coarse or
+ * the surface can't support it), returns the color nearest the band edge.
+ */
+export function pickInBand(
+  ramp: OklchColor[],
+  surface: OklchColor | string,
+  band: {
+    floor: number;
+    target: number;
+    ceiling: number;
+  },
+): OklchColor {
+  const scored = ramp.map((c) => ({
+    c,
+    lc: Math.abs(apcaContrast(c, surface)),
+  }));
+  const inBand = scored.filter((s) => s.lc >= band.floor && s.lc <= band.ceiling);
+  const pool = inBand.length ? inBand : scored;
+  const err = (lc: number) => (inBand.length ? Math.abs(lc - band.target) : Math.min(Math.abs(lc - band.floor), Math.abs(lc - band.ceiling)));
+  return pool.reduce((best, s) => (err(s.lc) < err(best.lc) ? s : best), pool[0]).c;
+}
+
+/**
  * The effective glass surface color for the active theme + tint — the theme's light/dark floor
  * blended with the tint wash, mirroring the glass-* utilities (the wash sits at a FIXED lightness,
  * 72 light / 58 dark; only hue, chroma and alpha vary). Pair with pickForeground to choose readable
@@ -479,6 +544,32 @@ export function glassSurface(
   const washL = dark ? 58 : 72;
   return {
     l: baseL * (1 - tint.a) + washL * tint.a,
+    c: tint.c * 2.5 * tint.a,
+    h: tint.h,
+  };
+}
+
+/**
+ * The effective glass-SOLID surface color — the legible floor body text actually sits on (never sheer
+ * glass). The solid floor (neutral `--glass-solid-l`, 99 light / 18 dark) is composited over the base
+ * at `solidA` (the `--glass-solid-a` opacity, ~0.3–0.75), then the tint wash on top. Because that floor
+ * is a KNOWN surface, banding text against this — rather than the sheer estimate — gives a real Lc.
+ */
+export function glassSolidSurface(
+  dark: boolean,
+  tint: {
+    h: number;
+    c: number;
+    a: number;
+  },
+  solidA: number,
+): OklchColor {
+  const baseL = dark ? 20 : 95;
+  const solidL = dark ? 18 : 99;
+  const washL = dark ? 58 : 72;
+  const floorL = baseL * (1 - solidA) + solidL * solidA;
+  return {
+    l: floorL * (1 - tint.a) + washL * tint.a,
     c: tint.c * 2.5 * tint.a,
     h: tint.h,
   };
@@ -559,4 +650,138 @@ export function themeForeground(options: ThemeForegroundOptions): OklchColor {
       };
   }
   return clampToGamut(color, gamut);
+}
+
+// ── Readable foreground (soft contrast / ARC Bronze Simple Mode) ──────────────
+// pickForeground() maximizes contrast — it slams to the lightness extreme (pure white / near-black),
+// which reads as a glare/heaviness "spike". readableForeground() instead AIMS for a target APCA Lc
+// and stops: legible, but soft. The usage presets follow the ARC "Bronze Simple Mode" criterion
+// (readtech.org/ARC) — content-text thresholds, no font-lookup table: body Lc 75 (preferred 90),
+// other content Lc 60, large-fluent (>36px) Lc 45 with a MAX of Lc 90 to "prevent excessive contrast"
+// (so the ceiling is straight from the spec). floor = legible minimum, target = aim, ceiling = the cap.
+// `ui` / `non-text` / `disabled` are OUR extension — Bronze scopes to content text, excluding spot text.
+
+/** APCA-derived contrast bands per use case. floor = legible minimum, target = aim, ceiling = cap. */
+export const READABLE_USAGE = {
+  /** Fine / thin / small text — needs the most contrast; little soft room. */
+  small: {
+    floor: 90,
+    target: 90,
+    ceiling: 100,
+  },
+  /** Body text (~16px / 400) — ARC Bronze body: min 75, preferred 90. */
+  body: {
+    floor: 75,
+    target: 80,
+    ceiling: 90,
+  },
+  /** Large or fluent body (~18–24px) / semibold. */
+  "body-large": {
+    floor: 60,
+    target: 72,
+    ceiling: 88,
+  },
+  /** Headings / other content text — ARC Bronze "other content": min 60. */
+  heading: {
+    floor: 60,
+    target: 66,
+    ceiling: 82,
+  },
+  /** Large fluent text >36px (or ≥24px bold) — ARC Bronze: min 45, max 90. */
+  large: {
+    floor: 45,
+    target: 58,
+    ceiling: 76,
+  },
+  /** UI labels, icons, focus rings — beyond ARC Bronze scope (Bronze is content-text only). Target at the
+   * APCA "other content" level (60); ceiling 70 stays below body's 75 floor, so icons read quieter than text. */
+  ui: {
+    floor: 45,
+    target: 60,
+    ceiling: 70,
+  },
+  /** Non-text: borders, dividers, graphics — beyond ARC Bronze scope. */
+  "non-text": {
+    floor: 30,
+    target: 40,
+    ceiling: 58,
+  },
+  /** Disabled / placeholder — beyond ARC Bronze scope (spot text). */
+  disabled: {
+    floor: 30,
+    target: 33,
+    ceiling: 46,
+  },
+} as const;
+
+export type ReadableUsage = keyof typeof READABLE_USAGE;
+
+/** Options for {@link readableForeground}. */
+export interface ReadableForegroundOptions {
+  /** Use-case preset that sets the {floor, target, ceiling} band (default "body"). */
+  usage?: ReadableUsage;
+  /** Aim for this |APCA Lc| — overrides the usage preset's target. */
+  target?: number;
+  /** Never exceed this |Lc| — the anti-spike cap; overrides the usage preset. */
+  ceiling?: number;
+  /** Legibility minimum; if even the extreme can't reach it you get max contrast (add a scrim). */
+  floor?: number;
+  /** Hue to keep for tinted-but-readable text. Defaults to the background's hue. */
+  hue?: number;
+  /** Chroma to keep, gamut-clamped at the chosen lightness. 0 = neutral gray. */
+  chroma?: number;
+  gamut?: "srgb" | "p3";
+}
+
+/**
+ * A foreground that AIMS for a target APCA contrast on `bg` instead of maximizing it — legible
+ * without the harsh pure-black / pure-white spike. Picks the lightness direction with headroom and
+ * binary-searches the NEAREST lightness whose |Lc| meets the target (capped at the ceiling); keeps an
+ * optional hue/chroma for tinted-but-readable text. The soft-contrast companion to {@link pickForeground}.
+ * If even the lightness extreme can't reach the floor (a mid-gray background), it returns the maximum
+ * contrast available — the signal that the text needs a scrim / solid backing.
+ */
+export function readableForeground(bg: OklchColor | string, opts: ReadableForegroundOptions = {}): OklchColor {
+  const band = READABLE_USAGE[opts.usage ?? "body"];
+  const target = opts.target ?? band.target;
+  const ceiling = opts.ceiling ?? band.ceiling;
+  const floor = opts.floor ?? band.floor;
+  const { chroma = 0, gamut = "srgb" } = opts;
+
+  const b = toColor(bg);
+  const h = opts.hue ?? b.h;
+  const cAt = (l: number) => Math.min(chroma, gamut === "p3" ? maxP3Chroma(l, h) : maxSrgbChroma(l, h));
+  const lcAt = (l: number) =>
+    Math.abs(
+      apcaContrast(
+        {
+          l,
+          c: cAt(l),
+          h,
+        },
+        b,
+      ),
+    );
+
+  const extreme = lcAt(0) >= lcAt(100) ? 0 : 100; // the lightness direction with headroom
+  const reach = lcAt(extreme); // the most contrast this background can give
+  // Aim for the target, never past the ceiling; if we can't even clear the floor, take the max.
+  const want = reach < floor ? reach : Math.min(target, ceiling, reach);
+
+  // |Lc| rises monotonically from bg.l → the extreme, so binary-search the nearest L meeting `want`.
+  let lo = b.l;
+  let hi = extreme;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (lcAt(mid) < want) lo = mid;
+    else hi = mid;
+  }
+  return clampToGamut(
+    {
+      l: hi,
+      c: cAt(hi),
+      h,
+    },
+    gamut,
+  );
 }

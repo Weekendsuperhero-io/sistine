@@ -51,8 +51,12 @@ const docsNav = [
     title: "Theming",
     items: [
       {
-        title: "Glass Tint",
+        title: "Mental model",
         href: "/docs/theming",
+      },
+      {
+        title: "Glass Tint",
+        href: "/docs/theming#tint",
       },
       {
         title: "Glass Style",
@@ -61,6 +65,10 @@ const docsNav = [
       {
         title: "Surface Tiers",
         href: "/docs/theming#surfaces",
+      },
+      {
+        title: "Readable Text",
+        href: "/docs/theming#text",
       },
       {
         title: "Tuning",
@@ -106,7 +114,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                             isActive ? "text-foreground font-medium bg-foreground/10" : "text-muted-foreground hover:bg-foreground/5",
                           )}
                         >
-                          {isActive && <CaretRightIcon className="h-4 w-4" />}
+                          {isActive && <CaretRightIcon className="h-4 w-4 text-foreground-ui" />}
                           <span className="truncate flex-1">{item.title}</span>
                           {item.isNew === true && (
                             <Badge variant="glass" className="border-primary/40 text-xs px-1.5 py-0.5">

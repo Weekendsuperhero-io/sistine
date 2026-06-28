@@ -260,13 +260,13 @@ export default function ComponentsPage() {
               <React.Fragment key={axis.key}>
                 <span className="pr-2 font-mono text-muted-foreground text-xs">{axis.key}</span>
                 <div
-                  className="h-10 rounded-lg border border-[var(--glass-border)]"
+                  className="h-10 rounded-lg border border-(--glass-border)"
                   style={{
                     backgroundImage: axis.fwd,
                   }}
                 />
                 <div
-                  className="h-10 rounded-lg border border-[var(--glass-border)]"
+                  className="h-10 rounded-lg border border-(--glass-border)"
                   style={{
                     backgroundImage: axis.rev,
                   }}

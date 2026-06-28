@@ -12,6 +12,8 @@ const inputVariants = cva("", {
       fluted: "glass-fluted",
       crystal: "glass-crystal",
       opaque: "glass-opaque",
+      surface: "glass-surface text-foreground",
+      solid: "glass-solid text-foreground",
     },
   },
   defaultVariants: {

@@ -20,4 +20,6 @@ jobs:
       # Tuned for this TS/CSS/Next repo; skip the generated registry output.
       diff-file-patterns: "'*.ts' '*.tsx' '*.css' '*.mjs' '*.js' '*.yml' '*.json' '*.md'"
       diff-exclude-patterns: ":!pnpm-lock.yaml ':!public/r/**'"
+      max-commit-messages: 100
+      commit-format: "full"
     secrets: inherit

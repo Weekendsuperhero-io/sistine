@@ -15,6 +15,8 @@ const badgeVariants = cva(
         fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
+        surface: "glass-surface text-foreground",
+        solid: "glass-solid text-foreground",
         secondary: "glass-surface text-muted-foreground",
         destructive: "glass-bg backdrop-blur-[var(--blur-sm)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow-sm)]",
         outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

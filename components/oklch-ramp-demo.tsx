@@ -24,51 +24,8 @@ import {
 } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
-// Theme-color quick-picks — clicking one seeds the base; the L/C/H sliders are the "custom" control.
-const PRESETS = [
-  {
-    label: "Sapphire",
-    l: 60,
-    c: 0.15,
-    h: 255,
-  },
-  {
-    label: "Emerald",
-    l: 62,
-    c: 0.15,
-    h: 158,
-  },
-  {
-    label: "Amethyst",
-    l: 60,
-    c: 0.15,
-    h: 300,
-  },
-  {
-    label: "Rose",
-    l: 64,
-    c: 0.14,
-    h: 8,
-  },
-  {
-    label: "Amber",
-    l: 74,
-    c: 0.13,
-    h: 75,
-  },
-  {
-    label: "Sistine",
-    l: 70,
-    c: 0.1,
-    h: 78,
-  },
-  {
-    label: "Neutral",
-    l: 66,
-    c: 0.02,
-    h: 250,
-  },
-];
+// The base hue tracks the CHOSEN THEME COLOR (the header's glass tint, via --glass-tint-h); the
+// L / C / steps sliders refine it. No color-picking here — selecting a theme tint drives the ramps.
 
 const AUTO_MODES = [
   {
@@ -98,13 +55,37 @@ const PREVIEW_TINT_A = 0.24;
 export function OklchRampDemo() {
   const [l, setL] = React.useState(60);
   const [c, setC] = React.useState(0.15);
-  const [h, setH] = React.useState(255);
-  const [count, setCount] = React.useState(8);
+  const [count, setCount] = React.useState(12);
   const [wideGamut, setWideGamut] = React.useState(false);
   const [mode, setMode] = React.useState<(typeof AUTO_MODES)[number]["key"]>("auto");
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
+  // The base HUE tracks the chosen theme color: read the live glass tint (--glass-tint-h) and follow
+  // it, so picking a tint from the top menu immediately re-rolls the foreground-source ramps below.
+  const [h, setH] = React.useState(255);
+  const [tintActive, setTintActive] = React.useState(false);
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const read = () => {
+      const cs = getComputedStyle(root);
+      const hv = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
+      if (!Number.isNaN(hv)) setH(hv);
+      const av = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
+      setTintActive(!Number.isNaN(av) && av > 0);
+    };
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "data-glass-tint",
+        "style",
+        "class",
+      ],
+    });
+    return () => obs.disconnect();
+  }, []);
   // Share the base color + step count with AutoForeground — it drives the site-wide foreground.
   React.useEffect(() => {
     writeRampConfig({
@@ -121,20 +102,33 @@ export function OklchRampDemo() {
   ]);
   const dark = !mounted || resolvedTheme === "dark";
 
+  const gamut = wideGamut ? "p3" : "srgb";
+  // Cap chroma at the in-gamut max for this L+hue (sRGB, or P3 when the wide-gamut toggle is on), so the
+  // slider and value can never show a color the screen can't render.
+  const chromaMax = wideGamut ? maxP3Chroma(l, h) : maxSrgbChroma(l, h);
+  const cInGamut = Math.min(c, chromaMax);
+  // A neutral theme (no active tint) → achromatic base / ramps (gray), matching the foreground; an
+  // active tint adds the (gamut-clamped) color. The chroma slider tunes the vividness while tinted.
+  const effectiveC = tintActive ? cInGamut : 0;
   const base = {
     l,
-    c,
+    c: effectiveC,
     h,
   };
   const baseCss = formatOklch(base);
-  const gamut = wideGamut ? "p3" : "srgb";
 
   // Each ramp covers the FULL range of its axis (the utility derives the steps from `count`),
   // with the seed centered at index `count`.
-  const hues = hueRamp(base, count);
+  // The hue ramp stays a full color wheel even when neutral (base.c 0) — there's no hue to rotate otherwise.
+  const hues = hueRamp(
+    {
+      ...base,
+      c: base.c || 0.15,
+    },
+    count,
+  );
   // Cap the chroma sweep at the in-gamut max for THIS lightness+hue (per the wide-gamut toggle), so
   // every swatch is a distinct, real color — instead of several past the gamut all clamping to one.
-  const chromaMax = wideGamut ? maxP3Chroma(l, h) : maxSrgbChroma(l, h);
   const chromas = chromaRamp(base, count, chromaMax);
   const lights = lightnessRamp(base, count);
   const tonal = lightnessRampColors(base, count).map((color) => formatOklch(clampToGamut(color, gamut)));
@@ -143,7 +137,7 @@ export function OklchRampDemo() {
   // style) and APCA-pick the glass text. `dark` is hydration-safe (matches the SSR default first).
   const previewSurface = glassSurface(dark, {
     h,
-    c,
+    c: effectiveC,
     a: PREVIEW_TINT_A,
   });
   const autoFg = formatOklch(pickForeground(previewSurface));
@@ -151,7 +145,7 @@ export function OklchRampDemo() {
   const textColor = mode === "white" ? "oklch(100% 0 0)" : mode === "black" ? "oklch(15% 0 0)" : autoFg;
   const previewTintStyle = {
     "--glass-tint-h": String(h),
-    "--glass-tint-c": String(c),
+    "--glass-tint-c": String(effectiveC),
     "--glass-tint-a": String(PREVIEW_TINT_A),
   } as React.CSSProperties;
 
@@ -160,38 +154,21 @@ export function OklchRampDemo() {
       <CardHeader>
         <CardTitle>OKLCH ramps</CardTitle>
         <CardDescription>
-          Pick a theme color (or tune L/C/H), then compare its hue, chroma, lightness and tonal ramps — all built from the same base via{" "}
-          <code className="text-xs">lib/oklch-utils</code>. The base is centered in each; click a swatch to copy it.
+          Ramps for your current theme color — its hue tracks the top-menu tint, so picking a theme instantly re-rolls these. Tune lightness, chroma
+          and steps below; all four ramps build from the same base via <code className="text-xs">lib/oklch-utils</code>. The base is centered in each;
+          click a swatch to copy it.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex flex-wrap items-center gap-2">
-          {PRESETS.map((p) => {
-            const active = p.l === l && p.c === c && p.h === h;
-            return (
-              <button
-                type="button"
-                key={p.label}
-                onClick={() => {
-                  setL(p.l);
-                  setC(p.c);
-                  setH(p.h);
-                }}
-                className={cn(
-                  "glass-surface flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1.5 text-xs transition-transform active:scale-[0.96]",
-                  active && "ring-2 ring-foreground/60",
-                )}
-              >
-                <span
-                  className="size-4 rounded-full border border-[var(--glass-border)]"
-                  style={{
-                    background: formatOklch(p),
-                  }}
-                />
-                {p.label}
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span
+            className="size-4 shrink-0 rounded-full border border-[var(--glass-border)]"
+            style={{
+              background: `oklch(60% ${tintActive ? 0.15 : 0} ${h})`,
+            }}
+          />
+          {tintActive ? `Tracking your theme color — hue ${Math.round(h)}°.` : "Neutral theme → achromatic (gray)."} Change it from the top-menu tint
+          switcher.
         </div>
 
         <div className="flex items-center gap-3">
@@ -219,26 +196,16 @@ export function OklchRampDemo() {
               onValueChange={(v) => setL(v[0] ?? l)}
             />
           </Control>
-          <Control label="Chroma" value={c.toFixed(3)}>
+          <Control label="Chroma" value={tintActive ? `${cInGamut.toFixed(3)} / ${chromaMax.toFixed(2)} max` : "0 · neutral"}>
             <Slider
               value={[
-                c,
+                cInGamut,
               ]}
               min={0}
-              max={0.37}
+              max={chromaMax}
               step={0.005}
+              disabled={!tintActive}
               onValueChange={(v) => setC(v[0] ?? c)}
-            />
-          </Control>
-          <Control label="Hue" value={`${h}°`}>
-            <Slider
-              value={[
-                h,
-              ]}
-              min={0}
-              max={360}
-              step={1}
-              onValueChange={(v) => setH(v[0] ?? h)}
             />
           </Control>
           <Control label="Steps each side" value={String(count)}>

@@ -186,8 +186,8 @@ export function Example() {
 export function Example() {
   return (
     <div className="space-y-2">
-      <Skeleton className="h-4 w-[250px]" />
-      <Skeleton className="h-4 w-[200px]" />
+      <Skeleton className="h-4 w-62.5" />
+      <Skeleton className="h-4 w-50" />
       <Skeleton className="h-12 w-full" />
     </div>
   )
@@ -255,7 +255,7 @@ export function Example() {
 export function Example() {
   return (
     <Select>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-45">
         <SelectValue placeholder="Select a theme" />
       </SelectTrigger>
       <SelectContent>
@@ -510,7 +510,7 @@ export function Example() {
 
 export function Example() {
   return (
-    <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+    <ScrollArea className="h-50 w-full rounded-md border p-4">
       <div className="space-y-2">
         {Array.from({ length: 20 }).map((_, i) => (
           <p key={i} className="text-sm">Item {i + 1}</p>
@@ -552,7 +552,7 @@ export function Example() {
         <NavigationMenuItem>
           <NavigationMenuTrigger>Getting started</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid gap-3 p-6 w-[400px]">
+            <ul className="grid gap-3 p-6 w-100">
               <li>
                 <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
                   <div className="text-sm font-medium leading-none">Introduction</div>
@@ -737,7 +737,7 @@ const chartConfig = {
 
 export function Example() {
   return (
-    <ChartContainer config={chartConfig} variant="glass" className="h-[300px]">
+    <ChartContainer config={chartConfig} variant="glass" className="h-75">
       <BarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
@@ -967,7 +967,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/glass/
 
 export function Example() {
   return (
-    <Carousel variant="glass" className="w-full max-w-md h-[200px]">
+    <Carousel variant="glass" className="w-full max-w-md h-50">
       <Card variant="glass" className="h-full m-2">
         <CardHeader>
           <CardTitle>Slide 1</CardTitle>
