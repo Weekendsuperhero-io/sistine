@@ -54,7 +54,7 @@ export function Footer() {
                 href="https://github.com/Weekendsuperhero-io/sistine"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-foreground-ui hover:text-foreground transition-colors"
                 aria-label="GitHub"
               >
                 <GithubLogoIcon className="h-5 w-5" />

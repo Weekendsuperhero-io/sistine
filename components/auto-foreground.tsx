@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { formatOklch, glassSolidSurface, pickInBand, READABLE_USAGE, type ThemeForegroundOptions, themeForeground } from "@/lib/oklch-utils";
+import {
+  formatOklch,
+  glassSolidSurface,
+  pickInBand,
+  READABLE_USAGE,
+  readableForeground,
+  type ThemeForegroundOptions,
+  themeForeground,
+} from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
@@ -10,6 +18,8 @@ const FG_EVENT = "sistine-fg";
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
+  /** Icon foreground hue (0–360) for `--foreground-ui`; null → icons follow the theme/text color. */
+  iconHue: number | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -27,6 +37,7 @@ const FG_PALETTES: FgPalette[] = [
 ];
 const DEFAULT_FG: FgConfig = {
   palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
+  iconHue: null,
 };
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
@@ -44,6 +55,7 @@ export function readFgConfig(): FgConfig {
       if (FG_PALETTES.includes(parsed.palette as FgPalette)) {
         return {
           palette: parsed.palette as FgPalette,
+          iconHue: typeof parsed.iconHue === "number" ? parsed.iconHue : null,
         };
       }
     }
@@ -117,10 +129,11 @@ export interface AutoForegroundProps {
 /**
  * Sets the foreground tokens on <html> by drawing COLORS from the chosen OKLCH ramp (palette + base
  * color + step count): `--foreground`, `--muted-foreground`, and the ARC-Bronze size tiers
- * `--foreground-soft` (large) / `--foreground-strong` (fine). Each is picked from that tonal/lightness
- * ramp to hit its contrast target on the glass-SOLID surface text sits on — so foregrounds are real
- * theme colors, not neutral gray, and track light/dark + tint automatically. globals.css carries static
- * fallbacks (no flash); the tiers are exposed as the `text-foreground-soft` / `text-foreground-strong` utilities.
+ * `--foreground-soft` (large) / `--foreground-strong` (fine), plus the icon foreground `--foreground-ui`
+ * (ui band, optional hue). Each is picked from that ramp to hit its contrast target on the glass-SOLID
+ * surface text sits on — so foregrounds are real theme colors, not neutral gray, and track light/dark +
+ * tint automatically. globals.css carries static fallbacks (no flash); the tiers are exposed as the
+ * `text-foreground-soft` / `-strong` / `-ui` utilities.
  *
  * Configure declaratively — `<AutoForeground palette="tonal" ramp={{ l, c, h, count }} />` — or, with no
  * props, it reads a persisted config (`writeRampConfig`, e.g. the /colors generator) and re-applies on the
@@ -200,6 +213,21 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       );
       root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
       root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
+
+      // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
+      // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
+      // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
+      const iconHue = storedFg.iconHue;
+      root.style.setProperty(
+        "--foreground-ui",
+        formatOklch(
+          readableForeground(surface, {
+            usage: "ui",
+            hue: iconHue ?? tintH,
+            chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
+          }),
+        ),
+      );
     };
 
     update();

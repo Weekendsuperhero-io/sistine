@@ -105,11 +105,16 @@ const WEIGHTS = [
 export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: { live?: boolean; palettes?: FgPalette[] } = {}) {
   const [solidA, setSolidA] = React.useState(0.65);
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
-  // Local icon-hue (demo only): drives the icon preview below via readableForeground — not a shipped token.
-  const [iconHue, setIconHue] = React.useState<number | null>(null);
-  // When `live`, the ramp tabs drive the site TEXT foreground (fgConfig → AutoForeground); sync from saved.
+  // Icon-hue: when `live`, writes fgConfig.iconHue → AutoForeground sets the site `--foreground-ui`
+  // (consumed by `text-foreground-ui` everywhere); the preview below mirrors it via readableForeground.
+  const [iconHue, setIconHueState] = React.useState<number | null>(null);
+  // When `live`, the ramp tabs drive the site TEXT foreground + icon hue (fgConfig → AutoForeground); sync from saved.
   React.useEffect(() => {
-    if (live) setPaletteState(readFgConfig().palette);
+    if (live) {
+      const fg = readFgConfig();
+      setPaletteState(fg.palette);
+      setIconHueState(fg.iconHue);
+    }
   }, [
     live,
   ]);
@@ -118,6 +123,13 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     if (live)
       writeFgConfig({
         palette: p,
+      });
+  };
+  const setIconHue = (hue: number | null) => {
+    setIconHueState(hue);
+    if (live)
+      writeFgConfig({
+        iconHue: hue,
       });
   };
   const [env, setEnv] = React.useState({

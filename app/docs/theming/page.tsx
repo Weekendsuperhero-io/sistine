@@ -281,7 +281,8 @@ export default function ThemingPage() {
               <div className="mt-3">
                 <Code>{`<h1 className="text-foreground-soft">Heading</h1>
 <p className="text-foreground">Body copy…</p>
-<small className="text-foreground-strong">Fine print</small>`}</Code>
+<small className="text-foreground-strong">Fine print</small>
+<GearIcon className="text-foreground-ui" />   {/* standalone icon */}`}</Code>
               </div>
             </div>
 
@@ -289,8 +290,13 @@ export default function ThemingPage() {
               <h3 className="mb-2 font-semibold">Icons</h3>
               <p className="text-muted-foreground">
                 Icons are <strong>non-text</strong>, so the rule is <IC>Lc ≥ 45</IC> (the <IC>ui</IC> band — the APCA analog of WCAG&apos;s 3:1). A
-                labeled icon just inherits <IC>currentColor</IC>; a standalone meaningful icon has to stand on its own. Stroke weight is the dial —
-                thin outlines need more contrast, bold / filled glyphs can go softer (use Phosphor&apos;s <IC>weight</IC> prop).
+                labeled icon just inherits <IC>currentColor</IC>; a <strong>standalone</strong> icon gets <IC>text-foreground-ui</IC> — the shipped
+                icon foreground (ui band, target Lc 60) with an optional hue you can cycle from the{" "}
+                <a className="underline underline-offset-2" href="/colors">
+                  Colors
+                </a>{" "}
+                tester. Stroke weight is the dial — thin outlines need more contrast, bold / filled glyphs can go softer (Phosphor&apos;s{" "}
+                <IC>weight</IC> prop).
               </p>
             </div>
 
