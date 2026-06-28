@@ -17,6 +17,9 @@
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
  *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
  *   7. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *   8. [tint-sync] Every GlassTintSwitcher preset's h/c/a equals its [data-glass-tint] CSS block(s). The
+ *               switcher INLINES the preset onto <html>, shadowing the CSS — so a divergent block renders
+ *               fine on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
  *
  * Run: pnpm test   (node scripts/check-theme.mjs)
  */
@@ -186,10 +189,37 @@ try {
   fail(`[sync] could not read public/r/theme.json: ${e.message}`);
 }
 
+// 8. [tint-sync] every switcher preset's h/c/a matches its [data-glass-tint] CSS block(s). The switcher
+//    INLINES the preset's tint vars onto <html>, shadowing the CSS block — so a block that disagrees renders
+//    correctly on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
+const presetTint = new Map(
+  [...switcher.matchAll(/value:\s*"([a-z]+)",[\s\S]*?\bh:\s*([\d.]+),\s*c:\s*([\d.]+),\s*a:\s*([\d.]+)/g)].map((m) => [
+    m[1],
+    { "--glass-tint-h": Number(m[2]), "--glass-tint-c": Number(m[3]), "--glass-tint-a": Number(m[4]) },
+  ]),
+);
+for (const [value, tint] of presetTint) {
+  const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
+  if (blocks.length === 0) continue; // neutral has no block — invariant 3 already flags missing blocks
+  for (const b of blocks) {
+    for (const d of decls(b.body)) {
+      if (!(d.name in tint)) continue;
+      const cssNum = Number.parseFloat(d.value);
+      if (cssNum !== tint[d.name]) {
+        fail(
+          `[tint-sync] "${value}" ${d.name}: CSS ${cssNum} != switcher preset ${tint[d.name]} ` +
+            `(in "${b.selector.replace(/\s+/g, " ")}"). The switcher inlines the preset, shadowing this block — ` +
+            `sync them or a static (no-switcher) consumer renders a different surface.`,
+        );
+      }
+    }
+  }
+}
+
 if (failures.length) {
   console.error(`✗ theme invariants: ${failures.length} failure(s)\n${failures.map((f) => `  - ${f}`).join("\n")}`);
   process.exit(1);
 }
 console.log(
-  `✓ theme invariants pass — ${rules.length} rules: scope-aware tints, fg isolation, ${presets.length} presets wired, ${statuses.size} component tints + ${frescoPresets.size} frescoes consistent, theme.json in sync`,
+  `✓ theme invariants pass — ${rules.length} rules: scope-aware tints, fg isolation, ${presets.length} presets wired + value-synced, ${statuses.size} component tints + ${frescoPresets.size} frescoes consistent, theme.json in sync`,
 );
