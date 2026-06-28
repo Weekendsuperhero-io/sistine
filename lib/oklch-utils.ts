@@ -283,7 +283,11 @@ function maxChromaFor(l: number, h: number, test: (l: number, c: number, h: numb
     if (test(l, mid, h)) lo = mid;
     else hi = mid;
   }
-  return lo;
+  // Sit 3% inside the boundary. A color exactly at the gamut edge renders fine in Chrome (CSS Color 4
+  // hue-preserving gamut mapping) but Safari per-channel-clamps it toward GREY — so edge-chroma
+  // foregrounds/icons went grey in Safari while staying tinted in Chrome. This margin keeps every emitted
+  // color clearly in-gamut, so both engines show the same tint.
+  return lo * 0.97;
 }
 
 /** Largest chroma keeping (l, h) inside the sRGB gamut. */
