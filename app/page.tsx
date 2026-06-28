@@ -381,10 +381,14 @@ export default function Home() {
                 ] as const
               ).map((v) => (
                 <TabsContent key={v} value={v}>
-                  <Card variant={v}>
+                  <Card variant={v} className={v === "crystal" ? "glass-sheen" : undefined}>
                     <CardHeader>
                       <CardTitle className="capitalize">{v} Variant</CardTitle>
-                      <CardDescription>See how every primitive adapts to the {v} style.</CardDescription>
+                      <CardDescription>
+                        {v === "crystal"
+                          ? "Crystal ships clear — this card opts into the glass-sheen utility for the highlight + shimmer."
+                          : `See how every primitive adapts to the ${v} style.`}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex flex-wrap gap-2">

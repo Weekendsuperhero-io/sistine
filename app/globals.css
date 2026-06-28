@@ -487,29 +487,41 @@
   box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
 }
 
-/* Crystal — clear glass with highlight sheen and glow */
+/* Crystal — clear glass. Sheen + glow are OPT-IN: add the `glass-sheen` utility (e.g. `glass-crystal glass-sheen`). */
 @utility glass-crystal {
   position: relative;
   background-color: var(--glass-crystal-bg) !important;
   background-image:
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
-    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
-  background-size: 200% 200% !important;
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   border: 1px solid var(--glass-crystal-border) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
   transition: all 0.3s ease !important;
 
+  &:hover {
+    box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
+  }
+}
+
+/* Sheen — OPT-IN crystalline gloss (a highlight streak, a bottom glow, and a hover shimmer). Add it
+   alongside any glass surface, e.g. `glass-crystal glass-sheen`. Pseudo-element based, so it sets
+   position:relative — avoid on sticky/fixed surfaces. Default crystal ships clear (opt in deliberately). */
+@utility glass-sheen {
+  position: relative;
+
   &::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent);
+    background:
+      linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
     opacity: 0.7;
     pointer-events: none;
-    height: 30%;
+    transition: background-position 0.3s ease;
   }
 
   &::after {
@@ -522,13 +534,12 @@
     pointer-events: none;
   }
 
-  &:hover {
-    box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
-    background-position: 100% 100% !important;
+  &:hover::before {
+    background-position: 100% 100%;
   }
 }
 
-/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-tint-h).
+/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-fg-h).
    Twin of the brand --gradient but without the wash alpha so the letters stay crisp. Best on
    large/display text: a gradient fill has no single contrast value, so keep body/UI text solid. */
 @utility text-gradient {
@@ -600,13 +611,10 @@
 [data-glass="crystal"] .glass-surface-sm,
 [data-glass="crystal"] .glass-surface-lg {
   background-color: var(--glass-crystal-bg) !important;
-  /* Sheen + glow baked into the background so it matches the crystal ::before/::after
-     without forcing position:relative (which would break sticky/fixed surfaces). The wash
-     is the bottom layer so the tint shows through the (mostly-transparent) sheen above it. */
+  /* Clear crystal re-skin: the fresco gradient over the wash, no baked sheen (sheen is opt-in via the
+     glass-sheen utility). The wash is the bottom layer so the tint shows through. */
   background-image:
-    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
-    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
@@ -634,9 +642,7 @@
 }
 [data-glass="crystal"] .glass-solid {
   background-image:
-    linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
-    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   background-color: var(--glass-solid-bg) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
