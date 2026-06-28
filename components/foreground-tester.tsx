@@ -3,6 +3,7 @@
 import { BellIcon, GearIcon, HeartIcon, MagnifyingGlassIcon, StarIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
+import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -108,7 +109,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
   // Icon-hue: when `live`, writes fgConfig.iconHue → AutoForeground sets the site `--foreground-ui`
   // (consumed by `text-foreground-ui` everywhere); the preview below mirrors it via readableForeground.
-  const [iconHue, setIconHueState] = React.useState<number | null>(null);
+  const [iconHue, setIconHueState] = React.useState<number | "complement" | null>(null);
   // When `live`, the ramp tabs drive the site TEXT foreground + icon hue (fgConfig → AutoForeground); sync from saved.
   React.useEffect(() => {
     if (live) {
@@ -126,7 +127,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         palette: p,
       });
   };
-  const setIconHue = (hue: number | null) => {
+  const setIconHue = (hue: number | "complement" | null) => {
     setIconHueState(hue);
     if (live)
       writeFgConfig({
@@ -247,11 +248,13 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   const baseIdx = env.count;
   const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
   const rightLabel = leftLabel === "white" ? "black" : "white";
-  // Icons: lightness solved for the ui band at an optional hue (null → follow theme). A readableForeground demo.
+  // Icons: lightness solved for the ui band. "complement" tracks the theme's opposite hue; a number pins
+  // one; null → follow the theme. Mirrors AutoForeground's --foreground-ui.
+  const iconHueVal = iconHue === "complement" ? complement(env.base).h : typeof iconHue === "number" ? iconHue : env.base.h;
   const iconChroma = iconHue != null ? 0.15 : env.a > 0 ? env.base.c : 0;
   const iconFg = readableForeground(surface, {
     usage: "ui",
-    hue: iconHue ?? env.base.h,
+    hue: iconHueVal,
     chroma: iconChroma,
   });
   const iconColor = formatOklch(iconFg);
@@ -259,64 +262,68 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
 
   return (
     <div className="space-y-4 text-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-lg border border-foreground/15 p-0.5">
-          {palettes.map((p) => (
-            <button
-              type="button"
-              key={p}
-              onClick={() => setPalette(p)}
-              className={cn(
-                "rounded-md px-2.5 py-1 font-medium transition-colors",
-                palette === p ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {PALETTE_LABELS[p]}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <span className="whitespace-nowrap">Solid {Math.round(solidA * 100)}%</span>
-          <Slider
-            value={[
-              solidA,
-            ]}
-            min={0.3}
-            max={0.75}
-            step={0.01}
-            onValueChange={(v) => setSolidA(v[0] ?? solidA)}
-            className="w-28"
-          />
-        </div>
-      </div>
-
-      {/* The full ramp the decisions draw from — extreme → base (center) → opposite; picked swatches ringed. */}
-      <div>
-        <div className="mb-1 flex justify-between text-muted-foreground">
-          <span>{leftLabel} (readable)</span>
-          <span>base</span>
-          <span>{rightLabel} (toward bg)</span>
-        </div>
-        <div className="flex gap-0.5">
-          {ramp.map((c, i) => (
-            <div key={`${i}-${formatOklch(c)}`} className="flex flex-1 flex-col items-center gap-0.5">
-              <span className="h-4 font-semibold leading-none text-foreground">{pickMarks.get(i) ?? (i === baseIdx ? "·" : "")}</span>
-              <div
-                className={cn(
-                  "h-8 w-full rounded-sm",
-                  pickMarks.has(i) && "ring-2 ring-foreground ring-offset-1 ring-offset-transparent",
-                  i === baseIdx && !pickMarks.has(i) && "ring-1 ring-foreground/40",
-                )}
-                style={{
-                  background: formatOklch(c),
-                }}
-                title={formatOklch(c)}
-              />
-              <span className="leading-none text-muted-foreground tabular-nums">{Math.round(lcOf(c))}</span>
+      <Card variant="glass">
+        <CardContent className="space-y-4 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="inline-flex rounded-lg border border-foreground/15 p-0.5">
+              {palettes.map((p) => (
+                <button
+                  type="button"
+                  key={p}
+                  onClick={() => setPalette(p)}
+                  className={cn(
+                    "rounded-md px-2.5 py-1 font-medium transition-colors",
+                    palette === p ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {PALETTE_LABELS[p]}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="whitespace-nowrap">Solid {Math.round(solidA * 100)}%</span>
+              <Slider
+                value={[
+                  solidA,
+                ]}
+                min={0.3}
+                max={0.75}
+                step={0.01}
+                onValueChange={(v) => setSolidA(v[0] ?? solidA)}
+                className="w-28"
+              />
+            </div>
+          </div>
+
+          {/* The full ramp the decisions draw from — extreme → base (center) → opposite; picked swatches ringed. */}
+          <div>
+            <div className="mb-1 flex justify-between text-muted-foreground">
+              <span>{leftLabel} (readable)</span>
+              <span>base</span>
+              <span>{rightLabel} (toward bg)</span>
+            </div>
+            <div className="flex gap-0.5">
+              {ramp.map((c, i) => (
+                <div key={`${i}-${formatOklch(c)}`} className="flex flex-1 flex-col items-center gap-0.5">
+                  <span className="h-4 font-semibold leading-none text-foreground">{pickMarks.get(i) ?? (i === baseIdx ? "·" : "")}</span>
+                  <div
+                    className={cn(
+                      "h-8 w-full rounded-sm",
+                      pickMarks.has(i) && "ring-2 ring-foreground ring-offset-1 ring-offset-transparent",
+                      i === baseIdx && !pickMarks.has(i) && "ring-1 ring-foreground/40",
+                    )}
+                    style={{
+                      background: formatOklch(c),
+                    }}
+                    title={formatOklch(c)}
+                  />
+                  <span className="leading-none text-muted-foreground tabular-nums">{Math.round(lcOf(c))}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Picks rendered on a real glass-solid panel over the page background — the opacity slider changes it. */}
       <div
@@ -341,20 +348,21 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         <div className="space-y-2 border-t border-foreground/10 pt-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium">
-              icons · <code>readableForeground</code>(ui{iconHue != null ? `, hue ${Math.round(iconHue)}°` : ""}) — Lc {iconLc}
+              icons · <code>readableForeground</code>(ui
+              {iconHue != null ? `, hue ${Math.round(iconHueVal)}°${iconHue === "complement" ? " · complement" : ""}` : ""}) — Lc {iconLc}
             </span>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? (iconHue ?? Math.round(complement(env.base).h)) : null)} />
+              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? "complement" : null)} />
               <span className="whitespace-nowrap">color</span>
               {iconHue != null && (
                 <Slider
                   value={[
-                    iconHue,
+                    Math.round(iconHueVal),
                   ]}
                   min={0}
                   max={360}
                   step={1}
-                  onValueChange={(v) => setIconHue(v[0] ?? iconHue)}
+                  onValueChange={(v) => setIconHue(v[0] ?? 0)}
                   className="w-24"
                 />
               )}
@@ -386,60 +394,64 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="text-foreground">
-              {[
-                "tier",
-                "color",
-                "L",
-                "chroma",
-                "Lc / band",
-              ].map((h) => (
-                <th key={h} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="text-muted-foreground">
-            {tiers.map((t) => {
-              const band = READABLE_USAGE[t.usage];
-              return (
-                <tr key={t.key}>
-                  <td className="border border-foreground/15 px-3 py-1.5">{t.label}</td>
-                  <td className="border border-foreground/15 px-3 py-1.5">
-                    <span
-                      className="inline-block size-5 rounded border border-foreground/20 align-middle"
-                      style={{
-                        background: t.fmt,
-                      }}
-                      title={t.fmt}
-                    />
-                  </td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.l}%</td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.chroma}</td>
-                  <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">
-                    {t.lc}{" "}
-                    <span className="font-normal text-muted-foreground">
-                      / {band.floor}–{band.ceiling}
-                    </span>
-                  </td>
+      <Card variant="glass">
+        <CardContent className="space-y-3 p-4">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="text-foreground">
+                  {[
+                    "tier",
+                    "color",
+                    "L",
+                    "chroma",
+                    "Lc / band",
+                  ].map((h) => (
+                    <th key={h} className="border border-foreground/15 px-3 py-1.5 text-left font-semibold">
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody className="text-muted-foreground">
+                {tiers.map((t) => {
+                  const band = READABLE_USAGE[t.usage];
+                  return (
+                    <tr key={t.key}>
+                      <td className="border border-foreground/15 px-3 py-1.5">{t.label}</td>
+                      <td className="border border-foreground/15 px-3 py-1.5">
+                        <span
+                          className="inline-block size-5 rounded border border-foreground/20 align-middle"
+                          style={{
+                            background: t.fmt,
+                          }}
+                          title={t.fmt}
+                        />
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.l}%</td>
+                      <td className="border border-foreground/15 px-3 py-1.5 text-center tabular-nums">{t.chroma}</td>
+                      <td className="border border-foreground/15 px-3 py-1.5 text-center font-semibold text-foreground tabular-nums">
+                        {t.lc}{" "}
+                        <span className="font-normal text-muted-foreground">
+                          / {band.floor}–{band.ceiling}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-      <p className="text-muted-foreground">
-        {live ? "Picking a ramp sets the site's text foreground live. " : ""}The strip is the full <strong>{PALETTE_LABELS[palette]}</strong> ramp
-        (via <code>themeForeground</code>) — extreme → base → extreme; each tier takes the swatch in its <strong>[floor–ceiling]</strong> band nearest
-        target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). Lc is modeled on the solid floor. <strong>Linear</strong> holds the
-        theme&apos;s chroma; <strong>Tonal</strong> fades toward gray. Icons are separate — <code>readableForeground</code> solves lightness for the
-        ui band at your chosen hue.
-      </p>
+          <p className="text-muted-foreground">
+            {live ? "Picking a ramp sets the site's text foreground live. " : ""}The strip is the full <strong>{PALETTE_LABELS[palette]}</strong> ramp
+            (via <code>themeForeground</code>) — extreme → base → extreme; each tier takes the swatch in its <strong>[floor–ceiling]</strong> band
+            nearest target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). Lc is modeled on the solid floor. <strong>Linear</strong> holds
+            the theme&apos;s chroma; <strong>Tonal</strong> fades toward gray. Icons are separate — <code>readableForeground</code> solves lightness
+            for the ui band at your chosen hue.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

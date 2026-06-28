@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  complement,
   formatOklch,
   glassSolidSurface,
   pickInBand,
@@ -18,8 +19,9 @@ const FG_EVENT = "sistine-fg";
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
-  /** Icon foreground hue (0–360) for `--foreground-ui`; null → icons follow the theme/text color. */
-  iconHue: number | null;
+  /** Icon foreground hue for `--foreground-ui`: a number (0–360) pins a hue, "complement" tracks the
+   * theme's opposite hue live, null → icons follow the theme/text color. */
+  iconHue: number | "complement" | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -55,7 +57,7 @@ export function readFgConfig(): FgConfig {
       if (FG_PALETTES.includes(parsed.palette as FgPalette)) {
         return {
           palette: parsed.palette as FgPalette,
-          iconHue: typeof parsed.iconHue === "number" ? parsed.iconHue : null,
+          iconHue: parsed.iconHue === "complement" ? "complement" : typeof parsed.iconHue === "number" ? parsed.iconHue : null,
         };
       }
     }
@@ -218,12 +220,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
       // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
       const iconHue = storedFg.iconHue;
+      // "complement" tracks the theme's opposite hue live; a number pins one; null → follow the theme.
+      const iconH = iconHue === "complement" ? complement(base).h : typeof iconHue === "number" ? iconHue : tintH;
       root.style.setProperty(
         "--foreground-ui",
         formatOklch(
           readableForeground(surface, {
             usage: "ui",
-            hue: iconHue ?? tintH,
+            hue: iconH,
             chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
           }),
         ),
