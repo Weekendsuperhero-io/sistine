@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 const selectTriggerVariants = cva(
@@ -116,8 +117,14 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & VariantProps<typeof selectContentVariants>
->(({ className, children, position = "popper", align = "center", variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> &
+    VariantProps<typeof selectContentVariants> & {
+      glass?: GlassCustomization;
+    }
+>(({ className, children, position = "popper", align = "center", variant = "glass", glass, style, ...props }, ref) => {
+  const hasCustomGlass = glass !== undefined;
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
+  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -125,12 +132,16 @@ const SelectContent = React.forwardRef<
         data-slot="select-content"
         className={cn(
           selectContentVariants({
-            variant,
+            variant: effectiveVariant,
           }),
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className,
         )}
+        style={{
+          ...glassStyles,
+          ...style,
+        }}
         position={position}
         align={align}
         {...props}

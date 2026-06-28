@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 const contextMenuSubContentVariants = cva(
@@ -124,8 +125,14 @@ ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName;
 
 const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & VariantProps<typeof contextMenuContentVariants>
->(({ className, variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> &
+    VariantProps<typeof contextMenuContentVariants> & {
+      glass?: GlassCustomization;
+    }
+>(({ className, variant = "glass", glass, style, ...props }, ref) => {
+  const hasCustomGlass = glass !== undefined;
+  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
+  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
@@ -133,10 +140,14 @@ const ContextMenuContent = React.forwardRef<
         data-slot="context-menu-content"
         className={cn(
           contextMenuContentVariants({
-            variant,
+            variant: effectiveVariant,
           }),
           className,
         )}
+        style={{
+          ...glassStyles,
+          ...style,
+        }}
         {...props}
       />
     </ContextMenuPrimitive.Portal>

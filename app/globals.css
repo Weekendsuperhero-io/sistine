@@ -84,7 +84,7 @@
 
   /* Muted colors - Light mode */
   --muted: oklch(0.85 0 0); /* Dark gray - darker shade to avoid glass effect override */
-  --muted-foreground: oklch(0.14 0.04 var(--glass-tint-h)); /* Level 1 — one ramp step toward the chosen color */
+  --muted-foreground: oklch(0.14 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
   /* Accent colors - Light mode */
   --accent: oklch(0.96 0 0); /* Very light gray */
@@ -132,13 +132,19 @@
   --glass-tint-h: 250;
   --glass-tint-c: 0.018;
   --glass-tint-a: 0;
+  /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
+     --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
+     hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
+     == surface); frescoes override it to anchor text off their multi-hue surface (Muse night: surface
+     222, text 310). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
+  --glass-fg-h: var(--glass-tint-h);
   --glass-tint-wash: oklch(72% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
-  /* Solid accent that tracks the tint hue at a fixed vivid chroma — used by active controls (switch
-     "on", slider range) so they read as the current glass hue instead of plain black/white. */
-  --glass-accent: oklch(0.6 0.15 var(--glass-tint-h));
-  /* Colored glow for the `glow` prop on the Sistine glass components — follows the tint hue
+  /* Solid accent that tracks the FOREGROUND hue (--glass-fg-h) at a fixed vivid chroma — used by active
+     controls (switch "on", slider range) so they read as the current foreground color. */
+  --glass-accent: oklch(0.6 0.15 var(--glass-fg-h));
+  /* Colored glow for the `glow` prop on the Sistine glass components — follows the foreground hue
      (was a hardcoded purple-500). Override this var to control the highlight color. */
-  --glass-glow: oklch(0.62 0.2 var(--glass-tint-h) / 0.45);
+  --glass-glow: oklch(0.62 0.2 var(--glass-fg-h) / 0.45);
   /* Opaque-ish floor for read-through overlays (menus/tooltips/toasts) so they stay legible. */
   /* glass-solid floor opacity — the "how solid" dial (0 = sheer, 1 = fully solid). Shared by light/dark. */
   --glass-solid-a: 0.65;
@@ -169,12 +175,12 @@
   /* Theme-aware brand gradient — follows --glass-tint-h, from the hue 3 ramp-steps out
      (8/side → step 360/17 ≈ 63.53°) to the base hue, at the accent L/C + medium (0.5) alpha.
      (Axis/direction variants are computed in JS from lib/oklch-utils.ts — see the /components demo.) */
-  --gradient: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.6 0.15 var(--glass-tint-h) / 0.5) 100%);
+  --gradient: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-fg-h) + 63.53) / 0.5) 0%, oklch(0.6 0.15 var(--glass-fg-h) / 0.5) 100%);
   /* Full-opacity twin of --gradient for gradient TEXT (background-clip: text) — same hue math, no wash alpha so glyphs stay crisp. */
-  --gradient-text: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.6 0.15 var(--glass-tint-h)) 100%);
+  --gradient-text: linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-fg-h) + 63.53)) 0%, oklch(0.6 0.15 var(--glass-fg-h)) 100%);
   /* High-contrast gradient text for printing ON a tinted theme surface: a DARK tint-hue gradient in
      light mode (light one in .dark), so legibility comes from lightness — not just hue. */
-  --gradient-text-contrast: linear-gradient(135deg, oklch(0.32 0.14 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.32 0.14 var(--glass-tint-h)) 100%);
+  --gradient-text-contrast: linear-gradient(135deg, oklch(0.32 0.14 calc(var(--glass-fg-h) + 63.53)) 0%, oklch(0.32 0.14 var(--glass-fg-h)) 100%);
   /* Apple-standard blur values - moderate blur */
   --blur: 10px;
   --blur-sm: 4px;
@@ -221,12 +227,12 @@
   /* Deeper wash lightness so the tint reads as colored glass over dark backdrops. */
   --glass-tint-wash: oklch(58% calc(var(--glass-tint-c) * 2.5) var(--glass-tint-h) / var(--glass-tint-a));
   /* Lighter accent so the tint hue pops on dark surfaces (see :root for the rationale). */
-  --glass-accent: oklch(0.68 0.14 var(--glass-tint-h));
-  --glass-glow: oklch(0.7 0.18 var(--glass-tint-h) / 0.5);
+  --glass-accent: oklch(0.68 0.14 var(--glass-fg-h));
+  --glass-glow: oklch(0.7 0.18 var(--glass-fg-h) / 0.5);
   /* Gradient (dark): lifted L like --glass-accent. */
-  --gradient: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53) / 0.5) 0%, oklch(0.68 0.14 var(--glass-tint-h) / 0.5) 100%);
-  --gradient-text: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.68 0.14 var(--glass-tint-h)) 100%);
-  --gradient-text-contrast: linear-gradient(135deg, oklch(0.9 0.09 calc(var(--glass-tint-h) + 63.53)) 0%, oklch(0.9 0.09 var(--glass-tint-h)) 100%);
+  --gradient: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-fg-h) + 63.53) / 0.5) 0%, oklch(0.68 0.14 var(--glass-fg-h) / 0.5) 100%);
+  --gradient-text: linear-gradient(135deg, oklch(0.68 0.14 calc(var(--glass-fg-h) + 63.53)) 0%, oklch(0.68 0.14 var(--glass-fg-h)) 100%);
+  --gradient-text-contrast: linear-gradient(135deg, oklch(0.9 0.09 calc(var(--glass-fg-h) + 63.53)) 0%, oklch(0.9 0.09 var(--glass-fg-h)) 100%);
   --glass-solid-l: 18%;
   /* L lifted from 22% (less extreme light↔dark switch) + chroma kept low so warm hues like amber
      stay in-gamut instead of hard-clipping to rust. */
@@ -303,7 +309,7 @@
 
   /* Muted colors - Apple-style white text */
   --muted: oklch(0.18 0 0); /* Darker gray - darker shade to avoid glass effect override */
-  --muted-foreground: oklch(0.89 0.04 var(--glass-tint-h)); /* Level 1 — one ramp step toward the chosen color */
+  --muted-foreground: oklch(0.89 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
   /* Accent colors - Apple-style white text */
   --accent: oklch(0.25 0 0); /* Dark gray */
@@ -481,29 +487,30 @@
   box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
 }
 
-/* Crystal — clear glass with highlight sheen and glow */
+/* Crystal — glass with a STATIC gloss (top highlight + diagonal streak + bottom glow), always on so it
+   reads as crystal at rest. The hover SHIMMER (the gloss sliding on hover) is OPT-IN: add `glass-sheen`. */
 @utility glass-crystal {
   position: relative;
   background-color: var(--glass-crystal-bg) !important;
   background-image:
-    linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
-    linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
-  background-size: 200% 200% !important;
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   border: 1px solid var(--glass-crystal-border) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
   transition: all 0.3s ease !important;
 
+  /* Static gloss: top highlight + diagonal streak. No background-size/position, so it doesn't move.
+     glass-sheen redeclares ::before later in the file with the 200%/hover shift to add the shimmer. */
   &::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent);
+    background:
+      linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%);
     opacity: 0.7;
     pointer-events: none;
-    height: 30%;
   }
 
   &::after {
@@ -518,11 +525,46 @@
 
   &:hover {
     box-shadow: var(--glass-crystal-shadow-hover), var(--glow-layer, 0 0 0 0 transparent) !important;
-    background-position: 100% 100% !important;
   }
 }
 
-/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-tint-h).
+/* Sheen — the OPT-IN hover shimmer (the gloss slides across on hover). Self-contained (highlight + diagonal
+   + glow + the 200%/hover shift), so it works on any glass surface AND, layered on glass-crystal (which
+   already has the static gloss), its ::before/::after override crystal's to add the motion. Pseudo-element
+   based → position:relative; avoid on sticky/fixed surfaces. */
+@utility glass-sheen {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    opacity: 0.7;
+    pointer-events: none;
+    transition: background-position 0.3s ease;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  &:hover::before {
+    background-position: 100% 100%;
+  }
+}
+
+/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-fg-h).
    Twin of the brand --gradient but without the wash alpha so the letters stay crisp. Best on
    large/display text: a gradient fill has no single contrast value, so keep body/UI text solid. */
 @utility text-gradient {
@@ -594,9 +636,9 @@
 [data-glass="crystal"] .glass-surface-sm,
 [data-glass="crystal"] .glass-surface-lg {
   background-color: var(--glass-crystal-bg) !important;
-  /* Sheen + glow baked into the background so it matches the crystal ::before/::after
-     without forcing position:relative (which would break sticky/fixed surfaces). The wash
-     is the bottom layer so the tint shows through the (mostly-transparent) sheen above it. */
+  /* Static gloss BAKED into the background (this re-skin can't use ::before/::after — those need
+     position:relative, which would break sticky/fixed surfaces): top highlight + bottom glow + diagonal
+     streak over the fresco + wash. The hover shimmer stays the opt-in glass-sheen utility. */
   background-image:
     linear-gradient(to bottom, oklch(100% 0 0 / 0.4), transparent 30%), radial-gradient(circle at 50% 120%, oklch(100% 0 0 / 0.2), transparent 70%),
     linear-gradient(to bottom right, oklch(100% 0 0 / 0.15), transparent 50%), var(--glass-crystal-fresco, linear-gradient(transparent, transparent)),
@@ -784,6 +826,12 @@
   --glass-tint-a: 0.18;
 }
 
+/* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
+   GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
+   shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
+   Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
+   --glass-fg-h are CSS-only — no preset counterpart.) */
+
 /* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in
    dark, so it tracks the day/night background. Pick the look with the light/dark/system toggle. */
 [data-glass-tint="muse"] {
@@ -804,10 +852,12 @@
 }
 .dark[data-glass-tint="muse"] {
   /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
-     interpolated `in oklch` so the neon stays saturated instead of greying between stops. */
-  --glass-tint-h: 222;
-  --glass-tint-c: 0.1;
-  --glass-tint-a: 0.18;
+     interpolated `in oklch` so the neon stays saturated instead of greying between stops. The text/accent
+     anchor is a purple-magenta (off the cyan gradient start) so night text reads legibly, not washed-blue. */
+  --glass-tint-h: 230; /* surface: mirrors the Muse switcher preset (same as day); night character is the --glass-bg below */
+  --glass-fg-h: 300; /* text/accent anchor: purple-magenta — the ONE fresco with a surface≠text split */
+  --glass-tint-c: 0.06;
+  --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(85% 0.1 222 / 0.24) 0%,
@@ -830,7 +880,7 @@
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
    averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {
-  --glass-tint-h: 18;
+  --glass-tint-h: 75; /* surface: mirrors the Sistine switcher preset; text shares it (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(
@@ -887,7 +937,7 @@
 /* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
    glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
-  --glass-tint-h: 350;
+  --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
@@ -895,7 +945,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="gloaming"] {
-  --glass-tint-h: 32; /* night keeps the warm glow; light mode uses the dusk-rose anchor above */
+  --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
   --glass-crystal-fresco: var(--glass-bg);

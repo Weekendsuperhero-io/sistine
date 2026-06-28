@@ -22,6 +22,11 @@ export interface FgConfig {
   /** Icon foreground hue for `--foreground-ui`: a number (0–360) pins a hue, "complement" tracks the
    * theme's opposite hue live, null → icons follow the theme/text color. */
   iconHue: number | "complement" | null;
+  /** Heading/large-text hue for `--foreground-soft` — same semantics as iconHue (number pins, "complement"
+   * tracks the opposite live, null → follow the chosen palette ramp). */
+  softHue: number | "complement" | null;
+  /** Fine/small-text hue for `--foreground-strong` — same semantics (null → follow the palette ramp). */
+  strongHue: number | "complement" | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -40,6 +45,8 @@ const FG_PALETTES: FgPalette[] = [
 const DEFAULT_FG: FgConfig = {
   palette: "lightness", // linear ramp — holds the theme's chroma, so high-contrast text reads as a soft tinted white, not gray
   iconHue: null,
+  softHue: null,
+  strongHue: null,
 };
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
@@ -47,6 +54,9 @@ const DEFAULT_RAMP: RampConfig = {
   h: 255,
   count: 12, // finest ramp (12 steps/side) — the most cohesive foreground set in practice
 };
+
+/** Normalize a stored hue choice: a number pins it, "complement" tracks the theme's opposite, else null. */
+const hueChoice = (v: unknown): number | "complement" | null => (v === "complement" ? "complement" : typeof v === "number" ? v : null);
 
 /** Read the persisted foreground palette; falls back to the default (Linear). */
 export function readFgConfig(): FgConfig {
@@ -57,7 +67,9 @@ export function readFgConfig(): FgConfig {
       if (FG_PALETTES.includes(parsed.palette as FgPalette)) {
         return {
           palette: parsed.palette as FgPalette,
-          iconHue: parsed.iconHue === "complement" ? "complement" : typeof parsed.iconHue === "number" ? parsed.iconHue : null,
+          iconHue: hueChoice(parsed.iconHue),
+          softHue: hueChoice(parsed.softHue),
+          strongHue: hueChoice(parsed.strongHue),
         };
       }
     }
@@ -162,10 +174,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const v = Number.parseFloat(cs.getPropertyValue(name));
         return Number.isNaN(v) ? fb : v;
       };
-      // Foregrounds FOLLOW THE CHOSEN THEME COLOR: the ramp's hue is the live glass tint (--glass-tint-h);
-      // its lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
+      // Foregrounds FOLLOW THE CHOSEN FOREGROUND HUE: the ramp's hue is --glass-fg-h (which defaults to
+      // the glass tint --glass-tint-h, but frescoes set it apart so text anchors off their surface).
+      // Lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
       // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
-      const tintH = num("--glass-tint-h", rh ?? storedRamp.h);
+      const tintH = num("--glass-fg-h", num("--glass-tint-h", rh ?? storedRamp.h));
       const tintA = num("--glass-tint-a", 0);
       const cfgC = rc ?? storedRamp.c;
       // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue
@@ -213,8 +226,21 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           ceiling: 75,
         }),
       );
-      root.style.setProperty("--foreground-soft", tier(READABLE_USAGE.large));
-      root.style.setProperty("--foreground-strong", tier(READABLE_USAGE.small));
+      // Size tiers default to a palette-ramp pick (tier). softHue/strongHue (mirroring iconHue) optionally
+      // pin a tier to its OWN readable hue — a number, "complement" (theme's opposite, live), or null =
+      // follow the palette — so headings / fine text can be tinted independently of body text.
+      const tierAtHue = (usage: "large" | "small", choice: number | "complement" | null) =>
+        choice == null
+          ? tier(READABLE_USAGE[usage])
+          : formatOklch(
+              readableForeground(surface, {
+                usage,
+                hue: choice === "complement" ? complement(base).h : choice,
+                chroma: 0.15,
+              }),
+            );
+      root.style.setProperty("--foreground-soft", tierAtHue("large", storedFg.softHue));
+      root.style.setProperty("--foreground-strong", tierAtHue("small", storedFg.strongHue));
 
       // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
       // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
