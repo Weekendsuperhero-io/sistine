@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import {
-  complement,
   formatOklch,
   glassSolidSurface,
+  HARMONIC_OFFSETS,
+  type HarmonicName,
+  harmonicHue,
   pickInBand,
   READABLE_USAGE,
   readableForeground,
@@ -19,14 +21,15 @@ const FG_EVENT = "sistine-fg";
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
-  /** Icon foreground hue for `--foreground-ui`: a number (0–360) pins a hue, "complement" tracks the
-   * theme's opposite hue live, null → icons follow the theme/text color. */
-  iconHue: number | "complement" | null;
-  /** Heading/large-text hue for `--foreground-soft` — same semantics as iconHue (number pins, "complement"
-   * tracks the opposite live, null → follow the chosen palette ramp). */
-  softHue: number | "complement" | null;
+  /** Icon foreground hue for `--foreground-ui`: a number (0–360) pins a hue; a harmonic name
+   * ("complement" | "triad-1" | "split-2" | … — a color-wheel relationship rotated off --harmony-h,
+   * tracked live); null → icons follow the theme/text color. Always contrast-solved (APCA/ARC). */
+  iconHue: number | HarmonicName | null;
+  /** Heading/large-text hue for `--foreground-soft` — same semantics as iconHue (number pins, a harmonic
+   * name rotates off the theme live, null → follow the chosen palette ramp). */
+  softHue: number | HarmonicName | null;
   /** Fine/small-text hue for `--foreground-strong` — same semantics (null → follow the palette ramp). */
-  strongHue: number | "complement" | null;
+  strongHue: number | HarmonicName | null;
 }
 /** The /colors ramp generator's base color + step count, shared with the foreground. */
 export interface RampConfig {
@@ -55,8 +58,9 @@ const DEFAULT_RAMP: RampConfig = {
   count: 12, // finest ramp (12 steps/side) — the most cohesive foreground set in practice
 };
 
-/** Normalize a stored hue choice: a number pins it, "complement" tracks the theme's opposite, else null. */
-const hueChoice = (v: unknown): number | "complement" | null => (v === "complement" ? "complement" : typeof v === "number" ? v : null);
+/** Normalize a stored hue choice: a harmonic relationship name, a pinned number, else null. */
+const hueChoice = (v: unknown): number | HarmonicName | null =>
+  typeof v === "string" && v in HARMONIC_OFFSETS ? (v as HarmonicName) : typeof v === "number" ? v : null;
 
 /** Read the persisted foreground palette; falls back to the default (Linear). */
 export function readFgConfig(): FgConfig {
@@ -180,27 +184,26 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // measured on the glass-SOLID surface body text sits on — a known surface, so a real Lc.
       const tintH = num("--glass-fg-h", num("--glass-tint-h", rh ?? storedRamp.h));
       const tintA = num("--glass-tint-a", 0);
+      // Colorfulness gate — CHROMA is the single master now that Wash is retired: tint-c > 0 → colored
+      // foregrounds (at the ramp's vividness) + hue-tracking harmonics; chroma 0 → achromatic. (tintA still
+      // feeds the glass-solid SURFACE color below, but no longer decides "is this theme colored?".)
+      const tintC = num("--glass-tint-c", 0);
+      // Harmony anchor — the wheel origin the icon/foreground harmonics rotate from. Mirrors the CSS
+      // --harmony-h (content hue, or 0 for the hue-less neutral/bone themes set inline by the tint switcher);
+      // falls back to the content hue when unset (jewels), so JS harmonics land on the SAME angle as the
+      // --hue-* swatches. harmonicHue(harmonyH, name) below matches calc(var(--harmony-h) + N) exactly.
+      const harmonyH = num("--harmony-h", tintH);
       const cfgC = rc ?? storedRamp.c;
       // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue
       // palette stays a full-spectrum color wheel even when neutral — there's no base hue to rotate, so a
       // gray hue ramp is pointless; show all hues. An active tint uses the config's vividness.
       const base = {
         l: rl ?? storedRamp.l,
-        c: palette === "hue" ? cfgC || 0.15 : tintA > 0 ? cfgC : 0,
+        c: palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
         h: tintH,
       };
-      const surface = glassSolidSurface(
-        dark,
-        {
-          h: tintH,
-          c: num("--glass-tint-c", 0),
-          a: tintA,
-        },
-        num("--glass-solid-a", 0.65),
-      );
-
       // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
-      // gray — each picked to hit its ARC-Bronze contrast target on that surface.
+      // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
       const ramp = Array.from(
         {
           length: count + 1,
@@ -214,49 +217,102 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             dark,
           }),
       );
-      // Band-aware pick: honor each tier's floor (minimum) and ceiling (anti-spike), aiming for target.
-      const tier = (band: { floor: number; target: number; ceiling: number }) => formatOklch(pickInBand(ramp, surface, band));
-      const fg = tier(READABLE_USAGE.body);
-      root.style.setProperty("--foreground", fg);
-      root.style.setProperty(
-        "--muted-foreground",
-        tier({
-          floor: 45,
-          target: 60,
-          ceiling: 75,
-        }),
-      );
-      // Size tiers default to a palette-ramp pick (tier). softHue/strongHue (mirroring iconHue) optionally
-      // pin a tier to its OWN readable hue — a number, "complement" (theme's opposite, live), or null =
-      // follow the palette — so headings / fine text can be tinted independently of body text.
-      const tierAtHue = (usage: "large" | "small", choice: number | "complement" | null) =>
-        choice == null
-          ? tier(READABLE_USAGE[usage])
-          : formatOklch(
-              readableForeground(surface, {
-                usage,
-                hue: choice === "complement" ? complement(base).h : choice,
-                chroma: 0.15,
-              }),
-            );
-      root.style.setProperty("--foreground-soft", tierAtHue("large", storedFg.softHue));
-      root.style.setProperty("--foreground-strong", tierAtHue("small", storedFg.strongHue));
-
-      // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
-      // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
-      // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
       const iconHue = storedFg.iconHue;
-      // "complement" tracks the theme's opposite hue live; a number pins one; null → follow the theme.
-      const iconH = iconHue === "complement" ? complement(base).h : typeof iconHue === "number" ? iconHue : tintH;
-      root.style.setProperty(
-        "--foreground-ui",
-        formatOklch(
-          readableForeground(surface, {
-            usage: "ui",
-            hue: iconH,
-            chroma: iconHue != null ? 0.15 : tintA > 0 ? cfgC : 0,
+      // Set the full foreground tier set against a given SURFACE, under a var suffix. Run twice: "" for the
+      // normal glass-SOLID surface (page + translucent/solid cards), and "-opaque" for the solid
+      // --glass-opaque-bg floor. The opaque re-skin in globals.css remaps --foreground* → the -opaque vars
+      // inside opaque cards, so a LIGHT opaque floor (e.g. dark-mode bone cream) gets DARK card text while
+      // the dark page keeps light text — one global foreground can't do both, so opaque cards get their own.
+      const applyTiers = (
+        surface: {
+          l: number;
+          c: number;
+          h: number;
+        },
+        suffix: string,
+        adaptive: boolean,
+      ) => {
+        // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
+        // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
+        // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
+        // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (bone cream).
+        const tier = (band: { floor: number; target: number; ceiling: number }) =>
+          formatOklch(
+            adaptive
+              ? readableForeground(surface, {
+                  floor: band.floor,
+                  target: band.target,
+                  ceiling: band.ceiling,
+                  hue: tintH,
+                  chroma: tintC > 0 ? cfgC : 0,
+                })
+              : pickInBand(ramp, surface, band),
+          );
+        root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
+        root.style.setProperty(
+          `--muted-foreground${suffix}`,
+          tier({
+            floor: 45,
+            target: 60,
+            ceiling: 75,
           }),
+        );
+        // Size tiers default to a palette-ramp pick (tier). softHue/strongHue (mirroring iconHue) optionally
+        // pin a tier to its OWN readable hue — a number, "complement" (theme's opposite, live), or null =
+        // follow the palette — so headings / fine text can be tinted independently of body text.
+        const tierAtHue = (usage: "large" | "small", choice: number | HarmonicName | null) =>
+          choice == null
+            ? tier(READABLE_USAGE[usage])
+            : formatOklch(
+                readableForeground(surface, {
+                  usage,
+                  hue: typeof choice === "string" ? harmonicHue(harmonyH, choice) : choice,
+                  chroma: 0.15,
+                }),
+              );
+        root.style.setProperty(`--foreground-soft${suffix}`, tierAtHue("large", storedFg.softHue));
+        root.style.setProperty(`--foreground-strong${suffix}`, tierAtHue("small", storedFg.strongHue));
+        // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
+        // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
+        // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
+        const iconH = typeof iconHue === "string" ? harmonicHue(harmonyH, iconHue) : typeof iconHue === "number" ? iconHue : tintH;
+        root.style.setProperty(
+          `--foreground-ui${suffix}`,
+          formatOklch(
+            readableForeground(surface, {
+              usage: "ui",
+              hue: iconH,
+              chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
+            }),
+          ),
+        );
+      };
+
+      // Normal surface: the glass-SOLID floor body text sits on (page + translucent/solid cards).
+      applyTiers(
+        glassSolidSurface(
+          dark,
+          {
+            h: tintH,
+            c: num("--glass-tint-c", 0),
+            a: tintA,
+          },
+          num("--glass-solid-a", 0.65),
         ),
+        "",
+        false,
+      );
+      // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it (its lightness
+      // is exposed as the numeric --glass-opaque-l token; chroma/hue from the tint). `adaptive` so a LIGHT
+      // floor (bone cream) gets DARK text — the theme ramp only spans the readable half and can't.
+      applyTiers(
+        {
+          l: num("--glass-opaque-l", dark ? 32 : 90),
+          c: num("--glass-tint-c", 0) * 0.9,
+          h: tintH,
+        },
+        "-opaque",
+        true,
       );
     };
 

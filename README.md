@@ -146,7 +146,7 @@ Every color is authored in **oklch** in `app/globals.css` (full reference: [`doc
 }
 ```
 
-Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `fluted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
+Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
 ### Per-Component Customization
 

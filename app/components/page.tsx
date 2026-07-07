@@ -34,7 +34,6 @@ const buttonVariantNames = [
   "glass",
   "gradient",
   "frosted",
-  "fluted",
   "crystal",
   "opaque",
   "destructive",
@@ -73,7 +72,6 @@ const solidIntensities = [
 const glassTypes = [
   "glass",
   "frosted",
-  "fluted",
   "crystal",
   "opaque",
 ] as const;

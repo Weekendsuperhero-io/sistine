@@ -66,7 +66,7 @@ export const WithContent: Story = {
           Sistine is a modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui
           registry.
         </p>
-        <p>It provides 40+ beautiful glass components with variants including glass, frosted, fluted, and crystal effects.</p>
+        <p>It provides 40+ beautiful glass components with variants including glass, frosted, and crystal effects.</p>
         <Separator className="my-4" />
         <h5 className="font-medium">Features</h5>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
@@ -83,7 +83,6 @@ export const WithContent: Story = {
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
           <li>Glass - Base glass effect with balanced blur</li>
           <li>Frosted - Strong blur for enhanced depth</li>
-          <li>Fluted - Textured pattern overlay</li>
           <li>Crystal - Layered effects with animations</li>
         </ul>
       </div>

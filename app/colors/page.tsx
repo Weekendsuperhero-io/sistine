@@ -1,5 +1,7 @@
+import { CrystalGlossDemo } from "@/components/crystal-gloss-demo";
 import { ForegroundTester } from "@/components/foreground-tester";
 import { GradientSchemesDemo } from "@/components/gradient-schemes-demo";
+import { HarmonicSwatchesDemo } from "@/components/harmonic-swatches-demo";
 import { OklchRampDemo } from "@/components/oklch-ramp-demo";
 
 export const metadata = {
@@ -12,6 +14,8 @@ export default function ColorsPage() {
     <div className="container mx-auto flex flex-col items-center gap-8 px-4 py-12">
       <OklchRampDemo />
       <GradientSchemesDemo />
+      <HarmonicSwatchesDemo />
+      <CrystalGlossDemo />
       {/* No glass card wrapper on purpose: the preview panel must sit DIRECTLY on the page background
           (one glass-solid card on the canvas) so its modeled Lc matches what ships — not a card
           blurring another card. */}

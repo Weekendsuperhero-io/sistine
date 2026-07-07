@@ -19,7 +19,6 @@ const meta = {
         "default",
         "glass",
         "frosted",
-        "fluted",
         "crystal",
       ],
     },

@@ -42,8 +42,9 @@ export default function ThemingPage() {
                 or the <IC>glass-*</IC> class.
               </li>
               <li>
-                <strong>Material</strong> (the look): <IC>glass</IC> · <IC>frosted</IC> · <IC>fluted</IC> · <IC>crystal</IC>. Set with{" "}
-                <IC>data-glass</IC> on an ancestor (or the <IC>variant</IC> shortcut).
+                <strong>Material</strong> (the look): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>gradient</IC>. Set with{" "}
+                <IC>data-glass</IC> on an ancestor (or the <IC>variant</IC> shortcut). Crystal has three <strong>flavors</strong> —{" "}
+                <IC>data-crystal</IC> white / tonal / hue (see below).
               </li>
             </ul>
             <p className="text-muted-foreground">
@@ -82,7 +83,6 @@ export default function ThemingPage() {
                   </tr>
                   {[
                     "frosted",
-                    "fluted",
                     "crystal",
                   ].map((m) => (
                     <tr key={m}>
@@ -97,9 +97,9 @@ export default function ThemingPage() {
               </table>
             </div>
             <p className="text-muted-foreground">
-              <strong>Shortcut:</strong> <IC>variant=&quot;frosted&quot;</IC> / <IC>&quot;fluted&quot;</IC> / <IC>&quot;crystal&quot;</IC> jumps to
-              that material at its own (sheer) default tier — use the full <IC>data-glass</IC> × <IC>variant</IC> form only to put a material at a
-              different tier. <IC>opaque</IC> is the solid endpoint: a surface is solid regardless of material.
+              <strong>Shortcut:</strong> <IC>variant=&quot;frosted&quot;</IC> / <IC>&quot;crystal&quot;</IC> jumps to that material at its own (sheer)
+              default tier — use the full <IC>data-glass</IC> × <IC>variant</IC> form only to put a material at a different tier. <IC>opaque</IC> is
+              the solid endpoint: a surface is solid regardless of material.
             </p>
             <p className="text-muted-foreground">To build any surface, answer three questions:</p>
             <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
@@ -150,13 +150,17 @@ export default function ThemingPage() {
               </p>
             </div>
             <div>
-              <h3 className="mb-2 font-semibold">Custom hue</h3>
-              <p className="mb-2 text-muted-foreground">For an arbitrary color, set the tint vars directly instead of a preset:</p>
+              <h3 className="mb-2 font-semibold">Custom color — OKLCH H · C · L</h3>
+              <p className="mb-2 text-muted-foreground">
+                For an arbitrary color, set the tint vars directly instead of a preset. The model is straight OKLCH: <strong>hue</strong> +{" "}
+                <strong>chroma</strong> (the single &ldquo;how colorful&rdquo; dial — chroma <IC>0</IC> = neutral) + <strong>lightness</strong> (lower
+                = deeper). There is no separate &ldquo;wash&rdquo; knob — the tint alpha is a fixed film per preset.
+              </p>
               <Code>{`<div
   style={{
-    "--glass-tint-h": 280,   /* hue 0–360 */
-    "--glass-tint-c": 0.07,  /* chroma / saturation */
-    "--glass-tint-a": 0.16,  /* wash strength 0–~0.3 */
+    "--glass-tint-h": 280,     /* hue 0–360 */
+    "--glass-tint-c": 0.07,    /* chroma 0–~0.2 — the colorfulness master */
+    "--glass-opaque-l": 40,    /* tint body lightness — lower = deep (e.g. deep purple) */
   }}
 >`}</Code>
             </div>
@@ -168,7 +172,7 @@ export default function ThemingPage() {
             <CardTitle className="text-foreground">
               Glass style — <IC>data-glass</IC> &amp; the <IC>variant</IC> prop
             </CardTitle>
-            <CardDescription className="text-muted-foreground">Switch the glass material: glass, frosted, fluted, crystal, opaque.</CardDescription>
+            <CardDescription className="text-muted-foreground">Switch the glass material: glass, frosted, crystal, opaque.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
@@ -182,6 +186,126 @@ export default function ThemingPage() {
             </p>
             <Code>{`<html data-glass="frosted">              <!-- all glass = frosted -->
 <section data-glass="crystal">…</section>  <!-- scoped -->`}</Code>
+          </CardContent>
+        </Card>
+
+        <Card variant="glass" id="crystal" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">
+              Crystal flavors — <IC>data-crystal</IC>
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Swap the crystal gloss: a white specular, a theme tint, or an iridescent hue sweep.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Crystal&apos;s shine has three flavors, set with <IC>data-crystal</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
+              with the crystal variant and <IC>data-glass=&quot;crystal&quot;</IC>:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-foreground">
+                    {[
+                      "data-crystal",
+                      "gloss",
+                    ].map((h) => (
+                      <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  {[
+                    [
+                      "white",
+                      "flat white specular — the classic glass shine",
+                    ],
+                    [
+                      "tonal",
+                      "a tonally-close tint of the theme (pearlescent) — the default",
+                    ],
+                    [
+                      "hue",
+                      "iridescent — the highlight sweeps hues shifted ± around the tint",
+                    ],
+                  ].map(([k, d]) => (
+                    <tr key={k}>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{k}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">{d}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Code>{`<html data-crystal="hue">                    <!-- iridescent crystal everywhere -->
+<section data-crystal="white">…</section>   <!-- classic specular, scoped -->`}</Code>
+            <p className="text-muted-foreground">Tune the gloss with these tokens — all have safe defaults, so override only what you want:</p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-foreground">
+                    {[
+                      "token",
+                      "default",
+                      "what",
+                    ].map((h) => (
+                      <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  {[
+                    [
+                      "--glass-gloss-l",
+                      "94",
+                      "highlight lightness (→ %); lower = bolder",
+                    ],
+                    [
+                      "--glass-gloss-tint",
+                      "2",
+                      "tonal: × the theme chroma (0 = white)",
+                    ],
+                    [
+                      "--glass-gloss-hue-span",
+                      "40",
+                      "hue: ° the sweep shifts ± around the tint",
+                    ],
+                    [
+                      "--glass-gloss-c",
+                      "0.16",
+                      "hue: chroma of the swept stops",
+                    ],
+                    [
+                      "--glass-gloss-hue-dir",
+                      "1",
+                      "direction (±1) — tonal streak / hue order",
+                    ],
+                  ].map(([t, d, w]) => (
+                    <tr key={t}>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{t}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">{d}</td>
+                      <td className="border border-foreground/15 px-3 py-2">{w}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-muted-foreground">
+              Play with every flavor and knob live on the{" "}
+              <a className="underline underline-offset-2" href="/colors">
+                Colors
+              </a>{" "}
+              page.
+            </p>
           </CardContent>
         </Card>
 
@@ -439,6 +563,75 @@ const onAccent = useReadableForeground(accent, "large");
           </CardContent>
         </Card>
 
+        <Card variant="glass" id="harmonics" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Harmonic color tokens</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Color-wheel relationships derived from the theme hue — pure CSS, no JS.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Every relationship off the harmony anchor (<IC>--harmony-h</IC> — the content hue, or <IC>0</IC> for the hue-less neutral / bone themes)
+              ships as a token, so they rotate with the tint automatically. The hue tokens are angles — use anywhere as{" "}
+              <IC>oklch(L C var(--hue-*))</IC>:
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-foreground">
+                    {[
+                      "family",
+                      "what",
+                    ].map((h) => (
+                      <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  {[
+                    [
+                      "--hue-*",
+                      "angle tokens: base, complement, analogous-1/2, split-1/2, triad-1/2, tetrad-1/2/3, square-1/2/3",
+                    ],
+                    [
+                      "--color-*",
+                      "ready vivid oklch colors at the accent envelope (complement, triad-1/2, split-1/2, analogous-1/2)",
+                    ],
+                    [
+                      "--mono-1..3",
+                      "a monochromatic ramp in the theme hue",
+                    ],
+                    [
+                      "--alpha-1..6",
+                      "standard alpha tiers (0.04 → 0.5) for fills / overlays / scrims",
+                    ],
+                  ].map(([t, w]) => (
+                    <tr key={t}>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{t}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">{w}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Code>{`<div style={{ background: "oklch(0.6 0.16 var(--hue-triad-1))" }} />
+<div style={{ background: "var(--color-complement)" }} />
+<div style={{ background: "oklch(0.6 0.18 var(--glass-fg-h) / var(--alpha-3))" }} />`}</Code>
+            <p className="text-muted-foreground">
+              Standalone icons (<IC>text-foreground-ui</IC>) can pin to any of these relationships — contrast-solved — from the{" "}
+              <a className="underline underline-offset-2" href="/colors">
+                Colors
+              </a>{" "}
+              tester.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Live preview sits on the page background (one glass-solid card on the canvas) — not nested in a
             glass card — so its modeled Lc matches what ships. */}
         <section className="space-y-2 text-foreground">
@@ -456,14 +649,30 @@ const onAccent = useReadableForeground(accent, "large");
           <CardContent className="space-y-4">
             <ul className="list-disc space-y-2 pl-5 text-muted-foreground">
               <li>
-                <IC>--glass-tint-a</IC> — wash strength: how much the tint floods sheer surfaces (<IC>glass-bg</IC> / <IC>surface</IC>). 0 = no wash.
-                Has little effect on <IC>opaque</IC> (use <IC>--glass-tint-c</IC> / <IC>-h</IC> there).
+                <IC>--glass-tint-h</IC> — tint <strong>hue</strong> (OKLCH H, 0–360).
               </li>
               <li>
-                <IC>--glass-tint-c</IC> — saturation (chroma) of the tint.
+                <IC>--glass-tint-c</IC> — tint <strong>chroma</strong>: the single &ldquo;how colorful&rdquo; master — it drives surfaces, text, and
+                the harmonic accents together. <IC>0</IC> = neutral.
+              </li>
+              <li>
+                <IC>--glass-opaque-l</IC> — tint <strong>body lightness</strong> (OKLCH L); lower = a deeper tint. Mode-aware default (90 light / 32
+                dark), and the floor AutoForeground bands opaque-card text against.
+              </li>
+              <li>
+                <IC>--glass-opacity</IC> — <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the variant&apos;s natural sheer glass,{" "}
+                <IC>1</IC> = reads as its opaque variant. Set inline or via the <IC>glass</IC> prop.
               </li>
               <li>
                 <IC>--glass-solid-a</IC> — how solid the <IC>glass-solid</IC> floor is (≈0.25–0.75; default 0.65).
+              </li>
+              <li>
+                <IC>--glass-opaque-outline</IC> — optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
+                (e.g. <IC>var(--glass-accent)</IC>) on any ancestor to give every opaque component a colored edge.
+              </li>
+              <li>
+                <IC>--glass-tint-a</IC> — the tint <strong>film</strong> alpha (per preset). The former &ldquo;Wash&rdquo; slider is retired — chroma
+                is the colorfulness dial now.
               </li>
             </ul>
             <p className="text-muted-foreground">
@@ -490,6 +699,11 @@ npx shadcn@latest add @sistine/gradient-background  # pure-CSS gradient wallpape
             <p className="text-muted-foreground">
               Mount one at your app root as a <IC>fixed inset-0 -z-10</IC> element — and keep it out of any <IC>transform</IC> / <IC>filter</IC> /{" "}
               <IC>contain</IC> ancestor, or it gets clipped to that box instead of the viewport.
+            </p>
+            <p className="text-muted-foreground">
+              <IC>&lt;GradientBackground&gt;</IC> paints as a <IC>linear</IC>, <IC>radial</IC>, or <IC>conic</IC> gradient via its <IC>shape</IC>{" "}
+              prop, with <IC>angle</IC>, <IC>position</IC>, and (radial) <IC>radialShape</IC> / <IC>radialSize</IC> geometry — e.g.{" "}
+              <IC>&lt;GradientBackground shape=&quot;conic&quot; position=&quot;30% 70%&quot; /&gt;</IC>.
             </p>
           </CardContent>
         </Card>

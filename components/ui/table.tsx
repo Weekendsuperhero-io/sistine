@@ -9,7 +9,6 @@ const tableVariants = cva("w-full caption-bottom text-sm", {
       default: "",
       glass: "glass-surface rounded-lg overflow-hidden",
       frosted: "glass-frosted rounded-lg overflow-hidden",
-      fluted: "glass-fluted rounded-lg overflow-hidden",
       crystal: "glass-crystal rounded-lg overflow-hidden",
       opaque: "glass-opaque rounded-lg overflow-hidden",
       surface: "glass-surface text-foreground",

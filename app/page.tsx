@@ -357,16 +357,15 @@ export default function Home() {
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Five distinct glass variants</h2>
-            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Fluted, Crystal, and Opaque styles.</p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct glass variants</h2>
+            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Crystal, and Opaque styles.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
             <Tabs defaultValue="glass">
-              <TabsList variant="glass" className="mb-6 w-full grid grid-cols-5">
+              <TabsList variant="glass" className="mb-6 w-full grid grid-cols-4">
                 <TabsTrigger value="glass">Glass</TabsTrigger>
                 <TabsTrigger value="frosted">Frosted</TabsTrigger>
-                <TabsTrigger value="fluted">Fluted</TabsTrigger>
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
                 <TabsTrigger value="opaque">Opaque</TabsTrigger>
               </TabsList>
@@ -375,7 +374,6 @@ export default function Home() {
                 [
                   "glass",
                   "frosted",
-                  "fluted",
                   "crystal",
                   "opaque",
                 ] as const
@@ -501,8 +499,8 @@ export default function Home() {
               },
               {
                 icon: Palette,
-                title: "5 Variants",
-                desc: "Glass, Frosted, Fluted, Crystal, and Opaque. Each component adapts to every variant automatically.",
+                title: "4 Variants",
+                desc: "Glass, Frosted, Crystal, and Opaque. Each component adapts to every variant automatically.",
               },
               {
                 icon: Layers,

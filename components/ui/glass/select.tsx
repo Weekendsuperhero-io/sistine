@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-type SelectVariant = "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque";
+type SelectVariant = "default" | "glass" | "frosted" | "crystal" | "opaque";
 
 export interface SelectTriggerProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> {
   variant?: SelectVariant;

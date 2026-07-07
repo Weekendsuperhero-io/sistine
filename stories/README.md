@@ -72,7 +72,6 @@ All components support these glass variants:
 
 - **glass** - Base glass effect with balanced blur and transparency
 - **frosted** - Frosted glass with stronger blur
-- **fluted** - Textured glass with unique pattern
 - **crystal** - Crystal clear with layered effects and animations
 
 ## 🛠️ Custom Glass Properties

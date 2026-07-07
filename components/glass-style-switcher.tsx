@@ -15,10 +15,6 @@ const STYLES = [
     label: "Frosted",
   },
   {
-    value: "fluted",
-    label: "Fluted",
-  },
-  {
     value: "crystal",
     label: "Crystal",
   },

@@ -657,18 +657,18 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "resizable":
       return (
-        <ResizablePanelGroup direction="horizontal" className="h-[240px] max-w-md rounded-lg glass-surface">
-          <ResizablePanel defaultSize={45}>
+        <ResizablePanelGroup orientation="horizontal" className="h-[240px] max-w-md rounded-lg glass-surface">
+          <ResizablePanel defaultSize="45%">
             <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Sidebar</div>
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={55}>
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={55}>
+          <ResizablePanel defaultSize="55%">
+            <ResizablePanelGroup orientation="vertical">
+              <ResizablePanel defaultSize="55%">
                 <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Content</div>
               </ResizablePanel>
               <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={45}>
+              <ResizablePanel defaultSize="45%">
                 <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Console</div>
               </ResizablePanel>
             </ResizablePanelGroup>

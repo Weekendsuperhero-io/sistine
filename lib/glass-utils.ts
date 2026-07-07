@@ -17,6 +17,13 @@ export interface GlassCustomization {
   transparency?: number;
 
   /**
+   * Overall glass solidity (0–1). 0 = the variant's natural sheer glass (default), 1 = fully solid. Sets the
+   * `--glass-opacity` floor the glass utilities read — keeps the tint / gradient / blur, just makes the
+   * surface less see-through. (Unlike `transparency`, which replaces the whole background with flat white.)
+   */
+  opacity?: number;
+
+  /**
    * Blur amount in pixels
    * Default: uses CSS variable --blur (20px)
    */
@@ -92,7 +99,7 @@ function setAlpha(color: string, alpha: number): string {
 export function getGlassStyles(customization?: GlassCustomization): React.CSSProperties {
   if (!customization) return {};
 
-  const styles: React.CSSProperties = {};
+  const styles = {} as React.CSSProperties & Record<`--${string}`, string | number>;
 
   // Handle background color and transparency
   if (customization.color || customization.transparency !== undefined) {
@@ -103,6 +110,12 @@ export function getGlassStyles(customization?: GlassCustomization): React.CSSPro
     }
 
     styles.backgroundColor = bgColor;
+  }
+
+  // Overall solidity — sets the --glass-opacity floor the glass utilities lay behind the surface (0 = the
+  // variant's natural sheer glass, 1 = fully solid). Keeps the tint / gradient / blur intact.
+  if (customization.opacity !== undefined) {
+    styles["--glass-opacity"] = customization.opacity;
   }
 
   // Handle blur
@@ -171,6 +184,10 @@ export function getGlassCSSVars(customization?: GlassCustomization): Record<stri
     }
 
     vars["--glass-bg-custom"] = bgColor;
+  }
+
+  if (customization.opacity !== undefined) {
+    vars["--glass-opacity"] = String(customization.opacity);
   }
 
   if (customization.blur !== undefined) {
