@@ -24,7 +24,7 @@ const buttonGroupVariants = cva(
 );
 
 interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typeof buttonGroupVariants> {
-  variant?: "default" | "glass" | "frosted" | "fluted" | "crystal" | "opaque" | "surface" | "solid";
+  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
   glass?: GlassCustomization;
 }
 
@@ -34,7 +34,6 @@ function ButtonGroup({ className, orientation = "horizontal", variant = "glass",
     const variants = {
       glass: "glass-bg rounded-md",
       frosted: "glass-frosted rounded-md",
-      fluted: "glass-fluted rounded-md",
       crystal: "glass-crystal rounded-md",
       opaque: "glass-opaque rounded-md",
       surface: "glass-surface rounded-md",

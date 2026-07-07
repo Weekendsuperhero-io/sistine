@@ -17,7 +17,6 @@ const meta = {
         "default",
         "glass",
         "frosted",
-        "fluted",
         "crystal",
       ],
     },
@@ -70,23 +69,6 @@ export const Frosted: Story = {
         </CardHeader>
         <CardContent>
           <p>This card has a stronger blur and frosted appearance.</p>
-        </CardContent>
-      </>
-    ),
-  },
-};
-
-export const Fluted: Story = {
-  args: {
-    variant: "fluted",
-    children: (
-      <>
-        <CardHeader>
-          <CardTitle>Fluted Card</CardTitle>
-          <CardDescription>A textured glass effect card</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>This card features a unique fluted texture pattern.</p>
         </CardContent>
       </>
     ),

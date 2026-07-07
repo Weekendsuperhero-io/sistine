@@ -2,14 +2,25 @@
 
 import * as React from "react";
 import { FRESCO_HUES } from "@/lib/canvas-background-utils";
-import { type RampGradientAxis, rampGradient } from "@/lib/oklch-utils";
+import { type GradientGeometry, type GradientShape, type RampGradientAxis, rampGradient, wrapGradient } from "@/lib/oklch-utils";
 
 /**
  * A ramp-driven gradient wallpaper. The gradient is one of our oklch ramps (hue / lightness / tonal
- * / chroma) laid left → right, centered on the live glass-tint color (so it recolors with the theme)
- * with the center as a slightly wider plateau. Pure CSS — crisp at any DPI.
+ * / chroma) centered on the live glass-tint color (so it recolors with the theme) with the center as a
+ * slightly wider plateau, painted as a `linear`, `radial`, or `conic` gradient. Pure CSS — crisp at any DPI.
  */
-export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: RampGradientAxis; angle?: number }) {
+export function GradientBackground({
+  axis = "tonal",
+  angle = 90,
+  shape = "linear",
+  position,
+  radialShape,
+  radialSize,
+}: {
+  axis?: RampGradientAxis;
+  angle?: number;
+  shape?: GradientShape;
+} & GradientGeometry) {
   const [{ hue, dark, p3, preset }, setState] = React.useState<{
     hue: number;
     dark: boolean;
@@ -53,7 +64,12 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
   const l = dark ? 52 : 72;
   const frescoHues = preset ? FRESCO_HUES[preset] : undefined;
   const gradient = frescoHues
-    ? `linear-gradient(${angle}deg in oklch, ${frescoHues.map((h) => `oklch(${l}% 0.15 ${h})`).join(", ")})`
+    ? wrapGradient(shape, frescoHues.map((h) => `oklch(${l}% 0.15 ${h})`).join(", "), {
+        angle,
+        position,
+        radialShape,
+        radialSize,
+      })
     : rampGradient(
         axis,
         {
@@ -65,6 +81,10 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
         {
           angle,
           gamut: p3 ? "p3" : "srgb",
+          shape,
+          position,
+          radialShape,
+          radialSize,
         },
       );
 
@@ -80,7 +100,7 @@ export function GradientBackground({ axis = "tonal", angle = 90 }: { axis?: Ramp
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 20% 25%, oklch(100% 0 0 / 0.12) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(0% 0 0 / 0.12) 0%, transparent 45%)",
+            "radial-gradient(circle at 20% 25%, oklch(var(--shadow-highlight) / 0.12) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(var(--shadow-ink) / 0.12) 0%, transparent 45%)",
           mixBlendMode: "overlay",
         }}
       />

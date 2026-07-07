@@ -17,7 +17,6 @@ const meta = {
         "default",
         "glass",
         "frosted",
-        "fluted",
         "crystal",
       ],
     },
@@ -57,13 +56,6 @@ export const Glass: Story = {
 export const Frosted: Story = {
   args: {
     variant: "frosted",
-    size: "md",
-  },
-};
-
-export const Fluted: Story = {
-  args: {
-    variant: "fluted",
     size: "md",
   },
 };

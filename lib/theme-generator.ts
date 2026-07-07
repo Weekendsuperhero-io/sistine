@@ -106,26 +106,26 @@ export function generateThemeCSS(colors: ThemeColors, darkColors?: Partial<Theme
 }
 
 export const defaultTheme: ThemeColors = {
-  primary: "oklch(0.5 0.2 260)",
-  primaryForeground: "oklch(0.9 0.02 260)",
-  background: "oklch(0.85 0.1 220)",
-  foreground: "oklch(0.1 0.1 280)",
-  card: "oklch(0.85 0.1 220)",
-  cardForeground: "oklch(0.1 0.1 280)",
-  popover: "oklch(0.85 0.1 220)",
-  popoverForeground: "oklch(0.1 0.1 280)",
-  secondary: "oklch(0.5 0.2 260)",
-  secondaryForeground: "oklch(0.1 0.1 280)",
-  muted: "oklch(0.85 0 0)", // Darker gray for light mode - avoids glass effect override
-  mutedForeground: "oklch(0.5 0.2 280)",
-  accent: "oklch(0.5 0.2 260)",
-  accentForeground: "oklch(1 0 0)",
-  destructive: "oklch(0.6 0.2 20)",
-  destructiveForeground: "oklch(1 0 0)",
-  border: "oklch(0.5 0.2 260)",
-  input: "oklch(0.5 0.2 260)",
-  ring: "oklch(0.5 0.2 260)",
-  radius: "0rem",
+  primary: "oklch(0.42 0 0)", // neutral dark grey — "pure glass" primary; the tint comes from the glass overlay, not the token
+  primaryForeground: "oklch(0.98 0 0)",
+  background: "transparent", // glass / canvas shows through (the Sistine model)
+  foreground: "oklch(0.15 0 0)",
+  card: "transparent",
+  cardForeground: "oklch(0.15 0 0)",
+  popover: "transparent",
+  popoverForeground: "oklch(0.15 0 0)",
+  secondary: "oklch(0.96 0 0)",
+  secondaryForeground: "oklch(0.15 0 0)",
+  muted: "oklch(0.85 0 0)", // darker gray for light mode - avoids glass effect override
+  mutedForeground: "oklch(0.45 0 0)",
+  accent: "oklch(0.96 0 0)",
+  accentForeground: "oklch(0.15 0 0)",
+  destructive: "oklch(0.55 0.22 25)",
+  destructiveForeground: "oklch(0.98 0 0)",
+  border: "oklch(0.88 0 0)",
+  input: "oklch(0.88 0 0)",
+  ring: "oklch(0.5 0.2 250)",
+  radius: "1.25rem",
   // Glass effect defaults - Enhanced with gradient tint and border glow
   glassBg:
     "linear-gradient(in oklch, 135deg, oklch(100.000% 0.000000 0.000000 / 0.400000) 0%, oklch(100.000% 0.000000 0.000000 / 0.250000) 50%, oklch(97.6470% 0.010680 245.000000 / 0.300000) 100%)",

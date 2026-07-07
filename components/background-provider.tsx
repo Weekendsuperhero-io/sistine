@@ -3,11 +3,10 @@
 import * as React from "react";
 import { CanvasBackground } from "@/components/canvas-background";
 import { GradientBackground } from "@/components/gradient-background";
-import { GridBackground } from "@/components/grid-background";
 import type { CanvasStyle } from "@/lib/canvas-background-utils";
-import type { RampGradientAxis } from "@/lib/oklch-utils";
+import type { GradientGeometry, GradientShape, RampGradientAxis } from "@/lib/oklch-utils";
 
-export type BackgroundType = "grid" | "gradient" | "canvas";
+export type BackgroundType = "gradient" | "canvas";
 
 const STORAGE_KEY = "sistine-background";
 
@@ -24,6 +23,52 @@ export const RAMP_AXES: RampGradientAxis[] = [
   "hue",
   "lightness",
   "chroma",
+];
+
+/** Gradient painting shapes the Gradient background cycles through. */
+export const GRADIENT_SHAPES: GradientShape[] = [
+  "linear",
+  "radial",
+  "conic",
+];
+
+/** Center positions (radial + conic) the switcher cycles through. */
+export const GRADIENT_POSITIONS: {
+  value: string;
+  label: string;
+}[] = [
+  {
+    value: "50% 50%",
+    label: "center",
+  },
+  {
+    value: "0% 0%",
+    label: "top-left",
+  },
+  {
+    value: "100% 0%",
+    label: "top-right",
+  },
+  {
+    value: "100% 100%",
+    label: "bottom-right",
+  },
+  {
+    value: "0% 100%",
+    label: "bottom-left",
+  },
+];
+
+/** Radial shape + size options. */
+export const RADIAL_SHAPES: NonNullable<GradientGeometry["radialShape"]>[] = [
+  "circle",
+  "ellipse",
+];
+export const RADIAL_SIZES: NonNullable<GradientGeometry["radialSize"]>[] = [
+  "farthest-corner",
+  "farthest-side",
+  "closest-corner",
+  "closest-side",
 ];
 
 /** Steps-per-side presets the canvas/ramps cycle through (4–12). */
@@ -70,6 +115,22 @@ interface BackgroundContextValue {
   gradientAngle: number;
   /** Rotate the gradient by 45°. */
   cycleGradientAngle: () => void;
+  /** The gradient painting shape (linear | radial | conic). */
+  gradientShape: GradientShape;
+  /** Advance to the next gradient shape. */
+  cycleGradientShape: () => void;
+  /** Center position for radial + conic gradients (CSS `at <position>`). */
+  gradientPosition: string;
+  /** Advance to the next center-position preset. */
+  cycleGradientPosition: () => void;
+  /** Radial shape (circle | ellipse). */
+  radialShape: NonNullable<GradientGeometry["radialShape"]>;
+  /** Toggle the radial shape. */
+  cycleRadialShape: () => void;
+  /** Radial size keyword. */
+  radialSize: NonNullable<GradientGeometry["radialSize"]>;
+  /** Advance to the next radial size. */
+  cycleRadialSize: () => void;
   // ── Canvas ──
   /** The canvas style (gradient | lava | circle). */
   canvasStyle: CanvasStyle;
@@ -112,6 +173,10 @@ export function useBackground() {
 interface RenderArgs {
   gradientAxis: RampGradientAxis;
   gradientAngle: number;
+  gradientShape: GradientShape;
+  gradientPosition: string;
+  radialShape: NonNullable<GradientGeometry["radialShape"]>;
+  radialSize: NonNullable<GradientGeometry["radialSize"]>;
   canvasStyle: CanvasStyle;
   canvasRamp: RampGradientAxis;
   canvasSteps: number;
@@ -123,8 +188,6 @@ interface RenderArgs {
 
 function renderBackground(background: BackgroundType, args: RenderArgs) {
   switch (background) {
-    case "gradient":
-      return <GradientBackground axis={args.gradientAxis} angle={args.gradientAngle} />;
     case "canvas":
       // key forces a clean redraw when the style/ramp/steps/seed/animation change
       return (
@@ -140,7 +203,16 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
         />
       );
     default:
-      return <GridBackground />;
+      return (
+        <GradientBackground
+          axis={args.gradientAxis}
+          angle={args.gradientAngle}
+          shape={args.gradientShape}
+          position={args.gradientPosition}
+          radialShape={args.radialShape}
+          radialSize={args.radialSize}
+        />
+      );
   }
 }
 
@@ -149,10 +221,14 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
  * behind the app. Pair with <BackgroundSwitcher /> to preview + tune each style.
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
-  // SSR + first client render use "grid" so hydration matches; localStorage is read after mount.
-  const [background, setBackgroundState] = React.useState<BackgroundType>("grid");
+  // SSR + first client render use "gradient" so hydration matches; localStorage is read after mount.
+  const [background, setBackgroundState] = React.useState<BackgroundType>("gradient");
   const [gradientAxis, setGradientAxisState] = React.useState<RampGradientAxis>("tonal");
   const [gradientAngle, setGradientAngle] = React.useState(90);
+  const [gradientShape, setGradientShape] = React.useState<GradientShape>("linear");
+  const [gradientPosition, setGradientPosition] = React.useState("50% 50%");
+  const [radialShape, setRadialShape] = React.useState<NonNullable<GradientGeometry["radialShape"]>>("circle");
+  const [radialSize, setRadialSize] = React.useState<NonNullable<GradientGeometry["radialSize"]>>("farthest-corner");
   const [canvasStyle, setCanvasStyleState] = React.useState<CanvasStyle>("gradient");
   const [canvasRamp, setCanvasRampState] = React.useState<RampGradientAxis>("tonal");
   const [canvasSteps, setCanvasSteps] = React.useState(6);
@@ -163,7 +239,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "grid" || stored === "gradient" || stored === "canvas") {
+    if (stored === "gradient" || stored === "canvas") {
       setBackgroundState(stored);
     }
   }, []);
@@ -181,6 +257,25 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
 
   const cycleGradientAngle = React.useCallback(() => {
     setGradientAngle((a) => (a + 45) % 360);
+  }, []);
+
+  const cycleGradientShape = React.useCallback(() => {
+    setGradientShape((s) => cycle(GRADIENT_SHAPES, s));
+  }, []);
+
+  const cycleGradientPosition = React.useCallback(() => {
+    setGradientPosition((p) => {
+      const i = GRADIENT_POSITIONS.findIndex((x) => x.value === p);
+      return GRADIENT_POSITIONS[(i + 1) % GRADIENT_POSITIONS.length].value;
+    });
+  }, []);
+
+  const cycleRadialShape = React.useCallback(() => {
+    setRadialShape((s) => cycle(RADIAL_SHAPES, s));
+  }, []);
+
+  const cycleRadialSize = React.useCallback(() => {
+    setRadialSize((s) => cycle(RADIAL_SIZES, s));
   }, []);
 
   const setCanvasStyle = React.useCallback((style: CanvasStyle) => {
@@ -227,6 +322,14 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       setGradientAxis,
       gradientAngle,
       cycleGradientAngle,
+      gradientShape,
+      cycleGradientShape,
+      gradientPosition,
+      cycleGradientPosition,
+      radialShape,
+      cycleRadialShape,
+      radialSize,
+      cycleRadialSize,
       canvasStyle,
       setCanvasStyle,
       canvasRamp,
@@ -248,6 +351,14 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       setGradientAxis,
       gradientAngle,
       cycleGradientAngle,
+      gradientShape,
+      cycleGradientShape,
+      gradientPosition,
+      cycleGradientPosition,
+      radialShape,
+      cycleRadialShape,
+      radialSize,
+      cycleRadialSize,
       canvasStyle,
       setCanvasStyle,
       canvasRamp,
@@ -269,6 +380,10 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       {renderBackground(background, {
         gradientAxis,
         gradientAngle,
+        gradientShape,
+        gradientPosition,
+        radialShape,
+        radialSize,
         canvasStyle,
         canvasRamp,
         canvasSteps,

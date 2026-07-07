@@ -17,7 +17,6 @@ const meta = {
         "default",
         "glass",
         "frosted",
-        "fluted",
         "crystal",
         "destructive",
         "outline",
@@ -65,14 +64,6 @@ export const Frosted: Story = {
   args: {
     children: "Frosted Button",
     variant: "frosted",
-    effect: "glow",
-  },
-};
-
-export const Fluted: Story = {
-  args: {
-    children: "Fluted Button",
-    variant: "fluted",
     effect: "glow",
   },
 };

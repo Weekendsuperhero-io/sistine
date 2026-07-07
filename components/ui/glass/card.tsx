@@ -29,11 +29,6 @@ export interface CardProps extends React.ComponentProps<typeof BaseCard> {
  *   Content
  * </Card>
  *
- * // Fluted glass variant - vertical ridges texture
- * <Card variant="fluted">
- *   Content
- * </Card>
- *
  * // Crystal glass variant - clear with highlights and glow
  * <Card variant="crystal">
  *   Content

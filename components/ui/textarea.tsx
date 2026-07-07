@@ -9,7 +9,6 @@ const textareaVariants = cva("", {
       default: "dark:bg-input/30 border-input bg-transparent shadow-xs",
       glass: "glass-surface-sm",
       frosted: "glass-frosted",
-      fluted: "glass-fluted",
       crystal: "glass-crystal",
       opaque: "glass-opaque",
       surface: "glass-surface text-foreground",

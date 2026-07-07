@@ -63,12 +63,20 @@ const docsNav = [
         href: "/docs/theming#style",
       },
       {
+        title: "Crystal Flavors",
+        href: "/docs/theming#crystal",
+      },
+      {
         title: "Surface Tiers",
         href: "/docs/theming#surfaces",
       },
       {
         title: "Readable Text",
         href: "/docs/theming#text",
+      },
+      {
+        title: "Harmonic Color",
+        href: "/docs/theming#harmonics",
       },
       {
         title: "Tuning",

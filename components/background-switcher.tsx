@@ -1,19 +1,14 @@
 "use client";
 
-import { BuildingsIcon, PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
+import { PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
 import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
 import { cn } from "@/lib/utils";
 
 const options: {
   value: BackgroundType;
   label: string;
-  Icon: typeof BuildingsIcon;
+  Icon: typeof PaletteIcon;
 }[] = [
-  {
-    value: "grid",
-    label: "City",
-    Icon: BuildingsIcon,
-  },
   {
     value: "gradient",
     label: "Gradient",
@@ -25,6 +20,21 @@ const options: {
     Icon: SparkleIcon,
   },
 ];
+
+/** Compact glyphs for the gradient center + radial size. */
+const POS_SYMBOL: Record<string, string> = {
+  "50% 50%": "•",
+  "0% 0%": "↖",
+  "100% 0%": "↗",
+  "100% 100%": "↘",
+  "0% 100%": "↙",
+};
+const SIZE_SHORT: Record<string, string> = {
+  "farthest-corner": "f-cnr",
+  "farthest-side": "f-side",
+  "closest-corner": "c-cnr",
+  "closest-side": "c-side",
+};
 
 const segmentButton = "inline-flex h-7 items-center justify-center rounded-md transition-colors";
 
@@ -41,6 +51,14 @@ export function BackgroundSwitcher() {
     setGradientAxis,
     gradientAngle,
     cycleGradientAngle,
+    gradientShape,
+    cycleGradientShape,
+    gradientPosition,
+    cycleGradientPosition,
+    radialShape,
+    cycleRadialShape,
+    radialSize,
+    cycleRadialSize,
     canvasStyle,
     setCanvasStyle,
     canvasRamp,
@@ -95,15 +113,63 @@ export function BackgroundSwitcher() {
               {axis[0]}
             </button>
           ))}
+          {/* Shape: linear | radial | conic */}
           <button
             type="button"
-            title={`Rotate gradient — ${gradientAngle}°`}
-            aria-label={`Rotate gradient, currently ${gradientAngle} degrees`}
-            onClick={cycleGradientAngle}
-            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
+            title={`Gradient shape: ${gradientShape} — click to change`}
+            aria-label={`Gradient shape ${gradientShape}, click to change`}
+            onClick={cycleGradientShape}
+            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", active)}
           >
-            {gradientAngle}°
+            {gradientShape}
           </button>
+          {/* Center position — radial + conic */}
+          {(gradientShape === "radial" || gradientShape === "conic") && (
+            <button
+              type="button"
+              title={`Center — ${gradientPosition}`}
+              aria-label={`Gradient center ${gradientPosition}`}
+              onClick={cycleGradientPosition}
+              className={cn(segmentButton, "w-7 text-[13px]", idle)}
+            >
+              {POS_SYMBOL[gradientPosition] ?? "•"}
+            </button>
+          )}
+          {/* Radial shape + size */}
+          {gradientShape === "radial" && (
+            <>
+              <button
+                type="button"
+                title={`Radial shape: ${radialShape}`}
+                aria-label={`Radial shape ${radialShape}`}
+                onClick={cycleRadialShape}
+                className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", idle)}
+              >
+                {radialShape}
+              </button>
+              <button
+                type="button"
+                title={`Radial size: ${radialSize}`}
+                aria-label={`Radial size ${radialSize}`}
+                onClick={cycleRadialSize}
+                className={cn(segmentButton, "px-1.5 text-[10px] font-semibold", idle)}
+              >
+                {SIZE_SHORT[radialSize] ?? radialSize}
+              </button>
+            </>
+          )}
+          {/* Angle — not meaningful for radial (fixed center) */}
+          {gradientShape !== "radial" && (
+            <button
+              type="button"
+              title={`Rotate gradient — ${gradientAngle}°`}
+              aria-label={`Rotate gradient, currently ${gradientAngle} degrees`}
+              onClick={cycleGradientAngle}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
+            >
+              {gradientAngle}°
+            </button>
+          )}
         </div>
       )}
 

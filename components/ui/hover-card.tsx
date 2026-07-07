@@ -14,7 +14,6 @@ const hoverCardContentVariants = cva(
         default: "bg-popover text-popover-foreground border",
         glass: "glass-solid text-foreground",
         frosted: "glass-frosted text-foreground",
-        fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
         surface: "glass-surface text-foreground",

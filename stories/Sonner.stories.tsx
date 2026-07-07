@@ -387,18 +387,6 @@ export const CustomStyling: Story = {
         </Button>
 
         <Button
-          variant="fluted"
-          onClick={() =>
-            toast("Fluted Glass Toast", {
-              description: "Textured glass with unique pattern",
-              className: "glass-fluted backdrop-blur-[var(--blur)]",
-            })
-          }
-        >
-          Fluted Glass
-        </Button>
-
-        <Button
           variant="glass"
           effect="glow"
           onClick={() =>

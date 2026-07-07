@@ -2445,7 +2445,7 @@
       "name": "theme",
       "type": "registry:theme",
       "title": "Glass Theme",
-      "description": "The Sistine glass design system: OKLCH color tokens, glass surface variables (frosted, fluted, crystal), the runtime tint system, and animations. Adopt the look without pulling components.",
+      "description": "The Sistine glass design system: OKLCH color tokens, glass surface variables (frosted, crystal), the runtime tint system, and animations. Adopt the look without pulling components.",
       "registryDependencies": [],
       "files": [
         {

@@ -168,6 +168,58 @@ export function harmony(base: OklchColor | string, angles: number[], gamut: "srg
   ];
 }
 
+/** Named color-wheel relationships — the JS mirror of the --hue-* tokens in app/globals.css. */
+export type HarmonicName =
+  | "base"
+  | "complement"
+  | "analogous-1"
+  | "analogous-2"
+  | "split-1"
+  | "split-2"
+  | "triad-1"
+  | "triad-2"
+  | "tetrad-1"
+  | "tetrad-2"
+  | "tetrad-3"
+  | "square-1"
+  | "square-2"
+  | "square-3";
+
+/**
+ * Hue offsets (degrees) for each color-wheel relationship. MUST stay in lockstep with the `--hue-*`
+ * tokens in app/globals.css (`calc(var(--harmony-h) + N)`) so a JS-solved icon/foreground hue lands on
+ * the SAME angle as the CSS harmonic swatches. Pair with `harmonicHue()` + `readableForeground()` to get
+ * a contrast-solved (APCA/ARC) color at the harmonic angle.
+ */
+export const HARMONIC_OFFSETS: Record<HarmonicName, number> = {
+  base: 0,
+  complement: 180,
+  "analogous-1": -30,
+  "analogous-2": 30,
+  "split-1": 150,
+  "split-2": 210,
+  "triad-1": 120,
+  "triad-2": 240,
+  "tetrad-1": 60,
+  "tetrad-2": 180,
+  "tetrad-3": 240,
+  "square-1": 90,
+  "square-2": 180,
+  "square-3": 270,
+};
+
+/** All harmonic relationship names, in wheel order (for building pickers). */
+export const HARMONIC_NAMES = Object.keys(HARMONIC_OFFSETS) as HarmonicName[];
+
+/**
+ * Rotate an anchor hue by a named color-wheel relationship, wrapped to [0, 360). The anchor is normally
+ * the harmony hue (--harmony-h: the content hue, or 0 for the hue-less neutral/bone themes). Feed the
+ * result to `readableForeground({ hue })` to keep the contrast solve while landing on the harmonic angle.
+ */
+export function harmonicHue(anchorH: number, name: HarmonicName): number {
+  return wrapHue(anchorH + HARMONIC_OFFSETS[name]);
+}
+
 /**
  * Chroma ramp covering [0, cap]: `count` steps each side, the seed centered (left → 0, right →
  * cap). Lightness + hue are held; `count` clamped to [3, 12]. `max` defaults to the largest chroma
@@ -370,6 +422,34 @@ export function tonalScaleColors(options: TonalScaleOptions): OklchColor[] {
 /** Which ramp drives a {@link rampGradient}. */
 export type RampGradientAxis = "hue" | "lightness" | "tonal" | "chroma";
 
+/** Gradient painting shape — same color-stop list, different geometry. */
+export type GradientShape = "linear" | "radial" | "conic";
+
+/** Geometry knobs for {@link wrapGradient}: `angle` (linear direction / conic `from` rotation), `position`
+ *  (radial + conic center, e.g. `"50% 50%"`, `"top left"`), and the radial `shape` / `size`. All optional;
+ *  the defaults reproduce a centered circle / 90° linear (so omitting them is a no-op). */
+export interface GradientGeometry {
+  angle?: number;
+  position?: string;
+  radialShape?: "circle" | "ellipse";
+  radialSize?: "closest-side" | "closest-corner" | "farthest-side" | "farthest-corner";
+}
+
+/** Wrap a `<color-stop-list>` in the chosen gradient function (all interpolate `in oklch`). Linear uses the
+ *  angle as its direction; conic as the `from` rotation about `position`; radial paints a `shape`+`size`
+ *  centered at `position` (angle unused). */
+export function wrapGradient(shape: GradientShape, stops: string, geom: GradientGeometry = {}): string {
+  const { angle = 90, position = "50% 50%", radialShape = "circle", radialSize = "farthest-corner" } = geom;
+  switch (shape) {
+    case "radial":
+      return `radial-gradient(${radialShape} ${radialSize} at ${position} in oklch, ${stops})`;
+    case "conic":
+      return `conic-gradient(from ${angle}deg at ${position} in oklch, ${stops})`;
+    default:
+      return `linear-gradient(${angle}deg in oklch, ${stops})`;
+  }
+}
+
 /**
  * Build a CSS `linear-gradient` from one of the ramps, the seed centered as a slightly wider plateau
  * so the theme color anchors the middle; the rest sit in equal-width bands left → right. `count`
@@ -381,11 +461,11 @@ export function rampGradient(
   seed: OklchColor,
   count: number,
   options: {
-    angle?: number;
     gamut?: "srgb" | "p3";
-  } = {},
+    shape?: GradientShape;
+  } & GradientGeometry = {},
 ): string {
-  const { angle = 90, gamut = "srgb" } = options;
+  const { gamut = "srgb", shape = "linear", angle, position, radialShape, radialSize } = options;
   let colors: OklchColor[];
   switch (axis) {
     case "hue":
@@ -410,7 +490,12 @@ export function rampGradient(
     const pos = i < mid ? (i / mid) * leftEnd : rightStart + ((i - mid) / mid) * (100 - rightStart);
     return `${css} ${pos.toFixed(1)}%`;
   });
-  return `linear-gradient(${angle}deg in oklch, ${parts.join(", ")})`;
+  return wrapGradient(shape, parts.join(", "), {
+    angle,
+    position,
+    radialShape,
+    radialSize,
+  });
 }
 
 // ── APCA contrast (APCA-W3 / ARC) ─────────────────────────────────────────────

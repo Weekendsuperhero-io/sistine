@@ -12,7 +12,6 @@ const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounde
       default: "bg-muted",
       glass: "glass-surface",
       frosted: "glass-frosted",
-      fluted: "glass-fluted",
       crystal: "glass-crystal",
       opaque: "glass-opaque",
       surface: "glass-surface text-foreground",
@@ -70,10 +69,9 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
         // Active state - lighter, more opaque background with shadow
         // Light mode: white/opaque background
         "data-[state=active]:bg-white/80 data-[state=active]:text-foreground",
-        "data-[state=active]:shadow-[0_1px_3px_oklch(0%_0_0/0.1),inset_0_1px_1px_oklch(100%_0_0/0.5)]",
-        // Dark mode: lighter background with better contrast
+        "data-[state=active]:shadow-[var(--active-shadow)]",
+        // Dark mode: lighter background + contrast (the active shadow itself is mode-aware via --active-shadow)
         "dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-foreground",
-        "dark:data-[state=active]:shadow-[0_2px_6px_oklch(0%_0_0/0.4),inset_0_1px_2px_oklch(100%_0_0/0.15),inset_0_0_8px_oklch(100%_0_0/0.1)]",
         className,
       )}
       {...props}

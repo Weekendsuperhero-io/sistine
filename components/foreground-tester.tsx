@@ -5,12 +5,13 @@ import * as React from "react";
 import { type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import {
   apcaContrast,
-  complement,
   formatOklch,
   glassSolidSurface,
+  HARMONIC_NAMES,
+  type HarmonicName,
+  harmonicHue,
   type OklchColor,
   READABLE_USAGE,
   type ReadableUsage,
@@ -109,7 +110,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
   // Icon-hue: when `live`, writes fgConfig.iconHue → AutoForeground sets the site `--foreground-ui`
   // (consumed by `text-foreground-ui` everywhere); the preview below mirrors it via readableForeground.
-  const [iconHue, setIconHueState] = React.useState<number | "complement" | null>(null);
+  const [iconHue, setIconHueState] = React.useState<number | HarmonicName | null>(null);
   // When `live`, the ramp tabs drive the site TEXT foreground + icon hue (fgConfig → AutoForeground); sync from saved.
   React.useEffect(() => {
     if (live) {
@@ -127,7 +128,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         palette: p,
       });
   };
-  const setIconHue = (hue: number | "complement" | null) => {
+  const setIconHue = (hue: number | HarmonicName | null) => {
     setIconHueState(hue);
     if (live)
       writeFgConfig({
@@ -139,6 +140,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     c: 0,
     a: 0,
     dark: true,
+    harmonyH: 255,
     base: {
       l: 60,
       c: 0.15,
@@ -161,6 +163,9 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
+        // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for neutral/bone), so the chip hues here
+        // land on the same angle as the --hue-* swatches. Falls back to the content hue when unset (jewels).
+        harmonyH: num("--harmony-h", num("--glass-fg-h", num("--glass-tint-h", r.h))),
         // ramp base follows the theme color: hue = tint, chroma = the config's (raw; gated per-palette in render)
         base: {
           l: r.l,
@@ -197,7 +202,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     solidA,
   );
   // neutral → achromatic base; an active tint adds (gamut-clamped) color. Text uses Tonal / Linear only.
-  const baseChroma = env.a > 0 ? env.base.c : 0;
+  const baseChroma = env.c > 0 ? env.base.c : 0;
   const base = {
     l: env.base.l,
     c: baseChroma,
@@ -248,10 +253,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   const baseIdx = env.count;
   const leftLabel = (ramp[0]?.l ?? 100) > 50 ? "white" : "black";
   const rightLabel = leftLabel === "white" ? "black" : "white";
-  // Icons: lightness solved for the ui band. "complement" tracks the theme's opposite hue; a number pins
-  // one; null → follow the theme. Mirrors AutoForeground's --foreground-ui.
-  const iconHueVal = iconHue === "complement" ? complement(env.base).h : typeof iconHue === "number" ? iconHue : env.base.h;
-  const iconChroma = iconHue != null ? 0.15 : env.a > 0 ? env.base.c : 0;
+  // Icons: lightness solved for the ui band (APCA). A harmonic name rotates off the harmony anchor (matching
+  // the --hue-* tokens); a number pins one; null → follow the theme. Mirrors AutoForeground's --foreground-ui.
+  const iconHueVal = typeof iconHue === "string" ? harmonicHue(env.harmonyH, iconHue) : typeof iconHue === "number" ? iconHue : env.base.h;
+  const iconChroma = iconHue != null ? 0.15 : env.c > 0 ? env.base.c : 0;
   const iconFg = readableForeground(surface, {
     usage: "ui",
     hue: iconHueVal,
@@ -346,26 +351,48 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
           </div>
         ))}
         <div className="space-y-2 border-t border-foreground/10 pt-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="space-y-2">
             <span className="font-medium">
               icons · <code>readableForeground</code>(ui
-              {iconHue != null ? `, hue ${Math.round(iconHueVal)}°${iconHue === "complement" ? " · complement" : ""}` : ""}) — Lc {iconLc}
+              {iconHue != null ? `, ${typeof iconHue === "string" ? iconHue : "hue"} ${Math.round(iconHueVal)}°` : ""}) — Lc {iconLc}
             </span>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Switch checked={iconHue != null} onCheckedChange={(on) => setIconHue(on ? "complement" : null)} />
-              <span className="whitespace-nowrap">color</span>
-              {iconHue != null && (
-                <Slider
-                  value={[
-                    Math.round(iconHueVal),
-                  ]}
-                  min={0}
-                  max={360}
-                  step={1}
-                  onValueChange={(v) => setIconHue(v[0] ?? 0)}
-                  className="w-24"
-                />
-              )}
+            {/* Harmonic relationships off --harmony-h — the SAME --hue-* tokens as the swatches, but here the
+                icon color is contrast-solved (readableForeground · ui band) so it stays legible on the surface.
+                The dot previews each angle's live hue; the icons below recolor to the solved version. */}
+            <div className="flex flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={() => setIconHue(null)}
+                className={cn(
+                  "rounded-md border px-2 py-1 font-medium transition-colors",
+                  iconHue == null
+                    ? "border-foreground/40 bg-foreground/10 text-foreground"
+                    : "border-foreground/15 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                off
+              </button>
+              {HARMONIC_NAMES.map((name) => (
+                <button
+                  type="button"
+                  key={name}
+                  onClick={() => setIconHue(name)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-medium transition-colors",
+                    iconHue === name
+                      ? "border-foreground/40 bg-foreground/10 text-foreground"
+                      : "border-foreground/15 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span
+                    className="size-2.5 rounded-full border border-foreground/20"
+                    style={{
+                      background: `oklch(0.62 0.16 var(--hue-${name}))`,
+                    }}
+                  />
+                  {name}
+                </button>
+              ))}
             </div>
           </div>
           <div
@@ -448,7 +475,8 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
             (via <code>themeForeground</code>) — extreme → base → extreme; each tier takes the swatch in its <strong>[floor–ceiling]</strong> band
             nearest target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). Lc is modeled on the solid floor. <strong>Linear</strong> holds
             the theme&apos;s chroma; <strong>Tonal</strong> fades toward gray. Icons are separate — <code>readableForeground</code> solves lightness
-            for the ui band at your chosen hue.
+            for the ui band at your chosen <strong>harmonic angle</strong> (complement / triad / split / tetrad / square — the same{" "}
+            <code>--hue-*</code> tokens as the swatches), so they stay legible while tracking the theme.
           </p>
         </CardContent>
       </Card>

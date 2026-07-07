@@ -44,7 +44,7 @@ export const Multiple: Story = {
       <AccordionItem value="item-2">
         <AccordionTrigger>What variants are available?</AccordionTrigger>
         <AccordionContent>
-          We offer multiple glass variants including glass, frosted, fluted, and crystal, each with unique visual effects.
+          We offer multiple glass variants including glass, frosted, and crystal, each with unique visual effects.
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-3">

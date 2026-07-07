@@ -10,12 +10,15 @@ import { cn } from "@/lib/utils";
 // CUSTOM_KEY = the live {h,c,a} so a tweaked tint restores exactly.
 const ROOT_KEY = "sistine-glass-tint";
 const CUSTOM_KEY = "sistine-glass-tint-custom";
+const OPACITY_KEY = "sistine-glass-opacity";
+const OPAQUE_L_KEY = "sistine-glass-opaque-l";
+const OUTLINE_KEY = "sistine-glass-opaque-outline";
 
 /**
- * Each preset is just a starting point — hue + saturation + wash — that the sliders below can then
- * adjust. "Bone" is a warm, very-low-chroma off-white you can nudge further with the Saturation/Wash sliders.
- * "Sistine" is bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border /
- * accent / wash still respond to the sliders via the inline tint vars.
+ * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
+ * "Bone" is a warm, very-low-chroma off-white you can nudge further with the Chroma slider. "Sistine" is
+ * bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border / accent still respond
+ * to the sliders via the inline tint vars.
  *
  * IMPORTANT: applyTint() INLINES h/c/a onto <html>, which shadows the [data-glass-tint] CSS block. For the
  * frescoes (sistine/muse/aurora/gloaming) the h/c/a here MUST stay identical to those CSS blocks in
@@ -27,9 +30,9 @@ const PRESETS = [
     value: "neutral",
     label: "Neutral",
     h: 250,
-    c: 0.018,
+    c: 0,
     a: 0,
-    swatch: "oklch(90% 0.02 250)",
+    swatch: "oklch(90% 0 0)",
   },
   {
     value: "sistine",
@@ -70,10 +73,10 @@ const PRESETS = [
   {
     value: "bone",
     label: "Bone",
-    h: 82,
-    c: 0.05,
+    h: 91,
+    c: 0.01,
     a: 0.18,
-    swatch: "oklch(90% 0.05 82)",
+    swatch: "oklch(89% 0.045 91)",
   },
   {
     value: "amber",
@@ -159,13 +162,15 @@ const PRESETS = [
 
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 
-// Presets that own a bespoke [data-glass-tint] block in globals.css (their own --glass-bg / overrides)
-// rather than just driving the tint vars: the frescoes (Sistine / Muse / Aurora / Gloaming).
+// Presets that own a bespoke [data-glass-tint] block in globals.css (own --glass-bg / dark overrides) rather
+// than just driving the tint vars — so they need the data-glass-tint ATTRIBUTE set to hook those rules: the
+// frescoes (Sistine / Muse / Aurora / Gloaming) + bone (dark-mode wash/opaque override → pale "dark bone").
 const BESPOKE = new Set<string>([
   "sistine",
   "muse",
   "aurora",
   "gloaming",
+  "bone",
 ]);
 
 function applyTint(h: number, c: number, a: number, tint: string | null) {
@@ -178,18 +183,62 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
   root.style.setProperty("--glass-tint-h", String(h));
   root.style.setProperty("--glass-tint-c", String(c));
   root.style.setProperty("--glass-tint-a", String(a));
+  // Harmonic anchor: the two hue-less themes — neutral (chroma 0) and bone — anchor the color wheel at 0°
+  // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Set here
+  // (not via a CSS :root:not rule) because jewels apply as inline vars WITHOUT a data-glass-tint attr, so an
+  // attribute-based selector can't tell them apart from neutral. Keyed on CHROMA — the single colorfulness
+  // master (surfaces + text + harmonics) — not the retired wash alpha, so chroma 0 is the one neutral signal.
+  if (c === 0 || tint === "bone") {
+    root.style.setProperty("--harmony-h", "0");
+  } else {
+    root.style.removeProperty("--harmony-h");
+  }
+  // AutoForeground only observes class + data-glass-tint, so a jewel→jewel switch or a slider drag (both
+  // attribute-less inline changes) wouldn't re-band the foreground — that's why the text color didn't always
+  // track a theme change. Nudge it explicitly so it re-runs on EVERY tint change, not just attribute ones.
+  window.dispatchEvent(new Event("sistine-fg"));
+}
+
+/** Per-mode tint-body lightness override ({light?, dark?}), stored as JSON under OPAQUE_L_KEY. Because
+ *  --glass-opaque-l is mode-aware in CSS (90 light / 32 dark), L must be tracked separately per mode — a
+ *  single global value would wash out the other mode. Old plain-number values parse to a non-object and are
+ *  ignored, self-healing to the mode default. */
+function readLmap(): {
+  light?: number;
+  dark?: number;
+} {
+  try {
+    const raw = JSON.parse(localStorage.getItem(OPAQUE_L_KEY) ?? "null");
+    if (raw && typeof raw === "object") {
+      const out: {
+        light?: number;
+        dark?: number;
+      } = {};
+      if (typeof raw.light === "number") out.light = raw.light;
+      if (typeof raw.dark === "number") out.dark = raw.dark;
+      return out;
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return {};
 }
 
 /**
- * One unified glass-color control: pick a preset (or dial a custom hue) and adjust Saturation + Wash
- * for any of them. Writes --glass-tint-h/c/a inline on <html>; Sistine additionally toggles its
- * bespoke data-glass-tint preset. Composes with the theme + glass-style switchers.
+ * One unified glass-color control, in OKLCH terms: pick a preset (or dial a custom Hue) and adjust Chroma
+ * (OKLCH C — the single "how colorful" master, driving surfaces + text + harmonics). Writes --glass-tint-h/c
+ * inline on <html>; the tint alpha rides along from the chosen preset (no longer a knob — "Wash" is retired,
+ * chroma 0 is the neutral signal). Sistine additionally toggles its bespoke data-glass-tint preset. Composes
+ * with the theme + glass-style switchers.
  */
 export function GlassTintSwitcher() {
   const [base, setBase] = React.useState<PresetValue>("neutral");
   const [h, setH] = React.useState(250);
-  const [c, setC] = React.useState(0.018);
+  const [c, setC] = React.useState(0);
   const [a, setA] = React.useState(0);
+  const [opacity, setOpacity] = React.useState(0);
+  const [lightness, setLightness] = React.useState(90);
+  const [outline, setOutline] = React.useState(false);
 
   React.useEffect(() => {
     const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "neutral";
@@ -212,6 +261,43 @@ export function GlassTintSwitcher() {
     setC(nc);
     setA(na);
     applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
+    const no = Number.parseFloat(localStorage.getItem(OPACITY_KEY) ?? "0");
+    const o = Number.isFinite(no) ? no : 0;
+    setOpacity(o);
+    document.documentElement.style.setProperty("--glass-opacity", String(o));
+    const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
+    setOutline(storedOutline);
+    if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+  }, []);
+
+  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (90 light / 32 dark), so a single
+  // global override would clobber the other mode (dark opaque surfaces would render light). (Re-)apply the
+  // current mode's stored L on mount + on every light/dark toggle; with no stored L for a mode, clear the
+  // inline override so the CSS default wins. Fires the fg event so AutoForeground re-bands the opaque floor.
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const apply = () => {
+      const mode = root.classList.contains("dark") ? "dark" : "light";
+      const stored = readLmap()[mode];
+      if (typeof stored === "number") {
+        root.style.setProperty("--glass-opaque-l", String(stored));
+        setLightness(stored);
+      } else {
+        root.style.removeProperty("--glass-opaque-l");
+        const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
+        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 32 : 90);
+      }
+      window.dispatchEvent(new Event("sistine-fg"));
+    };
+    apply();
+    const obs = new MutationObserver(apply);
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+      ],
+    });
+    return () => obs.disconnect();
   }, []);
 
   const persist = (b: PresetValue, nh: number, nc: number, na: number) => {
@@ -250,6 +336,50 @@ export function GlassTintSwitcher() {
     setBase(next);
     applyTint(nh, nc, na, tint);
     persist(next, nh, nc, na);
+  };
+
+  // Global glass solidity — writes --glass-opacity inline on <html> (the floor the glass utilities read),
+  // orthogonal to the tint. Composes with every variant + data-glass material.
+  const changeOpacity = (o: number) => {
+    setOpacity(o);
+    document.documentElement.style.setProperty("--glass-opacity", String(o));
+    try {
+      localStorage.setItem(OPACITY_KEY, String(o));
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  // Optional accent outline for opaque surfaces — sets --glass-opaque-outline to the theme accent so opaque
+  // components gain a colored outline (flair) instead of the flat default border. Applies site-wide.
+  const changeOutline = (on: boolean) => {
+    setOutline(on);
+    const root = document.documentElement;
+    if (on) root.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+    else root.style.removeProperty("--glass-opaque-outline");
+    try {
+      localStorage.setItem(OUTLINE_KEY, on ? "1" : "0");
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  // Tint-body LIGHTNESS (OKLCH L), PER MODE — writes --glass-opaque-l inline (the opaque floor + opacity fill
+  // target + hue-crystal floor read it, and AF bands against it) and stores it under the CURRENT mode so the
+  // other mode keeps its own L. LOW L + high Chroma = deep tints (e.g. deep purple).
+  const changeLightness = (nl: number) => {
+    const root = document.documentElement;
+    const mode = root.classList.contains("dark") ? "dark" : "light";
+    const map = readLmap();
+    map[mode] = nl;
+    setLightness(nl);
+    root.style.setProperty("--glass-opaque-l", String(nl));
+    try {
+      localStorage.setItem(OPAQUE_L_KEY, JSON.stringify(map));
+    } catch {
+      // ignore storage failures
+    }
+    window.dispatchEvent(new Event("sistine-fg"));
   };
 
   const triggerSwatch =
@@ -304,7 +434,7 @@ export function GlassTintSwitcher() {
             onValueChange={(v) => tweak(v[0] ?? h, c, a)}
           />
         </SliderRow>
-        <SliderRow label="Saturation" value={c.toFixed(3)}>
+        <SliderRow label="Chroma" value={c.toFixed(3)}>
           <Slider
             value={[
               c,
@@ -315,17 +445,41 @@ export function GlassTintSwitcher() {
             onValueChange={(v) => tweak(h, v[0] ?? c, a)}
           />
         </SliderRow>
-        <SliderRow label="Wash" value={a.toFixed(2)}>
+        <SliderRow label="Lightness" value={`${Math.round(lightness)}%`}>
           <Slider
             value={[
-              a,
+              lightness,
             ]}
-            min={0}
-            max={0.3}
-            step={0.01}
-            onValueChange={(v) => tweak(h, c, v[0] ?? a)}
+            min={20}
+            max={100}
+            step={1}
+            onValueChange={(v) => changeLightness(v[0] ?? lightness)}
           />
         </SliderRow>
+        <SliderRow label="Opacity" value={opacity.toFixed(2)}>
+          <Slider
+            value={[
+              opacity,
+            ]}
+            min={0}
+            max={1}
+            step={0.05}
+            onValueChange={(v) => changeOpacity(v[0] ?? opacity)}
+          />
+        </SliderRow>
+        <div className="flex items-center justify-between text-muted-foreground text-xs">
+          <span>Opaque outline</span>
+          <button
+            type="button"
+            onClick={() => changeOutline(!outline)}
+            className={cn(
+              "rounded-md border px-2 py-0.5 font-medium transition-colors",
+              outline ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+            )}
+          >
+            {outline ? "accent" : "off"}
+          </button>
+        </div>
       </PopoverContent>
     </Popover>
   );

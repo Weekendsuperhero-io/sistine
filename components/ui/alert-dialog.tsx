@@ -14,7 +14,6 @@ const alertDialogContentVariants = cva(
         default: "bg-background border",
         glass: "glass-surface-lg text-foreground",
         frosted: "glass-frosted text-foreground",
-        fluted: "glass-fluted text-foreground",
         crystal: "glass-crystal text-foreground",
         opaque: "glass-opaque text-foreground",
         surface: "glass-surface text-foreground",
@@ -69,7 +68,7 @@ const AlertDialogContent = React.forwardRef<
         ref={ref}
         data-slot="alert-dialog-content"
         data-size={size}
-        data-glass={variant === "frosted" || variant === "fluted" || variant === "crystal" ? variant : undefined}
+        data-glass={variant === "frosted" || variant === "crystal" ? variant : undefined}
         className={cn(
           alertDialogContentVariants({
             variant,
