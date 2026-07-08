@@ -1,0 +1,1465 @@
+import type { CSSProperties } from "react";
+
+/**
+ * Pure-CSS pattern backgrounds — tileable wallpapers built entirely from `background-image` layers
+ * (multiple backgrounds + gradients) and SVG `mask-image` silhouettes, all colored off the live
+ * OKLCH tint tokens so they recolor with the theme. No canvas, no rAF loop: each static style is a
+ * single GPU paint. The one animated style, `ghost`, is a small field of tetrad-colored ghosts that
+ * drift (compositor-only `transform`) and periodically flash to the background-complement — all CSS.
+ * Sibling of GradientBackground (CSS gradient) and CanvasBackground (JS canvas).
+ */
+
+export type PatternStyle =
+  | "dots"
+  | "grid"
+  | "checkerboard"
+  | "diamonds"
+  | "chevron"
+  | "mesh"
+  | "starfield"
+  | "daybreak"
+  | "synthwave"
+  | "moonrise"
+  | "hexagons"
+  | "pacman"
+  | "ghost"
+  | "invader"
+  | "chase";
+
+export const PATTERN_STYLES: PatternStyle[] = [
+  "dots",
+  "grid",
+  "checkerboard",
+  "diamonds",
+  "chevron",
+  "mesh",
+  "starfield",
+  "daybreak",
+  "synthwave",
+  "moonrise",
+  "hexagons",
+  "pacman",
+  "ghost",
+  "invader",
+  "chase",
+];
+
+/** Patterns that animate (CSS keyframes) — gates the speed control and shares the --pat-dur/--pat-play pace. */
+export const ANIMATED_PATTERNS = new Set<PatternStyle>([
+  "ghost",
+  "synthwave",
+  "moonrise",
+  "chase",
+  "daybreak",
+]);
+
+/** Horizon scenes with a sun/moon disc that can be placed left / center / right. */
+export const DISC_PATTERNS = new Set<PatternStyle>([
+  "synthwave",
+  "moonrise",
+]);
+
+/** Star-field density — how many of the star field's points render (a "range of stars"). */
+export type PatternDensity = "sparse" | "medium" | "dense";
+export const PATTERN_DENSITIES: PatternDensity[] = [
+  "sparse",
+  "medium",
+  "dense",
+];
+const STAR_COUNT: Record<PatternDensity, number> = {
+  sparse: 16,
+  medium: 33,
+  dense: 50,
+};
+/** How many of the 16 drifting ghosts render, per density. */
+const GHOST_COUNT: Record<PatternDensity, number> = {
+  sparse: 8,
+  medium: 12,
+  dense: 16,
+};
+/** Tile-size scale per density — sparse = larger cells (fewer per screen), dense = smaller (more). */
+const DENSITY_SCALE: Record<PatternDensity, number> = {
+  sparse: 1.4,
+  medium: 1,
+  dense: 0.68,
+};
+
+// SVG silhouettes as mask sources. White fill + transparent ground works whether the browser samples
+// the mask by alpha or luminance. Wrapped in url(...) after encoding so it's a valid CSS value.
+const svgMask = (body: string, viewBox = "0 0 100 100") =>
+  `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='${viewBox}' fill='#fff'>${body}</svg>`)}")`;
+
+const PACMAN = svgMask("<path d='M50 50 L98 26 A50 50 0 1 0 98 74 Z'/>");
+const GHOST = svgMask(
+  "<path fill-rule='evenodd' d='M50 6 A38 38 0 0 0 12 44 V94 L24 84 L36 94 L48 84 L60 94 L72 84 L84 94 V44 A38 38 0 0 0 50 6 Z M37 40 a8 9 0 1 0 .1 0 Z M63 40 a8 9 0 1 0 .1 0 Z'/>",
+);
+const HEXAGON = svgMask("<path d='M50 4 L89 27 V73 L50 96 L11 73 V27 Z'/>");
+// viewBox padded (11×8 sprite centered in a 17×14 tile) so tiled invaders sit apart instead of touching.
+const INVADER = svgMask(
+  [
+    "00100000100",
+    "00010001000",
+    "00111111100",
+    "01101110110",
+    "11111111111",
+    "10111111101",
+    "10100000101",
+    "00011011000",
+  ]
+    .map((row, y) =>
+      [
+        ...row,
+      ]
+        .map((c, x) => (c === "1" ? `<rect x='${x}' y='${y}' width='1' height='1'/>` : ""))
+        .join(""),
+    )
+    .join(""),
+  "-3 -3 17 14",
+);
+
+// Scattered "points" for the galaxy — a fixed set so it's deterministic (SSR-safe, no Math.random).
+// Kept as an array so the density control can render just a slice of them.
+const STAR_GRADIENTS = [
+  [
+    8,
+    12,
+  ],
+  [
+    22,
+    64,
+  ],
+  [
+    15,
+    88,
+  ],
+  [
+    35,
+    26,
+  ],
+  [
+    44,
+    72,
+  ],
+  [
+    52,
+    16,
+  ],
+  [
+    61,
+    52,
+  ],
+  [
+    68,
+    84,
+  ],
+  [
+    73,
+    34,
+  ],
+  [
+    82,
+    66,
+  ],
+  [
+    88,
+    20,
+  ],
+  [
+    92,
+    80,
+  ],
+  [
+    28,
+    44,
+  ],
+  [
+    57,
+    90,
+  ],
+  [
+    4,
+    40,
+  ],
+  [
+    12,
+    6,
+  ],
+  [
+    19,
+    30,
+  ],
+  [
+    26,
+    78,
+  ],
+  [
+    33,
+    54,
+  ],
+  [
+    40,
+    20,
+  ],
+  [
+    47,
+    46,
+  ],
+  [
+    54,
+    68,
+  ],
+  [
+    63,
+    12,
+  ],
+  [
+    66,
+    40,
+  ],
+  [
+    70,
+    60,
+  ],
+  [
+    77,
+    78,
+  ],
+  [
+    80,
+    8,
+  ],
+  [
+    84,
+    48,
+  ],
+  [
+    90,
+    60,
+  ],
+  [
+    95,
+    34,
+  ],
+  [
+    6,
+    70,
+  ],
+  [
+    48,
+    4,
+  ],
+  [
+    58,
+    30,
+  ],
+  [
+    76,
+    22,
+  ],
+  [
+    2,
+    22,
+  ],
+  [
+    16,
+    50,
+  ],
+  [
+    24,
+    14,
+  ],
+  [
+    38,
+    88,
+  ],
+  [
+    50,
+    40,
+  ],
+  [
+    56,
+    58,
+  ],
+  [
+    64,
+    74,
+  ],
+  [
+    72,
+    46,
+  ],
+  [
+    86,
+    38,
+  ],
+  [
+    94,
+    12,
+  ],
+  [
+    10,
+    82,
+  ],
+  [
+    30,
+    68,
+  ],
+  [
+    42,
+    34,
+  ],
+  [
+    60,
+    6,
+  ],
+  [
+    74,
+    90,
+  ],
+  [
+    96,
+    66,
+  ],
+].map(([x, y], i) => {
+  // a range of stars — occasional bright glints, most fine
+  const r = i % 7 === 0 ? "2px" : i % 4 === 0 ? "1.6px" : i % 3 === 0 ? "1.3px" : "1px";
+  return `radial-gradient(${r} ${r} at ${x}% ${y}%, #fff, transparent)`;
+});
+
+// Easter egg: the "Muse" — the Agent mascot's head (fedora + visored helmet) traced as a sparse star
+// constellation in every star field (starfield / synthwave / moonrise). The dots are anchor points sampled
+// from the mascot SVG's bezier paths, cropped to the head (the coat sprawled into unreadable scatter),
+// thinned to ~45 (downsample, dedupe) and re-normalized; rendered as stars only — no fill, no lines — so the
+// fedora-and-helmet silhouette hides among the real stars until you catch it. Hue follows the accent-or-tint.
+// biome-ignore format: keep the sampled dots as one compact "x,y x,y …" string (not a 400-line array).
+const MUSE_DOTS = "67,66.5 65.1,52.1 66.7,42.3 75.8,38.4 11,48.8 82.9,45.3 92.3,42.7 100,36.8 84.4,32.8 85.2,58.8 75.5,65.3 71.9,58.3 51.9,42.9 26.4,48.3 60.9,59.3 38.5,42.3 0,50.4 18.3,38 19.3,28.2 19.9,14.7 25.7,5.9 37.5,2.8 51.1,0 62.9,0.5 72.8,5.6 77.5,15.3 79.7,25.7 96.2,90.9 67,78 43.4,85.6 87.4,72.2 87.4,82.7 16.9,65.6 48.2,59.2 37.5,62 28.1,64 19,87 27.2,88.7 88.4,92.4 38.6,70.3 51.5,81.1 21.5,73 33.6,81 53.7,65.1 30.7,40.5".split(" ").map((p) => p.split(",").map(Number));
+const MUSE_STYLES = `
+.star-muse {
+  position: absolute;
+  left: 6%;
+  top: 3%;
+  width: 58vh;
+  height: 53.6vh;
+  pointer-events: none;
+  --muse-h: var(--accent-h, var(--glass-tint-h));
+  filter: drop-shadow(0 0 1px oklch(0.72 0.17 var(--muse-h) / 0.5));
+  opacity: 0.9;
+}
+.star-muse circle {
+  fill: oklch(0.96 0.04 var(--muse-h));
+}`;
+
+function MuseConstellation() {
+  return (
+    <>
+      <style>{MUSE_STYLES}</style>
+      <svg className="star-muse" viewBox="0 0 100 92.4" aria-hidden="true">
+        {MUSE_DOTS.map(([x, y], i) => (
+          <circle key={`${x},${y}`} cx={x} cy={y} r={i % 7 === 0 ? 0.22 : i % 3 === 0 ? 0.16 : 0.12} />
+        ))}
+      </svg>
+    </>
+  );
+}
+
+// The four Pac-Man ghost colors, drawn from the theme's tetrad (rectangle) harmony so they recolor
+// with the tint. --hue-* are the registered harmonic tokens; each ghost picks one inline.
+// L/C kept inside the sRGB gamut for EVERY hue — high chroma at high L gamut-maps toward grey for most
+// hues (only yellow survives), which is why the tetrad "didn't work". 0.7/0.16 renders all four as color.
+const TETRAD = [
+  "oklch(0.7 0.16 var(--hue-base))",
+  "oklch(0.7 0.16 var(--hue-tetrad-1))",
+  "oklch(0.7 0.16 var(--hue-tetrad-2))",
+  "oklch(0.7 0.16 var(--hue-tetrad-3))",
+];
+
+// Scattered ghost anchors (%). Each roams from here along one of the axis-aligned maze paths below.
+const GHOSTS = [
+  [
+    8,
+    16,
+  ],
+  [
+    30,
+    62,
+  ],
+  [
+    52,
+    22,
+  ],
+  [
+    72,
+    70,
+  ],
+  [
+    88,
+    32,
+  ],
+  [
+    18,
+    82,
+  ],
+  [
+    62,
+    50,
+  ],
+  [
+    40,
+    8,
+  ],
+  [
+    4,
+    44,
+  ],
+  [
+    22,
+    34,
+  ],
+  [
+    44,
+    78,
+  ],
+  [
+    58,
+    88,
+  ],
+  [
+    78,
+    14,
+  ],
+  [
+    92,
+    58,
+  ],
+  [
+    12,
+    68,
+  ],
+  [
+    68,
+    30,
+  ],
+];
+
+// Ghost field styling: the drift (continuous, compositor-only transform) + the shared "frightened"
+// flash (every ghost holds its own --ghost-color, then all turn to the bg-complement --fright, then
+// back). One fright keyframe serves all ghosts because the two colors are CSS vars.
+const GHOST_STYLES = `
+.pattern-ghost {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  background-color: var(--ghost-color);
+  -webkit-mask: ${GHOST} center / contain no-repeat;
+  mask: ${GHOST} center / contain no-repeat;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear, ease-in-out;
+  animation-play-state: var(--pat-play, running);
+  /* Only the drift (transform) composites; the fright flash (background-color) can't and is rare, so it's
+     left off will-change — hinting a non-compositable property just keeps the layer busier for no gain. */
+  will-change: transform;
+}
+@keyframes pattern-ghost-fright {
+  0%, 60%, 100% { background-color: var(--ghost-color); }
+  70%, 88% { background-color: var(--fright); }
+}
+/* Maze paths: every segment moves ONE axis only (Pac-Man corridors — sharp right-angle turns, no diagonals). */
+@keyframes pattern-ghost-path-0 {
+  0%, 100% { transform: translate(0, 0); }
+  14% { transform: translate(96px, 0); }
+  28% { transform: translate(96px, 60px); }
+  42% { transform: translate(36px, 60px); }
+  57% { transform: translate(36px, -42px); }
+  71% { transform: translate(-48px, -42px); }
+  85% { transform: translate(-48px, 0); }
+}
+@keyframes pattern-ghost-path-1 {
+  0%, 100% { transform: translate(0, 0); }
+  16% { transform: translate(0, 72px); }
+  33% { transform: translate(-84px, 72px); }
+  50% { transform: translate(-84px, -30px); }
+  66% { transform: translate(30px, -30px); }
+  83% { transform: translate(30px, 0); }
+}
+@keyframes pattern-ghost-path-2 {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-60px, 0); }
+  40% { transform: translate(-60px, -54px); }
+  60% { transform: translate(54px, -54px); }
+  80% { transform: translate(54px, 0); }
+}
+@keyframes pattern-ghost-path-3 {
+  0%, 100% { transform: translate(0, 0); }
+  16% { transform: translate(0, -66px); }
+  33% { transform: translate(78px, -66px); }
+  50% { transform: translate(78px, 36px); }
+  66% { transform: translate(-42px, 36px); }
+  83% { transform: translate(-42px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pattern-ghost { animation: none !important; }
+}`;
+
+// Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon).
+// A perspective grid receding to a glowing horizon line, a disc rising from it, and a starfield sky.
+// The grid + horizon glow ride the selectable --sw-line (accent hue; Tron-cyan for the sun, violet for
+// the moon). Layers back→front: sky gradient (.sw-scene) · stars · disc · dark ground (hides the disc's
+// dip) · horizon glow · floor-grid. moonrise reskins sky/disc/ground/glow via [data-pattern="moonrise"].
+// The floor uses PARENT perspective (.sw-floor, perspective-origin at the horizon) so lines converge at
+// the horizon, not the near edge. The lone motion is the grid's background-position scroll.
+const SYNTHWAVE_STYLES = `
+.sw-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    oklch(0.12 0.085 285) 0%,
+    oklch(0.15 0.1 305) 30%,
+    oklch(0.24 0.14 332) 50%,
+    oklch(0.34 0.16 350) 57%,
+    oklch(0.09 0.03 282) 58%
+  );
+}
+.sw-stars {
+  position: absolute;
+  inset: 0 0 42% 0;
+  background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
+}
+.sw-sun {
+  position: absolute;
+  left: var(--sw-disc-x, 50%);
+  bottom: 42%;
+  width: 46vh;
+  height: 46vh;
+  transform: translate(-50%, 33%);
+  border-radius: 50%;
+  background: linear-gradient(
+    to top,
+    oklch(0.6 0.27 352) 0%,
+    oklch(0.66 0.25 6) 24%,
+    oklch(0.74 0.21 42) 52%,
+    oklch(0.85 0.19 74) 78%,
+    oklch(0.93 0.17 100) 100%
+  );
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0 42%, transparent 42%),
+    repeating-linear-gradient(to bottom, #000 0 0.85vh, transparent 0.85vh 1.7vh);
+  mask-image:
+    linear-gradient(to bottom, #000 0 42%, transparent 42%),
+    repeating-linear-gradient(to bottom, #000 0 0.85vh, transparent 0.85vh 1.7vh);
+  filter: drop-shadow(0 0 5vh oklch(0.6 0.26 348 / 0.5));
+}
+.sw-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  background: linear-gradient(to bottom, oklch(0.1 0.04 286) 0%, oklch(0.06 0.02 280) 100%);
+}
+.sw-glow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 42%;
+  height: 2px;
+  background: var(--sw-line);
+  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.62 0.24 340 / 0.4);
+}
+.sw-floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  overflow: hidden;
+  perspective: 75vh;
+  perspective-origin: 50% 0%;
+}
+/* The floor is split by line direction, each with its own STATIC fade (on the non-moving wrapper, so the
+   fade never "breathes"). RUNGS (horizontal lines) pile into sub-pixel density and shimmer as they scroll
+   toward you, so they fade out early. RAILS (vertical lines) don't scroll-pileup, so they run to the
+   horizon, carrying the grid to the glow with no gap. Each mask also INTERSECTS a left/right fade
+   (mask-composite) to vignette the raking east/west edges, where oblique lines alias into choppiness.
+   Both wrappers share the exact perspective, so the two overlap. */
+.sw-floor-rungs {
+  -webkit-mask-image: linear-gradient(to top, #000 40%, transparent 90%), linear-gradient(to right, transparent, #000 15% 85%, transparent);
+  mask-image: linear-gradient(to top, #000 40%, transparent 90%), linear-gradient(to right, transparent, #000 15% 85%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.sw-floor-rails {
+  -webkit-mask-image: linear-gradient(to top, #000 55%, transparent 99%), linear-gradient(to right, transparent, #000 15% 85%, transparent);
+  mask-image: linear-gradient(to top, #000 55%, transparent 99%), linear-gradient(to right, transparent, #000 15% 85%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.sw-grid {
+  position: absolute;
+  left: -60%;
+  right: -60%;
+  top: -4vmin;
+  height: 66vh;
+  background-size: 4vmin 4vmin;
+  transform-origin: 50% 0%;
+  transform: rotateX(78deg);
+}
+/* Only the RUNGS scroll, via a COMPOSITOR-ONLY transform (translateY one cell) — GPU-composited, no
+   per-frame paint (animating background-position re-rasterizes the gradient every frame; transform does
+   not). Seamless because: (a) the tile repeats every cell, so translateY(4vmin) is pixel-identical to 0 —
+   no loop jump; and (b) the plane overhangs far past what's visible (tall height + the -4vmin top), so the
+   sliding edges stay beyond the floor's overflow-clip + fade mask and never surface — which is what the
+   earlier translate lacked. Rails stay static: a floor moving toward you slides the cross-rungs past, but
+   the rails you travel along don't move. */
+.sw-grid-rungs {
+  background-image: linear-gradient(to bottom, var(--sw-line) 0 2px, transparent 2px);
+  animation: sw-grid-scroll var(--pat-dur, 8s) linear infinite;
+  animation-play-state: var(--pat-play, running);
+  will-change: transform;
+}
+.sw-grid-rails {
+  background-image: linear-gradient(to right, var(--sw-line) 0 2px, transparent 2px);
+}
+@keyframes sw-grid-scroll {
+  from { transform: rotateX(78deg) translateY(0); }
+  to   { transform: rotateX(78deg) translateY(4vmin); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sw-grid-rungs { animation: none; }
+}
+
+/* Moonrise variant — a purple-blue moon over a midnight sky, no scanlines. Shares every structural
+   class; only the sky, disc, ground, and glow bloom recolor (via [data-pattern="moonrise"]). */
+.sw-moon {
+  position: absolute;
+  left: var(--sw-disc-x, 50%);
+  bottom: 42%;
+  width: 40vh;
+  height: 40vh;
+  transform: translate(-50%, 30%);
+  border-radius: 50%;
+  background:
+    radial-gradient(34% 30% at 63% 30%, oklch(0.4 0.13 296 / 0.55) 0, transparent 62%),
+    radial-gradient(20% 18% at 38% 56%, oklch(0.4 0.13 296 / 0.5) 0, transparent 62%),
+    radial-gradient(13% 12% at 56% 72%, oklch(0.4 0.13 296 / 0.45) 0, transparent 62%),
+    radial-gradient(circle at 42% 38%, oklch(0.75 0.11 278) 0%, oklch(0.6 0.16 290) 52%, oklch(0.47 0.17 300) 100%);
+  filter: drop-shadow(0 0 5vh oklch(0.58 0.17 286 / 0.5));
+}
+[data-pattern="moonrise"] .sw-scene {
+  background: linear-gradient(
+    to bottom,
+    oklch(0.09 0.05 265) 0%,
+    oklch(0.12 0.07 272) 30%,
+    oklch(0.17 0.09 283) 50%,
+    oklch(0.23 0.11 293) 57%,
+    oklch(0.07 0.03 270) 58%
+  );
+}
+[data-pattern="moonrise"] .sw-ground {
+  background: linear-gradient(to bottom, oklch(0.09 0.04 276) 0%, oklch(0.05 0.02 270) 100%);
+}
+[data-pattern="moonrise"] .sw-glow {
+  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.58 0.2 292 / 0.4);
+}`;
+
+// Pac-Man chase: a seamless scrolling "corridor" per lane — Pac chomps in place (clip-path) while the dot
+// stream flows left into its mouth and gets "eaten" (a STATIC mask on the clip wrapper hides dots once they
+// pass the mouth, so nothing animates the mask), and a ghost bobs ahead, fleeing, flashing fright-blue.
+// Dots + ghost move on compositor transforms; only Pac's tiny chomp repaints. Three lanes, desynced, fill
+// the screen. Iconic arcade palette (gold Pac, classic ghost hues, pale pellets) over a tint-darkened field.
+// Horizontal (E–W) lanes at 12/30/50/70/88% — positioned so the walls sit in the gaps BETWEEN them, never
+// on a lane (Pac was eating through walls). Each ghost hue rides the theme COMPLEMENT (var(--hue-complement))
+// ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it (fade out) mid-run; the others let
+// it escape ahead. Durations bumped way up — the old 7–11s zipped; 15–24s reads as a stroll.
+const PAC_LANES = [
+  {
+    top: "12%",
+    factor: 2.3,
+    hue: "var(--hue-complement)",
+    frightDur: "9s",
+    delay: "0s",
+    caught: false,
+  },
+  {
+    top: "30%",
+    factor: 1.9,
+    hue: "calc(var(--hue-complement) + 22)",
+    frightDur: "7.5s",
+    delay: "-3s",
+    caught: true,
+  },
+  {
+    top: "50%",
+    factor: 3,
+    hue: "calc(var(--hue-complement) - 24)",
+    frightDur: "10s",
+    delay: "-1.5s",
+    caught: false,
+  },
+  {
+    top: "70%",
+    factor: 2.1,
+    hue: "calc(var(--hue-complement) + 44)",
+    frightDur: "8.5s",
+    delay: "-5s",
+    caught: true,
+  },
+  {
+    top: "88%",
+    factor: 2.6,
+    hue: "calc(var(--hue-complement) - 44)",
+    frightDur: "11s",
+    delay: "-2.5s",
+    caught: false,
+  },
+];
+
+// Vertical (N–S) lanes so the chase runs both axes, not just E–W. `up: true` climbs north, else descends
+// south. Columns at 26% / 74% (kept clear of every wall). Pac rotates to face its travel direction.
+const PAC_VLANES = [
+  {
+    left: "26%",
+    factor: 2.4,
+    hue: "calc(var(--hue-complement) + 12)",
+    frightDur: "8s",
+    delay: "-2s",
+    caught: true,
+    up: false,
+  },
+  {
+    left: "74%",
+    factor: 2,
+    hue: "calc(var(--hue-complement) - 12)",
+    frightDur: "9.5s",
+    delay: "-6s",
+    caught: false,
+    up: true,
+  },
+];
+
+// Chevron "walls" that block out pellets to carve the maze. Every block sits in a GAP between the E–W lane
+// bands (10-14/28-32/48-52/68-72/86-90%) and clear of the N–S columns (23-29% / 71-77%), so no Pac runs
+// through one.
+const PAC_WALLS = [
+  {
+    top: "3%",
+    left: "40%",
+    w: "18%",
+    h: "5%",
+  },
+  {
+    top: "18%",
+    left: "6%",
+    w: "12%",
+    h: "7%",
+  },
+  {
+    top: "18%",
+    left: "46%",
+    w: "18%",
+    h: "7%",
+  },
+  {
+    top: "18%",
+    left: "84%",
+    w: "11%",
+    h: "7%",
+  },
+  {
+    top: "36%",
+    left: "32%",
+    w: "12%",
+    h: "8%",
+  },
+  {
+    top: "36%",
+    left: "56%",
+    w: "12%",
+    h: "8%",
+  },
+  {
+    top: "56%",
+    left: "8%",
+    w: "12%",
+    h: "8%",
+  },
+  {
+    top: "56%",
+    left: "44%",
+    w: "16%",
+    h: "8%",
+  },
+  {
+    top: "56%",
+    left: "80%",
+    w: "12%",
+    h: "8%",
+  },
+  {
+    top: "76%",
+    left: "34%",
+    w: "12%",
+    h: "7%",
+  },
+  {
+    top: "76%",
+    left: "58%",
+    w: "10%",
+    h: "7%",
+  },
+  {
+    top: "93%",
+    left: "38%",
+    w: "22%",
+    h: "5%",
+  },
+];
+
+const PAC_STYLES = `
+.pac-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
+  background: var(--pac-bg);
+}
+.pac-field {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle 2.6px at center, oklch(0.82 0.05 85) 0 2px, transparent 2.7px);
+  background-size: var(--pac-cell, 34px) var(--pac-cell, 34px);
+  opacity: 0.5;
+}
+.pac-wall {
+  position: absolute;
+  border-radius: 6px;
+  background-color: oklch(0.19 0.05 var(--glass-tint-h));
+  background-image:
+    linear-gradient(135deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%),
+    linear-gradient(225deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%);
+  background-size: 15px 15px;
+  box-shadow: inset 0 0 0 1.5px oklch(0.5 0.12 var(--glass-tint-h));
+}
+.pac-lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  transform: translateY(-50%);
+}
+/* Pac + his "wake" ride one runner that translates across; the wake is a bg-colored gradient trailing his
+   mouth, erasing the pellets he passes. Only transforms animate here. */
+.pac-runner {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 38px;
+  height: 38px;
+  transform: translate(-16vw, -50%);
+  animation: pac-run var(--pac-dur, 9s) linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+  will-change: transform;
+}
+@keyframes pac-run {
+  from { transform: translate(-16vw, -50%); }
+  to   { transform: translate(112vw, -50%); }
+}
+.pac-wake {
+  position: absolute;
+  right: 19px;
+  top: 50%;
+  width: 34vw;
+  height: 30px;
+  transform: translateY(-50%);
+  background: linear-gradient(to left, var(--pac-bg), var(--pac-bg) 30%, transparent);
+}
+.pac-man {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.86 0.17 96);
+  border-radius: 50%;
+  animation: pac-chomp 0.34s linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+}
+@keyframes pac-chomp {
+  0%, 100% { clip-path: polygon(50% 50%, 100% 22%, 100% 0, 0 0, 0 100%, 100% 100%, 100% 78%); }
+  50%      { clip-path: polygon(50% 50%, 100% 47%, 100% 0, 0 0, 0 100%, 100% 100%, 100% 53%); }
+}
+.pac-ghost-runner {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 34px;
+  height: 38px;
+  transform: translate(4vw, -50%);
+  animation: pac-flee var(--pac-dur, 9s) linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+  will-change: transform;
+}
+.pac-ghost-runner.pac-caught { animation-name: pac-caught; }
+@keyframes pac-flee {
+  from { transform: translate(4vw, -50%); opacity: 1; }
+  to   { transform: translate(132vw, -50%); opacity: 1; }
+}
+@keyframes pac-caught {
+  0%   { transform: translate(4vw, -50%); opacity: 0; }
+  5%   { transform: translate(10vw, -50%); opacity: 1; }
+  58%  { transform: translate(70vw, -50%); opacity: 1; }
+  72%  { transform: translate(78vw, -50%); opacity: 1; }
+  78%  { transform: translate(80vw, -50%); opacity: 0; }
+  100% { transform: translate(80vw, -50%); opacity: 0; }
+}
+.pac-ghost {
+  position: absolute;
+  inset: 0;
+  background-color: var(--pac-ghost, oklch(0.68 0.19 320));
+  -webkit-mask: ${GHOST} center / contain no-repeat;
+  mask: ${GHOST} center / contain no-repeat;
+  animation: pac-bob 1.1s ease-in-out infinite, pac-fright var(--pac-fright-dur, 8s) linear infinite;
+  animation-delay: var(--pac-delay, 0s), var(--pac-delay, 0s);
+}
+@keyframes pac-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes pac-fright {
+  0%, 76%, 100% { background-color: var(--pac-ghost, oklch(0.68 0.19 320)); }
+  84%, 96%      { background-color: oklch(0.6 0.2 262); }
+}
+/* ── Vertical (N–S) lanes ── same runner idea, turned 90°. Pac faces its travel direction (a static rotate
+   reusing the chomp), the wake trails behind, the ghost flees ahead. .pac-vup flips a lane to climb north.
+   Distances are in vh — the column spans the viewport height. */
+.pac-vlane {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 38px;
+  transform: translateX(-50%);
+}
+.pac-vrunner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 38px;
+  height: 38px;
+  transform: translate(-50%, -18vh);
+  animation: pac-vrun-down var(--pac-dur, 18s) linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+  will-change: transform;
+}
+.pac-vlane.pac-vup .pac-vrunner { animation-name: pac-vrun-up; }
+@keyframes pac-vrun-down { from { transform: translate(-50%, -18vh); } to { transform: translate(-50%, 118vh); } }
+@keyframes pac-vrun-up   { from { transform: translate(-50%, 118vh); } to { transform: translate(-50%, -18vh); } }
+.pac-vman {
+  position: absolute;
+  inset: 0;
+  background: oklch(0.86 0.17 96);
+  border-radius: 50%;
+  transform: rotate(90deg);
+  animation: pac-chomp 0.34s linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+}
+.pac-vlane.pac-vup .pac-vman { transform: rotate(-90deg); }
+.pac-vwake {
+  position: absolute;
+  left: 50%;
+  bottom: 19px;
+  width: 30px;
+  height: 34vh;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, var(--pac-bg), var(--pac-bg) 30%, transparent);
+}
+.pac-vlane.pac-vup .pac-vwake {
+  bottom: auto;
+  top: 19px;
+  background: linear-gradient(to bottom, var(--pac-bg), var(--pac-bg) 30%, transparent);
+}
+.pac-vghost-runner {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 34px;
+  height: 38px;
+  transform: translate(-50%, 2vh);
+  animation: pac-vflee-down var(--pac-dur, 18s) linear infinite;
+  animation-delay: var(--pac-delay, 0s);
+  will-change: transform;
+}
+.pac-vlane.pac-vup .pac-vghost-runner { animation-name: pac-vflee-up; }
+.pac-vghost-runner.pac-caught { animation-name: pac-vcaught-down; }
+.pac-vlane.pac-vup .pac-vghost-runner.pac-caught { animation-name: pac-vcaught-up; }
+@keyframes pac-vflee-down { from { transform: translate(-50%, 2vh); opacity: 1; } to { transform: translate(-50%, 138vh); opacity: 1; } }
+@keyframes pac-vflee-up   { from { transform: translate(-50%, 98vh); opacity: 1; } to { transform: translate(-50%, -42vh); opacity: 1; } }
+@keyframes pac-vcaught-down {
+  0%   { transform: translate(-50%, 2vh); opacity: 0; }
+  5%   { transform: translate(-50%, 8vh); opacity: 1; }
+  58%  { transform: translate(-50%, 66vh); opacity: 1; }
+  72%  { transform: translate(-50%, 76vh); opacity: 1; }
+  78%  { transform: translate(-50%, 80vh); opacity: 0; }
+  100% { transform: translate(-50%, 80vh); opacity: 0; }
+}
+@keyframes pac-vcaught-up {
+  0%   { transform: translate(-50%, 98vh); opacity: 0; }
+  5%   { transform: translate(-50%, 92vh); opacity: 1; }
+  58%  { transform: translate(-50%, 34vh); opacity: 1; }
+  72%  { transform: translate(-50%, 24vh); opacity: 1; }
+  78%  { transform: translate(-50%, 20vh); opacity: 0; }
+  100% { transform: translate(-50%, 20vh); opacity: 0; }
+}
+.pac-vghost {
+  position: absolute;
+  inset: 0;
+  background-color: var(--pac-ghost, oklch(0.68 0.19 320));
+  -webkit-mask: ${GHOST} center / contain no-repeat;
+  mask: ${GHOST} center / contain no-repeat;
+  animation: pac-vsway 1.2s ease-in-out infinite, pac-fright var(--pac-fright-dur, 8s) linear infinite;
+  animation-delay: var(--pac-delay, 0s), var(--pac-delay, 0s);
+}
+@keyframes pac-vsway {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(4px); }
+}
+.pac-runner, .pac-man, .pac-ghost-runner, .pac-ghost,
+.pac-vrunner, .pac-vman, .pac-vghost-runner, .pac-vghost {
+  animation-play-state: var(--pat-play, running);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pac-runner, .pac-man, .pac-ghost-runner, .pac-ghost,
+  .pac-vrunner, .pac-vman, .pac-vghost-runner, .pac-vghost { animation: none; }
+}`;
+
+// Daybreak — the daytime pair for the night starfield: an accent-blue sky, an OFF-CENTER glowing sun (so
+// centered content stays clear), and soft clouds drifting across on the shared --pat-dur pace. Density picks
+// how many clouds render. All compositor transforms; the sky/sun follow the accent hue.
+const CLOUD = svgMask(
+  "<ellipse cx='52' cy='48' rx='47' ry='20'/><circle cx='30' cy='38' r='16'/><circle cx='55' cy='27' r='23'/><circle cx='78' cy='40' r='16'/>",
+  "0 0 104 72",
+);
+const DAY_CLOUDS = [
+  {
+    top: "13%",
+    size: "20vw",
+    factor: 6,
+    delay: "0s",
+    op: 0.9,
+  },
+  {
+    top: "62%",
+    size: "22vw",
+    factor: 5.5,
+    delay: "-30s",
+    op: 0.82,
+  },
+  {
+    top: "30%",
+    size: "13vw",
+    factor: 8,
+    delay: "-18s",
+    op: 0.72,
+  },
+  {
+    top: "46%",
+    size: "16vw",
+    factor: 7,
+    delay: "-48s",
+    op: 0.7,
+  },
+  {
+    top: "22%",
+    size: "24vw",
+    factor: 5,
+    delay: "-64s",
+    op: 0.85,
+  },
+  {
+    top: "74%",
+    size: "12vw",
+    factor: 9,
+    delay: "-40s",
+    op: 0.6,
+  },
+];
+const DAY_CLOUD_COUNT: Record<PatternDensity, number> = {
+  sparse: 3,
+  medium: 5,
+  dense: 6,
+};
+const DAY_STYLES = `
+.day-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(to bottom,
+    oklch(0.82 0.1 var(--accent-h, 230)) 0%,
+    oklch(0.9 0.07 var(--accent-h, 230)) 52%,
+    oklch(0.96 0.04 calc(var(--accent-h, 230) + 28)) 100%);
+}
+.day-sun {
+  position: absolute;
+  top: 11%;
+  right: 15%;
+  width: 21vh;
+  height: 21vh;
+  border-radius: 50%;
+  background: radial-gradient(circle, oklch(0.99 0.08 95) 0%, oklch(0.92 0.16 85) 52%, oklch(0.9 0.18 72 / 0) 72%);
+  filter: drop-shadow(0 0 7vh oklch(0.92 0.15 84 / 0.5));
+}
+.day-cloud {
+  position: absolute;
+  left: 0;
+  aspect-ratio: 104 / 72;
+  background-color: #fff;
+  -webkit-mask: ${CLOUD} center / contain no-repeat;
+  mask: ${CLOUD} center / contain no-repeat;
+  transform: translateX(-45vw);
+  animation: day-drift calc(var(--pat-dur, 8s) * var(--cloud-factor, 6)) linear infinite;
+  animation-delay: var(--cloud-delay, 0s);
+  animation-play-state: var(--pat-play, running);
+  will-change: transform;
+}
+@keyframes day-drift {
+  from { transform: translateX(-45vw); }
+  to   { transform: translateX(135vw); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .day-cloud { animation: none; }
+}`;
+
+function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
+  const bg = "var(--background)";
+  // Ink follows the accent (fallback: tint hue) so every geometric pattern recolors with the accent knob.
+  const ink = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.5)";
+  const inkSoft = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.22)";
+  // Density scales the tile size for every pattern.
+  const d = DENSITY_SCALE[density];
+  const px = (n: number) => `${Math.round(n * d)}px`;
+  const sq = (n: number) => `${px(n)} ${px(n)}`;
+  const sprite = (mask: string, color: string, size: string): CSSProperties => ({
+    backgroundColor: color,
+    maskImage: mask,
+    WebkitMaskImage: mask,
+    maskSize: size,
+    WebkitMaskSize: size,
+    maskRepeat: "repeat",
+    WebkitMaskRepeat: "repeat",
+    maskPosition: "center",
+    WebkitMaskPosition: "center",
+  });
+
+  switch (style) {
+    case "grid":
+      return {
+        backgroundColor: bg,
+        backgroundImage: `linear-gradient(${ink} 1px, transparent 1px), linear-gradient(90deg, ${ink} 1px, transparent 1px)`,
+        backgroundSize: sq(44),
+      };
+    case "dots":
+      return {
+        backgroundColor: bg,
+        backgroundImage: `radial-gradient(${ink} 1.6px, transparent 1.8px)`,
+        backgroundSize: sq(24),
+      };
+    case "checkerboard":
+      return {
+        backgroundColor: bg,
+        backgroundImage: `linear-gradient(45deg, ${inkSoft} 25%, transparent 25% 75%, ${inkSoft} 75%), linear-gradient(45deg, ${inkSoft} 25%, transparent 25% 75%, ${inkSoft} 75%)`,
+        backgroundSize: sq(48),
+        backgroundPosition: `0 0, ${px(24)} ${px(24)}`,
+      };
+    case "diamonds":
+      return {
+        backgroundColor: bg,
+        backgroundImage: `linear-gradient(135deg, ${ink} 25%, transparent 25%), linear-gradient(225deg, ${ink} 25%, transparent 25%), linear-gradient(45deg, ${ink} 25%, transparent 25%), linear-gradient(315deg, ${ink} 25%, transparent 25%)`,
+        backgroundPosition: `${px(24)} 0, ${px(24)} 0, 0 0, 0 0`,
+        backgroundSize: sq(48),
+      };
+    case "chevron":
+      return {
+        backgroundColor: bg,
+        backgroundImage: `linear-gradient(135deg, ${ink} 25%, transparent 25%), linear-gradient(225deg, ${ink} 25%, transparent 25%)`,
+        backgroundSize: sq(36),
+      };
+    case "mesh": {
+      // Mesh blobs center on the accent (hue + vividness) when it's on, else the tint's content hue —
+      // rotated 0/90/180/270 for a full spread.
+      const mh = "var(--accent-h, var(--glass-tint-h))";
+      const mc = "var(--accent-c, 0.16)";
+      return {
+        backgroundColor: bg,
+        backgroundImage: `radial-gradient(40% 40% at 15% 20%, oklch(0.65 ${mc} ${mh} / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 85% 15%, oklch(0.65 ${mc} calc(${mh} + 90) / 0.5) 0, transparent 100%), radial-gradient(45% 45% at 22% 85%, oklch(0.65 ${mc} calc(${mh} + 180) / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 82% 82%, oklch(0.65 ${mc} calc(${mh} + 270) / 0.5) 0, transparent 100%)`,
+      };
+    }
+    case "starfield": {
+      // Nebula "patch" + deep backdrop follow the accent (hue + vividness) when it's on, else the tint.
+      // Density picks how many star points render — sparse / medium / dense.
+      const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+      return {
+        backgroundColor: "oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)))",
+        backgroundImage: `radial-gradient(65% 55% at 50% 30%, oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42) 0, transparent 72%), radial-gradient(45% 42% at 80% 78%, oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3) 0, transparent 70%), ${stars}`,
+      };
+    }
+    case "daybreak":
+      // Rendered by its own branch in PatternBackground; kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.88 0.08 var(--accent-h, 230))",
+      };
+    case "synthwave":
+      // Rendered by its own multi-layer branch in PatternBackground; keeps the switch exhaustive.
+      return {
+        backgroundColor: "oklch(0.09 0.03 282)",
+      };
+    case "moonrise":
+      // Rendered alongside synthwave in PatternBackground's shared branch; kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.07 0.03 270)",
+      };
+    case "hexagons":
+      return sprite(HEXAGON, ink, px(52));
+    case "pacman":
+      return sprite(PACMAN, "oklch(0.85 0.18 95)", px(56));
+    case "invader":
+      return sprite(INVADER, "oklch(0.72 0.2 145)", px(68));
+    case "ghost":
+      // Ghost is rendered by its own branch in PatternBackground; this keeps the switch exhaustive.
+      return {
+        backgroundColor: "oklch(0.16 0.045 var(--glass-tint-h))",
+      };
+    case "chase":
+      // Pac-Man chase is rendered by its own branch in PatternBackground; kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.12 0.025 var(--glass-tint-h))",
+      };
+  }
+}
+
+/** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
+export function PatternBackground({
+  style = "dots",
+  density = "medium",
+  speed = 8,
+  disc = "right",
+}: {
+  style?: PatternStyle;
+  density?: PatternDensity;
+  speed?: number;
+  disc?: "left" | "center" | "right";
+}) {
+  // Animated patterns share one pace: --pat-dur (loop seconds) + --pat-play (paused when speed is 0/static).
+  const patDur = speed > 0 ? `${speed}s` : "8s";
+  const patPlay = speed > 0 ? "running" : "paused";
+  // Sun/moon horizontal placement for the horizon scenes (off-center clears centered page content).
+  const discX = {
+    left: "26%",
+    center: "50%",
+    right: "74%",
+  }[disc];
+  if (style === "chase") {
+    return (
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        style={
+          {
+            "--pat-dur": patDur,
+            "--pat-play": patPlay,
+            "--pac-cell": `${Math.round(34 * DENSITY_SCALE[density])}px`,
+          } as CSSProperties
+        }
+        data-pattern="chase"
+      >
+        <style>{PAC_STYLES}</style>
+        <div className="pac-scene">
+          <div className="pac-field" />
+          {PAC_WALLS.map((w) => (
+            <div
+              key={`${w.top}-${w.left}`}
+              className="pac-wall"
+              style={{
+                top: w.top,
+                left: w.left,
+                width: w.w,
+                height: w.h,
+              }}
+            />
+          ))}
+          {PAC_LANES.map((lane) => (
+            <div
+              key={lane.top}
+              className="pac-lane"
+              style={
+                {
+                  top: lane.top,
+                  "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
+                  "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
+                  "--pac-fright-dur": lane.frightDur,
+                  "--pac-delay": lane.delay,
+                } as CSSProperties
+              }
+            >
+              <div className={lane.caught ? "pac-ghost-runner pac-caught" : "pac-ghost-runner"}>
+                <div className="pac-ghost" />
+              </div>
+              <div className="pac-runner">
+                <div className="pac-wake" />
+                <div className="pac-man" />
+              </div>
+            </div>
+          ))}
+          {PAC_VLANES.map((lane) => (
+            <div
+              key={lane.left}
+              className={lane.up ? "pac-vlane pac-vup" : "pac-vlane"}
+              style={
+                {
+                  left: lane.left,
+                  "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
+                  "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
+                  "--pac-fright-dur": lane.frightDur,
+                  "--pac-delay": lane.delay,
+                } as CSSProperties
+              }
+            >
+              <div className={lane.caught ? "pac-vghost-runner pac-caught" : "pac-vghost-runner"}>
+                <div className="pac-vghost" />
+              </div>
+              <div className="pac-vrunner">
+                <div className="pac-vwake" />
+                <div className="pac-vman" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (style === "ghost") {
+    return (
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        style={
+          {
+            backgroundColor: "oklch(0.16 0.045 var(--glass-tint-h))",
+            "--fright": "oklch(0.72 0.17 var(--hue-complement))",
+            "--pat-dur": patDur,
+            "--pat-play": patPlay,
+          } as CSSProperties
+        }
+        data-pattern="ghost"
+      >
+        <style>{GHOST_STYLES}</style>
+        {GHOSTS.slice(0, GHOST_COUNT[density]).map(([x, y], i) => (
+          <span
+            key={`${x}-${y}`}
+            className="pattern-ghost"
+            style={
+              {
+                left: `${x}%`,
+                top: `${y}%`,
+                "--ghost-color": TETRAD[i % 4],
+                animationName: `pattern-ghost-path-${i % 4}, pattern-ghost-fright`,
+                animationDuration: `calc(var(--pat-dur, 8s) * ${(2.2 + (i % 5) * 0.38).toFixed(2)}), calc(var(--pat-dur, 8s) * 1.35)`,
+                animationDelay: `${(-i * 1.7).toFixed(1)}s, 0s`,
+              } as CSSProperties
+            }
+          />
+        ))}
+      </div>
+    );
+  }
+  if (style === "synthwave" || style === "moonrise") {
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    const moon = style === "moonrise";
+    return (
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        style={
+          {
+            // Selectable grid/glow color: accent hue, defaulting Tron-cyan for the sun, violet for the moon.
+            "--sw-line": moon ? "oklch(0.72 0.16 var(--accent-h, 270))" : "oklch(0.82 0.19 var(--accent-h, 195))",
+            // Sun/moon horizontal placement (left/center/right).
+            "--sw-disc-x": discX,
+            // Grid scroll pace — one cell every --pat-dur seconds (shared pace across animated patterns).
+            "--pat-dur": patDur,
+            "--pat-play": patPlay,
+          } as CSSProperties
+        }
+        data-pattern={style}
+      >
+        <style>{SYNTHWAVE_STYLES}</style>
+        <div className="sw-scene">
+          <div
+            className="sw-stars"
+            style={{
+              backgroundImage: stars,
+            }}
+          />
+          <MuseConstellation />
+          <div className={moon ? "sw-moon" : "sw-sun"} />
+          <div className="sw-ground" />
+          <div className="sw-glow" />
+          <div className="sw-floor sw-floor-rungs">
+            <div className="sw-grid sw-grid-rungs" />
+          </div>
+          <div className="sw-floor sw-floor-rails">
+            <div className="sw-grid sw-grid-rails" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (style === "daybreak") {
+    return (
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        style={
+          {
+            "--pat-dur": patDur,
+            "--pat-play": patPlay,
+          } as CSSProperties
+        }
+        data-pattern="daybreak"
+      >
+        <style>{DAY_STYLES}</style>
+        <div className="day-scene">
+          <div className="day-sun" />
+          {DAY_CLOUDS.slice(0, DAY_CLOUD_COUNT[density]).map((c) => (
+            <div
+              key={c.top}
+              className="day-cloud"
+              style={
+                {
+                  top: c.top,
+                  width: c.size,
+                  opacity: c.op,
+                  "--cloud-factor": c.factor,
+                  "--cloud-delay": c.delay,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (style === "starfield") {
+    // Same star background as styleFor, but as a container so the easter-egg constellation can overlay it.
+    return (
+      <div
+        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        style={styleFor(style, density)}
+        data-pattern="starfield"
+      >
+        <MuseConstellation />
+      </div>
+    );
+  }
+  return (
+    <div
+      className="fixed inset-0 -z-10 pointer-events-none transition-[background-color] duration-500"
+      style={styleFor(style, density)}
+      data-pattern={style}
+    />
+  );
+}

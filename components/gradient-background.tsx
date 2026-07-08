@@ -11,6 +11,7 @@ import { type GradientGeometry, type GradientShape, type RampGradientAxis, rampG
  */
 export function GradientBackground({
   axis = "tonal",
+  hue,
   angle = 90,
   shape = "linear",
   position,
@@ -18,10 +19,12 @@ export function GradientBackground({
   radialSize,
 }: {
   axis?: RampGradientAxis;
+  /** Hue override (deg). When set, drives the gradient color instead of the live --glass-tint-h. */
+  hue?: number;
   angle?: number;
   shape?: GradientShape;
 } & GradientGeometry) {
-  const [{ hue, dark, p3, preset }, setState] = React.useState<{
+  const [{ hue: tintHue, dark, p3, preset }, setState] = React.useState<{
     hue: number;
     dark: boolean;
     p3: boolean;
@@ -36,7 +39,10 @@ export function GradientBackground({
   React.useEffect(() => {
     const root = document.documentElement;
     const read = () => {
-      const v = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-tint-h"));
+      const cs = getComputedStyle(root);
+      const acc = Number.parseFloat(cs.getPropertyValue("--accent-h"));
+      // Honor the accent hue when the accent knob is on, else the live tint hue.
+      const v = Number.isFinite(acc) ? acc : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const next = {
         hue: Number.isFinite(v) ? v : 250,
         dark: root.classList.contains("dark"),
@@ -62,7 +68,8 @@ export function GradientBackground({
   // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light. A fresco
   // tint lays its multi-hue palette across the gradient (same L/C) so it matches the fresco glass.
   const l = dark ? 52 : 72;
-  const frescoHues = preset ? FRESCO_HUES[preset] : undefined;
+  // An explicit `hue` prop overrides the fresco palette + live tint (mirrors CanvasBackground's `hue`).
+  const frescoHues = hue == null && preset ? FRESCO_HUES[preset] : undefined;
   const gradient = frescoHues
     ? wrapGradient(shape, frescoHues.map((h) => `oklch(${l}% 0.15 ${h})`).join(", "), {
         angle,
@@ -75,7 +82,7 @@ export function GradientBackground({
         {
           l,
           c: 0.15,
-          h: hue,
+          h: hue ?? tintHue,
         },
         5,
         {

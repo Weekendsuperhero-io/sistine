@@ -8,7 +8,9 @@
       "type": "registry:component",
       "title": "Button",
       "description": "Displays a button or a component that looks like a button with glassy variants.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -24,11 +26,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/button.tsx",
@@ -53,7 +50,9 @@
       "type": "registry:component",
       "title": "Card",
       "description": "Displays a card with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -69,11 +68,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/card.tsx",
@@ -97,7 +91,9 @@
       "type": "registry:component",
       "title": "Input",
       "description": "Displays a form input field with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -113,11 +109,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/input.tsx",
@@ -141,7 +132,9 @@
       "type": "registry:component",
       "title": "Textarea",
       "description": "Displays a form textarea with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -157,11 +150,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/textarea.tsx",
@@ -191,7 +179,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -207,11 +197,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/label.tsx",
@@ -230,7 +215,9 @@
       "type": "registry:component",
       "title": "Badge",
       "description": "Displays a badge or a component that looks like a badge with glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -246,11 +233,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/badge.tsx",
@@ -281,7 +263,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -297,11 +281,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/avatar.tsx",
@@ -328,7 +307,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -345,11 +325,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/dialog.tsx",
@@ -375,7 +350,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -392,11 +368,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/alert-dialog.tsx",
@@ -421,7 +392,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -437,11 +410,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/separator.tsx",
@@ -466,7 +434,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -482,11 +452,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/switch.tsx",
@@ -512,7 +477,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -528,11 +495,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/checkbox.tsx",
@@ -557,7 +519,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -573,11 +537,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/tabs.tsx",
@@ -602,7 +561,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -618,11 +579,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/tooltip.tsx",
@@ -647,7 +603,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -663,11 +621,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/popover.tsx",
@@ -693,7 +646,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -709,11 +664,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/dropdown-menu.tsx",
@@ -739,7 +689,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -755,11 +707,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/select.tsx",
@@ -785,7 +732,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -801,11 +750,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/radio-group.tsx",
@@ -824,7 +768,9 @@
       "type": "registry:component",
       "title": "Skeleton",
       "description": "Use to show a placeholder while content is loading with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -840,11 +786,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/skeleton.tsx",
@@ -868,7 +809,9 @@
       "type": "registry:component",
       "title": "Alert",
       "description": "Displays a callout for user attention with optional glassy variant.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -884,11 +827,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/alert.tsx",
@@ -919,7 +857,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -935,11 +875,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/accordion.tsx",
@@ -965,7 +900,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -981,11 +918,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/breadcrumb.tsx",
@@ -1012,7 +944,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1029,11 +962,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/calendar.tsx",
@@ -1058,7 +986,9 @@
         "recharts",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1074,11 +1004,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/chart.tsx",
@@ -1103,7 +1028,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1119,11 +1046,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/collapsible.tsx",
@@ -1151,7 +1073,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/dialog"
+        "@sistine/dialog",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1168,11 +1091,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/command.tsx",
@@ -1200,7 +1118,8 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/dialog",
-        "@sistine/slider"
+        "@sistine/slider",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1217,11 +1136,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/cropper.tsx",
@@ -1246,7 +1160,9 @@
         "tailwind-merge",
         "vaul"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1262,11 +1178,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/drawer.tsx",
@@ -1291,7 +1202,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1307,11 +1220,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/hover-card.tsx",
@@ -1337,7 +1245,9 @@
         "input-otp",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1353,11 +1263,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/input-otp.tsx",
@@ -1383,7 +1288,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1399,11 +1306,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/navigation-menu.tsx",
@@ -1423,7 +1325,8 @@
       "title": "Pagination",
       "description": "Pagination with page navigation with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1440,11 +1343,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/pagination.tsx",
@@ -1475,7 +1373,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1491,11 +1391,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/scroll-area.tsx",
@@ -1521,7 +1416,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1537,11 +1434,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/sheet.tsx",
@@ -1566,7 +1458,9 @@
         "@sistine/separator",
         "@sistine/sheet",
         "@sistine/skeleton",
-        "@sistine/tooltip"
+        "@sistine/theme",
+        "@sistine/tooltip",
+        "@sistine/use-mobile"
       ],
       "files": [
         {
@@ -1583,11 +1477,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/sidebar.tsx",
@@ -1619,7 +1508,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1635,11 +1526,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/slider.tsx",
@@ -1665,7 +1551,9 @@
         "sonner",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1681,11 +1569,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/sonner.tsx",
@@ -1704,7 +1587,9 @@
       "type": "registry:component",
       "title": "Table",
       "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1720,11 +1605,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/table.tsx",
@@ -1754,7 +1634,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1770,11 +1652,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/toggle.tsx",
@@ -1799,7 +1676,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1815,11 +1694,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/toggle-group.tsx",
@@ -1837,7 +1711,7 @@
       "name": "mode-toggle",
       "type": "registry:component",
       "title": "Mode Toggle",
-      "description": "A theme switcher component with optional glassy variant.",
+      "description": "A theme switcher component with optional glassy variant. Requires a next-themes ThemeProvider (uses useTheme) — wrap your app or swap in your own theme store.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -1846,7 +1720,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1863,11 +1738,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/mode-toggle.tsx",
@@ -1886,7 +1756,9 @@
       "type": "registry:component",
       "title": "Spinner",
       "description": "A loading spinner component with glassy variants.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -1902,11 +1774,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/spinner.tsx",
@@ -1931,7 +1798,8 @@
       "title": "Button Group",
       "description": "A group of buttons with glassy variants.",
       "registryDependencies": [
-        "@sistine/separator"
+        "@sistine/separator",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1948,11 +1816,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/button-group.tsx",
@@ -1980,7 +1843,8 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/input",
-        "@sistine/textarea"
+        "@sistine/textarea",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -1997,11 +1861,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/input-group.tsx",
@@ -2025,7 +1884,9 @@
       "type": "registry:component",
       "title": "Empty State",
       "description": "An empty state component with glassy variants.",
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -2041,11 +1902,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/empty-state.tsx",
@@ -2070,7 +1926,8 @@
       "title": "Menu Bar",
       "description": "A menu bar component with glassy variants.",
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2087,11 +1944,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/menu-bar.tsx",
@@ -2126,7 +1978,8 @@
         "@sistine/button",
         "@sistine/calendar",
         "@sistine/input",
-        "@sistine/popover"
+        "@sistine/popover",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2143,11 +1996,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/date-picker-input.tsx",
@@ -2173,7 +2021,9 @@
         "radix-ui",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
@@ -2189,11 +2039,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/context-menu.tsx",
@@ -2211,7 +2056,7 @@
       "name": "carousel",
       "type": "registry:component",
       "title": "Carousel",
-      "description": "A carousel component with glassy variants.",
+      "description": "An items-driven carousel with glassy variants — pass slides as children (no compound CarouselContent/Item/Next/Previous/API parts).",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -2219,7 +2064,8 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/button"
+        "@sistine/button",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2236,11 +2082,6 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/carousel.tsx",
@@ -2263,20 +2104,17 @@
         "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
-        "react-resizable-panels@^3.0.6",
+        "react-resizable-panels@^4.12.1",
         "tailwind-merge"
       ],
-      "registryDependencies": [],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
       "files": [
         {
           "path": "lib/utils.ts",
           "type": "registry:lib",
           "target": "lib/utils.ts"
-        },
-        {
-          "path": "app/globals.css",
-          "type": "registry:style",
-          "target": "app/globals.css"
         },
         {
           "path": "components/ui/resizable.tsx",
@@ -2524,7 +2362,8 @@
       "title": "Readable Text",
       "description": "APCA contrast guard: renders text in an accent color while it stays readable on the current glass surface, and swaps to a readable foreground otherwise. Reactive to the live glass tint and light/dark.",
       "registryDependencies": [
-        "@sistine/oklch-utils"
+        "@sistine/oklch-utils",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2541,7 +2380,8 @@
       "title": "Auto Foreground",
       "description": "Sets --foreground / --muted-foreground from an OKLCH ramp so text contrast tracks light/dark automatically. Configure declaratively via props (palette, start, ramp) or a persisted config; re-applies on theme change.",
       "registryDependencies": [
-        "@sistine/oklch-utils"
+        "@sistine/oklch-utils",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2607,7 +2447,8 @@
       "title": "Canvas Background",
       "description": "Full-screen animated canvas background that recolors with the live glass tint — gradient, lava, or circle styles driven by the OKLCH ramps.",
       "registryDependencies": [
-        "@sistine/canvas-background-utils"
+        "@sistine/canvas-background-utils",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2625,7 +2466,8 @@
       "description": "A ramp-driven gradient wallpaper that recolors with the live glass tint, and lays a fresco preset (sistine/muse/aurora/gloaming) multi-hue palette across the gradient. Pure CSS, crisp at any DPI.",
       "registryDependencies": [
         "@sistine/canvas-background-utils",
-        "@sistine/oklch-utils"
+        "@sistine/oklch-utils",
+        "@sistine/theme"
       ],
       "files": [
         {
@@ -2635,6 +2477,54 @@
         }
       ],
       "dependencies": []
+    },
+    {
+      "name": "background-controller",
+      "type": "registry:block",
+      "title": "Background Controller",
+      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise horizons, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
+      "registryDependencies": [
+        "@sistine/canvas-background-utils",
+        "@sistine/oklch-utils",
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "components/pattern-background.tsx",
+          "type": "registry:component",
+          "target": "components/pattern-background.tsx"
+        },
+        {
+          "path": "components/canvas-background.tsx",
+          "type": "registry:component",
+          "target": "components/canvas-background.tsx"
+        },
+        {
+          "path": "components/gradient-background.tsx",
+          "type": "registry:component",
+          "target": "components/gradient-background.tsx"
+        },
+        {
+          "path": "components/background-provider.tsx",
+          "type": "registry:component",
+          "target": "components/background-provider.tsx"
+        },
+        {
+          "path": "components/background-switcher.tsx",
+          "type": "registry:component",
+          "target": "components/background-switcher.tsx"
+        }
+      ],
+      "dependencies": [
+        "@phosphor-icons/react",
+        "clsx",
+        "tailwind-merge"
+      ]
     },
     {
       "name": "gradient-text",

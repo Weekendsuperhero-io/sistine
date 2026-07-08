@@ -3,10 +3,11 @@
 import * as React from "react";
 import { CanvasBackground } from "@/components/canvas-background";
 import { GradientBackground } from "@/components/gradient-background";
+import { PATTERN_DENSITIES, PATTERN_STYLES, PatternBackground, type PatternDensity, type PatternStyle } from "@/components/pattern-background";
 import type { CanvasStyle } from "@/lib/canvas-background-utils";
 import type { GradientGeometry, GradientShape, RampGradientAxis } from "@/lib/oklch-utils";
 
-export type BackgroundType = "gradient" | "canvas";
+export type BackgroundType = "gradient" | "canvas" | "pattern" | "none";
 
 const STORAGE_KEY = "sistine-background";
 
@@ -87,6 +88,25 @@ export const CANVAS_SPEEDS = [
   2,
 ] as const;
 
+/** Animated-pattern pace: loop/scroll duration in SECONDS (2s fastest … 16s slowest); 0 = static.
+ * Shared by every animated pattern (ghost, synthwave, moonrise, chase) via the --pat-dur CSS var. */
+export const PATTERN_SPEEDS = [
+  2,
+  4,
+  8,
+  12,
+  16,
+  0,
+] as const;
+
+/** Sun/moon horizontal placement for the horizon scenes (synthwave / moonrise) — off-center clears the
+ * page's centered content. */
+export const PATTERN_DISCS = [
+  "right",
+  "center",
+  "left",
+] as const;
+
 function persistBackground(next: BackgroundType) {
   try {
     localStorage.setItem(STORAGE_KEY, next);
@@ -158,6 +178,30 @@ interface BackgroundContextValue {
   toggleCanvasAnimated: () => void;
   /** Switch to the canvas background and reshuffle it (new style + ramp + layout seed). */
   shuffleCanvas: () => void;
+  // ── Pattern (pure-CSS wallpapers) ──
+  /** The active CSS pattern style. */
+  patternStyle: PatternStyle;
+  /** Switch to the pattern background and set its style. */
+  setPatternStyle: (style: PatternStyle) => void;
+  /** Advance to the next pattern style. */
+  cyclePatternStyle: () => void;
+  /** Star-field density (sparse | medium | dense). */
+  patternDensity: PatternDensity;
+  /** Advance to the next star-field density. */
+  cyclePatternDensity: () => void;
+  /** Horizon-grid scroll pace (synthwave / moonrise); 0 is static. */
+  patternSpeed: number;
+  /** Advance to the next grid scroll pace (… → static). */
+  cyclePatternSpeed: () => void;
+  /** Sun/moon placement for the horizon scenes (right | center | left). */
+  patternDisc: (typeof PATTERN_DISCS)[number];
+  /** Advance to the next sun/moon placement. */
+  cyclePatternDisc: () => void;
+  // ── Base color (the "none" backdrop) ──
+  /** Base color for the "none" backdrop; null = follow the theme (tint-tinted, light/dark aware). */
+  baseColor: string | null;
+  /** Override the "none" backdrop color; null clears back to the themed default. */
+  setBaseColor: (color: string | null) => void;
 }
 
 const BackgroundContext = React.createContext<BackgroundContextValue | null>(null);
@@ -184,6 +228,11 @@ interface RenderArgs {
   canvasSpeed: number;
   canvasAnimated: boolean;
   canvasSeed: string;
+  patternStyle: PatternStyle;
+  patternDensity: PatternDensity;
+  patternSpeed: number;
+  patternDisc: (typeof PATTERN_DISCS)[number];
+  baseColor: string | null;
 }
 
 function renderBackground(background: BackgroundType, args: RenderArgs) {
@@ -201,6 +250,27 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
           animated={args.canvasAnimated}
           seed={args.canvasSeed}
         />
+      );
+    case "pattern":
+      return <PatternBackground style={args.patternStyle} density={args.patternDensity} speed={args.patternSpeed} disc={args.patternDisc} />;
+    case "none":
+      // Forgo the decorative backdrop — a clean solid that honors the theme (tint hue, light/dark) by
+      // default, overridable by the user's chosen base color.
+      return (
+        <>
+          <style>{`[data-bg-none]{background:oklch(0.98 0.006 var(--glass-tint-h))}.dark [data-bg-none]{background:oklch(0.15 0.014 var(--glass-tint-h))}`}</style>
+          <div
+            className="fixed inset-0 -z-10 transition-[background-color] duration-500"
+            data-bg-none=""
+            style={
+              args.baseColor
+                ? {
+                    background: args.baseColor,
+                  }
+                : undefined
+            }
+          />
+        </>
       );
     default:
       return (
@@ -236,10 +306,15 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [canvasSpeed, setCanvasSpeed] = React.useState(1);
   const [canvasAnimated, setCanvasAnimated] = React.useState(false);
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
+  const [patternStyle, setPatternStyleState] = React.useState<PatternStyle>("dots");
+  const [patternDensity, setPatternDensityState] = React.useState<PatternDensity>("medium");
+  const [patternSpeed, setPatternSpeed] = React.useState<number>(8);
+  const [baseColor, setBaseColorState] = React.useState<string | null>(null);
+  const [patternDisc, setPatternDisc] = React.useState<(typeof PATTERN_DISCS)[number]>("right");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "gradient" || stored === "canvas") {
+    if (stored === "gradient" || stored === "canvas" || stored === "pattern" || stored === "none") {
       setBackgroundState(stored);
     }
   }, []);
@@ -247,6 +322,10 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const setBackground = React.useCallback((next: BackgroundType) => {
     setBackgroundState(next);
     persistBackground(next);
+  }, []);
+
+  const setBaseColor = React.useCallback((color: string | null) => {
+    setBaseColorState(color);
   }, []);
 
   const setGradientAxis = React.useCallback((axis: RampGradientAxis) => {
@@ -314,6 +393,36 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     persistBackground("canvas");
   }, []);
 
+  const setPatternStyle = React.useCallback((style: PatternStyle) => {
+    setBackgroundState("pattern");
+    setPatternStyleState(style);
+    persistBackground("pattern");
+  }, []);
+
+  const cyclePatternStyle = React.useCallback(() => {
+    setBackgroundState("pattern");
+    setPatternStyleState((s) => cycle(PATTERN_STYLES, s));
+    persistBackground("pattern");
+  }, []);
+
+  const cyclePatternDensity = React.useCallback(() => {
+    setBackgroundState("pattern");
+    setPatternDensityState((d) => cycle(PATTERN_DENSITIES, d));
+    persistBackground("pattern");
+  }, []);
+
+  const cyclePatternSpeed = React.useCallback(() => {
+    setBackgroundState("pattern");
+    setPatternSpeed((s) => cycle(PATTERN_SPEEDS, s as (typeof PATTERN_SPEEDS)[number]));
+    persistBackground("pattern");
+  }, []);
+
+  const cyclePatternDisc = React.useCallback(() => {
+    setBackgroundState("pattern");
+    setPatternDisc((d) => cycle(PATTERN_DISCS, d));
+    persistBackground("pattern");
+  }, []);
+
   const value = React.useMemo(
     () => ({
       background,
@@ -343,6 +452,17 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       canvasAnimated,
       toggleCanvasAnimated,
       shuffleCanvas,
+      patternStyle,
+      setPatternStyle,
+      cyclePatternStyle,
+      patternDensity,
+      cyclePatternDensity,
+      patternSpeed,
+      cyclePatternSpeed,
+      patternDisc,
+      cyclePatternDisc,
+      baseColor,
+      setBaseColor,
     }),
     [
       background,
@@ -372,6 +492,17 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
       canvasAnimated,
       toggleCanvasAnimated,
       shuffleCanvas,
+      patternStyle,
+      setPatternStyle,
+      cyclePatternStyle,
+      patternDensity,
+      cyclePatternDensity,
+      patternSpeed,
+      cyclePatternSpeed,
+      patternDisc,
+      cyclePatternDisc,
+      baseColor,
+      setBaseColor,
     ],
   );
 
@@ -391,6 +522,11 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
         canvasSpeed,
         canvasAnimated,
         canvasSeed,
+        patternStyle,
+        patternDensity,
+        patternSpeed,
+        patternDisc,
+        baseColor,
       })}
       {children}
     </BackgroundContext.Provider>

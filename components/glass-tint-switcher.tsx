@@ -13,6 +13,7 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
 const OPACITY_KEY = "sistine-glass-opacity";
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
+const ACCENT_KEY = "sistine-accent";
 
 /**
  * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
@@ -73,10 +74,10 @@ const PRESETS = [
   {
     value: "bone",
     label: "Bone",
-    h: 91,
-    c: 0.01,
+    h: 75,
+    c: 0.047,
     a: 0.18,
-    swatch: "oklch(89% 0.045 91)",
+    swatch: "oklch(94% 0.047 75)",
   },
   {
     value: "amber",
@@ -193,10 +194,51 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
   } else {
     root.style.removeProperty("--harmony-h");
   }
-  // AutoForeground only observes class + data-glass-tint, so a jewel→jewel switch or a slider drag (both
-  // attribute-less inline changes) wouldn't re-band the foreground — that's why the text color didn't always
-  // track a theme change. Nudge it explicitly so it re-runs on EVERY tint change, not just attribute ones.
-  window.dispatchEvent(new Event("sistine-fg"));
+  // The re-band nudge now comes from emitFg() in the handlers — it carries a JS snapshot so AutoForeground
+  // can skip the getComputedStyle forced reflow — so applyTint no longer dispatches here.
+}
+
+/** Optional user accent (hue + vividness). When on, pins --accent-h/--accent-c on <html> so --glass-accent
+ *  and AutoForeground's hue-less text (neutral + bone) follow the chosen color; off clears them. Fires the
+ *  fg event so AutoForeground re-bands (APCA-safe) on change. */
+function applyAccent(on: boolean, ah: number, ac: number) {
+  const root = document.documentElement;
+  if (on) {
+    root.style.setProperty("--accent-h", String(ah));
+    root.style.setProperty("--accent-c", String(ac));
+  } else {
+    root.style.removeProperty("--accent-h");
+    root.style.removeProperty("--accent-c");
+  }
+}
+
+// Hand AutoForeground its inputs directly (no DOM read-back) so the hot path — tint / accent / lightness
+// drags — skips the getComputedStyle forced reflow. Frescoes resolve --glass-fg-h in CSS per-mode, so JS
+// can't snapshot them: send no detail there and let AutoForeground fall back to reading the DOM (rare).
+const FRESCOES = new Set([
+  "sistine",
+  "muse",
+  "aurora",
+  "gloaming",
+]);
+function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: number; accOn: boolean; accH: number; accC: number }) {
+  const detail = FRESCOES.has(v.base)
+    ? undefined
+    : {
+        "--glass-fg-h": v.h,
+        "--glass-tint-h": v.h,
+        "--glass-tint-c": v.c,
+        "--glass-tint-a": v.a,
+        "--harmony-h": v.c === 0 || v.base === "bone" ? 0 : v.h,
+        "--glass-opaque-l": v.l,
+        "--accent-h": v.accOn ? v.accH : Number.NaN,
+        "--accent-c": v.accC,
+      };
+  window.dispatchEvent(
+    new CustomEvent("sistine-fg", {
+      detail,
+    }),
+  );
 }
 
 /** Per-mode tint-body lightness override ({light?, dark?}), stored as JSON under OPAQUE_L_KEY. Because
@@ -239,6 +281,9 @@ export function GlassTintSwitcher() {
   const [opacity, setOpacity] = React.useState(0);
   const [lightness, setLightness] = React.useState(90);
   const [outline, setOutline] = React.useState(false);
+  const [accentOn, setAccentOn] = React.useState(false);
+  const [accentH, setAccentH] = React.useState(280);
+  const [accentC, setAccentC] = React.useState(0.15);
 
   React.useEffect(() => {
     const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "neutral";
@@ -268,6 +313,20 @@ export function GlassTintSwitcher() {
     const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
     setOutline(storedOutline);
     if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+    try {
+      const acc = JSON.parse(localStorage.getItem(ACCENT_KEY) ?? "null");
+      if (acc && typeof acc === "object") {
+        const on = acc.on === true;
+        const ah = typeof acc.h === "number" ? acc.h : 280;
+        const ac = typeof acc.c === "number" ? acc.c : 0.15;
+        setAccentOn(on);
+        setAccentH(ah);
+        setAccentC(ac);
+        applyAccent(on, ah, ac);
+      }
+    } catch {
+      // ignore malformed storage
+    }
   }, []);
 
   // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (90 light / 32 dark), so a single
@@ -323,6 +382,12 @@ export function GlassTintSwitcher() {
     setA(p.a);
     applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
     persist(p.value, p.h, p.c, p.a);
+    // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: bone 94/86.2) and, for
+    // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
+    // (one reflow on a click is fine) so the tint is accurate and the NEXT drag's snapshot starts from truth.
+    const el = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-opaque-l"));
+    if (Number.isFinite(el)) setLightness(el);
+    window.dispatchEvent(new Event("sistine-fg"));
   };
 
   // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —
@@ -336,6 +401,16 @@ export function GlassTintSwitcher() {
     setBase(next);
     applyTint(nh, nc, na, tint);
     persist(next, nh, nc, na);
+    emitFg({
+      h: nh,
+      c: nc,
+      a: na,
+      base: next,
+      l: lightness,
+      accOn: accentOn,
+      accH: accentH,
+      accC: accentC,
+    });
   };
 
   // Global glass solidity — writes --glass-opacity inline on <html> (the floor the glass utilities read),
@@ -364,6 +439,37 @@ export function GlassTintSwitcher() {
     }
   };
 
+  // User accent (hue + vividness): persists {on,h,c} + applies via applyAccent — drives --glass-accent and, on
+  // neutral + bone, the text foreground (AutoForeground re-bands on the sistine-fg event, APCA-safe).
+  const changeAccent = (on: boolean, ah: number, ac: number) => {
+    setAccentOn(on);
+    setAccentH(ah);
+    setAccentC(ac);
+    applyAccent(on, ah, ac);
+    emitFg({
+      h,
+      c,
+      a,
+      base,
+      l: lightness,
+      accOn: on,
+      accH: ah,
+      accC: ac,
+    });
+    try {
+      localStorage.setItem(
+        ACCENT_KEY,
+        JSON.stringify({
+          on,
+          h: ah,
+          c: ac,
+        }),
+      );
+    } catch {
+      // ignore storage failures
+    }
+  };
+
   // Tint-body LIGHTNESS (OKLCH L), PER MODE — writes --glass-opaque-l inline (the opaque floor + opacity fill
   // target + hue-crystal floor read it, and AF bands against it) and stores it under the CURRENT mode so the
   // other mode keeps its own L. LOW L + high Chroma = deep tints (e.g. deep purple).
@@ -379,7 +485,16 @@ export function GlassTintSwitcher() {
     } catch {
       // ignore storage failures
     }
-    window.dispatchEvent(new Event("sistine-fg"));
+    emitFg({
+      h,
+      c,
+      a,
+      base,
+      l: nl,
+      accOn: accentOn,
+      accH: accentH,
+      accC: accentC,
+    });
   };
 
   const triggerSwatch =
@@ -404,8 +519,12 @@ export function GlassTintSwitcher() {
       <PopoverContent align="end" className="w-72 space-y-4">
         <div className="font-medium text-sm">Glass color</div>
 
-        <div className="grid grid-cols-5 gap-2">
-          {PRESETS.map((p) => (
+        <div className="grid grid-cols-4 gap-2">
+          {/* Four per row, the 4 frescoes on the top row, then neutral/bone + the jewels. */}
+          {[
+            ...PRESETS.filter((p) => FRESCOES.has(p.value)),
+            ...PRESETS.filter((p) => !FRESCOES.has(p.value)),
+          ].map((p) => (
             <button
               type="button"
               key={p.value}
@@ -479,6 +598,58 @@ export function GlassTintSwitcher() {
           >
             {outline ? "accent" : "off"}
           </button>
+        </div>
+
+        <div className="space-y-2 border-[var(--glass-border)] border-t pt-3">
+          <div className="flex items-center justify-between text-muted-foreground text-xs">
+            <span className="flex items-center gap-1.5">
+              Accent
+              {accentOn && (
+                <span
+                  className="size-3 rounded-full border border-[var(--glass-border)]"
+                  style={{
+                    background: `oklch(0.6 ${accentC} ${accentH})`,
+                  }}
+                />
+              )}
+            </span>
+            <button
+              type="button"
+              onClick={() => changeAccent(!accentOn, accentH, accentC)}
+              className={cn(
+                "rounded-md border px-2 py-0.5 font-medium transition-colors",
+                accentOn ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+              )}
+            >
+              {accentOn ? "on" : "off"}
+            </button>
+          </div>
+          {accentOn && (
+            <>
+              <SliderRow label="Accent hue" value={`${Math.round(accentH)}°`}>
+                <Slider
+                  value={[
+                    accentH,
+                  ]}
+                  min={0}
+                  max={360}
+                  step={1}
+                  onValueChange={(v) => changeAccent(true, v[0] ?? accentH, accentC)}
+                />
+              </SliderRow>
+              <SliderRow label="Vividness" value={accentC.toFixed(3)}>
+                <Slider
+                  value={[
+                    accentC,
+                  ]}
+                  min={0}
+                  max={0.2}
+                  step={0.005}
+                  onValueChange={(v) => changeAccent(true, accentH, v[0] ?? accentC)}
+                />
+              </SliderRow>
+            </>
+          )}
         </div>
       </PopoverContent>
     </Popover>

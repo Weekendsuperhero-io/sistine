@@ -100,6 +100,9 @@ export function Header() {
                 </Link>
               ))}
             </nav>
+            {/* Left-anchored (not in the right, justify-between cluster) so its sub-controls grow RIGHT into
+                the center gap as it widens — even the wide gradient control row — instead of pushing left. */}
+            <BackgroundSwitcher />
           </div>
           <div className="flex items-center gap-2 md:gap-3">
             {starCount !== null && (
@@ -115,7 +118,6 @@ export function Header() {
                 </Badge>
               </Link>
             )}
-            <BackgroundSwitcher />
             <GlassStyleSwitcher />
             <GlassTintSwitcher />
             <ModeToggle variant="glass" />

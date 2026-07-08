@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CanvasBackground component** — added an optional `hue` prop to drive canvas color independently of the live tint.
 - **Sonner toaster** — decoupled from `next-themes` by accepting a `theme` prop to make the component portable.
 - **Component architecture** — converted 16 glass components to use `cva` for variant consistency.
+- **Theme packaging** — components and blocks now depend on `@sistine/theme` for the CSS tokens instead of each bundling a copy of `app/globals.css`, so a fresh `add` writes the theme once (via the dependency, with its `tw-animate-css` dep) rather than dropping a redundant `globals.css` per component.
+- **GradientBackground component** — added an optional `hue` prop to drive the gradient color independently of the live tint (mirrors `CanvasBackground`).
+- **Component docs** — clarified that `carousel` is a single items-driven component (pass slides as `children`; no compound `CarouselContent`/`CarouselItem`/`CarouselNext`/`CarouselPrevious`/`CarouselApi`) and that `mode-toggle` requires a `next-themes` `ThemeProvider`.
 
 ### Fixed
 - **Gamut safety margin** — added a 3% margin to prevent high-chroma edge colors from greying out in Safari.
@@ -36,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Button styling** — updated `default` to keep primary fill with a glass sheen, and `secondary` to use bordered neutral glass.
 - **Badge hydration** — changed the root element from `<div>` to `<span>` to resolve hydration warnings inside phrasing content.
 - **Glass variants** — resolved crystal wash issues under fresco presets and dropped backdrop blur on `glass-opaque` for lossless composition.
+- **input-otp types** — the base component now compiles against upstream `input-otp` types directly; removed a private module shim that masked a discriminated-union mismatch and never shipped to consumers, so `shadcn add input-otp` no longer fails to type-check.
+- **Resizable dependency pin** — corrected the `react-resizable-panels` pin from `^3.0.6` to `^4.12.1` to match the v4 namespace API (`Group`/`Panel`/`Separator`) the component uses; a fresh `add` no longer installs an incompatible v3.
 
 ### Added
 - **ReadableText component** — introduced to calculate surface wash logic and adapt foreground text for dynamic APCA contrast guarding.

@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useReadableForeground } from "@/components/readable-text";
 import { Slider } from "@/components/ui/slider";
+import { glassSurface } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
 // Persisted crystal flavor + gloss knobs — written on <html>, so they drive BOTH these preview cards and any
@@ -102,6 +104,21 @@ export function CrystalGlossDemo() {
   const [tint, setTint] = React.useState(2);
   const [span, setSpan] = React.useState(40);
   const [dir, setDir] = React.useState(1);
+  const [dark, setDark] = React.useState(false);
+
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const read = () => setDark(root.classList.contains("dark"));
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+      ],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const apply = (m: Mode, nl: number, nt: number, ns: number, nd: number) => {
     const root = document.documentElement;
@@ -198,19 +215,7 @@ export function CrystalGlossDemo() {
 
       <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
         {SWATCHES.map((s) => (
-          <div
-            key={s.label}
-            className="glass-crystal flex h-24 items-end rounded-lg p-2"
-            style={
-              {
-                "--glass-tint-h": String(s.h),
-                "--glass-tint-c": String(s.c),
-                "--glass-tint-a": String(s.a),
-              } as React.CSSProperties
-            }
-          >
-            <span className="font-mono text-[10px] text-foreground">{s.label}</span>
-          </div>
+          <CrystalSwatch key={s.label} swatch={s} dark={dark} />
         ))}
       </div>
 
@@ -279,6 +284,42 @@ export function CrystalGlossDemo() {
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * One crystal swatch. Its label bands against the swatch's OWN local tint surface (via
+ * useReadableForeground) instead of borrowing the page `--foreground` — so it stays legible on every
+ * hue in both light and dark, rather than muddying out when the page foreground doesn't match.
+ */
+function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; dark: boolean }) {
+  const labelColor = useReadableForeground(
+    glassSurface(dark, {
+      h: swatch.h,
+      c: swatch.c,
+      a: swatch.a,
+    }),
+  );
+  return (
+    <div
+      className="glass-crystal flex h-24 items-end rounded-lg p-2"
+      style={
+        {
+          "--glass-tint-h": String(swatch.h),
+          "--glass-tint-c": String(swatch.c),
+          "--glass-tint-a": String(swatch.a),
+        } as React.CSSProperties
+      }
+    >
+      <span
+        className="font-mono text-[10px]"
+        style={{
+          color: labelColor,
+        }}
+      >
+        {swatch.label}
+      </span>
+    </div>
   );
 }
 

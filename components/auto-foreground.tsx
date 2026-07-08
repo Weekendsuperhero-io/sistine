@@ -18,6 +18,16 @@ const FG_STORAGE_KEY = "sistine-fg";
 const RAMP_KEY = "sistine-ramp";
 const FG_EVENT = "sistine-fg";
 
+// Dev instrumentation: set localStorage["sistine-fg-debug"] = "1" (then reload) to log each update()'s
+// wall-time and how far it nudges --foreground off the CSS baseline (the "marginal bump"). Off by default.
+const fgDebug = () => {
+  try {
+    return typeof localStorage !== "undefined" && localStorage.getItem("sistine-fg-debug") === "1";
+  } catch {
+    return false;
+  }
+};
+
 export type FgPalette = ThemeForegroundOptions["palette"];
 export interface FgConfig {
   palette: FgPalette;
@@ -167,16 +177,21 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
   React.useEffect(() => {
     const root = document.documentElement;
 
-    const update = () => {
+    const update = (inputs?: Record<string, number>) => {
+      const dbg = fgDebug();
+      const t0 = dbg ? performance.now() : 0;
       const dark = root.classList.contains("dark");
       const storedFg = readFgConfig();
       const storedRamp = readRampConfig();
       const palette = paletteProp ?? storedFg.palette;
       const count = rcount ?? storedRamp.count;
-      const cs = getComputedStyle(root);
+      // A snapshot from the switcher (the drag hot path) lets us skip getComputedStyle — the read-after-write
+      // forced reflow measured at 7–22ms. Fall back to the DOM for mount / mode toggle / frescoes (no snapshot).
+      const cs = inputs ? null : getComputedStyle(root);
+      const fgBefore = dbg ? (cs ? cs.getPropertyValue("--foreground").trim() : root.style.getPropertyValue("--foreground").trim()) : "";
       const num = (name: string, fb: number) => {
-        const v = Number.parseFloat(cs.getPropertyValue(name));
-        return Number.isNaN(v) ? fb : v;
+        const v = inputs ? inputs[name] : cs ? Number.parseFloat(cs.getPropertyValue(name)) : Number.NaN;
+        return v == null || Number.isNaN(v) ? fb : v;
       };
       // Foregrounds FOLLOW THE CHOSEN FOREGROUND HUE: the ramp's hue is --glass-fg-h (which defaults to
       // the glass tint --glass-tint-h, but frescoes set it apart so text anchors off their surface).
@@ -191,16 +206,25 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Harmony anchor — the wheel origin the icon/foreground harmonics rotate from. Mirrors the CSS
       // --harmony-h (content hue, or 0 for the hue-less neutral/bone themes set inline by the tint switcher);
       // falls back to the content hue when unset (jewels), so JS harmonics land on the SAME angle as the
-      // --hue-* swatches. harmonicHue(harmonyH, name) below matches calc(var(--harmony-h) + N) exactly.
+      // --hue-* swatches. harmonicHue(fgHarmonyH, name) below matches calc(var(--harmony-h) + N) exactly.
       const harmonyH = num("--harmony-h", tintH);
       const cfgC = rc ?? storedRamp.c;
-      // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue
-      // palette stays a full-spectrum color wheel even when neutral — there's no base hue to rotate, so a
-      // gray hue ramp is pointless; show all hues. An active tint uses the config's vividness.
+      // User accent: on the hue-LESS themes only (neutral + bone anchor --harmony-h at 0), a chosen accent
+      // colors ALL text tiers — its hue + vividness drive the ramp base, so foregrounds tint toward the accent
+      // instead of gray (neutral) / warm-bone. Frescoes (--harmony-h != 0) are untouched. Band-picking below
+      // still hits each tier's ARC-Bronze APCA target, so accent-tinted text stays legible.
+      const accentH = num("--accent-h", Number.NaN);
+      const accentC = num("--accent-c", 0.15);
+      const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
+      // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
+      const fgHarmonyH = huelessAccent ? accentH : harmonyH;
+      // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue palette
+      // stays a full-spectrum color wheel even when neutral. A hue-less accent overrides both — it hue +
+      // vividnesses the whole ramp so every text tier tints toward the chosen accent.
       const base = {
         l: rl ?? storedRamp.l,
-        c: palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
-        h: tintH,
+        c: huelessAccent ? accentC || cfgC : palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
+        h: huelessAccent ? accentH : tintH,
       };
       // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
       // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
@@ -243,8 +267,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   floor: band.floor,
                   target: band.target,
                   ceiling: band.ceiling,
-                  hue: tintH,
-                  chroma: tintC > 0 ? cfgC : 0,
+                  // Opaque cards on the hue-less themes (neutral + bone) follow the chosen accent too — same as
+                  // the normal surface above — so bone/neutral opaque-card text tints toward the accent.
+                  hue: huelessAccent ? accentH : tintH,
+                  chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
                 })
               : pickInBand(ramp, surface, band),
           );
@@ -252,9 +278,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         root.style.setProperty(
           `--muted-foreground${suffix}`,
           tier({
-            floor: 45,
-            target: 60,
-            ceiling: 75,
+            // Raised from 45/60/75 → muted lands darker (≈L30 on a light opaque floor) — a firmer secondary,
+            // not a faint one. Global + computed per-hue (bone, sistine, every jewel), both surfaces + opaque.
+            floor: 60,
+            target: 72,
+            ceiling: 84,
           }),
         );
         // Size tiers default to a palette-ramp pick (tier). softHue/strongHue (mirroring iconHue) optionally
@@ -266,7 +294,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             : formatOklch(
                 readableForeground(surface, {
                   usage,
-                  hue: typeof choice === "string" ? harmonicHue(harmonyH, choice) : choice,
+                  hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
                   chroma: 0.15,
                 }),
               );
@@ -275,7 +303,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
         // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
         // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
-        const iconH = typeof iconHue === "string" ? harmonicHue(harmonyH, iconHue) : typeof iconHue === "number" ? iconHue : tintH;
+        const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : tintH;
         root.style.setProperty(
           `--foreground-ui${suffix}`,
           formatOklch(
@@ -314,22 +342,39 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         "-opaque",
         true,
       );
+      if (dbg) {
+        const dur = performance.now() - t0;
+        // Wall-time = the getComputedStyle forced recalc + the JS solve (58 µs). The post-write recalc from
+        // the setProperty calls shows separately as "Recalculate Style" in the Performance panel.
+        console.debug(
+          `[AutoForeground] update ${dur.toFixed(2)}ms · --foreground ${fgBefore || "(unset)"} → ${root.style.getPropertyValue("--foreground")}`,
+        );
+        try {
+          performance.measure("AutoForeground.update", {
+            start: t0,
+            duration: dur,
+          });
+        } catch {
+          // options form of performance.measure not supported
+        }
+      }
     };
 
     update();
-    // Theme class drives the light/dark extreme; palette/base/count changes come through FG_EVENT.
-    const observer = new MutationObserver(update);
+    // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
+    // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
+    const observer = new MutationObserver(() => update());
     observer.observe(root, {
       attributes: true,
       attributeFilter: [
         "class",
-        "data-glass-tint",
       ],
     });
-    window.addEventListener(FG_EVENT, update);
+    const onFg = (e: Event) => update((e as CustomEvent<Record<string, number>>).detail ?? undefined);
+    window.addEventListener(FG_EVENT, onFg);
     return () => {
       observer.disconnect();
-      window.removeEventListener(FG_EVENT, update);
+      window.removeEventListener(FG_EVENT, onFg);
     };
   }, [
     paletteProp,
