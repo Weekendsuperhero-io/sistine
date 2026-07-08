@@ -111,7 +111,12 @@ export function CrystalGlossDemo() {
     const read = () => setDark(root.classList.contains("dark"));
     read();
     const observer = new MutationObserver(read);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+      ],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -288,7 +293,13 @@ export function CrystalGlossDemo() {
  * hue in both light and dark, rather than muddying out when the page foreground doesn't match.
  */
 function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; dark: boolean }) {
-  const labelColor = useReadableForeground(glassSurface(dark, { h: swatch.h, c: swatch.c, a: swatch.a }));
+  const labelColor = useReadableForeground(
+    glassSurface(dark, {
+      h: swatch.h,
+      c: swatch.c,
+      a: swatch.a,
+    }),
+  );
   return (
     <div
       className="glass-crystal flex h-24 items-end rounded-lg p-2"
@@ -300,7 +311,12 @@ function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; da
         } as React.CSSProperties
       }
     >
-      <span className="font-mono text-[10px]" style={{ color: labelColor }}>
+      <span
+        className="font-mono text-[10px]"
+        style={{
+          color: labelColor,
+        }}
+      >
         {swatch.label}
       </span>
     </div>
