@@ -5,7 +5,8 @@
   "description": "APCA contrast guard: renders text in an accent color while it stays readable on the current glass surface, and swaps to a readable foreground otherwise. Reactive to the live glass tint and light/dark.",
   "dependencies": [],
   "registryDependencies": [
-    "@sistine/oklch-utils"
+    "@sistine/oklch-utils",
+    "@sistine/theme"
   ],
   "files": [
     {

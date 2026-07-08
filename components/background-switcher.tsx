@@ -1,7 +1,8 @@
 "use client";
 
-import { PaletteIcon, PauseIcon, PlayIcon, ShuffleIcon, SparkleIcon } from "@phosphor-icons/react";
+import { PaletteIcon, PauseIcon, PlayIcon, ProhibitIcon, ShuffleIcon, SparkleIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle } from "@/components/pattern-background";
 import { cn } from "@/lib/utils";
 
 const options: {
@@ -18,6 +19,16 @@ const options: {
     value: "canvas",
     label: "Canvas",
     Icon: SparkleIcon,
+  },
+  {
+    value: "pattern",
+    label: "Pattern",
+    Icon: SquaresFourIcon,
+  },
+  {
+    value: "none",
+    label: "None",
+    Icon: ProhibitIcon,
   },
 ];
 
@@ -72,6 +83,16 @@ export function BackgroundSwitcher() {
     canvasAnimated,
     toggleCanvasAnimated,
     shuffleCanvas,
+    patternStyle,
+    setPatternStyle,
+    patternDensity,
+    cyclePatternDensity,
+    patternSpeed,
+    cyclePatternSpeed,
+    patternDisc,
+    cyclePatternDisc,
+    baseColor,
+    setBaseColor,
   } = useBackground();
 
   const active = "bg-foreground/10 text-foreground";
@@ -252,6 +273,91 @@ export function BackgroundSwitcher() {
           >
             {canvasAnimated ? <PauseIcon className="h-4 w-4" weight="fill" /> : <PlayIcon className="h-4 w-4" />}
           </button>
+        </div>
+      )}
+
+      {background === "pattern" && (
+        <div className="flex items-center gap-0.5 border-[var(--glass-border)] border-l pl-0.5" role="group" aria-label="Pattern controls">
+          {/* Direct pick — jump straight to any pattern instead of cycling through all of them. */}
+          <select
+            value={patternStyle}
+            onChange={(e) => setPatternStyle(e.target.value as PatternStyle)}
+            title="Pattern — pick one"
+            aria-label="Pattern style"
+            className={cn(segmentButton, "cursor-pointer bg-transparent px-1.5 text-[10px] font-semibold capitalize outline-none", active)}
+          >
+            {PATTERN_STYLES.map((s) => (
+              <option key={s} value={s} className="bg-background text-foreground capitalize">
+                {s}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            title={`Density: ${patternDensity} — click to change`}
+            aria-label={`Density ${patternDensity}, click to change`}
+            onClick={cyclePatternDensity}
+            className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", idle)}
+          >
+            {patternDensity}
+          </button>
+          {ANIMATED_PATTERNS.has(patternStyle) && (
+            <button
+              type="button"
+              title={`Speed: ${patternSpeed === 0 ? "static" : `${patternSpeed}s`} — click to change`}
+              aria-label={`Animation speed ${patternSpeed === 0 ? "static" : `${patternSpeed} seconds`}, click to change`}
+              onClick={cyclePatternSpeed}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", patternSpeed === 0 ? active : idle)}
+            >
+              {patternSpeed === 0 ? "Static" : `${patternSpeed}s`}
+            </button>
+          )}
+          {DISC_PATTERNS.has(patternStyle) && (
+            <button
+              type="button"
+              title={`Sun/moon placement: ${patternDisc} — click to change`}
+              aria-label={`Sun and moon placement ${patternDisc}, click to change`}
+              onClick={cyclePatternDisc}
+              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", idle)}
+            >
+              {patternDisc[0]}
+            </button>
+          )}
+        </div>
+      )}
+
+      {background === "none" && (
+        <div className="flex items-center gap-1 border-[var(--glass-border)] border-l pl-1.5" role="group" aria-label="Base color">
+          <label
+            className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center"
+            title="Base color — pick to override the themed default"
+          >
+            <span className="sr-only">Base color</span>
+            <span
+              aria-hidden="true"
+              className="h-4 w-4 rounded-full border border-[var(--glass-border)]"
+              style={{
+                background: baseColor ?? "oklch(0.85 0.03 var(--glass-tint-h))",
+              }}
+            />
+            <input
+              type="color"
+              value={baseColor ?? "#101014"}
+              onChange={(e) => setBaseColor(e.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            />
+          </label>
+          {baseColor && (
+            <button
+              type="button"
+              title="Reset base color to the themed default"
+              aria-label="Reset base color to theme default"
+              onClick={() => setBaseColor(null)}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold", idle)}
+            >
+              Theme
+            </button>
+          )}
         </div>
       )}
     </div>

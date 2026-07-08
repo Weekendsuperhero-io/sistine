@@ -1,15 +1,16 @@
 "use client";
 
 import { Dot } from "@phosphor-icons/react";
-import { OTPInput, type SlotProps } from "input-otp";
+import { OTPInput, type RenderProps, type SlotProps } from "input-otp";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
-  React.ComponentPropsWithoutRef<typeof OTPInput> & {
+  Omit<React.ComponentPropsWithoutRef<typeof OTPInput>, "render" | "children"> & {
     variant?: "default" | "glass";
+    render?: (props: RenderProps) => React.ReactNode;
   }
 >(({ className, variant = "glass", render, ...props }, ref) => {
   const variants = {

@@ -77,7 +77,10 @@ export function CanvasBackground({
   React.useEffect(() => {
     const root = document.documentElement;
     const read = () => {
-      const v = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-tint-h"));
+      const cs = getComputedStyle(root);
+      const acc = Number.parseFloat(cs.getPropertyValue("--accent-h"));
+      // Honor the accent hue when the accent knob is on, else the live tint hue.
+      const v = Number.isFinite(acc) ? acc : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const next = {
         hue: Number.isFinite(v) ? v : 250,
         dark: root.classList.contains("dark"),

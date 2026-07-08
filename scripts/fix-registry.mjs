@@ -29,10 +29,17 @@ const BASELINE_DEPS = ["class-variance-authority", "clsx", "tailwind-merge"];
 // Peers we never declare.
 const EXCLUDE_PKGS = new Set(["react", "react-dom"]);
 
+/** Read a source file with comments stripped, so a `from "x"` inside a comment isn't mistaken for a dep. */
+function readStripped(absPath) {
+  return readFileSync(absPath, "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|\s)\/\/[^\n]*/g, "$1");
+}
+
 /** Extract external npm package names imported by a source file. */
 function externalsOf(absPath) {
   if (!existsSync(absPath)) return [];
-  const src = readFileSync(absPath, "utf8");
+  const src = readStripped(absPath);
   const out = new Set();
   const re = /(?:from|import)\s+["']([^"']+)["']/g;
   let m;
@@ -50,7 +57,7 @@ function externalsOf(absPath) {
 /** Cross-component deps: relative imports (./x or ../x) that name another registry item. */
 function crossDepsOf(absPath, selfName) {
   if (!existsSync(absPath)) return [];
-  const src = readFileSync(absPath, "utf8");
+  const src = readStripped(absPath);
   const out = new Set();
   const re = /from\s+["'](\.\.?\/[a-z0-9-]+)["']/g;
   let m;
@@ -68,7 +75,7 @@ function crossDepsOf(absPath, selfName) {
  */
 function aliasDepsOf(absPath) {
   if (!existsSync(absPath)) return [];
-  const src = readFileSync(absPath, "utf8");
+  const src = readStripped(absPath);
   const out = new Set();
   const re = /from\s+["']@\/(?:components\/(?:ui|blocks)\/(?:glass\/)?|lib\/|hooks\/)([a-z0-9-]+)["']/g;
   let m;
@@ -151,14 +158,21 @@ for (const item of registry.items) {
     else item.files.push(entry);
   }
 
-  // 2. registryDependencies — keep existing namespaced deps and ADD any cross-component
-  //    deps discovered via relative imports (additive: never drops an existing dep).
+  // 2. registryDependencies — keep existing namespaced deps and ADD cross-registry deps discovered in the
+  //    base + glass sources: relative imports (./x) AND "@/…" alias imports of other registry items (e.g.
+  //    @/hooks/use-mobile, @/components/ui/button). Additive — never drops an existing dep.
+  // A dep the item SHIPS as a file (e.g. bundles lib/glass-utils.ts) isn't a registry dependency — never
+  // declare OR keep a redundant "ships AND depends on it" (drops from existing too, so this self-heals).
+  const shippedNames = new Set(
+    (item.files ?? []).map((f) => f.path.split("/").pop().replace(/\.(tsx?|css)$/, "")),
+  );
   const existingDeps = (item.registryDependencies ?? [])
     .map((d) => (d.startsWith("@") ? d : `${NAMESPACE}/${d}`))
-    .filter((d) => d !== `${NAMESPACE}/${name}`);
+    .filter((d) => d !== `${NAMESPACE}/${name}` && !shippedNames.has(d.replace(`${NAMESPACE}/`, "")));
   const derivedDeps = [];
   for (const rel of [baseRel, glassRel]) {
-    for (const dep of crossDepsOf(join(root, rel), name)) derivedDeps.push(`${NAMESPACE}/${dep}`);
+    for (const dep of crossDepsOf(join(root, rel), name)) if (!shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
+    for (const dep of aliasDepsOf(join(root, rel))) if (dep !== name && !shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
   }
   item.registryDependencies = [...new Set([...existingDeps, ...derivedDeps])].sort();
 
@@ -170,6 +184,52 @@ for (const item of registry.items) {
   item.dependencies = applyPins([...externals], item.dependencies).sort();
 
   changed++;
+}
+
+// Theme dedupe: the ui primitives that render the glass theme reference the shared @sistine/theme
+// for its CSS tokens instead of each bundling a copy of app/globals.css (the `theme` item owns it).
+// Consumers get the CSS once via that dependency rather than a redundant per-item copy dropped at a
+// Next-only path. Membership is authoritative and keyed off a stable disk signal — an item is a ui
+// primitive iff it ships components/ui/<name>.tsx or a glass wrapper — so this add/remove is
+// idempotent regardless of the current files array. Blocks deliberately DON'T re-list the theme:
+// they reach it transitively through their ui deps (shadcn resolves registryDependencies recursively),
+// like every other shared dep. Libs, hooks, and standalone components/<name>.tsx items have no theme.
+const themeRef = `${NAMESPACE}/theme`;
+const uiPrimitiveNames = new Set(
+  registry.items
+    .filter(
+      (i) =>
+        existsSync(join(root, `components/ui/${i.name}.tsx`)) ||
+        existsSync(join(root, `components/ui/glass/${i.name}.tsx`)),
+    )
+    .map((i) => i.name),
+);
+// True iff the item's OWN shipped files consume the glass theme's distinctive tokens/hooks.
+const usesThemeTokens = (item) =>
+  (item.files ?? []).some((f) => {
+    if (!/\.(tsx?|css)$/.test(f.path)) return false;
+    const abs = join(root, f.path);
+    return existsSync(abs) && /--glass-|--accent-|data-glass-tint|data-pattern/.test(readFileSync(abs, "utf8"));
+  });
+// True iff a direct registry dep is a ui primitive — those all carry @sistine/theme, so it's reached transitively.
+const reachesThemeViaDeps = (item) =>
+  (item.registryDependencies ?? []).some((d) => uiPrimitiveNames.has(d.replace(`${NAMESPACE}/`, "")));
+
+for (const item of registry.items) {
+  if (item.type === "registry:theme") continue; // the theme item owns globals.css
+  item.files = (item.files ?? []).filter((f) => f.path !== "app/globals.css" && f.target !== "app/globals.css");
+  const isUiPrimitive =
+    existsSync(join(root, `components/ui/${item.name}.tsx`)) || existsSync(join(root, `components/ui/glass/${item.name}.tsx`));
+  // Ui primitives keep the theme as before. Standalone theme-driven COMPONENTS/BLOCKS that depend only on
+  // libs (canvas/gradient-background, auto-foreground, the background-controller block) can't reach the theme
+  // transitively, so they declare it directly. Libs/hooks are excluded — they merely reference token *names*;
+  // the CSS belongs to the component that consumes them. Blocks composing ui primitives reach it transitively.
+  const isComponentOrBlock = item.type === "registry:component" || item.type === "registry:block";
+  const needsTheme = isUiPrimitive || (isComponentOrBlock && usesThemeTokens(item) && !reachesThemeViaDeps(item));
+  const deps = new Set(item.registryDependencies ?? []);
+  if (needsTheme) deps.add(themeRef);
+  else deps.delete(themeRef);
+  item.registryDependencies = [...deps].sort();
 }
 
 writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`);
