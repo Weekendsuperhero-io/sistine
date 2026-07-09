@@ -4,27 +4,40 @@ import { Check } from "@phosphor-icons/react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Role: bordered adaptive glass (the old glass-surface look). */
+const ROLE = {
+  border: true,
+};
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "border-primary",
-    glass: "glass-surface",
-  };
+>(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
 
   return (
     <CheckboxPrimitive.Root
       ref={ref}
       data-slot="checkbox"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         "peer h-4 w-4 shrink-0 rounded-sm border shadow transition-shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
-        variants[variant],
-        variant === "glass" && "data-[state=checked]:glass-bg data-[state=checked]:border-[var(--glass-border)]",
+        m === null && "border-primary",
+        m !== null && "data-[state=checked]:glass data-[state=checked]:border-[var(--glass-border)]",
+        glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
       {...props}

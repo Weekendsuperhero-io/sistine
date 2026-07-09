@@ -68,6 +68,80 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
 }
 
 /**
+ * Dual-API resolver — the migration bridge (and the final resolver once `variant` tiers die).
+ *
+ * Merges three layers, most specific wins:
+ *   1. explicit NEW-API props (material/border/veil/size/gradient/glow/sheen) — using ANY of them
+ *      switches the element to the new channel, with the ROLE filling unspecified axes;
+ *   2. else the legacy `variant` TIER, adapted to material props (preserves old visuals exactly —
+ *      explicit tiers were always bordered, so the adapter says so even when the role doesn't);
+ *   3. the component's ROLE defaults (its old `glass` look).
+ *
+ * Returns null when the element is NOT a glass surface (variant is semantic like "default"/
+ * "destructive"-only styling, or material === "none") — the caller renders its plain classes.
+ */
+const TIER_ADAPTER: Record<string, (role: MaterialProps) => MaterialProps> = {
+  glass: (role) => role,
+  surface: (role) => ({
+    ...role,
+    border: true,
+  }),
+  solid: (role) => ({
+    ...role,
+    border: true,
+    veil: true,
+  }),
+  frosted: (role) => ({
+    ...role,
+    border: true,
+    material: "frosted",
+  }),
+  crystal: (role) => ({
+    ...role,
+    border: true,
+    material: "crystal",
+  }),
+  opaque: (role) => ({
+    ...role,
+    border: true,
+    material: "opaque",
+  }),
+  gradient: (role) => ({
+    ...role,
+    border: true,
+    gradient: true,
+  }),
+};
+
+export function resolveMaterial(role: MaterialProps, variant: string | null | undefined, props: MaterialProps): MaterialAttrs | null {
+  const { material, border, veil, size, gradient, glow, sheen } = props;
+  const usesNew =
+    material !== undefined ||
+    border !== undefined ||
+    veil !== undefined ||
+    size !== undefined ||
+    gradient !== undefined ||
+    glow !== undefined ||
+    sheen !== undefined;
+  if (usesNew) {
+    if (material === "none") {
+      return null;
+    }
+    return glassMaterial({
+      material,
+      border: border ?? role.border,
+      veil: veil ?? role.veil,
+      size: size ?? role.size,
+      gradient: gradient ?? role.gradient,
+      glow: glow ?? role.glow,
+      sheen: sheen ?? role.sheen,
+    });
+  }
+  const tier = variant ? TIER_ADAPTER[variant] : TIER_ADAPTER.glass;
+  return tier ? glassMaterial(tier(role)) : null;
+}
+
+/**
  * Typed per-element knobs → CSS custom properties ONLY (the cascade-native successor to the old
  * `glass={{…}}` inline-style prop). Everything routes through the token system, so nothing here can
  * fight a material, a page style, or the theme.

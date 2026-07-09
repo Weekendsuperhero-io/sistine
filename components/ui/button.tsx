@@ -2,8 +2,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only (text, hover, press shadows); the SURFACE comes from
+   resolveMaterial (the material system) — see SURFACE_TIER below for how semantic variants ride it. */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
@@ -11,18 +15,18 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-primary text-primary-foreground [background-image:var(--glass-bg)] shadow-md hover:bg-primary/90 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
-        glass: "glass-bg text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
-        gradient: "glass-surface glass-gradient text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow)]",
-        frosted: "glass-frosted text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow-strong)]",
-        crystal: "glass-crystal text-foreground transition active:opacity-90 active:shadow-[var(--press-shadow-deep)]",
-        opaque: "glass-opaque text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow)]",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
+        glass: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
+        gradient: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow)]",
+        frosted: "text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow-strong)]",
+        crystal: "text-foreground transition active:opacity-90 active:shadow-[var(--press-shadow-deep)]",
+        opaque: "text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow)]",
+        surface: "text-foreground",
+        solid: "text-foreground",
         destructive:
-          "glass-bg text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
+          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
-          "glass-bg backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
-        secondary: "glass-surface text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
+          "backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
+        secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
         link: "text-primary underline-offset-4 hover:underline active:opacity-80",
@@ -45,47 +49,81 @@ const buttonVariants = cva(
   },
 );
 
+/* Which tier supplies each SEMANTIC variant's surface (undefined = the variant name IS the tier;
+   null = no glass surface — the variant styles itself, e.g. default/ghost/link). */
+const SURFACE_TIER: Partial<Record<string, string | null>> = {
+  default: null,
+  ghost: null,
+  link: null,
+  destructive: "glass",
+  outline: "glass",
+  secondary: "surface",
+};
+
+/* Role: borderless adaptive glass (the old glass-bg look). */
+const ROLE = {};
+
 function Button({
   className,
   variant = "glass",
   size = "default",
   asChild = false,
   glass,
+  material,
+  border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  effect,
   style,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     glass?: GlassCustomization;
+    material?: Material;
+    border?: boolean;
+    veil?: boolean;
+    gradient?: boolean;
+    glow?: boolean | "lg";
+    sheen?: boolean;
+    effect?: HoverEffect;
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : "button";
 
+  const surfaceVariant = SURFACE_TIER[variant ?? "glass"] === undefined ? variant : SURFACE_TIER[variant ?? "glass"];
+  const m = resolveMaterial(ROLE, surfaceVariant, {
+    material,
+    border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+  });
+
   // Apply glass styles for glass variants when custom glass props are provided
   const hasCustomGlass = glass !== undefined;
-  const isGlassVariant =
-    variant === "glass" ||
-    variant === "gradient" ||
-    variant === "frosted" ||
-    variant === "crystal" ||
-    variant === "opaque" ||
-    variant === "surface" ||
-    variant === "solid" ||
-    variant === "outline";
-
-  const glassStyles = isGlassVariant && hasCustomGlass ? getGlassStyles(glass) : {};
+  const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
   return (
     <Comp
       data-slot="button"
       data-variant={variant}
       data-size={size}
+      data-material={m?.["data-material"]}
       data-glass-tint={variant === "destructive" ? "destructive" : undefined}
       className={cn(
+        m?.className,
         buttonVariants({
           variant,
           size,
-          className,
         }),
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
+        className,
       )}
       style={{
         ...glassStyles,
