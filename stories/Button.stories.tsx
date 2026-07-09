@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@/components/ui/glass/button";
+import { Button } from "@/components/ui/button";
 
 const meta = {
   title: "Sistine/Button",
@@ -15,15 +15,24 @@ const meta = {
       control: "select",
       options: [
         "default",
-        "glass",
-        "frosted",
-        "crystal",
         "destructive",
         "outline",
         "secondary",
         "ghost",
         "link",
       ],
+    },
+    material: {
+      control: "select",
+      options: [
+        "glass",
+        "frosted",
+        "crystal",
+        "opaque",
+      ],
+    },
+    border: {
+      control: "boolean",
     },
     size: {
       control: "select",
@@ -55,7 +64,6 @@ type Story = StoryObj<typeof meta>;
 export const Glass: Story = {
   args: {
     children: "Glass Button",
-    variant: "glass",
     effect: "glow",
   },
 };
@@ -63,7 +71,8 @@ export const Glass: Story = {
 export const Frosted: Story = {
   args: {
     children: "Frosted Button",
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     effect: "glow",
   },
 };
@@ -71,7 +80,8 @@ export const Frosted: Story = {
 export const Crystal: Story = {
   args: {
     children: "Crystal Button",
-    variant: "crystal",
+    material: "crystal",
+    border: true,
     effect: "glow",
   },
 };
@@ -79,7 +89,6 @@ export const Crystal: Story = {
 export const WithShimmer: Story = {
   args: {
     children: "Shimmer Effect",
-    variant: "glass",
     effect: "shimmer",
   },
 };
@@ -87,7 +96,6 @@ export const WithShimmer: Story = {
 export const WithRipple: Story = {
   args: {
     children: "Ripple Effect",
-    variant: "glass",
     effect: "ripple",
   },
 };
@@ -95,15 +103,15 @@ export const WithRipple: Story = {
 export const Small: Story = {
   args: {
     children: "Small Button",
-    variant: "glass",
     size: "sm",
+    effect: "glow",
   },
 };
 
 export const Large: Story = {
   args: {
     children: "Large Button",
-    variant: "glass",
     size: "lg",
+    effect: "glow",
   },
 };

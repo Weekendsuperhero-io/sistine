@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/glass/button";
-import { Toaster } from "@/components/ui/glass/sonner";
+import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 
 const meta = {
   title: "Sistine/Sonner",
@@ -35,7 +35,6 @@ export const Default: Story = {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant="glass"
           onClick={() =>
             toast("Default Toast", {
               description: "This is a default toast notification",
@@ -46,7 +45,6 @@ export const Default: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast.success("Success!", {
               description: "Your action was completed successfully",
@@ -57,7 +55,6 @@ export const Default: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast.error("Error!", {
               description: "Something went wrong. Please try again.",
@@ -68,7 +65,6 @@ export const Default: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast.warning("Warning!", {
               description: "Please review your information",
@@ -79,7 +75,6 @@ export const Default: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast.info("Information", {
               description: "Here is some useful information",
@@ -90,7 +85,6 @@ export const Default: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast.loading("Loading...", {
               description: "Please wait while we process your request",
@@ -112,7 +106,6 @@ export const WithActions: Story = {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant="glass"
           onClick={() =>
             toast("Event created", {
               description: "Your event has been scheduled",
@@ -127,7 +120,6 @@ export const WithActions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast("Are you sure?", {
               description: "This action cannot be undone",
@@ -157,7 +149,6 @@ export const WithDuration: Story = {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant="glass"
           onClick={() =>
             toast("Quick toast", {
               description: "Disappears in 1 second",
@@ -169,7 +160,6 @@ export const WithDuration: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast("Normal toast", {
               description: "Standard 4 second duration",
@@ -181,7 +171,6 @@ export const WithDuration: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast("Long toast", {
               description: "Stays for 10 seconds",
@@ -193,7 +182,6 @@ export const WithDuration: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() =>
             toast("Permanent", {
               description: "This toast will not auto-dismiss",
@@ -216,7 +204,6 @@ export const WithPromise: Story = {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant="glass"
           onClick={() => {
             const promise = () => new Promise((resolve) => setTimeout(resolve, 2000));
             toast.promise(promise(), {
@@ -230,7 +217,6 @@ export const WithPromise: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() => {
             const promise = () => new Promise((_, reject) => setTimeout(reject, 2000));
             toast.promise(promise(), {
@@ -244,7 +230,6 @@ export const WithPromise: Story = {
         </Button>
 
         <Button
-          variant="glass"
           onClick={() => {
             const promise = () =>
               new Promise((resolve) =>
@@ -278,7 +263,6 @@ export const Positions: Story = {
 
       <div className="grid grid-cols-3 gap-3">
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Top Left", {
@@ -290,7 +274,6 @@ export const Positions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Top Center", {
@@ -302,7 +285,6 @@ export const Positions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Top Right", {
@@ -314,7 +296,6 @@ export const Positions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Bottom Left", {
@@ -326,7 +307,6 @@ export const Positions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Bottom Center", {
@@ -338,7 +318,6 @@ export const Positions: Story = {
         </Button>
 
         <Button
-          variant="glass"
           size="sm"
           onClick={() =>
             toast("Bottom Right", {
@@ -363,10 +342,12 @@ export const CustomStyling: Story = {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant="frosted"
+          material="frosted"
+          border
           onClick={() =>
             toast("Frosted Glass Toast", {
               description: "Enhanced frosted glass effect with stronger blur",
+              // TODO(C7): needs data-material host — sonner classNames can't set attributes.
               className: "glass-frosted backdrop-blur-[var(--blur-frosted)] !bg-[var(--glass-frosted-bg)]",
             })
           }
@@ -375,10 +356,12 @@ export const CustomStyling: Story = {
         </Button>
 
         <Button
-          variant="crystal"
+          material="crystal"
+          border
           onClick={() =>
             toast("Crystal Glass Toast", {
               description: "Premium crystal effect with layered styling",
+              // TODO(C7): needs data-material host — sonner classNames can't set attributes.
               className: "glass-crystal backdrop-blur-[var(--blur-crystal)] !bg-[var(--glass-crystal-bg)]",
             })
           }
@@ -387,7 +370,6 @@ export const CustomStyling: Story = {
         </Button>
 
         <Button
-          variant="glass"
           effect="glow"
           onClick={() =>
             toast("Glowing Glass Toast", {
@@ -400,7 +382,7 @@ export const CustomStyling: Story = {
         </Button>
       </div>
 
-      <div className="mt-4 p-4 glass-bg backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg">
+      <div className="mt-4 p-4 glass backdrop-blur-[var(--blur)] border border-[var(--glass-border)] rounded-lg">
         <p className="text-sm text-muted-foreground">
           <strong className="text-foreground">Note:</strong> All toasts automatically use glass backgrounds, borders, and shadows. The default glass
           effect works great, but you can apply additional glass variants for different looks.
@@ -417,7 +399,6 @@ export const MultipleToasts: Story = {
       <p className="text-sm text-muted-foreground mb-4">Stack multiple notifications</p>
 
       <Button
-        variant="glass"
         effect="shimmer"
         onClick={() => {
           toast.success("First notification");

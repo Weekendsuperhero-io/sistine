@@ -16,13 +16,25 @@ const meta = {
       control: "select",
       options: [
         "default",
-        "glass",
-        "frosted",
-        "crystal",
+        "info",
+        "success",
+        "warning",
         "destructive",
       ],
     },
-    hover: {
+    material: {
+      control: "select",
+      options: [
+        "glass",
+        "frosted",
+        "crystal",
+        "opaque",
+      ],
+    },
+    border: {
+      control: "boolean",
+    },
+    effect: {
       control: "select",
       options: [
         "none",
@@ -42,7 +54,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Glass: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <Terminal className="h-4 w-4" />
@@ -55,7 +66,8 @@ export const Glass: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     children: (
       <>
         <WarningCircleIcon className="h-4 w-4" />
@@ -68,7 +80,8 @@ export const Frosted: Story = {
 
 export const Crystal: Story = {
   args: {
-    variant: "crystal",
+    material: "crystal",
+    border: true,
     children: (
       <>
         <CheckCircleIcon className="h-4 w-4" />
@@ -94,7 +107,6 @@ export const Destructive: Story = {
 
 export const WithoutIcon: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <AlertTitle>Note</AlertTitle>
@@ -106,8 +118,7 @@ export const WithoutIcon: Story = {
 
 export const WithGlowHover: Story = {
   args: {
-    variant: "glass",
-    hover: "glow",
+    effect: "glow",
     children: (
       <>
         <Terminal className="h-4 w-4" />
@@ -120,8 +131,9 @@ export const WithGlowHover: Story = {
 
 export const WithShimmerHover: Story = {
   args: {
-    variant: "frosted",
-    hover: "shimmer",
+    material: "frosted",
+    border: true,
+    effect: "shimmer",
     children: (
       <>
         <WarningCircleIcon className="h-4 w-4" />
@@ -134,8 +146,9 @@ export const WithShimmerHover: Story = {
 
 export const WithLiftHover: Story = {
   args: {
-    variant: "crystal",
-    hover: "lift",
+    material: "crystal",
+    border: true,
+    effect: "lift",
     children: (
       <>
         <CheckCircleIcon className="h-4 w-4" />
@@ -148,8 +161,7 @@ export const WithLiftHover: Story = {
 
 export const WithScaleHover: Story = {
   args: {
-    variant: "glass",
-    hover: "scale",
+    effect: "scale",
     children: (
       <>
         <Terminal className="h-4 w-4" />

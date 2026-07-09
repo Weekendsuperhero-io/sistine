@@ -1,29 +1,30 @@
 export function getComponentExampleCode(componentName: string): string {
   switch (componentName) {
     case "button":
-      return `import { Button } from "@/components/ui/glass/button"
+      return `import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
     <div className="flex flex-wrap gap-2">
       <Button>Glass Button</Button>
+      <Button material="frosted" border>Frosted</Button>
+      <Button effect="glow">Glow</Button>
+      <Button gradient>Gradient</Button>
       <Button variant="outline">Outline</Button>
-      <Button variant="default">Default</Button>
-      <Button variant="ghost">Ghost</Button>
       <Button variant="destructive">Destructive</Button>
     </div>
   )
 }`;
 
     case "card":
-      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card"
+      return `import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function Example() {
   return (
-    <Card>
+    <Card material="frosted" border>
       <CardHeader>
         <CardTitle>Card Title</CardTitle>
-        <CardDescription>This is a card with glass effect</CardDescription>
+        <CardDescription>A frosted material card with a border</CardDescription>
       </CardHeader>
       <CardContent>
         <p>Card content goes here</p>
@@ -33,19 +34,20 @@ export function Example() {
 }`;
 
     case "input":
-      return `import { Input } from "@/components/ui/glass/input"
+      return `import { Input } from "@/components/ui/input"
 
 export function Example() {
   return (
     <div className="space-y-2">
       <Input placeholder="Enter text..." />
+      <Input material="frosted" border placeholder="Frosted input" />
       <Input variant="default" placeholder="Default input" />
     </div>
   )
 }`;
 
     case "badge":
-      return `import { Badge } from "@/components/ui/glass/badge"
+      return `import { Badge } from "@/components/ui/badge"
 
 export function Example() {
   return (
@@ -59,8 +61,8 @@ export function Example() {
 }`;
 
     case "checkbox":
-      return `import { Checkbox } from "@/components/ui/glass/checkbox"
-import { Label } from "@/components/ui/glass/label"
+      return `import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 export function Example() {
   return (
@@ -72,8 +74,8 @@ export function Example() {
 }`;
 
     case "switch":
-      return `import { Switch } from "@/components/ui/glass/switch"
-import { Label } from "@/components/ui/glass/label"
+      return `import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 export function Example() {
   return (
@@ -85,8 +87,8 @@ export function Example() {
 }`;
 
     case "tabs":
-      return `import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card"
+      return `import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function Example() {
   return (
@@ -122,7 +124,7 @@ export function Example() {
 }`;
 
     case "alert":
-      return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/glass/alert"
+      return `import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info } from "@phosphor-icons/react"
 
 export function Example() {
@@ -138,7 +140,7 @@ export function Example() {
 }`;
 
     case "avatar":
-      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/glass/avatar"
+      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Example() {
   return (
@@ -159,7 +161,7 @@ export function Example() {
 }`;
 
     case "separator":
-      return `import { Separator } from "@/components/ui/glass/separator"
+      return `import { Separator } from "@/components/ui/separator"
 
 export function Example() {
   return (
@@ -181,7 +183,7 @@ export function Example() {
 }`;
 
     case "skeleton":
-      return `import { Skeleton } from "@/components/ui/glass/skeleton"
+      return `import { Skeleton } from "@/components/ui/skeleton"
 
 export function Example() {
   return (
@@ -194,7 +196,7 @@ export function Example() {
 }`;
 
     case "slider":
-      return `import { Slider } from "@/components/ui/glass/slider"
+      return `import { Slider } from "@/components/ui/slider"
 
 export function Example() {
   return (
@@ -205,7 +207,7 @@ export function Example() {
 }`;
 
     case "textarea":
-      return `import { Textarea } from "@/components/ui/glass/textarea"
+      return `import { Textarea } from "@/components/ui/textarea"
 
 export function Example() {
   return (
@@ -214,8 +216,8 @@ export function Example() {
 }`;
 
     case "label":
-      return `import { Label } from "@/components/ui/glass/label"
-import { Input } from "@/components/ui/glass/input"
+      return `import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 export function Example() {
   return (
@@ -227,8 +229,8 @@ export function Example() {
 }`;
 
     case "radio-group":
-      return `import { RadioGroup, RadioGroupItem } from "@/components/ui/glass/radio-group"
-import { Label } from "@/components/ui/glass/label"
+      return `import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 export function Example() {
   return (
@@ -250,7 +252,7 @@ export function Example() {
 }`;
 
     case "select":
-      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass/select"
+      return `import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function Example() {
   return (
@@ -268,7 +270,7 @@ export function Example() {
 }`;
 
     case "accordion":
-      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/glass/accordion"
+      return `import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 export function Example() {
   return (
@@ -290,8 +292,8 @@ export function Example() {
 }`;
 
     case "tooltip":
-      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/glass/tooltip"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -309,8 +311,8 @@ export function Example() {
 }`;
 
     case "popover":
-      return `import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/glass/popover"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -333,8 +335,8 @@ export function Example() {
 }`;
 
     case "dialog":
-      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -356,8 +358,8 @@ export function Example() {
 }`;
 
     case "dropdown-menu":
-      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/glass/dropdown-menu"
-import { Button } from "@/components/ui/glass/button"
+      return `import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -377,7 +379,7 @@ export function Example() {
 }`;
 
     case "calendar":
-      return `import { Calendar } from "@/components/ui/glass/calendar"
+      return `import { Calendar } from "@/components/ui/calendar"
 
 export function Example() {
   return (
@@ -386,7 +388,7 @@ export function Example() {
 }`;
 
     case "toggle":
-      return `import { Toggle } from "@/components/ui/glass/toggle"
+      return `import { Toggle } from "@/components/ui/toggle"
 import { SparkleIcon as Sparkles } from "@phosphor-icons/react"
 
 export function Example() {
@@ -403,7 +405,7 @@ export function Example() {
 }`;
 
     case "toggle-group":
-      return `import { ToggleGroup, ToggleGroupItem } from "@/components/ui/glass/toggle-group"
+      return `import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export function Example() {
   return (
@@ -416,7 +418,7 @@ export function Example() {
 }`;
 
     case "table":
-      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/glass/table"
+      return `import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 export function Example() {
   return (
@@ -445,7 +447,7 @@ export function Example() {
 }`;
 
     case "breadcrumb":
-      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/glass/breadcrumb"
+      return `import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 
 export function Example() {
   return (
@@ -468,8 +470,8 @@ export function Example() {
 }`;
 
     case "collapsible":
-      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/glass/collapsible"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -487,7 +489,7 @@ export function Example() {
 }`;
 
     case "command":
-      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/glass/command"
+      return `import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 
 export function Example() {
   return (
@@ -506,7 +508,7 @@ export function Example() {
 }`;
 
     case "scroll-area":
-      return `import { ScrollArea } from "@/components/ui/glass/scroll-area"
+      return `import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function Example() {
   return (
@@ -521,8 +523,8 @@ export function Example() {
 }`;
 
     case "sheet":
-      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/glass/sheet"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -543,7 +545,7 @@ export function Example() {
 }`;
 
     case "navigation-menu":
-      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/glass/navigation-menu"
+      return `import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu"
 
 export function Example() {
   return (
@@ -575,7 +577,7 @@ export function Example() {
 }`;
 
     case "pagination":
-      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/glass/pagination"
+      return `import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
 export function Example() {
   return (
@@ -605,8 +607,8 @@ export function Example() {
 }`;
 
     case "hover-card":
-      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/glass/hover-card"
-import { Button } from "@/components/ui/glass/button"
+      return `import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -629,8 +631,8 @@ export function Example() {
 }`;
 
     case "drawer":
-      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/glass/drawer"
-import { Button } from "@/components/ui/glass/button"
+      return `import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -655,8 +657,8 @@ export function Example() {
 }`;
 
     case "alert-dialog":
-      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/glass/alert-dialog"
-import { Button } from "@/components/ui/glass/button"
+      return `import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
@@ -682,7 +684,7 @@ export function Example() {
 }`;
 
     case "sidebar":
-      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/glass/sidebar"
+      return `import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider } from "@/components/ui/sidebar"
 
 export function Example() {
   return (
@@ -712,7 +714,7 @@ export function Example() {
 }`;
 
     case "chart":
-      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/glass/chart"
+      return `import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
 
 const chartData = [
@@ -737,7 +739,7 @@ const chartConfig = {
 
 export function Example() {
   return (
-    <ChartContainer config={chartConfig} variant="glass" className="h-75">
+    <ChartContainer config={chartConfig} className="h-75">
       <BarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
         <XAxis
@@ -757,14 +759,13 @@ export function Example() {
 }`;
 
     case "sonner":
-      return `import { Button } from "@/components/ui/glass/button"
+      return `import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 
 export function Example() {
   return (
     <div className="flex flex-col gap-3">
       <Button
-        variant="glass"
         onClick={() => toast.success('Success!', {
           description: 'Your action was completed successfully'
         })}
@@ -773,7 +774,6 @@ export function Example() {
       </Button>
 
       <Button
-        variant="glass"
         onClick={() => toast.error('Error!', {
           description: 'Something went wrong'
         })}
@@ -782,7 +782,6 @@ export function Example() {
       </Button>
 
       <Button
-        variant="glass"
         onClick={() => toast('Event Created', {
           description: 'Your event has been scheduled',
           action: {
@@ -798,7 +797,7 @@ export function Example() {
 }
 
 // Don't forget to add <Toaster /> to your root layout:
-// import { Toaster } from "@/components/ui/glass/sonner"
+// import { Toaster } from "@/components/ui/sonner"
 //
 // export default function RootLayout({ children }) {
 //   return (
@@ -816,7 +815,7 @@ export function Example() {
 // warnings have yellow borders, and info toasts have blue borders.`;
 
     case "spinner":
-      return `import { Spinner } from "@/components/ui/glass/spinner"
+      return `import { Spinner } from "@/components/ui/spinner"
 
 export function Example() {
   return (
@@ -829,12 +828,12 @@ export function Example() {
 }`;
 
     case "button-group":
-      return `import { ButtonGroup } from "@/components/ui/glass/button-group"
-import { Button } from "@/components/ui/glass/button"
+      return `import { ButtonGroup } from "@/components/ui/button-group"
+import { Button } from "@/components/ui/button"
 
 export function Example() {
   return (
-    <ButtonGroup variant="glass" orientation="horizontal">
+    <ButtonGroup orientation="horizontal">
       <Button variant="ghost">One</Button>
       <Button variant="ghost">Two</Button>
       <Button variant="ghost">Three</Button>
@@ -843,14 +842,14 @@ export function Example() {
 }`;
 
     case "input-group":
-      return `import { InputGroup } from "@/components/ui/glass/input-group"
-import { Input } from "@/components/ui/glass/input"
-import { Button } from "@/components/ui/glass/button"
+      return `import { InputGroup } from "@/components/ui/input-group"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { MagnifyingGlassIcon } from "@phosphor-icons/react"
 
 export function Example() {
   return (
-    <InputGroup variant="glass">
+    <InputGroup>
       <Input placeholder="Search..." className="border-0 rounded-r-none" />
       <Button variant="ghost" size="icon" className="rounded-l-none">
         <MagnifyingGlassIcon className="h-4 w-4" />
@@ -860,31 +859,31 @@ export function Example() {
 }`;
 
     case "input-otp":
-      return `import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/glass/input-otp"
+      return `import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 
 export function Example() {
   return (
-    <InputOTP variant="glass" maxLength={6}>
-      <InputOTPGroup variant="glass">
-        <InputOTPSlot index={0} variant="glass" />
-        <InputOTPSlot index={1} variant="glass" />
-        <InputOTPSlot index={2} variant="glass" />
-        <InputOTPSlot index={3} variant="glass" />
-        <InputOTPSlot index={4} variant="glass" />
-        <InputOTPSlot index={5} variant="glass" />
+    <InputOTP maxLength={6}>
+      <InputOTPGroup>
+        <InputOTPSlot index={0} />
+        <InputOTPSlot index={1} />
+        <InputOTPSlot index={2} />
+        <InputOTPSlot index={3} />
+        <InputOTPSlot index={4} />
+        <InputOTPSlot index={5} />
       </InputOTPGroup>
     </InputOTP>
   )
 }`;
 
     case "empty-state":
-      return `import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/glass/empty-state"
-import { Button } from "@/components/ui/glass/button"
+      return `import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/empty-state"
+import { Button } from "@/components/ui/button"
 import { Inbox } from "@phosphor-icons/react"
 
 export function Example() {
   return (
-    <EmptyState variant="glass">
+    <EmptyState>
       <EmptyStateIcon>
         <Inbox className="h-12 w-12" />
       </EmptyStateIcon>
@@ -892,7 +891,7 @@ export function Example() {
       <EmptyStateDescription>
         Get started by creating a new item.
       </EmptyStateDescription>
-      <Button variant="glass" className="mt-4">
+      <Button className="mt-4">
         Create Item
       </Button>
     </EmptyState>
@@ -900,11 +899,11 @@ export function Example() {
 }`;
 
     case "menu-bar":
-      return `import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar"
+      return `import { MenuBar, MenuBarItem } from "@/components/ui/menu-bar"
 
 export function Example() {
   return (
-    <MenuBar variant="glass">
+    <MenuBar>
       <MenuBarItem active>File</MenuBarItem>
       <MenuBarItem>Edit</MenuBarItem>
       <MenuBarItem>View</MenuBarItem>
@@ -914,7 +913,7 @@ export function Example() {
 }`;
 
     case "date-picker-input":
-      return `import { DatePickerInput } from "@/components/ui/glass/date-picker-input"
+      return `import { DatePickerInput } from "@/components/ui/date-picker-input"
 import { useState } from "react"
 
 export function Example() {
@@ -922,7 +921,6 @@ export function Example() {
 
   return (
     <DatePickerInput
-      variant="glass"
       value={date}
       onChange={setDate}
       placeholder="Pick a date"
@@ -938,18 +936,18 @@ export function Example() {
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
-} from "@/components/ui/glass/context-menu"
-import { Card, CardContent } from "@/components/ui/glass/card"
+} from "@/components/ui/context-menu"
+import { Card, CardContent } from "@/components/ui/card"
 
 export function Example() {
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Card variant="glass" className="p-8 cursor-pointer">
+        <Card className="p-8 cursor-pointer">
           <CardContent>Right click me</CardContent>
         </Card>
       </ContextMenuTrigger>
-      <ContextMenuContent variant="glass">
+      <ContextMenuContent>
         <ContextMenuLabel>My Account</ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem>Profile</ContextMenuItem>
@@ -962,25 +960,25 @@ export function Example() {
 }`;
 
     case "carousel":
-      return `import { Carousel } from "@/components/ui/glass/carousel"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/glass/card"
+      return `import { Carousel } from "@/components/ui/carousel"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function Example() {
   return (
-    <Carousel variant="glass" className="w-full max-w-md h-50">
-      <Card variant="glass" className="h-full m-2">
+    <Carousel className="w-full max-w-md h-50">
+      <Card className="h-full m-2">
         <CardHeader>
           <CardTitle>Slide 1</CardTitle>
         </CardHeader>
         <CardContent>Content for slide 1</CardContent>
       </Card>
-      <Card variant="glass" className="h-full m-2">
+      <Card className="h-full m-2">
         <CardHeader>
           <CardTitle>Slide 2</CardTitle>
         </CardHeader>
         <CardContent>Content for slide 2</CardContent>
       </Card>
-      <Card variant="glass" className="h-full m-2">
+      <Card className="h-full m-2">
         <CardHeader>
           <CardTitle>Slide 3</CardTitle>
         </CardHeader>
@@ -991,16 +989,16 @@ export function Example() {
 }`;
 
     case "mode-toggle":
-      return `import { ModeToggle } from "@/components/ui/glass/mode-toggle"
+      return `import { ModeToggle } from "@/components/ui/mode-toggle"
 
 export function Example() {
   return (
-    <ModeToggle variant="glass" />
+    <ModeToggle />
   )
 }`;
 
     default:
-      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/components/ui/glass/${componentName}"
+      return `import { ${componentName.charAt(0).toUpperCase() + componentName.slice(1)} } from "@/components/ui/${componentName}"
 
 export function Example() {
   return (

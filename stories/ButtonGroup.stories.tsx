@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@/components/ui/glass/button";
-import { ButtonGroup } from "@/components/ui/glass/button-group";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 const meta = {
   title: "Sistine/ButtonGroup",
@@ -16,10 +16,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
     orientation: {
       control: "select",
@@ -47,7 +56,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Horizontal: Story = {
   args: {
-    variant: "glass",
     orientation: "horizontal",
     children: (
       <>
@@ -61,7 +69,6 @@ export const Horizontal: Story = {
 
 export const Vertical: Story = {
   args: {
-    variant: "glass",
     orientation: "vertical",
     children: (
       <>
@@ -75,7 +82,8 @@ export const Vertical: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     orientation: "horizontal",
     children: (
       <>

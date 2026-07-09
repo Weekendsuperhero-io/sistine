@@ -18,10 +18,10 @@ type Story = StoryObj<typeof meta>;
 export const Glass: Story = {
   render: () => (
     <Select>
-      <SelectTrigger className="w-[180px]" variant="glass">
+      <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Select a fruit" />
       </SelectTrigger>
-      <SelectContent variant="glass">
+      <SelectContent>
         <SelectItem value="apple">Apple</SelectItem>
         <SelectItem value="banana">Banana</SelectItem>
         <SelectItem value="blueberry">Blueberry</SelectItem>
@@ -35,10 +35,10 @@ export const Glass: Story = {
 export const Frosted: Story = {
   render: () => (
     <Select>
-      <SelectTrigger className="w-[180px]" variant="frosted">
+      <SelectTrigger className="w-[180px]" material="frosted" border>
         <SelectValue placeholder="Select a theme" />
       </SelectTrigger>
-      <SelectContent variant="frosted">
+      <SelectContent material="frosted" border>
         <SelectItem value="light">Light</SelectItem>
         <SelectItem value="dark">Dark</SelectItem>
         <SelectItem value="system">System</SelectItem>
@@ -50,10 +50,10 @@ export const Frosted: Story = {
 export const Crystal: Story = {
   render: () => (
     <Select>
-      <SelectTrigger className="w-[200px]" variant="crystal">
+      <SelectTrigger className="w-[200px]" material="crystal" border>
         <SelectValue placeholder="Select your timezone" />
       </SelectTrigger>
-      <SelectContent variant="crystal">
+      <SelectContent material="crystal" border>
         <SelectItem value="est">Eastern Standard Time (EST)</SelectItem>
         <SelectItem value="cst">Central Standard Time (CST)</SelectItem>
         <SelectItem value="mst">Mountain Standard Time (MST)</SelectItem>
@@ -68,10 +68,10 @@ export const Crystal: Story = {
 export const WithDefaultValue: Story = {
   render: () => (
     <Select defaultValue="banana">
-      <SelectTrigger className="w-[180px]" variant="glass">
+      <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Select a fruit" />
       </SelectTrigger>
-      <SelectContent variant="glass">
+      <SelectContent>
         <SelectItem value="apple">Apple</SelectItem>
         <SelectItem value="banana">Banana</SelectItem>
         <SelectItem value="blueberry">Blueberry</SelectItem>

@@ -19,6 +19,18 @@ const meta = {
         "outline",
       ],
     },
+    material: {
+      control: "select",
+      options: [
+        "glass",
+        "frosted",
+        "crystal",
+        "opaque",
+      ],
+    },
+    border: {
+      control: "boolean",
+    },
     size: {
       control: "select",
       options: [

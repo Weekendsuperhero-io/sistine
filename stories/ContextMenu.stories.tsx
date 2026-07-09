@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Card, CardContent } from "@/components/ui/glass/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -7,7 +7,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@/components/ui/glass/context-menu";
+} from "@/components/ui/context-menu";
 
 const meta = {
   title: "Sistine/ContextMenu",
@@ -27,11 +27,11 @@ export const Default: Story = {
   render: () => (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Card variant="glass" className="p-8 cursor-pointer">
+        <Card className="p-8 cursor-pointer">
           <CardContent>Right click me</CardContent>
         </Card>
       </ContextMenuTrigger>
-      <ContextMenuContent variant="glass">
+      <ContextMenuContent>
         <ContextMenuLabel>My Account</ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem>Profile</ContextMenuItem>
@@ -47,11 +47,11 @@ export const Frosted: Story = {
   render: () => (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Card variant="glass" className="p-8 cursor-pointer">
+        <Card className="p-8 cursor-pointer">
           <CardContent>Right click me</CardContent>
         </Card>
       </ContextMenuTrigger>
-      <ContextMenuContent variant="frosted">
+      <ContextMenuContent material="frosted" border>
         <ContextMenuLabel>My Account</ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem>Profile</ContextMenuItem>

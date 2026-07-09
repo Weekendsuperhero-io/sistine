@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Plus } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/glass/button";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const meta = {
@@ -28,7 +28,7 @@ export const Default: Story = {
   render: () => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="glass">Hover me</Button>
+        <Button>Hover me</Button>
       </TooltipTrigger>
       <TooltipContent>
         <p>This is a tooltip</p>
@@ -41,7 +41,7 @@ export const WithIcon: Story = {
   render: () => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="glass" size="icon">
+        <Button size="icon">
           <Plus className="h-4 w-4" />
         </Button>
       </TooltipTrigger>
@@ -56,7 +56,7 @@ export const RichContent: Story = {
   render: () => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="glass">More info</Button>
+        <Button>More info</Button>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
         <p className="font-semibold">Advanced Feature</p>
@@ -71,9 +71,7 @@ export const Positions: Story = {
     <div className="flex gap-4">
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">
-            Top
-          </Button>
+          <Button size="sm">Top</Button>
         </TooltipTrigger>
         <TooltipContent side="top">
           <p>Tooltip on top</p>
@@ -82,9 +80,7 @@ export const Positions: Story = {
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">
-            Right
-          </Button>
+          <Button size="sm">Right</Button>
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Tooltip on right</p>
@@ -93,9 +89,7 @@ export const Positions: Story = {
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">
-            Bottom
-          </Button>
+          <Button size="sm">Bottom</Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
           <p>Tooltip on bottom</p>
@@ -104,9 +98,7 @@ export const Positions: Story = {
 
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="glass" size="sm">
-            Left
-          </Button>
+          <Button size="sm">Left</Button>
         </TooltipTrigger>
         <TooltipContent side="left">
           <p>Tooltip on left</p>
@@ -120,7 +112,7 @@ export const Keyboard: Story = {
   render: () => (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="glass">Save</Button>
+        <Button>Save</Button>
       </TooltipTrigger>
       <TooltipContent>
         <p>Save changes</p>

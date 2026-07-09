@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { MenuBar, MenuBarItem } from "@/components/ui/glass/menu-bar";
+import { MenuBar, MenuBarItem } from "@/components/ui/menu-bar";
 
 const meta = {
   title: "Sistine/MenuBar",
@@ -15,10 +15,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
     effect: {
       control: "select",
@@ -39,7 +48,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <MenuBarItem active>File</MenuBarItem>
@@ -53,7 +61,8 @@ export const Default: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     children: (
       <>
         <MenuBarItem active>File</MenuBarItem>

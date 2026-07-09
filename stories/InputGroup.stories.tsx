@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/glass/button";
-import { Input } from "@/components/ui/glass/input";
-import { InputGroup } from "@/components/ui/glass/input-group";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { InputGroup } from "@/components/ui/input-group";
 
 const meta = {
   title: "Sistine/InputGroup",
@@ -18,10 +18,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
     effect: {
       control: "select",
@@ -42,7 +51,6 @@ type Story = StoryObj<typeof meta>;
 
 export const WithButton: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />
@@ -56,7 +64,8 @@ export const WithButton: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     children: (
       <>
         <Input placeholder="Search..." className="border-0 rounded-r-none" />

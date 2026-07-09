@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@/components/ui/glass/button";
-import { Input } from "@/components/ui/glass/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -22,9 +22,9 @@ export const Glass: Story = {
   render: () => (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="glass">Open Popover</Button>
+        <Button>Open Popover</Button>
       </PopoverTrigger>
-      <PopoverContent variant="glass" className="w-80">
+      <PopoverContent className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Dimensions</h4>
@@ -33,11 +33,11 @@ export const Glass: Story = {
           <div className="grid gap-2">
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="width">Width</Label>
-              <Input id="width" defaultValue="100%" className="col-span-2 h-8" variant="glass" />
+              <Input id="width" defaultValue="100%" className="col-span-2 h-8" />
             </div>
             <div className="grid grid-cols-3 items-center gap-4">
               <Label htmlFor="height">Height</Label>
-              <Input id="height" defaultValue="25px" className="col-span-2 h-8" variant="glass" />
+              <Input id="height" defaultValue="25px" className="col-span-2 h-8" />
             </div>
           </div>
         </div>
@@ -50,9 +50,11 @@ export const Frosted: Story = {
   render: () => (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="frosted">Frosted Popover</Button>
+        <Button material="frosted" border>
+          Frosted Popover
+        </Button>
       </PopoverTrigger>
-      <PopoverContent variant="frosted" className="w-80">
+      <PopoverContent material="frosted" border className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Frosted Glass</h4>
@@ -68,16 +70,18 @@ export const Crystal: Story = {
   render: () => (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="crystal">Crystal Popover</Button>
+        <Button material="crystal" border>
+          Crystal Popover
+        </Button>
       </PopoverTrigger>
-      <PopoverContent variant="crystal" className="w-80">
+      <PopoverContent material="crystal" border className="w-80">
         <div className="grid gap-4">
           <div className="space-y-2">
             <h4 className="font-medium leading-none">Crystal Glass</h4>
             <p className="text-sm text-muted-foreground">Premium crystal glass effect with layered styling.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="crystal" size="sm">
+            <Button material="crystal" border size="sm">
               Action
             </Button>
             <Button variant="outline" size="sm">
@@ -94,9 +98,9 @@ export const SimpleText: Story = {
   render: () => (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="glass">Hover Info</Button>
+        <Button>Hover Info</Button>
       </PopoverTrigger>
-      <PopoverContent variant="glass">
+      <PopoverContent>
         <p className="text-sm">This is a simple popover with just text content.</p>
       </PopoverContent>
     </Popover>
