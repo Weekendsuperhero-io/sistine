@@ -4,20 +4,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Popover as PopoverPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
 const popoverContentVariants = cva(
   "z-50 w-72 rounded-xl p-4 shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
   {
     variants: {
       variant: {
         default: "bg-popover text-popover-foreground border",
-        glass: "glass-solid text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
+        glass: "text-foreground",
+        frosted: "text-foreground",
+        crystal: "text-foreground",
+        opaque: "text-foreground",
+        surface: "text-foreground",
+        solid: "text-foreground",
       },
     },
     defaultVariants: {
@@ -25,6 +27,12 @@ const popoverContentVariants = cva(
     },
   },
 );
+
+/* Role: bordered + veiled adaptive glass (the old glass-solid look). */
+const ROLE = {
+  border: true,
+  veil: true,
+};
 
 const Popover = PopoverPrimitive.Root;
 
@@ -34,16 +42,31 @@ const PopoverAnchor = PopoverPrimitive.Anchor;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & VariantProps<typeof popoverContentVariants>
->(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> &
+    VariantProps<typeof popoverContentVariants> & {
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      glow?: boolean | "lg";
+    }
+>(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    veil,
+    glow,
+  });
+
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
         ref={ref}
         data-slot="popover-content"
+        data-material={m?.["data-material"]}
         align={align}
         sideOffset={sideOffset}
         className={cn(
+          m?.className,
           popoverContentVariants({
             variant,
           }),

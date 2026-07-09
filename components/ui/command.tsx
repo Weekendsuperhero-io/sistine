@@ -5,19 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Command as CommandPrimitive } from "cmdk";
 import type { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
 const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded-xl", {
   variants: {
     variant: {
       default: "bg-popover text-popover-foreground",
-      glass: "glass-solid text-foreground",
-      frosted: "glass-frosted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "text-foreground",
+      frosted: "text-foreground",
+      crystal: "text-foreground",
+      opaque: "text-foreground",
+      surface: "text-foreground",
+      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -25,15 +27,36 @@ const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded
   },
 });
 
+/* Role: bordered + veiled adaptive glass (the old glass-solid look). */
+const ROLE = {
+  border: true,
+  veil: true,
+};
+
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive> & VariantProps<typeof commandVariants>
->(({ className, variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive> &
+    VariantProps<typeof commandVariants> & {
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      glow?: boolean | "lg";
+    }
+>(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    veil,
+    glow,
+  });
+
   return (
     <CommandPrimitive
       ref={ref}
       data-slot="command"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         commandVariants({
           variant,
         }),

@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -10,6 +11,16 @@ const THEMES = {
   light: "",
   dark: ".dark",
 } as const;
+
+/* Roles: the container and legend are bordered adaptive glass (the old glass-surface look);
+   the tooltip is bordered + veiled (the old glass-solid look). */
+const SURFACE_ROLE = {
+  border: true,
+};
+const TOOLTIP_ROLE = {
+  border: true,
+  veil: true,
+};
 
 export type ChartConfig = {
   [key in string]: {
@@ -53,15 +64,25 @@ const ChartContainer = React.forwardRef<
     children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
   } & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    glow?: boolean | "lg";
   }
->(({ id, className, children, config, variant = "glass", ...props }, ref) => {
+>(({ id, className, children, config, variant = "glass", material, border, glow, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "",
-    glass: "glass-surface rounded-lg p-4",
+    glass: "rounded-lg p-4",
   };
+
+  const m = resolveMaterial(SURFACE_ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    glow,
+  });
 
   return (
     <ChartContext.Provider
@@ -71,8 +92,10 @@ const ChartContainer = React.forwardRef<
     >
       <div
         data-chart={chartId}
+        data-material={m?.["data-material"]}
         ref={ref}
         className={cn(
+          m?.className,
           "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           variants[variant],
           className,
@@ -141,6 +164,10 @@ const ChartTooltipContent = React.forwardRef<
   Omit<TooltipProps, "label" | "labelFormatter" | "formatter"> &
     React.ComponentProps<"div"> & {
       variant?: "default" | "glass";
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      glow?: boolean | "lg";
       indicator?: "dot" | "line" | "dashed";
       hideLabel?: boolean;
       hideIndicator?: boolean;
@@ -166,6 +193,10 @@ const ChartTooltipContent = React.forwardRef<
       className,
       indicator = "dot",
       variant = "glass",
+      material,
+      border,
+      veil,
+      glow,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -180,10 +211,18 @@ const ChartTooltipContent = React.forwardRef<
   ) => {
     const { config } = useChart();
 
+    /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
     const variants = {
       default: "bg-popover text-popover-foreground border",
-      glass: "glass-solid text-foreground",
+      glass: "text-foreground",
     };
+
+    const m = resolveMaterial(TOOLTIP_ROLE, variant === "default" ? null : variant, {
+      material,
+      border,
+      veil,
+      glow,
+    });
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
@@ -223,7 +262,13 @@ const ChartTooltipContent = React.forwardRef<
     return (
       <div
         ref={ref}
-        className={cn("grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-md", variants[variant], className)}
+        data-material={m?.["data-material"]}
+        className={cn(
+          m?.className,
+          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-md",
+          variants[variant],
+          className,
+        )}
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
@@ -317,23 +362,37 @@ const ChartLegendContent = React.forwardRef<
   React.ComponentProps<"div"> &
     LegendProps & {
       variant?: "default" | "glass";
+      material?: Material;
+      border?: boolean;
+      glow?: boolean | "lg";
       hideIcon?: boolean;
       nameKey?: string;
     }
->(({ className, payload, verticalAlign = "bottom", variant = "glass", hideIcon = false, nameKey }, ref) => {
+>(({ className, payload, verticalAlign = "bottom", variant = "glass", material, border, glow, hideIcon = false, nameKey }, ref) => {
   const { config } = useChart();
 
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "",
-    glass: "glass-surface rounded-lg px-2 py-1",
+    glass: "rounded-lg px-2 py-1",
   };
+
+  const m = resolveMaterial(SURFACE_ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    glow,
+  });
 
   if (!payload?.length) {
     return null;
   }
 
   return (
-    <div ref={ref} className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}>
+    <div
+      ref={ref}
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, "flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}
+    >
       {payload
         .filter((item) => item.type !== "none")
         .map((item, index) => {

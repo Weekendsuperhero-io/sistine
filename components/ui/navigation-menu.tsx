@@ -5,7 +5,16 @@ import { cva } from "class-variance-authority";
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Roles: the list bar is borderless adaptive glass (the old glass-bg look); the content and
+   viewport flyouts are bordered + veiled (the old glass-solid look). */
+const LIST_ROLE = {};
+const OVERLAY_ROLE = {
+  border: true,
+  veil: true,
+};
 
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
@@ -30,14 +39,32 @@ const NavigationMenuList = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.List> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    glow?: boolean | "lg";
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "group flex flex-1 list-none items-center justify-center space-x-1",
-    glass: "group flex flex-1 list-none items-center justify-center space-x-1 glass-bg rounded-lg px-2 py-1",
+    glass: "group flex flex-1 list-none items-center justify-center space-x-1 rounded-lg px-2 py-1",
   };
 
-  return <NavigationMenuPrimitive.List ref={ref} data-slot="navigation-menu-list" className={cn(variants[variant], className)} {...props} />;
+  const m = resolveMaterial(LIST_ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    glow,
+  });
+
+  return (
+    <NavigationMenuPrimitive.List
+      ref={ref}
+      data-slot="navigation-menu-list"
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, variants[variant], className)}
+      {...props}
+    />
+  );
 });
 NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName;
 
@@ -73,11 +100,16 @@ const NavigationMenuContent = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    veil?: boolean;
+    glow?: boolean | "lg";
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
   const inlineRenderStyles =
     "group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-xl group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95";
 
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: cn(
       "left-0 top-0 w-full p-2 pr-2.5 data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
@@ -85,12 +117,27 @@ const NavigationMenuContent = React.forwardRef<
       inlineRenderStyles,
     ),
     glass: cn(
-      "left-0 top-0 w-full p-2 pr-2.5 glass-solid rounded-lg text-foreground data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
+      "left-0 top-0 w-full p-2 pr-2.5 rounded-lg text-foreground data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
       inlineRenderStyles,
     ),
   };
 
-  return <NavigationMenuPrimitive.Content ref={ref} data-slot="navigation-menu-content" className={cn(variants[variant], className)} {...props} />;
+  const m = resolveMaterial(OVERLAY_ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    veil,
+    glow,
+  });
+
+  return (
+    <NavigationMenuPrimitive.Content
+      ref={ref}
+      data-slot="navigation-menu-content"
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, variants[variant], className)}
+      {...props}
+    />
+  );
 });
 NavigationMenuContent.displayName = NavigationMenuPrimitive.Content.displayName;
 
@@ -114,18 +161,36 @@ const NavigationMenuViewport = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Viewport>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Viewport> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    veil?: boolean;
+    glow?: boolean | "lg";
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default:
       "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
     glass:
-      "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl glass-solid text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
+      "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
   };
+
+  const m = resolveMaterial(OVERLAY_ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    veil,
+    glow,
+  });
 
   return (
     <div className={cn("absolute left-0 top-full isolate z-50 flex justify-center")}>
-      <NavigationMenuPrimitive.Viewport data-slot="navigation-menu-viewport" className={cn(variants[variant], className)} ref={ref} {...props} />
+      <NavigationMenuPrimitive.Viewport
+        data-slot="navigation-menu-viewport"
+        data-material={m?.["data-material"]}
+        className={cn(m?.className, variants[variant], className)}
+        ref={ref}
+        {...props}
+      />
     </div>
   );
 });

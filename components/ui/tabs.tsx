@@ -4,24 +4,32 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Tabs as TabsPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
 const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", {
   variants: {
     variant: {
       default: "bg-muted",
-      glass: "glass-surface",
-      frosted: "glass-frosted",
-      crystal: "glass-crystal",
-      opaque: "glass-opaque",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "",
+      frosted: "",
+      crystal: "",
+      opaque: "",
+      surface: "text-foreground",
+      solid: "text-foreground",
     },
   },
   defaultVariants: {
     variant: "glass",
   },
 });
+
+/* Role: bordered adaptive glass (the old glass-surface look). */
+const ROLE = {
+  border: true,
+};
 
 const Tabs = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Root>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>(
   ({ className, orientation = "horizontal", ...props }, ref) => (
@@ -39,16 +47,35 @@ Tabs.displayName = TabsPrimitive.Root.displayName;
 
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>
->(({ className, variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> &
+    VariantProps<typeof tabsListVariants> & {
+      material?: Material;
+      border?: boolean;
+      glow?: boolean | "lg";
+      effect?: HoverEffect;
+    }
+>(({ className, variant = "glass", material, border, glow, effect, ...props }, ref) => {
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+    glow,
+  });
+
   return (
     <TabsPrimitive.List
       ref={ref}
       data-slot="tabs-list"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         tabsListVariants({
           variant,
         }),
+        effect && "relative overflow-hidden",
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
         className,
       )}
       {...props}

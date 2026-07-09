@@ -9,6 +9,7 @@
       "title": "Button",
       "description": "Displays a button or a component that looks like a button with glassy variants.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -51,6 +52,7 @@
       "title": "Card",
       "description": "Displays a card with optional glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -92,6 +94,7 @@
       "title": "Input",
       "description": "Displays a form input field with optional glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -133,6 +136,7 @@
       "title": "Textarea",
       "description": "Displays a form textarea with optional glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -216,6 +220,7 @@
       "title": "Badge",
       "description": "Displays a badge or a component that looks like a badge with glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -308,6 +313,7 @@
       ],
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -351,6 +357,7 @@
       ],
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -435,6 +442,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -478,6 +486,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -520,6 +529,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -562,6 +572,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -604,6 +615,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -647,6 +659,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -690,6 +703,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -733,6 +747,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -769,6 +784,7 @@
       "title": "Skeleton",
       "description": "Use to show a placeholder while content is loading with optional glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -810,6 +826,7 @@
       "title": "Alert",
       "description": "Displays a callout for user attention with optional glassy variant.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -901,6 +918,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -945,6 +963,7 @@
       ],
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -987,6 +1006,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1074,6 +1094,7 @@
       ],
       "registryDependencies": [
         "@sistine/dialog",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1118,6 +1139,7 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/dialog",
+        "@sistine/material",
         "@sistine/slider",
         "@sistine/theme"
       ],
@@ -1161,6 +1183,7 @@
         "vaul"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1203,6 +1226,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1246,6 +1270,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1289,6 +1314,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1326,6 +1352,7 @@
       "description": "Pagination with page navigation with optional glassy variant.",
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1374,6 +1401,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1417,6 +1445,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1509,6 +1538,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1588,6 +1618,7 @@
       "title": "Table",
       "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1635,6 +1666,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1677,6 +1709,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1721,6 +1754,7 @@
       ],
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1798,6 +1832,7 @@
       "title": "Button Group",
       "description": "A group of buttons with glassy variants.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/separator",
         "@sistine/theme"
       ],
@@ -1843,6 +1878,7 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/input",
+        "@sistine/material",
         "@sistine/textarea",
         "@sistine/theme"
       ],
@@ -1885,6 +1921,7 @@
       "title": "Empty State",
       "description": "An empty state component with glassy variants.",
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1927,6 +1964,7 @@
       "description": "A menu bar component with glassy variants.",
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1978,6 +2016,7 @@
         "@sistine/button",
         "@sistine/calendar",
         "@sistine/input",
+        "@sistine/material",
         "@sistine/popover",
         "@sistine/theme"
       ],
@@ -2022,6 +2061,7 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -2065,6 +2105,7 @@
       ],
       "registryDependencies": [
         "@sistine/button",
+        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [

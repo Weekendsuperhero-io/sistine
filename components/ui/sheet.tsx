@@ -5,7 +5,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, type MaterialProps, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Role: bordered adaptive glass at the elevated blur tier (the old glass-surface-lg look). */
+const ROLE: MaterialProps = {
+  border: true,
+  size: "lg",
+};
 
 const Sheet = DialogPrimitive.Root;
 
@@ -51,24 +58,38 @@ const sheetVariants = cva(
 
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, VariantProps<typeof sheetVariants> {
   variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
+  material?: Material;
+  border?: boolean;
+  veil?: boolean;
+  gradient?: boolean;
+  glow?: boolean | "lg";
   showCloseButton?: boolean;
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", variant = "glass", className, children, showCloseButton = true, ...props }, ref) => {
+  ({ side = "right", variant = "glass", material, border, veil, gradient, glow, className, children, showCloseButton = true, ...props }, ref) => {
+    /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
     const getVariantClass = () => {
       if (variant === "default") return "bg-background border";
 
       const variants = {
-        glass: "glass-surface-lg text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
+        glass: "text-foreground",
+        frosted: "text-foreground",
+        crystal: "text-foreground",
+        opaque: "text-foreground",
+        surface: "text-foreground",
+        solid: "text-foreground",
       };
       return variants[variant] || variants.glass;
     };
+
+    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+    });
 
     return (
       <SheetPortal>
@@ -76,7 +97,9 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
         <DialogPrimitive.Content
           ref={ref}
           data-slot="sheet-content"
+          data-material={m?.["data-material"]}
           className={cn(
+            m?.className,
             sheetVariants({
               side,
             }),

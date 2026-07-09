@@ -5,25 +5,33 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type Material, type MaterialProps, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
 const dialogContentVariants = cva("", {
   variants: {
     variant: {
       default: "bg-background border",
-      glass: "glass-surface-lg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "text-foreground",
+      frosted: "text-foreground",
+      crystal: "text-foreground",
+      opaque: "text-foreground",
+      surface: "text-foreground",
+      solid: "text-foreground",
     },
   },
   defaultVariants: {
     variant: "glass",
   },
 });
+
+/* Role: bordered adaptive glass at the elevated blur tier (the old glass-surface-lg look). */
+const ROLE: MaterialProps = {
+  border: true,
+  size: "lg",
+};
 
 const Dialog = DialogPrimitive.Root;
 
@@ -54,48 +62,83 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> &
     VariantProps<typeof dialogContentVariants> & {
       glass?: GlassCustomization;
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      gradient?: boolean;
+      glow?: boolean | "lg";
+      /** Elevated backdrop blur (folded from the glass wrapper). */
+      animated?: boolean;
       showCloseButton?: boolean;
     }
->(({ className, variant = "glass", children, glass, style, showCloseButton = true, ...props }, ref) => {
-  const hasCustomGlass = glass !== undefined;
-  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
+>(
+  (
+    {
+      className,
+      variant = "glass",
+      children,
+      glass,
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      animated = true,
+      style,
+      showCloseButton = true,
+      ...props
+    },
+    ref,
+  ) => {
+    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+    });
 
-  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
+    const hasCustomGlass = glass !== undefined;
+    const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
-  return (
-    <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay />
-      <DialogPrimitive.Content
-        ref={ref}
-        data-slot="dialog-content"
-        data-glass={variant === "frosted" || variant === "crystal" ? variant : undefined}
-        className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
-          dialogContentVariants({
-            variant: effectiveVariant,
-          }),
-          className,
-        )}
-        style={{
-          ...glassStyles,
-          ...style,
-        }}
-        {...props}
-      >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
-    </DialogPortal>
-  );
-});
+    return (
+      <DialogPortal data-slot="dialog-portal">
+        <DialogOverlay />
+        <DialogPrimitive.Content
+          ref={ref}
+          data-slot="dialog-content"
+          data-material={m?.["data-material"]}
+          data-glass={variant === "frosted" || variant === "crystal" ? variant : undefined}
+          className={cn(
+            m?.className,
+            "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-hidden rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+            dialogContentVariants({
+              variant,
+            }),
+            animated && "backdrop-blur-[var(--blur-lg)]",
+            className,
+          )}
+          style={{
+            ...glassStyles,
+            ...style,
+          }}
+          {...props}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogPrimitive.Close
+              data-slot="dialog-close"
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Content>
+      </DialogPortal>
+    );
+  },
+);
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
