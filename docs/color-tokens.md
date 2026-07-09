@@ -116,7 +116,6 @@ Color-wheel relationships off `--harmony-h` (the content hue, or `0` for the hue
 | `--hue-*` | Angle tokens: `base`, `complement`, `analogous-1/2`, `split-1/2`, `triad-1/2`, `tetrad-1/2/3`, `square-1/2/3` — use as `oklch(L C var(--hue-triad-1))` |
 | `--color-*` | Ready vivid colors at the accent envelope: `complement`, `triad-1/2`, `split-1/2`, `analogous-1/2` |
 | `--mono-1..3` | Monochromatic ramp in the theme hue |
-| `--alpha-1..6` | Standard alpha tiers: `0.04 · 0.08 · 0.12 · 0.2 · 0.32 · 0.5` |
 
 ## Shadow & press
 

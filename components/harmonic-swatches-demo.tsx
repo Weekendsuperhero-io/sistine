@@ -142,23 +142,22 @@ export function HarmonicSwatchesDemo() {
           </div>
         </div>
         <div>
-          <h3 className="mb-2 font-medium text-foreground text-sm">
-            <code className="text-xs">--alpha-1..6</code> — accent at each tier
-          </h3>
+          <h3 className="mb-2 font-medium text-foreground text-sm">Alpha tiers — accent at 0.04 → 0.5</h3>
           <div className="flex overflow-hidden rounded-lg border border-[var(--glass-border)]">
+            {/* Design-guidance ramp (not theme tokens): hairline → subtle → standard → pressed → prominent → scrim. */}
             {[
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-            ].map((n) => (
+              0.04,
+              0.08,
+              0.12,
+              0.2,
+              0.32,
+              0.5,
+            ].map((a) => (
               <div
-                key={n}
+                key={a}
                 className="h-12 flex-1"
                 style={{
-                  background: `oklch(0.6 0.18 var(--glass-fg-h) / var(--alpha-${n}))`,
+                  background: `oklch(0.6 0.18 var(--glass-fg-h) / ${a})`,
                 }}
               />
             ))}

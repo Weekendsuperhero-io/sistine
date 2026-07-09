@@ -604,10 +604,6 @@ const onAccent = useReadableForeground(accent, "large");
                       "--mono-1..3",
                       "a monochromatic ramp in the theme hue",
                     ],
-                    [
-                      "--alpha-1..6",
-                      "standard alpha tiers (0.04 → 0.5) for fills / overlays / scrims",
-                    ],
                   ].map(([t, w]) => (
                     <tr key={t}>
                       <td className="border border-foreground/15 px-3 py-2">
@@ -620,8 +616,7 @@ const onAccent = useReadableForeground(accent, "large");
               </table>
             </div>
             <Code>{`<div style={{ background: "oklch(0.6 0.16 var(--hue-triad-1))" }} />
-<div style={{ background: "var(--color-complement)" }} />
-<div style={{ background: "oklch(0.6 0.18 var(--glass-fg-h) / var(--alpha-3))" }} />`}</Code>
+<div style={{ background: "var(--color-complement)" }} />`}</Code>
             <p className="text-muted-foreground">
               Standalone icons (<IC>text-foreground-ui</IC>) can pin to any of these relationships — contrast-solved — from the{" "}
               <a className="underline underline-offset-2" href="/colors">

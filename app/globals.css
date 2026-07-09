@@ -15,6 +15,18 @@
   inherits: false;
 }
 
+/* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
+   rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as
+   the harmonic tokens below). Registered here to pin them. DO NOT REMOVE. */
+@property --gradient-text {
+  syntax: "*";
+  inherits: true;
+}
+@property --gradient-text-contrast {
+  syntax: "*";
+  inherits: true;
+}
+
 /* ── Harmonic token registration ──────────────────────────────────────────────────────────────
    The harmonic tokens (--harmony-h, --hue-*, --color-*, --mono-*, defined in :root below) are
    consumed ONLY from JS / inline styles (HarmonicSwatchesDemo, AutoForeground) — never referenced by
@@ -199,7 +211,6 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --shadow-glass: var(--glass-shadow);
 }
 
 :root {
@@ -225,14 +236,6 @@
   --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2), inset 0 1px 2px oklch(var(--shadow-ink) / 0.15);
   --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.25), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
   --active-shadow: 0 1px 3px oklch(var(--shadow-ink) / 0.1), inset 0 1px 1px oklch(var(--shadow-highlight) / 0.5);
-  /* Opacity scale — standard alpha tiers to replace ad-hoc per-call alphas (the opacity-audit deliverable).
-     Compose as oklch(<L C H> / var(--alpha-3)) or color-mix. Mode-invariant. */
-  --alpha-1: 0.04; /* hairline fills */
-  --alpha-2: 0.08; /* subtle borders / low overlays */
-  --alpha-3: 0.12; /* standard glass border / wash */
-  --alpha-4: 0.2; /* pressed ink / dividers */
-  --alpha-5: 0.32; /* prominent overlays */
-  --alpha-6: 0.5; /* scrims */
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(
@@ -870,27 +873,6 @@
   &:hover::before {
     background-position: 100% 100%;
   }
-}
-
-/* Gradient text — fills glyphs with the theme gradient at full opacity (follows --glass-fg-h).
-   Twin of the brand --gradient but without the wash alpha so the letters stay crisp. Best on
-   large/display text: a gradient fill has no single contrast value, so keep body/UI text solid. */
-@utility text-gradient {
-  background-image: var(--gradient-text);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-
-/* High-contrast variant — same clip, but the dark (light-mode) / light (dark-mode) tint gradient so
-   it stays legible printed on a tinted glass surface (e.g. the theme CSS snippet). */
-@utility text-gradient-contrast {
-  background-image: var(--gradient-text-contrast);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
 }
 
 /* Keep react-day-picker from painting over the glass background */
