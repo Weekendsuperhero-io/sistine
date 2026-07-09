@@ -696,17 +696,19 @@
   box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
 }
 
-/* Gradient glass — the brand purple→blue --gradient (medium strength) layered over the glass
-   sheen + blur. The "gradient" surface; drives the gradient Button variant and is usable on
-   anything via the `glass-gradient` class. */
+/* Gradient ACCENT — deliberately NOT a material (the material set is six: glass, surface, solid,
+   opaque, frosted, crystal; a material answers transparency/blur/light — this is a brand wash ON
+   glass). Pair with the surface: `glass-surface glass-gradient`. This class only PINS the --srf-*
+   tokens the surface reads: the theme --gradient rides over the standard sheet, and — matching the
+   old material's behavior — the element-level pins beat any inherited [data-glass] page-style remap,
+   so a gradient button holds its look under every site style. A token-SETTER and a token-READER on
+   one element never collide, so this pairing is immune to Tailwind's utility emission order. */
 @utility glass-gradient {
-  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
-  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
-  background-image: var(--gradient), var(--glass-bg), var(--glass-solidify);
-  backdrop-filter: blur(var(--blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent);
+  --srf-bg-image: var(--gradient), var(--glass-bg);
+  --srf-bg-color: transparent;
+  --srf-filter: blur(var(--blur)) saturate(180%);
+  --srf-border-color: var(--glass-border);
+  --srf-shadow: var(--glass-shadow);
 }
 
 /* Frosted — enhanced blur + higher opacity. The !important is LOAD-BEARING: Tailwind v4 emits custom

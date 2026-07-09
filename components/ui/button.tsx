@@ -12,7 +12,7 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground [background-image:var(--glass-bg)] shadow-md hover:bg-primary/90 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         glass: "glass-bg text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
-        gradient: "glass-gradient text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow)]",
+        gradient: "glass-surface glass-gradient text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow)]",
         frosted: "glass-frosted text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow-strong)]",
         crystal: "glass-crystal text-foreground transition active:opacity-90 active:shadow-[var(--press-shadow-deep)]",
         opaque: "glass-opaque text-foreground hover:opacity-90 transition active:opacity-85 active:shadow-[var(--press-shadow)]",
