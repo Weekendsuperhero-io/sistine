@@ -16,6 +16,7 @@
 @import "./theme/tokens.css";
 @import "./theme/engine.css";
 @import "./theme/utilities.css";
+@import "./theme/materials.css";
 @import "./theme/styles.css";
 @import "./theme/presets.css";
 @import "./theme/frescoes.css";

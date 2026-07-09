@@ -1,10 +1,14 @@
 /* ── Site-wide style remaps + vendor cascade fixes ──────────────────────────── */
 
-/* Keep react-day-picker from painting over the glass background */
+/* Keep react-day-picker from painting over the glass background (.glass = the new structural
+   utility; .glass-bg = the legacy recipe, dies with the migration) */
 @layer utilities {
   .glass-bg[class*="rdp"],
   .glass-bg .rdp,
-  .glass-bg .rdp-month {
+  .glass-bg .rdp-month,
+  .glass[class*="rdp"],
+  .glass .rdp,
+  .glass .rdp-month {
     background-color: transparent !important;
   }
 }

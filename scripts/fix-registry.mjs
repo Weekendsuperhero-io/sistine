@@ -209,7 +209,7 @@ const usesThemeTokens = (item) =>
   (item.files ?? []).some((f) => {
     if (!/\.(tsx?|css)$/.test(f.path)) return false;
     const abs = join(root, f.path);
-    return existsSync(abs) && /--glass-|--accent-|data-glass-tint|data-pattern/.test(readFileSync(abs, "utf8"));
+    return existsSync(abs) && /--glass-|--accent-|data-glass-tint|data-material|data-pattern/.test(readFileSync(abs, "utf8"));
   });
 // True iff a direct registry dep is a ui primitive — those all carry @sistine/theme, so it's reached transitively.
 const reachesThemeViaDeps = (item) =>

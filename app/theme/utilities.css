@@ -19,6 +19,58 @@
   --glow-layer: 0 0 12px 2px var(--glass-glow), 0 0 28px 5px var(--glass-glow);
 }
 
+/* ── THE MATERIAL SYSTEM (Sistine 2.0) ────────────────────────────────────────
+   ONE structural utility (`glass`) + orthogonal axis classes. The material (a token set) comes from
+   [data-material] (materials.css) or the inherited [data-glass] page remap (styles.css); with
+   neither, the --srf-* fallbacks render the default glass material. Axis utilities only SET custom
+   props (or properties `glass` never touches), so Tailwind's emission order can never flip a result.
+   (The legacy recipe utilities below coexist during the migration and die with it.) */
+
+/* Structural glass — background/filter/shadow plumbing only; borderless (add glass-border).
+   Channels, outermost first:
+     background-image  = [--acc-gradient accent slot] + [--srf-bg-image material stack] + [solidify]
+     background-color  = --veil-floor (element veil) > --srf-bg-color (material floor) > transparent
+     backdrop-filter   = --srf-filter (material) > blur(--srf-blur > --blur) saturate(180%)
+     box-shadow        = --srf-shadow (material) > --srf-elev (size axis) > --glass-shadow, + glow
+   The leading gradient slot is a no-op transparent layer so `glass-gradient` composes over ANY
+   material (same pattern as the fresco slot inside --crystal-stack-bg). The solidify floor
+   (--glass-opacity dial) is composed HERE, at the element — never in a token context (the
+   var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). */
+@utility glass {
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
+  background-color: var(--veil-floor, var(--srf-bg-color, transparent));
+  backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Border axis — the material picks the color (and width: frosted is 0.5px). */
+@utility glass-border {
+  border: var(--srf-border-w, 1px) solid var(--srf-border-color, var(--glass-border));
+}
+
+/* Veil axis — the legibility floor for read-through overlays (menus, tooltips, toasts).
+   Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
+   The veil rides the background-COLOR channel, under the material's image stack, and — being
+   element-declared — beats any inherited --srf-bg-color remap. */
+@utility glass-veil {
+  --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
+}
+
+/* Size axes — blur + elevation tiers. These feed the GLASS material only: frosted/crystal/opaque
+   (and page remaps) set --srf-filter/--srf-shadow wholesale, which flattens the tiers — matching
+   the old system, where the [data-glass] styles flattened glass-surface-sm/-lg. */
+@utility glass-sm {
+  --srf-blur: var(--blur-sm);
+  --srf-elev: var(--glass-shadow-sm);
+}
+@utility glass-lg {
+  --srf-blur: var(--blur-lg);
+  --srf-elev: var(--glass-shadow-lg);
+}
+
 /* ── Default surfaces read the style-agnostic --srf-* tokens ─────────────────
    The five default surfaces (glass-bg / glass-surface / -sm / -lg / glass-solid) consume --srf-* custom
    properties with the glass recipe as the fallback. The tokens are DECLARED ONLY by the [data-glass]

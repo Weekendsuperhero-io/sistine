@@ -2408,6 +2408,21 @@
       "dependencies": []
     },
     {
+      "name": "material",
+      "type": "registry:lib",
+      "title": "Material System",
+      "description": "The Sistine material system: the Material type, glassMaterial() (material + axis props to data-material/classes), and glassVars() (typed per-element CSS-variable knobs).",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
       "name": "hover-effects",
       "type": "registry:lib",
       "title": "Hover Effects",
