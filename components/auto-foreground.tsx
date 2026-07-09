@@ -215,6 +215,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // still hits each tier's ARC-Bronze APCA target, so accent-tinted text stays legible.
       const accentH = num("--accent-h", Number.NaN);
       const accentC = num("--accent-c", 0.15);
+      // Uncertainty-aware contrast margin. The normal tiers are banded against the veiled floor MODEL,
+      // whose only unknown is the backdrop showing through — and the backdrop's weight in that mix is
+      // exactly (1 − solidA)·(1 − tintA) (see glassSolidSurface). The more the backdrop shows, the less
+      // the model can be trusted, so each band's TARGET gets a safety margin of up to +LC_MARGIN
+      // (≈ one ARC band step) at fully-sheer, decaying to +0 at a fully-known floor (solidA 1 — e.g. the
+      // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
+      const LC_MARGIN = 12;
+      const solidA = num("--glass-solid-a", 0.65);
+      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA), 0), 1);
+      const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
       const fgHarmonyH = huelessAccent ? accentH : harmonyH;
@@ -255,13 +265,22 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         },
         suffix: string,
         adaptive: boolean,
+        lcBoost = 0,
       ) => {
+        // Uncertainty margin: lift the band's TARGET toward its ceiling by the show-through boost (0 for
+        // fully-known floors like the opaque set). Floors/ceilings stay — the margin aims higher, it
+        // never legalizes a harsher pick than the band already allowed.
+        const boost = (band: { floor: number; target: number; ceiling: number }) => ({
+          ...band,
+          target: Math.min(band.target + lcBoost, band.ceiling),
+        });
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
         // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (bone cream).
-        const tier = (band: { floor: number; target: number; ceiling: number }) =>
-          formatOklch(
+        const tier = (rawBand: { floor: number; target: number; ceiling: number }) => {
+          const band = boost(rawBand);
+          return formatOklch(
             adaptive
               ? readableForeground(surface, {
                   floor: band.floor,
@@ -274,6 +293,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                 })
               : pickInBand(ramp, surface, band),
           );
+        };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
         root.style.setProperty(
           `--muted-foreground${suffix}`,
@@ -293,7 +313,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             ? tier(READABLE_USAGE[usage])
             : formatOklch(
                 readableForeground(surface, {
-                  usage,
+                  ...boost(READABLE_USAGE[usage]),
                   hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
                   chroma: 0.15,
                 }),
@@ -308,7 +328,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           `--foreground-ui${suffix}`,
           formatOklch(
             readableForeground(surface, {
-              usage: "ui",
+              ...boost(READABLE_USAGE.ui),
               hue: iconH,
               chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
             }),
@@ -316,7 +336,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         );
       };
 
-      // Normal surface: the glass-SOLID floor body text sits on (page + translucent/solid cards).
+      // Normal surface: the veiled floor body text sits on (page + translucent/veiled cards), with the
+      // show-through margin lifting each band target as the floor gets sheerer.
       applyTiers(
         glassSolidSurface(
           dark,
@@ -325,10 +346,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             c: num("--glass-tint-c", 0),
             a: tintA,
           },
-          num("--glass-solid-a", 0.65),
+          solidA,
         ),
         "",
         false,
+        normalLcBoost,
       );
       // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it (its lightness
       // is exposed as the numeric --glass-opaque-l token; chroma/hue from the tint). `adaptive` so a LIGHT
@@ -363,11 +385,33 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     update();
     // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
     // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
-    const observer = new MutationObserver(() => update());
+    // Inline STYLE mutations re-band ONLY when --glass-solid-a actually changed (the veil-floor slider):
+    // the show-through margin depends on it, and it's the one input with no FG_EVENT. The old-vs-new gate
+    // keeps tint drags on the event fast path AND breaks the self-trigger loop from our own --foreground*
+    // writes (which never touch solid-a).
+    const SOLID_A = /--glass-solid-a:\s*([^;]+)/;
+    const observer = new MutationObserver((muts) => {
+      for (const m of muts) {
+        if (m.attributeName === "class") {
+          update();
+          return;
+        }
+        if (m.attributeName === "style") {
+          const prev = SOLID_A.exec(m.oldValue ?? "")?.[1]?.trim();
+          const next = SOLID_A.exec(root.getAttribute("style") ?? "")?.[1]?.trim();
+          if (prev !== next) {
+            update();
+            return;
+          }
+        }
+      }
+    });
     observer.observe(root, {
       attributes: true,
+      attributeOldValue: true,
       attributeFilter: [
         "class",
+        "style",
       ],
     });
     const onFg = (e: Event) => update((e as CustomEvent<Record<string, number>>).detail ?? undefined);
