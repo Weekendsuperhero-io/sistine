@@ -343,7 +343,8 @@ const MUSE_STYLES = `
   pointer-events: none;
   --muse-h: var(--accent-h, var(--glass-tint-h));
   filter: drop-shadow(0 0 1px oklch(0.72 0.17 var(--muse-h) / 0.5));
-  opacity: 0.9;
+  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode; starfield (no gate) keeps 0.9. */
+  opacity: calc(0.9 * var(--sw-stars-o, 1));
 }
 .star-muse circle {
   fill: oklch(0.96 0.04 var(--muse-h));
@@ -500,31 +501,121 @@ const GHOST_STYLES = `
   .pattern-ghost { animation: none !important; }
 }`;
 
-// Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon).
-// A perspective grid receding to a glowing horizon line, a disc rising from it, and a starfield sky.
-// The grid + horizon glow ride the selectable --sw-line (accent hue; Tron-cyan for the sun, violet for
-// the moon). Layers back→front: sky gradient (.sw-scene) · stars · disc · dark ground (hides the disc's
-// dip) · horizon glow · floor-grid. moonrise reskins sky/disc/ground/glow via [data-pattern="moonrise"].
-// The floor uses PARENT perspective (.sw-floor, perspective-origin at the horizon) so lines converge at
-// the horizon, not the near edge. The lone motion is the grid's background-position scroll.
+// Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
+// each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
+// --sw-* custom property: day values sit on [data-pattern="…"], night values on `.dark [data-pattern="…"]`
+// (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
+// rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
+// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the
+// sky/ground also take a gentle cast of the theme tint (--sw-cast, gated on tint chroma so neutral stays
+// the authored scene). Layers back→front: sky gradient (.sw-scene) · stars (day-hidden via --sw-stars-o) ·
+// disc · ground (hides the disc's dip) · horizon glow · floor-grid. The floor uses PARENT perspective
+// (.sw-floor, perspective-origin at the horizon) so lines converge at the horizon, not the near edge. The
+// lone motion is the grid's compositor-only translateY scroll.
 const SYNTHWAVE_STYLES = `
+[data-pattern="synthwave"] {
+  /* DAY — a bright, hazy outrun morning */
+  --sw-line-h: 195; /* scene identity hue (Tron cyan) — shared by both modes */
+  /* Day tint cast — how much of the theme tint bleeds into sky/ground. Gated on the tint's chroma, so the
+     near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
+     gentle atmospheric wash. Day-only; night keeps its authored neon. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
+  --sw-line: oklch(0.48 0.08 var(--accent-h, var(--sw-line-h))); /* C 0.08 stays in-gamut at L 0.48 for EVERY accent hue */
+  --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
+  --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-sky-c: color-mix(in oklch, oklch(0.9 0.07 330), oklch(0.9 0.06 var(--glass-tint-h, 330)) var(--sw-cast));
+  --sw-sky-d: color-mix(in oklch, oklch(0.92 0.04 25), oklch(0.92 0.04 var(--glass-tint-h, 25)) var(--sw-cast));
+  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.03 320), oklch(0.93 0.03 var(--glass-tint-h, 320)) var(--sw-cast));
+  --sw-ground-b: color-mix(in oklch, oklch(0.87 0.045 310), oklch(0.87 0.04 var(--glass-tint-h, 310)) var(--sw-cast));
+  --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
+  --sw-glow-core: oklch(0.72 0.11 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-bloom: oklch(0.75 0.12 340 / 0.35);
+  --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
+  --sw-disc-2: oklch(0.65 0.22 6);
+  --sw-disc-3: oklch(0.72 0.18 42);
+  --sw-disc-4: oklch(0.8 0.165 74);
+  --sw-disc-5: oklch(0.88 0.16 95);
+  --sw-disc-glow: oklch(0.7 0.19 20 / 0.35);
+  --sw-stars-o: 0; /* stars hidden by day (also gates the Muse constellation) */
+}
+.dark [data-pattern="synthwave"] {
+  /* NIGHT — the original neon scene, verbatim */
+  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: oklch(0.12 0.085 285);
+  --sw-sky-b: oklch(0.15 0.1 305);
+  --sw-sky-c: oklch(0.24 0.14 332);
+  --sw-sky-d: oklch(0.34 0.16 350);
+  --sw-below: oklch(0.09 0.03 282);
+  --sw-ground-a: oklch(0.1 0.04 286);
+  --sw-ground-b: oklch(0.06 0.02 280);
+  --sw-glow-core: var(--sw-line);
+  --sw-glow-bloom: oklch(0.62 0.24 340 / 0.4);
+  --sw-disc-1: oklch(0.6 0.27 352);
+  --sw-disc-2: oklch(0.66 0.25 6);
+  --sw-disc-3: oklch(0.74 0.21 42);
+  --sw-disc-4: oklch(0.85 0.19 74);
+  --sw-disc-5: oklch(0.93 0.17 100);
+  --sw-disc-glow: oklch(0.6 0.26 348 / 0.5);
+  --sw-stars-o: 1;
+}
+[data-pattern="moonrise"] {
+  /* DAY — a pale morning sky with a faint daytime moon */
+  --sw-line-h: 270; /* scene identity hue (violet) */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
+  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: color-mix(in oklch, oklch(0.87 0.04 245), oklch(0.87 0.05 var(--glass-tint-h, 245)) var(--sw-cast));
+  --sw-sky-b: color-mix(in oklch, oklch(0.9 0.045 260), oklch(0.9 0.045 var(--glass-tint-h, 260)) var(--sw-cast));
+  --sw-sky-c: color-mix(in oklch, oklch(0.92 0.035 275), oklch(0.92 0.035 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-sky-d: color-mix(in oklch, oklch(0.94 0.03 300), oklch(0.94 0.03 var(--glass-tint-h, 300)) var(--sw-cast));
+  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.02 275), oklch(0.93 0.025 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-ground-b: color-mix(in oklch, oklch(0.88 0.035 280), oklch(0.88 0.035 var(--glass-tint-h, 280)) var(--sw-cast));
+  --sw-below: var(--sw-ground-a);
+  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-bloom: oklch(0.8 0.07 290 / 0.3);
+  --sw-moon-1: oklch(0.94 0.02 270); /* daytime moon: whitish, barely-there */
+  --sw-moon-2: oklch(0.9 0.04 278);
+  --sw-moon-3: oklch(0.85 0.06 288);
+  --sw-maria: 0.72 0.06 285; /* L C H triple (alpha at the call site) — same convention as --glass-gloss-ink */
+  --sw-disc-glow: oklch(0.85 0.05 280 / 0.35);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="moonrise"] {
+  /* NIGHT — the original midnight scene, verbatim */
+  --sw-line: oklch(0.72 0.16 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: oklch(0.09 0.05 265);
+  --sw-sky-b: oklch(0.12 0.07 272);
+  --sw-sky-c: oklch(0.17 0.09 283);
+  --sw-sky-d: oklch(0.23 0.11 293);
+  --sw-below: oklch(0.07 0.03 270);
+  --sw-ground-a: oklch(0.09 0.04 276);
+  --sw-ground-b: oklch(0.05 0.02 270);
+  --sw-glow-core: var(--sw-line);
+  --sw-glow-bloom: oklch(0.58 0.2 292 / 0.4);
+  --sw-moon-1: oklch(0.75 0.11 278);
+  --sw-moon-2: oklch(0.6 0.16 290);
+  --sw-moon-3: oklch(0.47 0.17 300);
+  --sw-maria: 0.4 0.13 296;
+  --sw-disc-glow: oklch(0.58 0.17 286 / 0.5);
+  --sw-stars-o: 1;
+}
 .sw-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: linear-gradient(
     to bottom,
-    oklch(0.12 0.085 285) 0%,
-    oklch(0.15 0.1 305) 30%,
-    oklch(0.24 0.14 332) 50%,
-    oklch(0.34 0.16 350) 57%,
-    oklch(0.09 0.03 282) 58%
+    var(--sw-sky-a) 0%,
+    var(--sw-sky-b) 30%,
+    var(--sw-sky-c) 50%,
+    var(--sw-sky-d) 57%,
+    var(--sw-below) 58%
   );
 }
 .sw-stars {
   position: absolute;
   inset: 0 0 42% 0;
   background-repeat: no-repeat;
+  opacity: var(--sw-stars-o, 1);
   -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
 }
@@ -538,11 +629,11 @@ const SYNTHWAVE_STYLES = `
   border-radius: 50%;
   background: linear-gradient(
     to top,
-    oklch(0.6 0.27 352) 0%,
-    oklch(0.66 0.25 6) 24%,
-    oklch(0.74 0.21 42) 52%,
-    oklch(0.85 0.19 74) 78%,
-    oklch(0.93 0.17 100) 100%
+    var(--sw-disc-1) 0%,
+    var(--sw-disc-2) 24%,
+    var(--sw-disc-3) 52%,
+    var(--sw-disc-4) 78%,
+    var(--sw-disc-5) 100%
   );
   -webkit-mask-image:
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
@@ -550,7 +641,7 @@ const SYNTHWAVE_STYLES = `
   mask-image:
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
     repeating-linear-gradient(to bottom, #000 0 0.85vh, transparent 0.85vh 1.7vh);
-  filter: drop-shadow(0 0 5vh oklch(0.6 0.26 348 / 0.5));
+  filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
 }
 .sw-ground {
   position: absolute;
@@ -558,7 +649,7 @@ const SYNTHWAVE_STYLES = `
   right: 0;
   bottom: 0;
   height: 42%;
-  background: linear-gradient(to bottom, oklch(0.1 0.04 286) 0%, oklch(0.06 0.02 280) 100%);
+  background: linear-gradient(to bottom, var(--sw-ground-a) 0%, var(--sw-ground-b) 100%);
 }
 .sw-glow {
   position: absolute;
@@ -566,8 +657,8 @@ const SYNTHWAVE_STYLES = `
   right: 0;
   bottom: 42%;
   height: 2px;
-  background: var(--sw-line);
-  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.62 0.24 340 / 0.4);
+  background: var(--sw-glow-core);
+  box-shadow: 0 0 12px 2px var(--sw-glow-core), 0 0 52px 12px var(--sw-glow-bloom);
 }
 .sw-floor {
   position: absolute;
@@ -632,7 +723,7 @@ const SYNTHWAVE_STYLES = `
 }
 
 /* Moonrise variant — a purple-blue moon over a midnight sky, no scanlines. Shares every structural
-   class; only the sky, disc, ground, and glow bloom recolor (via [data-pattern="moonrise"]). */
+   class; the [data-pattern="moonrise"] palette blocks above swap the colors — no per-property reskins. */
 .sw-moon {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -642,27 +733,11 @@ const SYNTHWAVE_STYLES = `
   transform: translate(-50%, 30%);
   border-radius: 50%;
   background:
-    radial-gradient(34% 30% at 63% 30%, oklch(0.4 0.13 296 / 0.55) 0, transparent 62%),
-    radial-gradient(20% 18% at 38% 56%, oklch(0.4 0.13 296 / 0.5) 0, transparent 62%),
-    radial-gradient(13% 12% at 56% 72%, oklch(0.4 0.13 296 / 0.45) 0, transparent 62%),
-    radial-gradient(circle at 42% 38%, oklch(0.75 0.11 278) 0%, oklch(0.6 0.16 290) 52%, oklch(0.47 0.17 300) 100%);
-  filter: drop-shadow(0 0 5vh oklch(0.58 0.17 286 / 0.5));
-}
-[data-pattern="moonrise"] .sw-scene {
-  background: linear-gradient(
-    to bottom,
-    oklch(0.09 0.05 265) 0%,
-    oklch(0.12 0.07 272) 30%,
-    oklch(0.17 0.09 283) 50%,
-    oklch(0.23 0.11 293) 57%,
-    oklch(0.07 0.03 270) 58%
-  );
-}
-[data-pattern="moonrise"] .sw-ground {
-  background: linear-gradient(to bottom, oklch(0.09 0.04 276) 0%, oklch(0.05 0.02 270) 100%);
-}
-[data-pattern="moonrise"] .sw-glow {
-  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.58 0.2 292 / 0.4);
+    radial-gradient(34% 30% at 63% 30%, oklch(var(--sw-maria) / 0.55) 0, transparent 62%),
+    radial-gradient(20% 18% at 38% 56%, oklch(var(--sw-maria) / 0.5) 0, transparent 62%),
+    radial-gradient(13% 12% at 56% 72%, oklch(var(--sw-maria) / 0.45) 0, transparent 62%),
+    radial-gradient(circle at 42% 38%, var(--sw-moon-1) 0%, var(--sw-moon-2) 52%, var(--sw-moon-3) 100%);
+  filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
 }`;
 
 // Pac-Man chase: a seamless scrolling "corridor" per lane — Pac chomps in place (clip-path) while the dot
@@ -674,6 +749,9 @@ const SYNTHWAVE_STYLES = `
 // on a lane (Pac was eating through walls). Each ghost hue rides the theme COMPLEMENT (var(--hue-complement))
 // ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it (fade out) mid-run; the others let
 // it escape ahead. Durations bumped way up — the old 7–11s zipped; 15–24s reads as a stroll.
+// NIGHT SCENE BY DESIGN: unlike synthwave/moonrise/daybreak, chase does NOT flip with the mode toggle —
+// the CRT-arcade identity (gold Pac, pale pellets, fright-blue) assumes a dark field; a light maze would
+// need the whole sprite palette re-picked. Revisit only if users ask.
 const PAC_LANES = [
   {
     top: "12%",
@@ -1033,7 +1111,9 @@ const PAC_STYLES = `
 
 // Daybreak — the daytime pair for the night starfield: an accent-blue sky, an OFF-CENTER glowing sun (so
 // centered content stays clear), and soft clouds drifting across on the shared --pat-dur pace. Density picks
-// how many clouds render. All compositor transforms; the sky/sun follow the accent hue.
+// how many clouds render. All compositor transforms; the sky/sun follow the accent hue. Mode-aware like the
+// Tron scenes: --day-* palette vars carry the bright day values on [data-pattern="daybreak"] and a DUSK
+// palette (indigo→violet sky, sun sunk to a low amber glow, clouds as dark silhouettes) on `.dark […]`.
 const CLOUD = svgMask(
   "<ellipse cx='52' cy='48' rx='47' ry='20'/><circle cx='30' cy='38' r='16'/><circle cx='55' cy='27' r='23'/><circle cx='78' cy='40' r='16'/>",
   "0 0 104 72",
@@ -1088,14 +1168,36 @@ const DAY_CLOUD_COUNT: Record<PatternDensity, number> = {
   dense: 6,
 };
 const DAY_STYLES = `
+[data-pattern="daybreak"] {
+  /* DAY — the original bright sky, verbatim (accent-tracking hues) */
+  --day-sky-a: oklch(0.82 0.1 var(--accent-h, 230));
+  --day-sky-b: oklch(0.9 0.07 var(--accent-h, 230));
+  --day-sky-c: oklch(0.96 0.04 calc(var(--accent-h, 230) + 28));
+  --day-sun-1: oklch(0.99 0.08 95);
+  --day-sun-2: oklch(0.92 0.16 85);
+  --day-sun-3: oklch(0.9 0.18 72 / 0);
+  --day-sun-glow: oklch(0.92 0.15 84 / 0.5);
+  --day-cloud: #fff;
+}
+.dark [data-pattern="daybreak"] {
+  /* DUSK — indigo→violet sky, the sun sunk to a low amber glow, clouds as dark silhouettes */
+  --day-sky-a: oklch(0.25 0.05 var(--accent-h, 265));
+  --day-sky-b: oklch(0.35 0.07 calc(var(--accent-h, 265) + 20));
+  --day-sky-c: oklch(0.45 0.09 calc(var(--accent-h, 265) + 35));
+  --day-sun-1: oklch(0.85 0.11 82);
+  --day-sun-2: oklch(0.7 0.13 70);
+  --day-sun-3: oklch(0.6 0.13 60 / 0);
+  --day-sun-glow: oklch(0.72 0.11 75 / 0.4);
+  --day-cloud: oklch(0.35 0.03 270);
+}
 .day-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: linear-gradient(to bottom,
-    oklch(0.82 0.1 var(--accent-h, 230)) 0%,
-    oklch(0.9 0.07 var(--accent-h, 230)) 52%,
-    oklch(0.96 0.04 calc(var(--accent-h, 230) + 28)) 100%);
+    var(--day-sky-a) 0%,
+    var(--day-sky-b) 52%,
+    var(--day-sky-c) 100%);
 }
 .day-sun {
   position: absolute;
@@ -1104,14 +1206,14 @@ const DAY_STYLES = `
   width: 21vh;
   height: 21vh;
   border-radius: 50%;
-  background: radial-gradient(circle, oklch(0.99 0.08 95) 0%, oklch(0.92 0.16 85) 52%, oklch(0.9 0.18 72 / 0) 72%);
-  filter: drop-shadow(0 0 7vh oklch(0.92 0.15 84 / 0.5));
+  background: radial-gradient(circle, var(--day-sun-1) 0%, var(--day-sun-2) 52%, var(--day-sun-3) 72%);
+  filter: drop-shadow(0 0 7vh var(--day-sun-glow));
 }
 .day-cloud {
   position: absolute;
   left: 0;
   aspect-ratio: 104 / 72;
-  background-color: #fff;
+  background-color: var(--day-cloud, #fff);
   -webkit-mask: ${CLOUD} center / contain no-repeat;
   mask: ${CLOUD} center / contain no-repeat;
   transform: translateX(-45vw);
@@ -1202,17 +1304,20 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
       };
     }
     case "daybreak":
-      // Rendered by its own branch in PatternBackground; kept exhaustive here.
+      // Rendered by its own branch in PatternBackground (day/night palettes live in DAY_STYLES'
+      // [data-pattern="daybreak"] var blocks); kept exhaustive here.
       return {
         backgroundColor: "oklch(0.88 0.08 var(--accent-h, 230))",
       };
     case "synthwave":
-      // Rendered by its own multi-layer branch in PatternBackground; keeps the switch exhaustive.
+      // Rendered by its own multi-layer branch in PatternBackground (day/night palettes live in
+      // SYNTHWAVE_STYLES' [data-pattern] var blocks); keeps the switch exhaustive.
       return {
         backgroundColor: "oklch(0.09 0.03 282)",
       };
     case "moonrise":
-      // Rendered alongside synthwave in PatternBackground's shared branch; kept exhaustive here.
+      // Rendered alongside synthwave in PatternBackground's shared branch (palettes in SYNTHWAVE_STYLES);
+      // kept exhaustive here.
       return {
         backgroundColor: "oklch(0.07 0.03 270)",
       };
@@ -1376,8 +1481,8 @@ export function PatternBackground({
         className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
-            // Selectable grid/glow color: accent hue, defaulting Tron-cyan for the sun, violet for the moon.
-            "--sw-line": moon ? "oklch(0.72 0.16 var(--accent-h, 270))" : "oklch(0.82 0.19 var(--accent-h, 195))",
+            // Scene colors (incl. --sw-line) live in SYNTHWAVE_STYLES' [data-pattern] palette blocks so the
+            // .dark day/night switch can override them — an inline declaration would beat every stylesheet rule.
             // Sun/moon horizontal placement (left/center/right).
             "--sw-disc-x": discX,
             // Grid scroll pace — one cell every --pat-dur seconds (shared pace across animated patterns).
