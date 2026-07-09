@@ -62,7 +62,7 @@ export default function GettingStartedPage() {
       </div>
 
       <div className="space-y-8">
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Installation</CardTitle>
             <CardDescription className="text-muted-foreground">Install Sistine components using the shadcn CLI</CardDescription>
@@ -94,7 +94,7 @@ export default function GettingStartedPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground" id="mcp">
+        <Card className="text-foreground" id="mcp">
           <CardHeader>
             <CardTitle className="text-foreground">MCP (Model Context Protocol) Setup</CardTitle>
             <CardDescription className="text-muted-foreground">Configure MCP to use Sistine components with AI assistants</CardDescription>
@@ -125,23 +125,23 @@ export default function GettingStartedPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Basic Usage</CardTitle>
             <CardDescription className="text-muted-foreground">Example of using Sistine components</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="example" className="w-full">
-              <TabsList variant="glass" className="mb-4">
+              <TabsList className="mb-4">
                 <TabsTrigger value="example">Example</TabsTrigger>
                 <TabsTrigger value="code">Code</TabsTrigger>
               </TabsList>
               <TabsContent value="example" className="space-y-4">
                 <div className="space-y-2">
-                  <Button variant="glass">Glass Button</Button>
+                  <Button>Glass Button</Button>
                   <Button variant="outline">Outline Button</Button>
                 </div>
-                <Card variant="glass" className="text-foreground">
+                <Card className="text-foreground">
                   <CardHeader>
                     <CardTitle className="text-foreground">Glass Card</CardTitle>
                     <CardDescription className="text-muted-foreground">This is a card with glass effect</CardDescription>
@@ -178,7 +178,7 @@ export function Example() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground" id="glass-customization">
+        <Card className="text-foreground" id="glass-customization">
           <CardHeader>
             <CardTitle className="text-foreground">Customizing Glass Effects</CardTitle>
             <CardDescription className="text-muted-foreground">

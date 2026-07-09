@@ -507,7 +507,7 @@ export function GlassTintSwitcher() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="glass" size="icon" className="h-9 w-9" aria-label="Glass color" title="Glass color">
+        <Button size="icon" className="h-9 w-9" aria-label="Glass color" title="Glass color">
           <span
             className="size-4 rounded-full border border-[var(--glass-border)]"
             style={{

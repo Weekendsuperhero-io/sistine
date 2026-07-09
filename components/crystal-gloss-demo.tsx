@@ -91,7 +91,7 @@ const SWATCHES = [
 ] as const;
 
 /**
- * Crystal gloss playground — the three crystal flavors (data-crystal on <html>):
+ * Crystal gloss playground — the three crystal flavors (data-gloss on <html>):
  *   white → flat white specular (fixed, no knobs)
  *   tonal → a tonally-close single-hue tint of the theme (Tint = chroma multiplier, Light = boldness)
  *   hue   → iridescent: the highlight sweeps hues shifted ± Hue-span around the tint hue
@@ -122,7 +122,7 @@ export function CrystalGlossDemo() {
 
   const apply = (m: Mode, nl: number, nt: number, ns: number, nd: number) => {
     const root = document.documentElement;
-    root.dataset.crystal = m;
+    root.dataset.gloss = m;
     root.style.setProperty("--glass-gloss-l", String(nl));
     root.style.setProperty("--glass-gloss-tint", String(nt));
     root.style.setProperty("--glass-gloss-hue-span", String(ns));
@@ -192,7 +192,7 @@ export function CrystalGlossDemo() {
     <section className="glass-surface w-full max-w-2xl rounded-xl p-6">
       <h2 className="mb-1 font-semibold text-foreground text-xl">Crystal flavors — white · tonal · hue</h2>
       <p className="mb-4 text-muted-foreground text-sm">
-        The crystal shine has three flavors (<code className="text-xs">data-crystal</code>): <strong>White</strong> is the classic flat specular,{" "}
+        The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
         <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent — the highlight sweeps hues
         shifted up &amp; down from the tint. The knobs apply site-wide, so switching the glass style to Crystal shows the same everywhere.
       </p>

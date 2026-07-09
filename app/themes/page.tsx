@@ -115,7 +115,7 @@ export default function ThemesPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "presets" | "custom")} className="space-y-8">
-          <TabsList variant="glass" className="mb-8">
+          <TabsList className="mb-8">
             <TabsTrigger value="presets">Presets</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>
           </TabsList>
@@ -125,7 +125,6 @@ export default function ThemesPage() {
               {presetThemes.map((theme) => (
                 <Card
                   key={theme.name}
-                  variant="glass"
                   className={`cursor-pointer transition-opacity hover:opacity-90 ${selectedTheme.name === theme.name ? "ring-2 ring-primary" : ""}`}
                   onClick={() => setSelectedTheme(theme)}
                 >
@@ -161,7 +160,7 @@ export default function ThemesPage() {
           </TabsContent>
 
           <TabsContent value="custom" className="space-y-8">
-            <Card variant="glass" className="text-foreground">
+            <Card className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Customize Colors</CardTitle>
                 <CardDescription className="text-muted-foreground">Adjust colors to create your own theme</CardDescription>
@@ -268,7 +267,7 @@ export default function ThemesPage() {
             </Card>
           </TabsContent>
 
-          <Card variant="glass" className="text-foreground">
+          <Card className="text-foreground">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>

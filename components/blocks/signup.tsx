@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 export function SignupBlock() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <Card variant="glass" className="w-full max-w-md text-foreground">
+      <Card className="w-full max-w-md text-foreground">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-foreground">Create an account</CardTitle>
           <CardDescription className="text-muted-foreground">Enter your information to get started</CardDescription>
@@ -21,51 +21,43 @@ export function SignupBlock() {
               <Label htmlFor="firstName" className="text-foreground">
                 First Name
               </Label>
-              <Input id="firstName" placeholder="John" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
+              <Input id="firstName" placeholder="John" className="text-foreground placeholder:text-muted-foreground" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName" className="text-foreground">
                 Last Name
               </Label>
-              <Input id="lastName" placeholder="Doe" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
+              <Input id="lastName" placeholder="Doe" className="text-foreground placeholder:text-muted-foreground" />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="email" className="text-foreground">
               Email
             </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              variant="glass"
-              className="text-foreground placeholder:text-muted-foreground"
-            />
+            <Input id="email" type="email" placeholder="name@example.com" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-foreground">
               Password
             </Label>
-            <Input id="password" type="password" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
+            <Input id="password" type="password" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-foreground">
               Confirm Password
             </Label>
-            <Input id="confirmPassword" type="password" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
+            <Input id="confirmPassword" type="password" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="flex items-center gap-2">
-            <Checkbox id="terms" variant="glass" />
+            <Checkbox id="terms" />
             <Label htmlFor="terms" className="text-foreground text-sm cursor-pointer">
               I agree to the Terms of Service and Privacy Policy
             </Label>
           </div>
-          <Button variant="glass" className="w-full text-foreground">
-            Create Account
-          </Button>
+          <Button className="w-full text-foreground">Create Account</Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <Separator variant="glass" />
+              <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">Or continue with</span>

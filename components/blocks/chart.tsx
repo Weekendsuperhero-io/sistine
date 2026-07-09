@@ -113,14 +113,14 @@ export function ChartBlock() {
       </div>
 
       <Tabs defaultValue="bar" className="w-full">
-        <TabsList variant="glass" className="mb-6">
+        <TabsList className="mb-6">
           <TabsTrigger value="bar">Bar Chart</TabsTrigger>
           <TabsTrigger value="line">Line Chart</TabsTrigger>
           <TabsTrigger value="area">Area Chart</TabsTrigger>
         </TabsList>
 
         <TabsContent value="bar">
-          <Card variant="glass">
+          <Card>
             <CardHeader>
               <CardTitle className="text-foreground">Bar Chart</CardTitle>
               <CardDescription className="text-muted-foreground">Desktop vs Mobile traffic comparison</CardDescription>
@@ -137,7 +137,6 @@ export function ChartBlock() {
                     color: "var(--chart-2)",
                   },
                 }}
-                variant="glass"
                 className="h-[300px]"
               >
                 <BarChart data={barChartData}>
@@ -155,7 +154,7 @@ export function ChartBlock() {
         </TabsContent>
 
         <TabsContent value="line">
-          <Card variant="glass">
+          <Card>
             <CardHeader>
               <CardTitle className="text-foreground">Line Chart</CardTitle>
               <CardDescription className="text-muted-foreground">Revenue and profit trends over time</CardDescription>
@@ -172,7 +171,6 @@ export function ChartBlock() {
                     color: "var(--chart-2)",
                   },
                 }}
-                variant="glass"
                 className="h-[300px]"
               >
                 <LineChart data={lineChartData}>
@@ -190,7 +188,7 @@ export function ChartBlock() {
         </TabsContent>
 
         <TabsContent value="area">
-          <Card variant="glass">
+          <Card>
             <CardHeader>
               <CardTitle className="text-foreground">Area Chart</CardTitle>
               <CardDescription className="text-muted-foreground">Sales and returns comparison</CardDescription>
@@ -207,7 +205,6 @@ export function ChartBlock() {
                     color: "var(--chart-3)",
                   },
                 }}
-                variant="glass"
                 className="h-[300px]"
               >
                 <AreaChart data={areaChartData}>

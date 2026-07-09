@@ -174,11 +174,7 @@ const columns: ColumnDef<Member>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue<Member["status"]>("status");
-      return (
-        <Badge variant="glass" className={cn("capitalize", statusStyles[status])}>
-          {status}
-        </Badge>
-      );
+      return <Badge className={cn("capitalize", statusStyles[status])}>{status}</Badge>;
     },
   },
   {
@@ -226,7 +222,6 @@ export function DataTableBlock() {
       <div className="relative max-w-sm">
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          variant="glass"
           placeholder="Filter by name…"
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
@@ -234,7 +229,7 @@ export function DataTableBlock() {
         />
       </div>
 
-      <Table variant="glass">
+      <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -268,10 +263,10 @@ export function DataTableBlock() {
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} · {table.getFilteredRowModel().rows.length} members
         </p>
         <div className="flex gap-2">
-          <Button variant="glass" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+          <Button size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             Previous
           </Button>
-          <Button variant="glass" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+          <Button size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
             Next
           </Button>
         </div>

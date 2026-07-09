@@ -28,7 +28,7 @@ export default function ThemingPage() {
       </div>
 
       <div className="space-y-8">
-        <Card variant="glass" id="model" className="scroll-mt-24 text-foreground">
+        <Card id="model" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Mental model</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -44,7 +44,7 @@ export default function ThemingPage() {
               <li>
                 <strong>Material</strong> (the look): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>gradient</IC>. Set with{" "}
                 <IC>data-glass</IC> on an ancestor (or the <IC>variant</IC> shortcut). Crystal has three <strong>flavors</strong> —{" "}
-                <IC>data-crystal</IC> white / tonal / hue (see below).
+                <IC>data-gloss</IC> white / tonal / hue (see below).
               </li>
             </ul>
             <p className="text-muted-foreground">
@@ -116,7 +116,7 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="tint" className="scroll-mt-24 text-foreground">
+        <Card id="tint" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">
               Glass tint — <IC>data-glass-tint</IC>
@@ -167,7 +167,7 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="style" className="scroll-mt-24 text-foreground">
+        <Card id="style" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">
               Glass style — <IC>data-glass</IC> &amp; the <IC>variant</IC> prop
@@ -189,10 +189,10 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="crystal" className="scroll-mt-24 text-foreground">
+        <Card id="crystal" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">
-              Crystal flavors — <IC>data-crystal</IC>
+              Crystal flavors — <IC>data-gloss</IC>
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Swap the crystal gloss: a white specular, a theme tint, or an iridescent hue sweep.
@@ -200,7 +200,7 @@ export default function ThemingPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Crystal&apos;s shine has three flavors, set with <IC>data-crystal</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
+              Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
               with the crystal variant and <IC>data-glass=&quot;crystal&quot;</IC>:
             </p>
             <div className="overflow-x-auto">
@@ -208,7 +208,7 @@ export default function ThemingPage() {
                 <thead>
                   <tr className="text-foreground">
                     {[
-                      "data-crystal",
+                      "data-gloss",
                       "gloss",
                     ].map((h) => (
                       <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
@@ -242,8 +242,8 @@ export default function ThemingPage() {
                 </tbody>
               </table>
             </div>
-            <Code>{`<html data-crystal="hue">                    <!-- iridescent crystal everywhere -->
-<section data-crystal="white">…</section>   <!-- classic specular, scoped -->`}</Code>
+            <Code>{`<html data-gloss="hue">                      <!-- iridescent crystal everywhere -->
+<section data-gloss="white">…</section>     <!-- classic specular, scoped -->`}</Code>
             <p className="text-muted-foreground">Tune the gloss with these tokens — all have safe defaults, so override only what you want:</p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
@@ -309,7 +309,7 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="surfaces" className="scroll-mt-24 text-foreground">
+        <Card id="surfaces" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Surface tiers — sheer → solid</CardTitle>
             <CardDescription className="text-muted-foreground">How see-through a surface is, independent of its material.</CardDescription>
@@ -337,7 +337,7 @@ export default function ThemingPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="text" className="scroll-mt-24 text-foreground">
+        <Card id="text" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Readable text &amp; contrast</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -563,7 +563,7 @@ const onAccent = useReadableForeground(accent, "large");
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="harmonics" className="scroll-mt-24 text-foreground">
+        <Card id="harmonics" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Harmonic color tokens</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -634,7 +634,7 @@ const onAccent = useReadableForeground(accent, "large");
           <ForegroundTester />
         </section>
 
-        <Card variant="glass" id="tuning" className="scroll-mt-24 text-foreground">
+        <Card id="tuning" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Tuning — CSS variables</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -679,7 +679,7 @@ const onAccent = useReadableForeground(accent, "large");
           </CardContent>
         </Card>
 
-        <Card variant="glass" id="backgrounds" className="scroll-mt-24 text-foreground">
+        <Card id="backgrounds" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Backgrounds</CardTitle>
             <CardDescription className="text-muted-foreground">Theme- and tint-aware wallpapers — installable, and fresco-aware.</CardDescription>

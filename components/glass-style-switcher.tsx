@@ -65,7 +65,7 @@ export function GlassStyleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="glass" size="icon" className="h-9 w-9" aria-label="Glass style" title="Glass style">
+        <Button size="icon" className="h-9 w-9" aria-label="Glass style" title="Glass style">
           <DiamondIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
