@@ -332,7 +332,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
 
       {/* Picks rendered on a real glass-solid panel over the page background — the opacity slider changes it. */}
       <div
-        className="glass-solid space-y-3 rounded-xl p-4"
+        className="glass glass-border glass-veil space-y-3 rounded-xl p-4"
         style={
           {
             "--glass-solid-a": String(solidA),

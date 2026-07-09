@@ -189,7 +189,7 @@ export function CrystalGlossDemo() {
   };
 
   return (
-    <section className="glass-surface w-full max-w-2xl rounded-xl p-6">
+    <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
       <h2 className="mb-1 font-semibold text-foreground text-xl">Crystal flavors — white · tonal · hue</h2>
       <p className="mb-4 text-muted-foreground text-sm">
         The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
@@ -302,7 +302,8 @@ function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; da
   );
   return (
     <div
-      className="glass-crystal flex h-24 items-end rounded-lg p-2"
+      data-material="crystal"
+      className="glass glass-border flex h-24 items-end rounded-lg p-2"
       style={
         {
           "--glass-tint-h": String(swatch.h),

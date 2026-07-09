@@ -37,7 +37,7 @@ function applyStyle(style: GlassStyle) {
 }
 
 /**
- * Re-skins every default glass surface (glass-bg / glass-surface) across the site as
+ * Re-skins every adaptive glass surface across the site as
  * the chosen style via a `data-glass` attribute on <html> — handy for previewing each
  * look. The CSS overrides live in globals.css; this just toggles the attribute.
  */

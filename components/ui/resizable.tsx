@@ -32,7 +32,7 @@ function ResizableHandle({
       {...props}
     >
       {withHandle && (
-        <div className="glass-bg z-10 flex h-4 w-3 items-center justify-center rounded-sm border border-[var(--glass-border)]">
+        <div className="glass z-10 flex h-4 w-3 items-center justify-center rounded-sm border border-[var(--glass-border)]">
           <DotsSixVerticalIcon className="h-2.5 w-2.5 text-foreground" />
         </div>
       )}

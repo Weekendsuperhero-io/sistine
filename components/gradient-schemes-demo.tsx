@@ -40,7 +40,7 @@ export function GradientSchemesDemo() {
   );
 
   return (
-    <section className="glass-surface w-full max-w-2xl rounded-xl p-6">
+    <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
       <div className="mb-1 flex items-center justify-between gap-4">
         <h2 className="font-semibold text-foreground text-xl">Gradient schemes</h2>
         <Button size="sm" onClick={() => setHue(Math.floor(generateRandomGradient().colors[0].h))}>

@@ -234,7 +234,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
     case "tabs":
       return (
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="glass-bg p-1">
+          <TabsList className="glass p-1">
             <TabsTrigger value="account" className="cursor-pointer">
               Account
             </TabsTrigger>
@@ -487,7 +487,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "calendar":
       return (
-        <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
+        <div className="p-6 glass rounded-lg inline-block bg-white/10 dark:bg-white/5">
           <Calendar mode="single" />
         </div>
       );
@@ -506,7 +506,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "toggle-group":
       return (
-        <div className="p-4 glass-bg rounded-lg inline-block">
+        <div className="p-4 glass rounded-lg inline-block">
           <ToggleGroup type="single" defaultValue="b">
             <ToggleGroupItem value="a" className="cursor-pointer">
               A
@@ -654,7 +654,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "resizable":
       return (
-        <ResizablePanelGroup orientation="horizontal" className="h-[240px] max-w-md rounded-lg glass-surface">
+        <ResizablePanelGroup orientation="horizontal" className="h-[240px] max-w-md rounded-lg glass glass-border">
           <ResizablePanel defaultSize="45%">
             <div className="flex h-full items-center justify-center p-4 text-sm font-medium text-foreground">Sidebar</div>
           </ResizablePanel>
@@ -975,7 +975,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "input-otp":
       return (
-        <div className="p-4 glass-bg rounded-lg inline-block">
+        <div className="p-4 glass rounded-lg inline-block">
           <InputOTP maxLength={6} />
         </div>
       );
@@ -985,7 +985,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "spinner":
       return (
-        <div className="flex items-center gap-4 p-6 glass-bg rounded-lg bg-white/10 dark:bg-white/5">
+        <div className="flex items-center gap-4 p-6 glass rounded-lg bg-white/10 dark:bg-white/5">
           <Spinner size="sm" />
           <Spinner size="md" />
           <Spinner size="lg" />
@@ -1053,7 +1053,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "date-picker-input":
       return (
-        <div className="p-6 glass-bg rounded-lg inline-block bg-white/10 dark:bg-white/5">
+        <div className="p-6 glass rounded-lg inline-block bg-white/10 dark:bg-white/5">
           <DatePickerInputPreview />
         </div>
       );
@@ -1103,7 +1103,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
 
     case "mode-toggle":
       return (
-        <div className="p-4 glass-bg rounded-lg inline-block">
+        <div className="p-4 glass rounded-lg inline-block">
           <ModeToggle />
         </div>
       );

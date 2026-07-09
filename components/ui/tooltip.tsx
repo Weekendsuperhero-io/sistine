@@ -61,7 +61,7 @@ const TooltipContent = React.forwardRef<
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] glass-bg border-[var(--glass-border)]" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] glass border-[var(--glass-border)]" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

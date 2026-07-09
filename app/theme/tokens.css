@@ -92,7 +92,7 @@
   --gradient-contrast-c: 0.14;
   --glass-crystal-bg-a: 0.3; /* crystal floor alpha (near-clear in dark) */
   /* glass-solid floor — the "how solid" dial (0 = sheer, 1 = fully solid; shared by light/dark) + the
-     mode floor lightness; composed in @utility glass-solid so a scoped --glass-solid-a resolves there. */
+     mode floor lightness; composed in @utility glass-veil so a scoped --glass-solid-a resolves there. */
   --glass-solid-a: 0.65;
   --glass-solid-l: 99%;
   /* Opaque tint BODY lightness (plain number → % in the engine). The header L slider drives this; the

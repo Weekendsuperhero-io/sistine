@@ -78,7 +78,7 @@ const COLORS = [
 
 export function HarmonicSwatchesDemo() {
   return (
-    <section className="glass-surface w-full max-w-2xl rounded-xl p-6">
+    <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
       <h2 className="mb-1 font-semibold text-foreground text-xl">Harmonic color tokens</h2>
       <p className="mb-6 text-muted-foreground text-sm">
         CSS custom properties derived from the harmony anchor hue (<code className="text-xs">--harmony-h</code>) — no JS. Each is{" "}

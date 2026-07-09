@@ -118,17 +118,12 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
+              className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass"
               onClick={goToPrevious}
             >
               <CaretLeftIcon className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
-              onClick={goToNext}
-            >
+            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass" onClick={goToNext}>
               <CaretRightIcon className="h-4 w-4" />
             </Button>
 

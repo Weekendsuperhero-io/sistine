@@ -40,10 +40,12 @@ const Toaster = ({ theme = "system", ...props }: ToasterProps) => {
       }}
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:rounded-xl group-[.toaster]:glass-surface group-[.toaster]:text-foreground",
+          toast: "group toast group-[.toaster]:rounded-xl group-[.toaster]:glass group-[.toaster]:glass-border group-[.toaster]:text-foreground",
           description: "group-[.toast]:text-muted-foreground",
-          actionButton: "group-[.toast]:rounded-md group-[.toast]:glass-surface group-[.toast]:text-foreground group-[.toast]:hover:opacity-90",
-          cancelButton: "group-[.toast]:rounded-md group-[.toast]:glass-surface group-[.toast]:text-muted-foreground group-[.toast]:hover:opacity-90",
+          actionButton:
+            "group-[.toast]:rounded-md group-[.toast]:glass group-[.toast]:glass-border group-[.toast]:text-foreground group-[.toast]:hover:opacity-90",
+          cancelButton:
+            "group-[.toast]:rounded-md group-[.toast]:glass group-[.toast]:glass-border group-[.toast]:text-muted-foreground group-[.toast]:hover:opacity-90",
           success:
             "group-[.toast]:border-green-500/30 [&_[data-title]]:text-green-600 dark:[&_[data-title]]:text-green-400 [&_[data-description]]:text-green-600/80! dark:[&_[data-description]]:text-green-400/80! [&_[data-icon]]:text-green-600! dark:[&_[data-icon]]:text-green-400!",
           error:

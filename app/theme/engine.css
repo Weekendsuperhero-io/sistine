@@ -77,10 +77,10 @@
   /* Crystal edge — identical in both modes, so it lives here with the anchors (the crystal floor +
      shadows are mode-varying: --glass-crystal-bg in the surfaces block below, shadows on :root/.dark). */
   --glass-crystal-border: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
-  /* Crystal gloss — the 3-part light effect (top highlight + diagonal streak + bottom glow) shared by
-     glass-crystal, glass-sheen, and the [data-glass="crystal"] re-skin. Each is a full gradient, so it
-     composes in a background:/background-image: list AND in the ::before/::after pseudo layers.
-     THREE FLAVORS, selected by data-crystal on any ancestor (default, unset = tonal — see the [data-crystal]
+  /* Crystal gloss — the 3-part light effect (top highlight + diagonal streak + bottom glow) baked into
+     --crystal-stack-bg (the crystal material + the [data-glass="crystal"] page style) and layered by
+     glass-sheen. Each is a full gradient, so it composes in a background-image list AND in pseudo layers.
+     THREE FLAVORS, selected by data-gloss on any ancestor (default, unset = tonal — see the [data-gloss]
      blocks further down):
        white → flat white specular (the classic glass shine)
        tonal → a tonally-close single-hue tint of the theme (--glass-gloss-l / --glass-gloss-tint)
@@ -187,8 +187,9 @@
      would break sticky/fixed surfaces). */
   --glass-wash-layer: linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash));
   --glass-stack-bg: var(--glass-bg), var(--glass-wash-layer);
-  --frosted-stack-bg: var(--glass-frosted-bg);
-  --frosted-solid-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
+  /* Frosted rides the wash in the IMAGE stack (sheet + wash), leaving the background-color channel
+     free for the veil floor. */
+  --frosted-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
   --crystal-stack-bg:
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
     var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);

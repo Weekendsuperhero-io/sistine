@@ -97,7 +97,7 @@ export function CalendarBlock() {
                   <p className="text-sm text-muted-foreground">No events for this date — use New Event to add one.</p>
                 ) : (
                   dayEvents.map((event) => (
-                    <div key={event.id} className="p-4 rounded-lg glass-surface">
+                    <div key={event.id} className="p-4 rounded-lg glass glass-border">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold text-foreground">{event.title}</h4>
                         <Badge>{isSameDay(event.date, new Date()) ? "Today" : "Scheduled"}</Badge>

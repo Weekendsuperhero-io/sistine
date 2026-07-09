@@ -107,7 +107,7 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+      <pre className="glass p-4 rounded-lg font-mono text-sm overflow-x-auto">
         <code className="text-foreground whitespace-pre">{code}</code>
       </pre>
       <Button

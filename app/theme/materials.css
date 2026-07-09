@@ -20,11 +20,10 @@
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
 }
 
-/* Frosted — the tint wash rides the IMAGE stack (sheet + wash), leaving the background-color
-   channel free for the veil floor. (During the migration this reuses --frosted-solid-stack-bg,
-   which already IS sheet+wash; it renames to --frosted-stack-bg when the legacy recipes die.) */
+/* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
+   background-color channel free for the veil floor. */
 [data-material="frosted"] {
-  --srf-bg-image: var(--frosted-solid-stack-bg);
+  --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
