@@ -67,13 +67,13 @@ The recolor controls — the tint presets (`[data-glass-tint="…"]`) and the li
 | `--glass-tint-c` | `0` | *(shared)* | Tint **chroma** — the single "how colorful" master (surfaces + text + harmonic accents); `0` = neutral |
 | `--glass-tint-a` | `0` | *(shared)* | Tint **film** alpha, per preset. The former "Wash" slider is retired — chroma is the colorfulness dial |
 | `--glass-opaque-l` | `90` | `32` | Tint **body lightness** (OKLCH L, plain number → %); lower = a deeper tint. The opaque floor color + AutoForeground's opaque-card banding both read it |
-| `--glass-opacity` | `0` | *(shared)* | Component **solidity floor** — `0` = the variant's sheer glass, `1` = reads as its opaque variant; set inline or via the `glass` prop |
+| `--glass-opacity` | `0` | *(shared)* | Component **solidity floor** — `0` = the material's sheer glass, `1` = reads fully opaque; set inline or via `glassVars({ opacity })` |
 | `--glass-opaque-outline` | *(unset)* | *(shared)* | Optional **accent outline** for opaque surfaces — falls back to `--glass-border`; set to e.g. `var(--glass-accent)` for a colored edge |
 | `--glass-tint-wash` | `oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a))` | *(knobs: L 72%→58%)* | Solid colored floor; lighter in light mode, deeper in dark (via `--glass-wash-l`) |
 | `--glass-accent` | `oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)))` | *(knobs: 0.6 0.15 → 0.68 0.14)* | Vivid solid accent in the **foreground** hue (accent knob overrides apply in both modes) — switch/slider fill |
 | `--glass-glow` | `oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a))` | *(knobs: 0.62 0.2/0.45 → 0.7 0.18/0.5)* | Glow color in the foreground hue — drives the `glow` hover effect + the `glow` prop |
 | `--glass-solid-bg` | `oklch(99% 0 0 / 0.65)` | `oklch(18% 0 0 / 0.65)` | Near-opaque **neutral** floor **with blur** for read-through overlays (menus/tooltips/toasts) |
-| `--glass-opaque-bg` | `oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h))` | `oklch(… calc(… * 0.9) …)` | Fully-opaque **tinted** panel floor, **no blur** — L driven by `--glass-opaque-l`; the `glass-opaque` utility, `variant="opaque"`, and the global `data-glass="opaque"` mode |
+| `--glass-opaque-bg` | `oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h))` | `oklch(… calc(… * 0.9) …)` | Fully-opaque **tinted** panel floor, **no blur** — L driven by `--glass-opaque-l`; the `opaque` material (`material="opaque"` / `data-material="opaque"`) and the global `data-glass="opaque"` mode |
 
 *(`--glass-tint-h/c/a` are set once and shared across light/dark; `--glass-opaque-l`, `-wash`, and `-solid-bg` differ per mode.)*
 
@@ -86,16 +86,16 @@ The glassmorphism recipe values consumed by the `@utility glass-*` family. Each 
 | `--glass-bg` | 5-stop 135° gradient, ~0.11–0.15 α (tinted via the knobs) | same, ~0.05–0.08 α | Standard glass surface fill |
 | `--glass-border` | `oklch(100% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / var(--glass-border-a))` | *(knob: 0.12 → 0.15)* | Glass edge |
 | `--glass-shadow` / `-sm` / `-lg` | drop + inset-glow composites | stronger (darker) drops | Depth + inner highlight |
-| `--glass-frosted-bg` | 5-stop gradient, ~0.21–0.25 α | ~0.11–0.15 α | Frosted variant fill |
+| `--glass-frosted-bg` | 5-stop gradient, ~0.21–0.25 α | ~0.11–0.15 α | Frosted material fill |
 | `--glass-frosted-border` | `oklch(100% 0 0 / 0.3)` | `oklch(100% 0 0 / 0.25)` | Frosted edge |
 | `--glass-frosted-shadow` | composite | stronger | Frosted depth |
 | `--glass-crystal-bg` | `oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3)` | `… / 0.1` | Crystal fill (white/tonal flavors); the `hue` flavor overrides it with a hue-carrying floor |
 | `--glass-crystal-border` | `… / 0.3` | `… / 0.3` (same) | Crystal edge |
 | `--glass-crystal-shadow` / `-hover` | glow (dark outer + white) | stronger glow | Crystal glow |
 
-## Crystal gloss (`data-crystal`)
+## Crystal gloss (`data-gloss`)
 
-The crystal shine has three flavors — set `data-crystal` on any ancestor (default `tonal`): `white` (flat specular), `tonal` (theme tint), `hue` (iridescent sweep). Tuned by:
+The crystal shine has three flavors — set `data-gloss` on any ancestor (default `tonal`): `white` (flat specular), `tonal` (theme tint), `hue` (iridescent sweep). Tuned by:
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -132,8 +132,8 @@ Color-wheel relationships off `--harmony-h` (the content hue, or `0` for the hue
 | Variable | Value | Dark | Purpose |
 |---|---|---|---|
 | `--radius` | `1.25rem` | *(inherited)* | Base radius; `--radius-sm/md/lg/xl` derive from it in `@theme` |
-| `--blur` / `-sm` / `-lg` / `-frosted` / `-crystal` | `10` / `4` / `20` / `25` / `2px` | *(inherited)* | Backdrop-blur amounts per glass size/variant |
-| `--gradient` | `oklch(base + 63.53°) → oklch(base)` at `--gradient-l`/`--gradient-c` (knobs: `0.6 0.15`) | knobs: `0.68 0.14` | **Theme-aware** brand gradient in the foreground hue (`--glass-fg-h`), hue offset 3 ramp-steps out (360/17 ≈ 63.53°). Axis/direction variants are computed in JS (`lib/oklch-utils.ts` — see the `/components` demo); drives the gradient **accent** (`glass-surface glass-gradient` — a token-pin over the glass material, not a seventh material) + the `gradient` Button. Twins: `--gradient-text` (full-opacity, for `GradientText`) and `--gradient-text-contrast` (`--gradient-contrast-l/-c` knobs: dark-on-light in light mode, light-on-dark in dark) |
+| `--blur` / `-sm` / `-lg` / `-frosted` / `-crystal` | `10` / `4` / `20` / `25` / `2px` | *(inherited)* | Backdrop-blur amounts per glass size/material |
+| `--gradient` | `oklch(base + 63.53°) → oklch(base)` at `--gradient-l`/`--gradient-c` (knobs: `0.6 0.15`) | knobs: `0.68 0.14` | **Theme-aware** brand gradient in the foreground hue (`--glass-fg-h`), hue offset 3 ramp-steps out (360/17 ≈ 63.53°). Axis/direction variants are computed in JS (`lib/oklch-utils.ts` — see the `/components` demo); drives the gradient **accent** (`glass glass-gradient` — the gradient axis layered over the glass material, not a fifth material) + the `gradient` Button. Twins: `--gradient-text` (full-opacity, for `GradientText`) and `--gradient-text-contrast` (`--gradient-contrast-l/-c` knobs: dark-on-light in light mode, light-on-dark in dark) |
 
 `--radius` and the `--blur*` family are **not** redefined in `.dark` — they carry through both modes. (`--gradient` *is* mode-specific — a lifted lightness in dark via the knobs, like `--glass-accent`.)
 
@@ -154,5 +154,5 @@ The dials the engine composes — leaf values (never composing tint vars) on bar
 | `--gradient-l` / `--gradient-c` | `0.6` / `0.15` | `0.68` / `0.14` | Brand gradient envelope |
 | `--gradient-contrast-l` / `--gradient-contrast-c` | `0.32` / `0.14` | `0.9` / `0.09` | Contrast gradient-text envelope |
 | `--glass-crystal-bg-a` | `0.3` | `0.1` | Crystal floor alpha |
-| `--glass-solid-l` (+ `--glass-solid-a`, shared `0.65`) | `99%` | `18%` | `glass-solid` overlay floor |
+| `--glass-solid-l` (+ `--glass-solid-a`, shared `0.65`) | `99%` | `18%` | `glass-veil` overlay floor |
 | `--glass-opaque-l` / `--glass-opaque-c-scale` | `90` / `1.4` | `32` / `0.9` | Opaque floor lightness / chroma scale |

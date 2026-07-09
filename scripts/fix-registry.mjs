@@ -2,12 +2,11 @@
 /**
  * One-time / re-runnable transform that makes registry.json self-contained and
  * namespaced for the @sistine registry:
- *   1. files            — ensure the customized base component (components/ui/<name>.tsx)
- *                         ships alongside the glass wrapper.
+ *   1. files            — ensure the customized base component (components/ui/<name>.tsx) ships.
  *   2. registryDependencies — drop the stock-shadcn self ref and namespace real cross-deps
  *                         to "@sistine/<dep>" so they resolve from this registry.
- *   3. dependencies     — recompute npm deps from the actual imports of the base + glass
- *                         files, unioned with the shared-lib baseline.
+ *   3. dependencies     — recompute npm deps from the actual imports of the base file,
+ *                         unioned with the shared-lib baseline.
  *
  * Non-component items (blocks/hooks/libs/themes) are handled separately: their deps are
  * derived from their OWN shipped files, so this transform never resets them to the baseline.
@@ -69,7 +68,7 @@ function crossDepsOf(absPath, selfName) {
 }
 
 /**
- * Cross-registry deps from alias imports: "@/components/ui|blocks/<name>" (and the glass/ subpath),
+ * Cross-registry deps from alias imports: "@/components/ui|blocks/<name>",
  * "@/lib/<name>", and "@/hooks/<name>". Only names that are themselves registry items count, so
  * shared-but-unpublished files (e.g. @/lib/utils) are ignored.
  */
@@ -134,11 +133,8 @@ for (const item of registry.items) {
 
   // Items that don't follow the components/ui/<name> convention — blocks, hooks, libs, themes, and
   // any component living elsewhere (e.g. components/readable-text.tsx) — derive their deps from
-  // their own shipped files instead of the base+glass pair below.
-  const followsUiConvention =
-    item.type === "registry:component" &&
-    (existsSync(join(root, `components/ui/${name}.tsx`)) ||
-      existsSync(join(root, `components/ui/glass/${name}.tsx`)));
+  // their own shipped files instead of the base component below.
+  const followsUiConvention = item.type === "registry:component" && existsSync(join(root, `components/ui/${name}.tsx`));
   if (!followsUiConvention) {
     normalizeNonComponent(item);
     changed++;
@@ -146,22 +142,17 @@ for (const item of registry.items) {
   }
 
   const baseRel = `components/ui/${name}.tsx`;
-  const glassRel = `components/ui/glass/${name}.tsx`;
 
-  // 1. files — prepend the base component before the glass wrapper if missing.
+  // 1. files — ensure the base component is present.
   item.files = item.files ?? [];
-  const hasBase = item.files.some((f) => f.path === baseRel);
-  if (!hasBase && existsSync(join(root, baseRel))) {
-    const glassIdx = item.files.findIndex((f) => f.path === glassRel);
-    const entry = { path: baseRel, type: "registry:component", target: baseRel };
-    if (glassIdx >= 0) item.files.splice(glassIdx, 0, entry);
-    else item.files.push(entry);
+  if (!item.files.some((f) => f.path === baseRel) && existsSync(join(root, baseRel))) {
+    item.files.push({ path: baseRel, type: "registry:component", target: baseRel });
   }
 
   // 2. registryDependencies — keep existing namespaced deps and ADD cross-registry deps discovered in the
-  //    base + glass sources: relative imports (./x) AND "@/…" alias imports of other registry items (e.g.
-  //    @/hooks/use-mobile, @/components/ui/button). Additive — never drops an existing dep.
-  // A dep the item SHIPS as a file (e.g. bundles lib/glass-utils.ts) isn't a registry dependency — never
+  //    base source: relative imports (./x) AND "@/…" alias imports of other registry items (e.g.
+  //    @/lib/material, @/components/ui/button). Additive — never drops an existing dep.
+  // A dep the item SHIPS as a file (e.g. bundles lib/material.ts) isn't a registry dependency — never
   // declare OR keep a redundant "ships AND depends on it" (drops from existing too, so this self-heals).
   const shippedNames = new Set(
     (item.files ?? []).map((f) => f.path.split("/").pop().replace(/\.(tsx?|css)$/, "")),
@@ -170,17 +161,13 @@ for (const item of registry.items) {
     .map((d) => (d.startsWith("@") ? d : `${NAMESPACE}/${d}`))
     .filter((d) => d !== `${NAMESPACE}/${name}` && !shippedNames.has(d.replace(`${NAMESPACE}/`, "")));
   const derivedDeps = [];
-  for (const rel of [baseRel, glassRel]) {
-    for (const dep of crossDepsOf(join(root, rel), name)) if (!shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
-    for (const dep of aliasDepsOf(join(root, rel))) if (dep !== name && !shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
-  }
+  for (const dep of crossDepsOf(join(root, baseRel), name)) if (!shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
+  for (const dep of aliasDepsOf(join(root, baseRel))) if (dep !== name && !shippedNames.has(dep)) derivedDeps.push(`${NAMESPACE}/${dep}`);
   item.registryDependencies = [...new Set([...existingDeps, ...derivedDeps])].sort();
 
-  // 3. dependencies — baseline ∪ externals of base + glass files.
+  // 3. dependencies — baseline ∪ externals of the base file.
   const externals = new Set(BASELINE_DEPS);
-  for (const rel of [baseRel, glassRel]) {
-    for (const pkg of externalsOf(join(root, rel))) externals.add(pkg);
-  }
+  for (const pkg of externalsOf(join(root, baseRel))) externals.add(pkg);
   item.dependencies = applyPins([...externals], item.dependencies).sort();
 
   changed++;
@@ -196,13 +183,7 @@ for (const item of registry.items) {
 // like every other shared dep. Libs, hooks, and standalone components/<name>.tsx items have no theme.
 const themeRef = `${NAMESPACE}/theme`;
 const uiPrimitiveNames = new Set(
-  registry.items
-    .filter(
-      (i) =>
-        existsSync(join(root, `components/ui/${i.name}.tsx`)) ||
-        existsSync(join(root, `components/ui/glass/${i.name}.tsx`)),
-    )
-    .map((i) => i.name),
+  registry.items.filter((i) => existsSync(join(root, `components/ui/${i.name}.tsx`))).map((i) => i.name),
 );
 // True iff the item's OWN shipped files consume the glass theme's distinctive tokens/hooks.
 const usesThemeTokens = (item) =>
@@ -224,8 +205,7 @@ for (const item of registry.items) {
       !f.path?.startsWith("app/theme/") &&
       f.path !== "registry/theme/globals.css",
   );
-  const isUiPrimitive =
-    existsSync(join(root, `components/ui/${item.name}.tsx`)) || existsSync(join(root, `components/ui/glass/${item.name}.tsx`));
+  const isUiPrimitive = existsSync(join(root, `components/ui/${item.name}.tsx`));
   // Ui primitives keep the theme as before. Standalone theme-driven COMPONENTS/BLOCKS that depend only on
   // libs (canvas/gradient-background, auto-foreground, the background-controller block) can't reach the theme
   // transitively, so they declare it directly. Libs/hooks are excluded — they merely reference token *names*;

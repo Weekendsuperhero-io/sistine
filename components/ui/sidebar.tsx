@@ -171,7 +171,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "glass-bg flex h-full w-(--sidebar-width) flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)]",
+          "glass flex h-full w-(--sidebar-width) flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)]",
           className,
         )}
         {...props}

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 /** Block code sample. */
 function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="glass-bg overflow-x-auto rounded-lg p-4 font-mono text-sm">
+    <pre className="glass overflow-x-auto rounded-lg p-4 font-mono text-sm">
       <code className="text-foreground">{children}</code>
     </pre>
   );
@@ -32,85 +32,161 @@ export default function ThemingPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Mental model</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Every glass surface is two axes you compose — <strong>material</strong> × <strong>tier</strong> — with color on top.
+              Every glass surface is one <strong>material</strong> you pick, plus orthogonal <strong>axes</strong> you switch on.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               <li>
-                <strong>Tier</strong> (how see-through): <IC>bg</IC> → <IC>surface</IC> → <IC>solid</IC> → <IC>opaque</IC>. Set with <IC>variant</IC>{" "}
-                or the <IC>glass-*</IC> class.
+                <strong>Material</strong> (the substance): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>opaque</IC>. Set it with the{" "}
+                <IC>material</IC> prop — or leave it off for <strong>adaptive</strong> glass, the default, which follows the page&apos;s{" "}
+                <IC>data-glass</IC> style. Crystal has three <strong>flavors</strong> — <IC>data-gloss</IC> white / tonal / hue (see below).
               </li>
               <li>
-                <strong>Material</strong> (the look): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>gradient</IC>. Set with{" "}
-                <IC>data-glass</IC> on an ancestor (or the <IC>variant</IC> shortcut). Crystal has three <strong>flavors</strong> —{" "}
-                <IC>data-gloss</IC> white / tonal / hue (see below).
+                <strong>Axes</strong> (orthogonal — compose freely on any material): <IC>border</IC>, <IC>veil</IC> (a legible floor for menus /
+                overlays), <IC>gradient</IC> (brand wash), <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a boolean prop on a component, or a{" "}
+                <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
-            <p className="text-muted-foreground">
-              Pick a cell — row = material (<IC>data-glass</IC>), column = tier (<IC>variant</IC>):
-            </p>
+            <p className="text-muted-foreground">The four materials — pin one with the prop, or on a raw element with the attribute:</p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="text-foreground">
                     {[
-                      "",
-                      "bg",
-                      "surface",
-                      "solid",
-                      "opaque",
+                      "material",
+                      "prop",
+                      "raw element",
+                      "look",
                     ].map((h) => (
-                      <th key={h || "_"} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                      <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="text-muted-foreground">
-                  <tr>
-                    <td className="border border-foreground/15 px-3 py-2 font-semibold text-foreground">glass</td>
-                    {[
-                      "glass",
-                      "surface",
-                      "solid",
-                      "opaque",
-                    ].map((t) => (
-                      <td key={t} className="border border-foreground/15 px-3 py-2">
-                        <IC>variant=&quot;{t}&quot;</IC>
-                      </td>
-                    ))}
-                  </tr>
                   {[
-                    "frosted",
-                    "crystal",
-                  ].map((m) => (
+                    [
+                      "glass",
+                      'material="glass" (or default)',
+                      'data-material="glass"',
+                      "sheer adaptive glass",
+                    ],
+                    [
+                      "frosted",
+                      'material="frosted"',
+                      'data-material="frosted"',
+                      "milky, heavier blur",
+                    ],
+                    [
+                      "crystal",
+                      'material="crystal"',
+                      'data-material="crystal"',
+                      "bright specular gloss",
+                    ],
+                    [
+                      "opaque",
+                      'material="opaque"',
+                      'data-material="opaque"',
+                      "fully solid, no see-through",
+                    ],
+                  ].map(([m, prop, attr, look]) => (
                     <tr key={m}>
                       <td className="border border-foreground/15 px-3 py-2 font-semibold text-foreground">{m}</td>
-                      <td className="border border-foreground/15 px-3 py-2" colSpan={4}>
-                        <IC>data-glass=&quot;{m}&quot;</IC> on an ancestor + any tier <IC>variant</IC> above
-                        {m === "crystal" ? " (e.g. the solid tier here = a solid crystal)" : ""}
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{prop}</IC>
                       </td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{attr}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">{look}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-muted-foreground">The axes stack on top of whatever material you chose:</p>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-foreground">
+                    {[
+                      "axis",
+                      "prop",
+                      "class",
+                      "what",
+                    ].map((h) => (
+                      <th key={h} className="border border-foreground/15 px-3 py-2 text-left font-semibold">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-muted-foreground">
+                  {[
+                    [
+                      "border",
+                      "border",
+                      "glass-border",
+                      "1px material edge (0.5px under frosted)",
+                    ],
+                    [
+                      "veil",
+                      "veil",
+                      "glass-veil",
+                      "legibility floor for read-through overlays (menus, tooltips, toasts)",
+                    ],
+                    [
+                      "gradient",
+                      "gradient",
+                      "glass-gradient",
+                      "brand-gradient accent wash",
+                    ],
+                    [
+                      "glow",
+                      'glow / glow="lg"',
+                      "glass-glow / -lg",
+                      "themed halo that tracks the tint hue",
+                    ],
+                    [
+                      "sheen",
+                      "sheen",
+                      "glass-sheen",
+                      "opt-in hover shimmer",
+                    ],
+                  ].map(([axis, prop, cls, what]) => (
+                    <tr key={axis}>
+                      <td className="border border-foreground/15 px-3 py-2 font-semibold text-foreground">{axis}</td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{prop}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">
+                        <IC>{cls}</IC>
+                      </td>
+                      <td className="border border-foreground/15 px-3 py-2">{what}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <p className="text-muted-foreground">
-              <strong>Shortcut:</strong> <IC>variant=&quot;frosted&quot;</IC> / <IC>&quot;crystal&quot;</IC> jumps to that material at its own (sheer)
-              default tier — use the full <IC>data-glass</IC> × <IC>variant</IC> form only to put a material at a different tier. <IC>opaque</IC> is
-              the solid endpoint: a surface is solid regardless of material.
+              Leaving <IC>material</IC> off makes a surface <strong>adaptive</strong> — it inherits the page&apos;s <IC>data-glass</IC> style, so one
+              attribute on <IC>&lt;html&gt;</IC> re-skins everything. An explicit material <strong>pins</strong> that element under any page style,
+              and also re-skins the adaptive glass nested inside it (a <IC>frosted</IC> dialog re-skins its own controls). <IC>opaque</IC> is the
+              fully-solid endpoint — no see-through, regardless of page style.
             </p>
             <p className="text-muted-foreground">To build any surface, answer three questions:</p>
             <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
               <li>
-                <strong>Texture?</strong> → <IC>data-glass</IC> (or skip for plain glass)
+                <strong>Which material?</strong> → the <IC>material</IC> prop (or leave it off for adaptive glass)
               </li>
               <li>
-                <strong>How solid?</strong> → <IC>variant</IC> / <IC>glass-*</IC> class
+                <strong>Which axes?</strong> → <IC>border</IC> / <IC>veil</IC> / <IC>gradient</IC> / <IC>glow</IC> / <IC>sheen</IC> props (or the{" "}
+                <IC>glass-*</IC> classes)
               </li>
               <li>
-                <strong>What color?</strong> → <IC>data-glass-tint</IC> (+ <IC>--glass-solid-a</IC> to dial the solid tier)
+                <strong>What color?</strong> → <IC>data-glass-tint</IC> (+ <IC>--glass-solid-a</IC> to dial the veil floor)
               </li>
             </ol>
           </CardContent>
@@ -133,7 +209,7 @@ export default function ThemingPage() {
             <Code>{`<html data-glass-tint="sapphire">        <!-- whole app -->
 
 <section data-glass-tint="sistine">      <!-- just this panel -->
-  <Card variant="crystal">…</Card>
+  <Card material="crystal">…</Card>
 </section>`}</Code>
             <div>
               <h3 className="mb-2 font-semibold">Presets</h3>
@@ -170,21 +246,23 @@ export default function ThemingPage() {
         <Card id="style" className="scroll-mt-24 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">
-              Glass style — <IC>data-glass</IC> &amp; the <IC>variant</IC> prop
+              Glass material — the <IC>material</IC> prop &amp; <IC>data-glass</IC>
             </CardTitle>
-            <CardDescription className="text-muted-foreground">Switch the glass material: glass, frosted, crystal, opaque.</CardDescription>
+            <CardDescription className="text-muted-foreground">Switch the material: glass, frosted, crystal, opaque.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Per component, use the {""}
-              <IC>variant</IC> prop:
+              Per component, pin a material with the <IC>material</IC> prop (on a bare element, use the <IC>data-material</IC> attribute):
             </p>
-            <Code>{`<Card variant="frosted">…</Card>
-<Button variant="crystal">…</Button>`}</Code>
+            <Code>{`<Card material="frosted">…</Card>
+<Button material="crystal">…</Button>
+
+<div className="glass glass-border" data-material="crystal">…</div>`}</Code>
             <p className="text-muted-foreground">
-              Globally (or per subtree), set <IC>data-glass</IC> to re-skin every glass surface inside:
+              Globally (or per subtree), set <IC>data-glass</IC> to re-skin every <em>adaptive</em> surface inside — the ones that left{" "}
+              <IC>material</IC> off. A pinned material ignores it:
             </p>
-            <Code>{`<html data-glass="frosted">              <!-- all glass = frosted -->
+            <Code>{`<html data-glass="frosted">              <!-- all adaptive glass = frosted -->
 <section data-glass="crystal">…</section>  <!-- scoped -->`}</Code>
           </CardContent>
         </Card>
@@ -201,7 +279,7 @@ export default function ThemingPage() {
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
               Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
-              with the crystal variant and <IC>data-glass=&quot;crystal&quot;</IC>:
+              with <IC>material=&quot;crystal&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
@@ -311,29 +389,32 @@ export default function ThemingPage() {
 
         <Card id="surfaces" className="scroll-mt-24 text-foreground">
           <CardHeader>
-            <CardTitle className="text-foreground">Surface tiers — sheer → solid</CardTitle>
-            <CardDescription className="text-muted-foreground">How see-through a surface is, independent of its material.</CardDescription>
+            <CardTitle className="text-foreground">Surfaces on raw elements</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Build a glass surface by hand — the structural class plus the axis classes.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               <li>
-                <IC>glass-bg</IC> — sheerest, borderless (the <IC>glass</IC> variant).
+                <IC>glass</IC> — the structural surface: sheerest, borderless. Everything else layers on top.
               </li>
               <li>
-                <IC>glass-surface</IC> — same, plus a hairline border (also <IC>-sm</IC> / <IC>-lg</IC> sizes).
+                <IC>glass-border</IC> — adds the material edge (a hairline; pair with <IC>glass-sm</IC> / <IC>glass-lg</IC> for the blur / elevation
+                tier).
               </li>
               <li>
-                <IC>glass-solid</IC> — a mostly-opaque, legible floor for menus / tooltips.
+                <IC>glass-veil</IC> — a mostly-opaque, legible floor for read-through overlays (menus / tooltips).
               </li>
               <li>
-                <IC>glass-opaque</IC> — fully solid, no see-through (the <IC>opaque</IC> variant).
+                <IC>material=&quot;opaque&quot;</IC> (or <IC>data-material=&quot;opaque&quot;</IC>) — fully solid, no see-through.
               </li>
             </ul>
             <p className="text-muted-foreground">
-              All four tiers are component <IC>variant</IC>s — <IC>glass</IC> / <IC>surface</IC> / <IC>solid</IC> / <IC>opaque</IC> — or apply the raw{" "}
-              <IC>glass-*</IC> class on a bare element:
+              On a component these are the <IC>border</IC> / <IC>veil</IC> and <IC>material</IC> props; on a bare element, apply the classes and the{" "}
+              <IC>data-material</IC> attribute directly:
             </p>
-            <Code>{`<div className="glass-solid rounded-xl p-4">Legible overlay</div>`}</Code>
+            <Code>{`<div className="glass glass-border glass-veil rounded-xl p-4">Legible overlay</div>`}</Code>
           </CardContent>
         </Card>
 
@@ -627,7 +708,7 @@ const onAccent = useReadableForeground(accent, "large");
           </CardContent>
         </Card>
 
-        {/* Live preview sits on the page background (one glass-solid card on the canvas) — not nested in a
+        {/* Live preview sits on the page background (one glass-veil card on the canvas) — not nested in a
             glass card — so its modeled Lc matches what ships. */}
         <section className="space-y-2 text-foreground">
           <h3 className="font-semibold">Foreground tier preview</h3>
@@ -655,11 +736,11 @@ const onAccent = useReadableForeground(accent, "large");
                 dark), and the floor AutoForeground bands opaque-card text against.
               </li>
               <li>
-                <IC>--glass-opacity</IC> — <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the variant&apos;s natural sheer glass,{" "}
-                <IC>1</IC> = reads as its opaque variant. Set inline or via the <IC>glass</IC> prop.
+                <IC>--glass-opacity</IC> — <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer
+                glass, <IC>1</IC> = reads fully opaque. Set it with <IC>glassVars(&#123; opacity &#125;)</IC> (or inline).
               </li>
               <li>
-                <IC>--glass-solid-a</IC> — how solid the <IC>glass-solid</IC> floor is (≈0.25–0.75; default 0.65).
+                <IC>--glass-solid-a</IC> — how solid the <IC>glass-veil</IC> floor is (≈0.25–0.75; default 0.65).
               </li>
               <li>
                 <IC>--glass-opaque-outline</IC> — optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
@@ -674,7 +755,7 @@ const onAccent = useReadableForeground(accent, "large");
               These re-resolve per scope, so a scoped <IC>data-glass-tint</IC> or an inline var affects just that subtree:
             </p>
             <Code>{`<aside style={{ "--glass-solid-a": 0.8 }}>
-  <div className="glass-solid …">extra-solid here only</div>
+  <div className="glass glass-veil …">extra-solid here only</div>
 </aside>`}</Code>
           </CardContent>
         </Card>

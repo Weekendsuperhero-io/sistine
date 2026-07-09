@@ -36,30 +36,23 @@ Thank you for your interest in contributing to Sistine! This document provides g
 
 ## 📝 Development Workflow
 
-### Creating a New Component
+Components live in a **single tree** — there is no separate `glass/` folder. Each component owns its semantic variants and draws its surface from the material system in `lib/material.ts`. See `components/ui/button.tsx` for the canonical pattern.
 
-1. **Create the base component** (if it doesn't exist)
+1. **Create the component**
    - Location: `components/ui/[component-name].tsx`
-   - Follow the existing component patterns
-   - Include glass variant support
+   - Define semantic variants with `cva` — each variant carries *behavior* (text, hover, press), **not** the surface.
+   - Give each variant a **surface role** (its default axes) and resolve it with `materialSurface()` from `@/lib/material`. Spread `MaterialAxisProps` (`material`, `border`, `veil`, `gradient`, `glow`, `sheen`) onto the props so callers can override per instance.
 
-2. **Create the Sistine component**
-   - Location: `components/ui/glass/[component-name].tsx`
-   - Import from base component
-   - Add enhanced effects and styling
-   - Export from `components/ui/glass/index.ts`
+2. **Update the registry**
+   - Add an entry to `registry.json` pointing at `components/ui/[component-name].tsx`.
 
-3. **Update the registry**
-   - Add entry to `registry.json`
-   - Update path to point to `components/ui/glass/[component-name].tsx`
-
-4. **Add component example**
+3. **Add a component example**
    - Update `lib/component-examples.ts`
-   - Add preview to `components/component-preview.tsx`
+   - Add a preview to `components/component-preview.tsx`
 
-5. **Test your component**
+4. **Test your component**
    - Verify it works in light and dark mode
-   - Test all variants
+   - Test each material (`glass` / `frosted` / `crystal` / `opaque`) plus the adaptive default
    - Check accessibility
 
 ### Code Style Guidelines
@@ -67,42 +60,62 @@ Thank you for your interest in contributing to Sistine! This document provides g
 #### Component Structure
 
 ```tsx
-"use client"
-
-import * as React from "react"
-import { BaseComponent as BaseComponent } from "@/components/ui/base-component"
+import { cva, type VariantProps } from "class-variance-authority"
+import type * as React from "react"
+import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material"
 import { cn } from "@/lib/utils"
-import type { GlassCustomization } from "@/lib/glass-utils"
 
-export interface ComponentProps extends React.ComponentProps<typeof BaseComponent> {
-  // Additional props
-  glow?: boolean
-  glass?: GlassCustomization
+// Semantic variants carry BEHAVIOR only (text, hover, press) — the surface comes from the material system.
+const componentVariants = cva("…base classes…", {
+  variants: {
+    variant: {
+      glass: "text-foreground hover:opacity-90",
+      default: "bg-primary text-primary-foreground",
+    },
+  },
+  defaultVariants: { variant: "glass" },
+})
+
+// Each variant's default surface axes (its "role"); null = not a glass surface.
+const SURFACE_ROLE: Record<string, MaterialProps | null> = {
+  glass: {},     // borderless adaptive glass
+  default: null, // plain, no glass surface
 }
 
-export const Component = React.forwardRef<HTMLDivElement, ComponentProps>(
-  ({ className, variant = "glass", glow = false, glass, ...props }, ref) => {
-    return (
-      <BaseComponent
-        ref={ref}
-        variant={variant}
-        glass={glass}
-        className={cn(
-          glow && "shadow-lg shadow-purple-500/30",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-)
-Component.displayName = "Component"
+function Component({
+  className,
+  variant = "glass",
+  material,
+  border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof componentVariants> & MaterialAxisProps) {
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
+    material,
+    border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+  })
+
+  return (
+    <div
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, componentVariants({ variant }), className)}
+      {...props}
+    />
+  )
+}
 ```
 
 #### Naming Conventions
 
 - **Components**: PascalCase (e.g., `Button`, `Card`, `Input`)
-- **Props**: camelCase (e.g., `variant`, `glass`, `glow`)
+- **Props**: camelCase (e.g., `variant`, `material`, `glow`)
 - **Files**: kebab-case (e.g., `button.tsx`, `card.tsx`)
 - **Types/Interfaces**: PascalCase with `Props` suffix (e.g., `ButtonProps`)
 
@@ -116,16 +129,16 @@ Component.displayName = "Component"
 #### Styling
 
 - Use Tailwind CSS classes
-- Leverage CSS variables for glass effects
+- Draw glass surfaces from the material system (`materialSurface` / `glassMaterial`), never hardcoded recipe class strings
 - Support both light and dark themes
 - Use `cn()` utility for conditional classes
 
 ### Component Requirements
 
-1. **Glass Variant Support**
-   - All components should support `variant="glass"`
-   - Use CSS variables for glass effects
-   - Support `glass` prop for customization
+1. **Material Support**
+   - Surface glass via `materialSurface()`, defaulting to adaptive glass
+   - Accept the material axis props (`material`, `border`, `veil`, `gradient`, `glow`, `sheen`)
+   - Support `style={glassVars(...)}` overrides instead of a bespoke customization prop
 
 2. **Accessibility**
    - Use Radix UI primitives when available

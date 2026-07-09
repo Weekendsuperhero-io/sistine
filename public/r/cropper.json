@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "cropper",
   "title": "Cropper",
-  "description": "An image cropper component with optional glassy variant.",
+  "description": "An image cropper component with optional glass material.",
   "dependencies": [
     "class-variance-authority",
     "clsx",

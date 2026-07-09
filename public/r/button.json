@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "button",
   "title": "Button",
-  "description": "Displays a button or a component that looks like a button with glassy variants.",
+  "description": "Displays a button or a component that looks like a button, with the glass material system.",
   "dependencies": [
     "class-variance-authority",
     "clsx",

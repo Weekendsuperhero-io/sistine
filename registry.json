@@ -7,7 +7,7 @@
       "name": "button",
       "type": "registry:component",
       "title": "Button",
-      "description": "Displays a button or a component that looks like a button with glassy variants.",
+      "description": "Displays a button or a component that looks like a button, with the glass material system.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -44,7 +44,7 @@
       "name": "card",
       "type": "registry:component",
       "title": "Card",
-      "description": "Displays a card with optional glassy variant.",
+      "description": "Displays a card with optional glass material.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -80,7 +80,7 @@
       "name": "input",
       "type": "registry:component",
       "title": "Input",
-      "description": "Displays a form input field with optional glassy variant.",
+      "description": "Displays a form input field with optional glass material.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -116,7 +116,7 @@
       "name": "textarea",
       "type": "registry:component",
       "title": "Textarea",
-      "description": "Displays a form textarea with optional glassy variant.",
+      "description": "Displays a form textarea with optional glass material.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -189,7 +189,7 @@
       "name": "badge",
       "type": "registry:component",
       "title": "Badge",
-      "description": "Displays a badge or a component that looks like a badge with glassy variant.",
+      "description": "Displays a badge or a component that looks like a badge, with the glass material system.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -340,7 +340,7 @@
       "name": "separator",
       "type": "registry:component",
       "title": "Separator",
-      "description": "Visually or semantically separates content with optional glassy variant.",
+      "description": "Visually or semantically separates content with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -377,7 +377,7 @@
       "name": "switch",
       "type": "registry:component",
       "title": "Switch",
-      "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+      "description": "A control that allows the user to toggle between checked and not checked with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -414,7 +414,7 @@
       "name": "checkbox",
       "type": "registry:component",
       "title": "Checkbox",
-      "description": "A control that allows the user to toggle between checked and not checked with optional glassy variant.",
+      "description": "A control that allows the user to toggle between checked and not checked with optional glass material.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -452,7 +452,7 @@
       "name": "tabs",
       "type": "registry:component",
       "title": "Tabs",
-      "description": "A set of layered sections of content—known as tab panels—that are displayed one at a time with optional glassy variant.",
+      "description": "A set of layered sections of content—known as tab panels—that are displayed one at a time with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -489,7 +489,7 @@
       "name": "tooltip",
       "type": "registry:component",
       "title": "Tooltip",
-      "description": "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it with optional glassy variant.",
+      "description": "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -526,7 +526,7 @@
       "name": "popover",
       "type": "registry:component",
       "title": "Popover",
-      "description": "Displays rich content in a portal, triggered by a button with optional glassy variant.",
+      "description": "Displays rich content in a portal, triggered by a button with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -563,7 +563,7 @@
       "name": "dropdown-menu",
       "type": "registry:component",
       "title": "Dropdown Menu",
-      "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glassy variant.",
+      "description": "Displays a menu to the user — such as a set of actions or functions — triggered by a button with optional glass material.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -601,7 +601,7 @@
       "name": "select",
       "type": "registry:component",
       "title": "Select",
-      "description": "Displays a list of options for the user to pick from—triggered by a button with optional glassy variant.",
+      "description": "Displays a list of options for the user to pick from—triggered by a button with optional glass material.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -639,7 +639,7 @@
       "name": "radio-group",
       "type": "registry:component",
       "title": "Radio Group",
-      "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glassy variant.",
+      "description": "A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time with optional glass material.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -677,7 +677,7 @@
       "name": "skeleton",
       "type": "registry:component",
       "title": "Skeleton",
-      "description": "Use to show a placeholder while content is loading with optional glassy variant.",
+      "description": "Use to show a placeholder while content is loading with optional glass material.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -713,7 +713,7 @@
       "name": "alert",
       "type": "registry:component",
       "title": "Alert",
-      "description": "Displays a callout for user attention with optional glassy variant.",
+      "description": "Displays a callout for user attention with optional glass material.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -864,7 +864,7 @@
       "name": "chart",
       "type": "registry:component",
       "title": "Chart",
-      "description": "Chart components built with Recharts with optional glassy variant.",
+      "description": "Chart components built with Recharts with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -978,7 +978,7 @@
       "name": "cropper",
       "type": "registry:component",
       "title": "Cropper",
-      "description": "An image cropper component with optional glassy variant.",
+      "description": "An image cropper component with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -1018,7 +1018,7 @@
       "name": "drawer",
       "type": "registry:component",
       "title": "Drawer",
-      "description": "A drawer component for mobile with optional glassy variant.",
+      "description": "A drawer component for mobile with optional glass material.",
       "dependencies": [
         "class-variance-authority",
         "clsx",
@@ -1168,7 +1168,7 @@
       "name": "pagination",
       "type": "registry:component",
       "title": "Pagination",
-      "description": "Pagination with page navigation with optional glassy variant.",
+      "description": "Pagination with page navigation with optional glass material.",
       "registryDependencies": [
         "@sistine/button",
         "@sistine/theme"
@@ -1281,7 +1281,7 @@
       "name": "sidebar",
       "type": "registry:component",
       "title": "Sidebar",
-      "description": "A sidebar component with optional glassy variant.",
+      "description": "A sidebar component with optional glass material.",
       "registryDependencies": [
         "@sistine/button",
         "@sistine/input",
@@ -1401,7 +1401,7 @@
       "name": "table",
       "type": "registry:component",
       "title": "Table",
-      "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
+      "description": "A responsive table, with the glass material system and optional striped (alternating-brightness) or bordered rows.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -1511,7 +1511,7 @@
       "name": "mode-toggle",
       "type": "registry:component",
       "title": "Mode Toggle",
-      "description": "A theme switcher component with optional glassy variant. Requires a next-themes ThemeProvider (uses useTheme) — wrap your app or swap in your own theme store.",
+      "description": "A theme switcher component with optional glass material. Requires a next-themes ThemeProvider (uses useTheme) — wrap your app or swap in your own theme store.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -1550,7 +1550,7 @@
       "name": "spinner",
       "type": "registry:component",
       "title": "Spinner",
-      "description": "A loading spinner component with glassy variants.",
+      "description": "A loading spinner component, with the glass material system.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -1586,7 +1586,7 @@
       "name": "button-group",
       "type": "registry:component",
       "title": "Button Group",
-      "description": "A group of buttons with glassy variants.",
+      "description": "A group of buttons, with the glass material system.",
       "registryDependencies": [
         "@sistine/separator",
         "@sistine/theme"
@@ -1624,7 +1624,7 @@
       "name": "input-group",
       "type": "registry:component",
       "title": "Input Group",
-      "description": "A group of inputs with glassy variants.",
+      "description": "A group of inputs, with the glass material system.",
       "registryDependencies": [
         "@sistine/button",
         "@sistine/input",
@@ -1663,7 +1663,7 @@
       "name": "empty-state",
       "type": "registry:component",
       "title": "Empty State",
-      "description": "An empty state component with glassy variants.",
+      "description": "An empty state component, with the glass material system.",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -1699,7 +1699,7 @@
       "name": "menu-bar",
       "type": "registry:component",
       "title": "Menu Bar",
-      "description": "A menu bar component with glassy variants.",
+      "description": "A menu bar component, with the glass material system.",
       "registryDependencies": [
         "@sistine/button",
         "@sistine/theme"
@@ -1736,7 +1736,7 @@
       "name": "date-picker-input",
       "type": "registry:component",
       "title": "Date Picker Input",
-      "description": "A date picker input component with glassy variants.",
+      "description": "A date picker input component, with the glass material system.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -1778,7 +1778,7 @@
       "name": "context-menu",
       "type": "registry:component",
       "title": "Context Menu",
-      "description": "A context menu component with glassy variants.",
+      "description": "A context menu component, with the glass material system.",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",
@@ -1816,7 +1816,7 @@
       "name": "carousel",
       "type": "registry:component",
       "title": "Carousel",
-      "description": "An items-driven carousel with glassy variants — pass slides as children (no compound CarouselContent/Item/Next/Previous/API parts).",
+      "description": "An items-driven carousel, with the glass material system — pass slides as children (no compound CarouselContent/Item/Next/Previous/API parts).",
       "dependencies": [
         "@phosphor-icons/react",
         "class-variance-authority",

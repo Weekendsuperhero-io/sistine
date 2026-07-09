@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "separator",
   "title": "Separator",
-  "description": "Visually or semantically separates content with optional glassy variant.",
+  "description": "Visually or semantically separates content with optional glass material.",
   "dependencies": [
     "class-variance-authority",
     "clsx",
