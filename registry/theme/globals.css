@@ -752,6 +752,16 @@
 [data-material="crystal"]:hover {
   --srf-shadow: var(--glass-crystal-shadow-hover);
 }
+/* Crystal text tiers — the baked gloss locally LIGHTENS the title zone (worst in dark mode), so text
+   inside crystal remaps to the -crystal set AutoForeground bands against the glossed crystal surface.
+   VEILED crystal is excluded: the veil floor is exactly what the normal tiers are banded for. */
+[data-material="crystal"]:not(.glass-veil) {
+  --foreground: var(--foreground-crystal);
+  --foreground-soft: var(--foreground-soft-crystal);
+  --foreground-strong: var(--foreground-strong-crystal);
+  --foreground-ui: var(--foreground-ui-crystal);
+  --muted-foreground: var(--muted-foreground-crystal);
+}
 
 /* Opaque — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
    ancestor: it's composed HERE, on the element, so it resolves where it's read. The floor can be
@@ -871,6 +881,15 @@
   --srf-filter: blur(var(--blur-crystal));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
+}
+/* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
+   as the material remap in materials.css — the baked gloss lightens title zones there too. */
+[data-glass="crystal"] :where(.glass):not([data-material]):not(.glass-veil) {
+  --foreground: var(--foreground-crystal);
+  --foreground-soft: var(--foreground-soft-crystal);
+  --foreground-strong: var(--foreground-strong-crystal);
+  --foreground-ui: var(--foreground-ui-crystal);
+  --muted-foreground: var(--muted-foreground-crystal);
 }
 /* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */

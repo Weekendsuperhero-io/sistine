@@ -364,6 +364,35 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         "-opaque",
         true,
       );
+      // Crystal cards: the specular gloss is baked UNDER content, so title-zone text sits on a locally
+      // LIGHTENED surface — worst in dark mode, where the ~L94 highlight over a dark floor pulls the
+      // local surface toward mid-gray. Band a THIRD set against the crystal surface + the title zone's
+      // MEAN gloss term (the top highlight peaks at 0.4α and fades out by 30% height → ≈0.2 effective;
+      // modeling the 0.4 peak would make the band unsatisfiable on mid-gray). [data-material="crystal"]
+      // and the crystal page style remap the tiers to this set — except veiled crystal, whose floor is
+      // what the NORMAL tiers are banded for. Same show-through margin logic: the backdrop's weight in
+      // this mix is (1−crysA)(1−tintA)(1−glossA).
+      {
+        const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
+        const glossL = num("--glass-gloss-l", 94);
+        const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
+        const baseL = dark ? 20 : 95;
+        const washL = dark ? 58 : 72;
+        const floorL = baseL * (1 - crysA) + 100 * crysA;
+        const washedL = floorL * (1 - tintA) + washL * tintA;
+        const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;
+        const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A), 0), 1);
+        applyTiers(
+          {
+            l: crystalL,
+            c: num("--glass-tint-c", 0) * 0.6,
+            h: tintH,
+          },
+          "-crystal",
+          true,
+          LC_MARGIN * uCrystal,
+        );
+      }
       if (dbg) {
         const dur = performance.now() - t0;
         // Wall-time = the getComputedStyle forced recalc + the JS solve (58 µs). The post-write recalc from
@@ -385,11 +414,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     update();
     // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
     // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
-    // Inline STYLE mutations re-band ONLY when --glass-solid-a actually changed (the veil-floor slider):
-    // the show-through margin depends on it, and it's the one input with no FG_EVENT. The old-vs-new gate
-    // keeps tint drags on the event fast path AND breaks the self-trigger loop from our own --foreground*
-    // writes (which never touch solid-a).
-    const SOLID_A = /--glass-solid-a:\s*([^;]+)/;
+    // Inline STYLE mutations re-band ONLY when a surface-model input actually changed: --glass-solid-a
+    // (the veil-floor slider) or --glass-gloss-l (the crystal gloss-boldness slider) — the two inputs
+    // with no FG_EVENT. The old-vs-new gate keeps tint drags on the event fast path AND breaks the
+    // self-trigger loop from our own --foreground* writes (which touch neither).
+    const STYLE_INPUTS = [
+      /--glass-solid-a:\s*([^;]+)/,
+      /--glass-gloss-l:\s*([^;]+)/,
+    ];
     const observer = new MutationObserver((muts) => {
       for (const m of muts) {
         if (m.attributeName === "class") {
@@ -397,9 +429,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           return;
         }
         if (m.attributeName === "style") {
-          const prev = SOLID_A.exec(m.oldValue ?? "")?.[1]?.trim();
-          const next = SOLID_A.exec(root.getAttribute("style") ?? "")?.[1]?.trim();
-          if (prev !== next) {
+          const now = root.getAttribute("style") ?? "";
+          const was = m.oldValue ?? "";
+          if (STYLE_INPUTS.some((re) => re.exec(was)?.[1]?.trim() !== re.exec(now)?.[1]?.trim())) {
             update();
             return;
           }

@@ -43,6 +43,15 @@
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
 }
+/* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
+   as the material remap in materials.css — the baked gloss lightens title zones there too. */
+[data-glass="crystal"] :where(.glass):not([data-material]):not(.glass-veil) {
+  --foreground: var(--foreground-crystal);
+  --foreground-soft: var(--foreground-soft-crystal);
+  --foreground-strong: var(--foreground-strong-crystal);
+  --foreground-ui: var(--foreground-ui-crystal);
+  --muted-foreground: var(--muted-foreground-crystal);
+}
 /* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
 :where(
