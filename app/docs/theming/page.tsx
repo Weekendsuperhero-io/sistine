@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ForegroundTester } from "@/components/foreground-tester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { VeilComparisonDemo } from "@/components/veil-comparison-demo";
 
 /** Block code sample. */
 function Code({ children }: { children: ReactNode }) {
@@ -757,6 +758,11 @@ const onAccent = useReadableForeground(accent, "large");
             <Code>{`<aside style={{ "--glass-solid-a": 0.8 }}>
   <div className="glass glass-veil …">extra-solid here only</div>
 </aside>`}</Code>
+            <p className="mt-4 text-muted-foreground">
+              Live: drag the floor opacity and watch the <IC>veil</IC> card&apos;s legibility hold while the plain-glass card rides the backdrop. Same
+              text in both.
+            </p>
+            <VeilComparisonDemo />
           </CardContent>
         </Card>
 
