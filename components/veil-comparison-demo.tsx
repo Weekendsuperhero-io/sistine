@@ -7,10 +7,11 @@ import { Slider } from "@/components/ui/slider";
 const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still legible?";
 
 /**
- * Side-by-side proof of the `veil` axis. Both cards hold the SAME text; the slider drives
- * --glass-solid-a on the shared wrapper. `glass-veil` composes that alpha into its floor AT THE
- * ELEMENT, so the veiled card's legibility floor solidifies as you drag — while the plain-glass card
- * never reads --glass-solid-a, so its readability rides entirely on whatever's behind it.
+ * Side-by-side proof of the `veil` axis. Both cards hold the SAME text over a deliberately BUSY
+ * backdrop (vivid diagonal stripes + color blobs), so the veil's job is visible: the slider drives
+ * --glass-solid-a on the wrapper, and `glass-veil` composes that alpha into its floor AT THE ELEMENT —
+ * so the veiled card's floor thickens over the noise as you drag, while the plain-glass card (which
+ * never reads --glass-solid-a) lets the backdrop bleed straight through and fight the text.
  */
 export function VeilComparisonDemo() {
   const [solidA, setSolidA] = React.useState(0.65);
@@ -24,22 +25,32 @@ export function VeilComparisonDemo() {
         } as React.CSSProperties
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card border veil>
-          <CardHeader>
-            <CardTitle className="text-base">
-              <code className="text-xs">veil</code> — floor tracks the slider
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
-        </Card>
+      {/* Busy backdrop the two cards sit OVER, so the veil has something to obscure. */}
+      <div className="relative overflow-hidden rounded-xl p-4">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, oklch(0.72 0.19 25) 0 14px, oklch(0.78 0.17 90) 14px 28px, oklch(0.7 0.16 200) 28px 42px, oklch(0.68 0.2 300) 42px 56px)",
+          }}
+        />
+        <div className="relative grid gap-4 sm:grid-cols-2">
+          <Card border veil>
+            <CardHeader>
+              <CardTitle className="text-base">
+                <code className="text-xs">veil</code> — floor tracks the slider
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
+          </Card>
 
-        <Card border>
-          <CardHeader>
-            <CardTitle className="text-base">plain glass — no floor</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
-        </Card>
+          <Card border>
+            <CardHeader>
+              <CardTitle className="text-base">plain glass — no floor</CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
