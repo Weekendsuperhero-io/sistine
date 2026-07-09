@@ -1112,46 +1112,28 @@
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
-   data-glass-tint="<status>" so their glass picks up the status hue regardless of the page tint,
-   reusing the grouped re-resolution above. */
-[data-glass-tint="info"] {
-  --glass-tint-h: 255;
-  --glass-tint-c: 0.1;
-  --glass-tint-a: 0.18;
-}
-[data-glass-tint="success"] {
-  --glass-tint-h: 150;
-  --glass-tint-c: 0.1;
-  --glass-tint-a: 0.18;
-}
-[data-glass-tint="warning"] {
-  --glass-tint-h: 85;
-  --glass-tint-c: 0.11;
-  --glass-tint-a: 0.18;
-}
-[data-glass-tint="destructive"] {
-  --glass-tint-h: 25;
-  --glass-tint-c: 0.1;
-  --glass-tint-a: 0.18;
-}
-
-/* Sonner toasts: status fill from sonner's data-type — these selectors join the grouped re-resolution
-   above (so --glass-bg / wash re-resolve at the toast). Hues mirror the semantic alert statuses. */
+   data-glass-tint="<status>", and sonner toasts hit the SAME hues via their data-type attribute
+   (destructive pairs with sonner's "error") — one block per status, joining the grouped engine
+   re-resolution above so --glass-bg / wash re-resolve at the alert/toast. */
+[data-glass-tint="info"],
 [data-sonner-toast][data-type="info"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
 }
+[data-glass-tint="success"],
 [data-sonner-toast][data-type="success"] {
   --glass-tint-h: 150;
   --glass-tint-c: 0.1;
   --glass-tint-a: 0.18;
 }
+[data-glass-tint="warning"],
 [data-sonner-toast][data-type="warning"] {
   --glass-tint-h: 85;
   --glass-tint-c: 0.11;
   --glass-tint-a: 0.18;
 }
+[data-glass-tint="destructive"],
 [data-sonner-toast][data-type="error"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.1;
@@ -1307,20 +1289,15 @@
   color: var(--foreground) !important;
 }
 
-[data-sonner-toast][data-type="success"] {
-  border-color: oklch(72.2746% 0.19201 149.579 / 0.3) !important;
-}
-
-[data-sonner-toast][data-type="error"] {
-  border-color: oklch(63.6834% 0.20785 25.3313 / 0.3) !important;
-}
-
-[data-sonner-toast][data-type="warning"] {
-  border-color: oklch(79.5243% 0.16167 86.0468 / 0.3) !important;
-}
-
+/* Status toast borders — derived from the toast's own status tint (the merged status blocks above set
+   --glass-tint-h at the toast) instead of four hardcoded tailwind-500 literals; within ~0.1 L of the
+   originals on a 1px 30%-alpha border. NOT bare [data-type]: default/loading toasts keep the plain
+   glass border. */
+[data-sonner-toast][data-type="success"],
+[data-sonner-toast][data-type="error"],
+[data-sonner-toast][data-type="warning"],
 [data-sonner-toast][data-type="info"] {
-  border-color: oklch(62.3083% 0.18801 259.815 / 0.3) !important;
+  border-color: oklch(0.7 0.18 var(--glass-tint-h) / 0.3) !important;
 }
 
 /* Toast description text */
@@ -1328,8 +1305,9 @@
   color: var(--muted-foreground) !important;
 }
 
-/* Toast action buttons - Glass styled */
-[data-sonner-toast] [data-button] {
+/* Toast action / cancel / close buttons — one glass recipe (the hover fade now covers all three;
+   previously only the action button transitioned). Cancel dims to muted below. */
+[data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]) {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(var(--blur-sm)) !important;
   -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
@@ -1338,32 +1316,10 @@
   transition: opacity 0.2s ease !important;
 }
 
-[data-sonner-toast] [data-button]:hover {
-  opacity: 0.9 !important;
-}
-
-/* Toast cancel button */
 [data-sonner-toast] [data-cancel] {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(var(--blur-sm)) !important;
-  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
-  border: 1px solid var(--glass-border) !important;
   color: var(--muted-foreground) !important;
 }
 
-[data-sonner-toast] [data-cancel]:hover {
-  opacity: 0.9 !important;
-}
-
-/* Toast close button */
-[data-sonner-toast] [data-close-button] {
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(var(--blur-sm)) !important;
-  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
-  border: 1px solid var(--glass-border) !important;
-  color: var(--foreground) !important;
-}
-
-[data-sonner-toast] [data-close-button]:hover {
+[data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]):hover {
   opacity: 0.9 !important;
 }
