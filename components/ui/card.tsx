@@ -1,21 +1,15 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
       glass: "text-foreground",
-      frosted: "text-foreground",
-      crystal: "text-foreground",
-      opaque: "text-foreground",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -29,7 +23,6 @@ const ROLE = {};
 function Card({
   className,
   variant = "glass",
-  glass,
   material,
   border,
   veil,
@@ -38,11 +31,9 @@ function Card({
   sheen,
   effect,
   animated,
-  style,
   ...props
 }: React.ComponentProps<"div"> &
   VariantProps<typeof cardVariants> & {
-    glass?: GlassCustomization;
     material?: Material;
     border?: boolean;
     veil?: boolean;
@@ -53,7 +44,7 @@ function Card({
     /** Scale + deepen shadow on hover (folded from the glass wrapper). */
     animated?: boolean;
   }) {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
@@ -61,9 +52,6 @@ function Card({
     glow,
     sheen,
   });
-
-  const hasCustomGlass = glass !== undefined;
-  const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
   return (
     <div
@@ -81,10 +69,6 @@ function Card({
           }),
         className,
       )}
-      style={{
-        ...glassStyles,
-        ...style,
-      }}
       {...props}
     />
   );

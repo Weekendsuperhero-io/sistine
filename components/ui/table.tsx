@@ -1,20 +1,15 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const tableVariants = cva("w-full caption-bottom text-sm", {
   variants: {
     variant: {
       default: "",
       glass: "rounded-lg overflow-hidden",
-      frosted: "rounded-lg overflow-hidden",
-      crystal: "rounded-lg overflow-hidden",
-      opaque: "rounded-lg overflow-hidden",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -38,7 +33,7 @@ const Table = React.forwardRef<
       striped?: boolean;
     }
 >(({ className, variant = "glass", material, border, glow, striped = false, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     glow,

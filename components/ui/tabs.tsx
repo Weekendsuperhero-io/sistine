@@ -5,20 +5,15 @@ import { Tabs as TabsPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", {
   variants: {
     variant: {
       default: "bg-muted",
       glass: "",
-      frosted: "",
-      crystal: "",
-      opaque: "",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -55,7 +50,7 @@ const TabsList = React.forwardRef<
       effect?: HoverEffect;
     }
 >(({ className, variant = "glass", material, border, glow, effect, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     glow,

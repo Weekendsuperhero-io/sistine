@@ -3,7 +3,7 @@
 import { Switch as SwitchPrimitives } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass (the old glass-surface thumb). */
@@ -23,7 +23,7 @@ const Switch = React.forwardRef<
   }
 >(({ className, variant = "glass", size = "default", material, border, glow, ...props }, ref) => {
   // The THUMB is the glass surface element; the root track styles itself.
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

@@ -1,20 +1,14 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
-import { type Material, type MaterialProps, resolveMaterial } from "@/lib/material";
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const textareaVariants = cva("", {
   variants: {
     variant: {
       default: "dark:bg-input/30 border-input bg-transparent shadow-xs",
       glass: "",
-      frosted: "",
-      crystal: "",
-      opaque: "",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -31,16 +25,13 @@ const ROLE: MaterialProps = {
 function Textarea({
   className,
   variant = "glass",
-  glass,
   material,
   border,
   icon,
   error,
-  style,
   ...props
 }: React.ComponentProps<"textarea"> &
   VariantProps<typeof textareaVariants> & {
-    glass?: GlassCustomization;
     material?: Material;
     border?: boolean;
     /** Leading icon (folded from the glass wrapper). */
@@ -48,13 +39,10 @@ function Textarea({
     /** Destructive border + focus ring (folded from the glass wrapper). */
     error?: boolean;
   }) {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });
-
-  const hasCustomGlass = glass !== undefined;
-  const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
   const textarea = (
     <textarea
@@ -71,10 +59,6 @@ function Textarea({
         error && "border-destructive focus-visible:ring-destructive",
         className,
       )}
-      style={{
-        ...glassStyles,
-        ...style,
-      }}
       {...props}
     />
   );

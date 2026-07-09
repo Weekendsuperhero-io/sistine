@@ -3,7 +3,7 @@
 import { Slider as SliderPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass (the old glass-surface thumb). */
@@ -22,7 +22,7 @@ const Slider = React.forwardRef<
   }
 >(({ className, variant = "glass", material, border, glow, defaultValue, value, min = 0, max = 100, ...props }, ref) => {
   // The THUMB is the glass surface element: a small glass knob, or a plain neutral dot when m === null.
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

@@ -2,10 +2,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from resolveMaterial.
+/* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from materialSurface.
    Status variants ride a BORDERLESS glass surface (their colored border is their own chrome). */
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
@@ -14,11 +14,6 @@ const alertVariants = cva(
       variant: {
         default: "bg-background text-foreground",
         glass: "text-foreground",
-        frosted: "text-foreground",
-        crystal: "text-foreground",
-        opaque: "text-foreground",
-        surface: "text-foreground",
-        solid: "text-foreground",
         info: "backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
           "backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
@@ -41,18 +36,15 @@ const STATUS_VARIANTS = [
   "destructive",
 ] as const;
 
-/* Which tier supplies each SEMANTIC variant's surface (statuses ride borderless glass). */
-const SURFACE_TIER: Partial<Record<string, string | null>> = {
+/* Each semantic variant's surface role: statuses ride a BORDERLESS glass surface (their colored
+   border is their own chrome); default renders no glass surface. */
+const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   default: null,
-  info: "glass",
-  success: "glass",
-  warning: "glass",
-  destructive: "glass",
-};
-
-/* Role: bordered adaptive glass (the old glass-surface look). */
-const ROLE = {
-  border: true,
+  glass: {},
+  info: {},
+  success: {},
+  warning: {},
+  destructive: {},
 };
 
 const Alert = React.forwardRef<
@@ -66,9 +58,7 @@ const Alert = React.forwardRef<
     }
 >(({ className, variant, material, border, glow, effect, ...props }, ref) => {
   const isStatus = variant !== null && variant !== undefined && (STATUS_VARIANTS as readonly string[]).includes(variant);
-  const surfaceVariant = SURFACE_TIER[variant ?? "glass"] === undefined ? variant : SURFACE_TIER[variant ?? "glass"];
-  // Statuses ride a borderless glass surface (their colored border is their own chrome).
-  const m = resolveMaterial(isStatus ? {} : ROLE, surfaceVariant, {
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,
     border,
     glow,

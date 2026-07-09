@@ -9,7 +9,6 @@
       "title": "Button",
       "description": "Displays a button or a component that looks like a button with glassy variants.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -19,9 +18,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -32,11 +31,6 @@
           "path": "components/ui/button.tsx",
           "type": "registry:component",
           "target": "components/ui/button.tsx"
-        },
-        {
-          "path": "components/ui/glass/button.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/button.tsx"
         }
       ],
       "dependencies": [
@@ -52,7 +46,6 @@
       "title": "Card",
       "description": "Displays a card with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -62,9 +55,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -75,11 +68,6 @@
           "path": "components/ui/card.tsx",
           "type": "registry:component",
           "target": "components/ui/card.tsx"
-        },
-        {
-          "path": "components/ui/glass/card.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/card.tsx"
         }
       ],
       "dependencies": [
@@ -94,7 +82,6 @@
       "title": "Input",
       "description": "Displays a form input field with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -104,9 +91,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -117,11 +104,6 @@
           "path": "components/ui/input.tsx",
           "type": "registry:component",
           "target": "components/ui/input.tsx"
-        },
-        {
-          "path": "components/ui/glass/input.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/input.tsx"
         }
       ],
       "dependencies": [
@@ -136,7 +118,6 @@
       "title": "Textarea",
       "description": "Displays a form textarea with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -146,9 +127,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -159,11 +140,6 @@
           "path": "components/ui/textarea.tsx",
           "type": "registry:component",
           "target": "components/ui/textarea.tsx"
-        },
-        {
-          "path": "components/ui/glass/textarea.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/textarea.tsx"
         }
       ],
       "dependencies": [
@@ -193,9 +169,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -206,11 +182,6 @@
           "path": "components/ui/label.tsx",
           "type": "registry:component",
           "target": "components/ui/label.tsx"
-        },
-        {
-          "path": "components/ui/glass/label.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/label.tsx"
         }
       ]
     },
@@ -220,7 +191,6 @@
       "title": "Badge",
       "description": "Displays a badge or a component that looks like a badge with glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -230,9 +200,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -243,11 +213,6 @@
           "path": "components/ui/badge.tsx",
           "type": "registry:component",
           "target": "components/ui/badge.tsx"
-        },
-        {
-          "path": "components/ui/glass/badge.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/badge.tsx"
         }
       ],
       "dependencies": [
@@ -278,9 +243,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -291,11 +256,6 @@
           "path": "components/ui/avatar.tsx",
           "type": "registry:component",
           "target": "components/ui/avatar.tsx"
-        },
-        {
-          "path": "components/ui/glass/avatar.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/avatar.tsx"
         }
       ]
     },
@@ -313,7 +273,6 @@
       ],
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -323,9 +282,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -336,11 +295,6 @@
           "path": "components/ui/dialog.tsx",
           "type": "registry:component",
           "target": "components/ui/dialog.tsx"
-        },
-        {
-          "path": "components/ui/glass/dialog.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/dialog.tsx"
         }
       ]
     },
@@ -357,7 +311,6 @@
       ],
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -367,9 +320,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -380,11 +333,6 @@
           "path": "components/ui/alert-dialog.tsx",
           "type": "registry:component",
           "target": "components/ui/alert-dialog.tsx"
-        },
-        {
-          "path": "components/ui/glass/alert-dialog.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/alert-dialog.tsx"
         }
       ]
     },
@@ -409,9 +357,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -422,11 +370,6 @@
           "path": "components/ui/separator.tsx",
           "type": "registry:component",
           "target": "components/ui/separator.tsx"
-        },
-        {
-          "path": "components/ui/glass/separator.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/separator.tsx"
         }
       ]
     },
@@ -442,7 +385,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -452,9 +394,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -465,11 +407,6 @@
           "path": "components/ui/switch.tsx",
           "type": "registry:component",
           "target": "components/ui/switch.tsx"
-        },
-        {
-          "path": "components/ui/glass/switch.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/switch.tsx"
         }
       ]
     },
@@ -486,7 +423,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -496,9 +432,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -509,11 +445,6 @@
           "path": "components/ui/checkbox.tsx",
           "type": "registry:component",
           "target": "components/ui/checkbox.tsx"
-        },
-        {
-          "path": "components/ui/glass/checkbox.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/checkbox.tsx"
         }
       ]
     },
@@ -529,7 +460,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -539,9 +469,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -552,11 +482,6 @@
           "path": "components/ui/tabs.tsx",
           "type": "registry:component",
           "target": "components/ui/tabs.tsx"
-        },
-        {
-          "path": "components/ui/glass/tabs.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/tabs.tsx"
         }
       ]
     },
@@ -572,7 +497,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -582,9 +506,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -595,11 +519,6 @@
           "path": "components/ui/tooltip.tsx",
           "type": "registry:component",
           "target": "components/ui/tooltip.tsx"
-        },
-        {
-          "path": "components/ui/glass/tooltip.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/tooltip.tsx"
         }
       ]
     },
@@ -615,7 +534,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -625,9 +543,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -638,11 +556,6 @@
           "path": "components/ui/popover.tsx",
           "type": "registry:component",
           "target": "components/ui/popover.tsx"
-        },
-        {
-          "path": "components/ui/glass/popover.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/popover.tsx"
         }
       ]
     },
@@ -659,7 +572,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -669,9 +581,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -682,11 +594,6 @@
           "path": "components/ui/dropdown-menu.tsx",
           "type": "registry:component",
           "target": "components/ui/dropdown-menu.tsx"
-        },
-        {
-          "path": "components/ui/glass/dropdown-menu.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/dropdown-menu.tsx"
         }
       ]
     },
@@ -703,7 +610,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -713,9 +619,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -726,11 +632,6 @@
           "path": "components/ui/select.tsx",
           "type": "registry:component",
           "target": "components/ui/select.tsx"
-        },
-        {
-          "path": "components/ui/glass/select.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/select.tsx"
         }
       ]
     },
@@ -747,7 +648,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -757,9 +657,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -770,11 +670,6 @@
           "path": "components/ui/radio-group.tsx",
           "type": "registry:component",
           "target": "components/ui/radio-group.tsx"
-        },
-        {
-          "path": "components/ui/glass/radio-group.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/radio-group.tsx"
         }
       ]
     },
@@ -784,7 +679,6 @@
       "title": "Skeleton",
       "description": "Use to show a placeholder while content is loading with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -794,9 +688,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -807,11 +701,6 @@
           "path": "components/ui/skeleton.tsx",
           "type": "registry:component",
           "target": "components/ui/skeleton.tsx"
-        },
-        {
-          "path": "components/ui/glass/skeleton.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/skeleton.tsx"
         }
       ],
       "dependencies": [
@@ -826,7 +715,6 @@
       "title": "Alert",
       "description": "Displays a callout for user attention with optional glassy variant.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -836,9 +724,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -849,11 +737,6 @@
           "path": "components/ui/alert.tsx",
           "type": "registry:component",
           "target": "components/ui/alert.tsx"
-        },
-        {
-          "path": "components/ui/glass/alert.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/alert.tsx"
         }
       ],
       "dependencies": [
@@ -884,9 +767,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -897,11 +780,6 @@
           "path": "components/ui/accordion.tsx",
           "type": "registry:component",
           "target": "components/ui/accordion.tsx"
-        },
-        {
-          "path": "components/ui/glass/accordion.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/accordion.tsx"
         }
       ]
     },
@@ -918,7 +796,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -928,9 +805,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -941,11 +818,6 @@
           "path": "components/ui/breadcrumb.tsx",
           "type": "registry:component",
           "target": "components/ui/breadcrumb.tsx"
-        },
-        {
-          "path": "components/ui/glass/breadcrumb.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/breadcrumb.tsx"
         }
       ]
     },
@@ -963,7 +835,6 @@
       ],
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -973,9 +844,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -986,11 +857,6 @@
           "path": "components/ui/calendar.tsx",
           "type": "registry:component",
           "target": "components/ui/calendar.tsx"
-        },
-        {
-          "path": "components/ui/glass/calendar.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/calendar.tsx"
         }
       ]
     },
@@ -1006,7 +872,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1016,9 +881,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1029,11 +894,6 @@
           "path": "components/ui/chart.tsx",
           "type": "registry:component",
           "target": "components/ui/chart.tsx"
-        },
-        {
-          "path": "components/ui/glass/chart.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/chart.tsx"
         }
       ]
     },
@@ -1058,9 +918,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1071,11 +931,6 @@
           "path": "components/ui/collapsible.tsx",
           "type": "registry:component",
           "target": "components/ui/collapsible.tsx"
-        },
-        {
-          "path": "components/ui/glass/collapsible.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/collapsible.tsx"
         }
       ]
     },
@@ -1094,7 +949,6 @@
       ],
       "registryDependencies": [
         "@sistine/dialog",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1104,9 +958,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1117,11 +971,6 @@
           "path": "components/ui/command.tsx",
           "type": "registry:component",
           "target": "components/ui/command.tsx"
-        },
-        {
-          "path": "components/ui/glass/command.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/command.tsx"
         }
       ]
     },
@@ -1139,7 +988,6 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/dialog",
-        "@sistine/material",
         "@sistine/slider",
         "@sistine/theme"
       ],
@@ -1150,9 +998,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1163,11 +1011,6 @@
           "path": "components/ui/cropper.tsx",
           "type": "registry:component",
           "target": "components/ui/cropper.tsx"
-        },
-        {
-          "path": "components/ui/glass/cropper.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/cropper.tsx"
         }
       ]
     },
@@ -1183,7 +1026,6 @@
         "vaul"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1193,9 +1035,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1206,11 +1048,6 @@
           "path": "components/ui/drawer.tsx",
           "type": "registry:component",
           "target": "components/ui/drawer.tsx"
-        },
-        {
-          "path": "components/ui/glass/drawer.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/drawer.tsx"
         }
       ]
     },
@@ -1226,7 +1063,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1236,9 +1072,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1249,11 +1085,6 @@
           "path": "components/ui/hover-card.tsx",
           "type": "registry:component",
           "target": "components/ui/hover-card.tsx"
-        },
-        {
-          "path": "components/ui/glass/hover-card.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/hover-card.tsx"
         }
       ]
     },
@@ -1270,7 +1101,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1280,9 +1110,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1293,11 +1123,6 @@
           "path": "components/ui/input-otp.tsx",
           "type": "registry:component",
           "target": "components/ui/input-otp.tsx"
-        },
-        {
-          "path": "components/ui/glass/input-otp.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/input-otp.tsx"
         }
       ]
     },
@@ -1314,7 +1139,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1324,9 +1148,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1337,11 +1161,6 @@
           "path": "components/ui/navigation-menu.tsx",
           "type": "registry:component",
           "target": "components/ui/navigation-menu.tsx"
-        },
-        {
-          "path": "components/ui/glass/navigation-menu.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/navigation-menu.tsx"
         }
       ]
     },
@@ -1352,7 +1171,6 @@
       "description": "Pagination with page navigation with optional glassy variant.",
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1362,9 +1180,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1375,11 +1193,6 @@
           "path": "components/ui/pagination.tsx",
           "type": "registry:component",
           "target": "components/ui/pagination.tsx"
-        },
-        {
-          "path": "components/ui/glass/pagination.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/pagination.tsx"
         }
       ],
       "dependencies": [
@@ -1401,7 +1214,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1411,9 +1223,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1424,11 +1236,6 @@
           "path": "components/ui/scroll-area.tsx",
           "type": "registry:component",
           "target": "components/ui/scroll-area.tsx"
-        },
-        {
-          "path": "components/ui/glass/scroll-area.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/scroll-area.tsx"
         }
       ]
     },
@@ -1445,7 +1252,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1455,9 +1261,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1468,11 +1274,6 @@
           "path": "components/ui/sheet.tsx",
           "type": "registry:component",
           "target": "components/ui/sheet.tsx"
-        },
-        {
-          "path": "components/ui/glass/sheet.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/sheet.tsx"
         }
       ]
     },
@@ -1498,9 +1299,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1511,11 +1312,6 @@
           "path": "components/ui/sidebar.tsx",
           "type": "registry:component",
           "target": "components/ui/sidebar.tsx"
-        },
-        {
-          "path": "components/ui/glass/sidebar.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/sidebar.tsx"
         }
       ],
       "dependencies": [
@@ -1538,7 +1334,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1548,9 +1343,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1561,11 +1356,6 @@
           "path": "components/ui/slider.tsx",
           "type": "registry:component",
           "target": "components/ui/slider.tsx"
-        },
-        {
-          "path": "components/ui/glass/slider.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/slider.tsx"
         }
       ]
     },
@@ -1591,9 +1381,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1604,11 +1394,6 @@
           "path": "components/ui/sonner.tsx",
           "type": "registry:component",
           "target": "components/ui/sonner.tsx"
-        },
-        {
-          "path": "components/ui/glass/sonner.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/sonner.tsx"
         }
       ]
     },
@@ -1618,7 +1403,6 @@
       "title": "Table",
       "description": "A responsive table with glass variants and optional striped (alternating-brightness) or bordered rows.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1628,9 +1412,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1641,11 +1425,6 @@
           "path": "components/ui/table.tsx",
           "type": "registry:component",
           "target": "components/ui/table.tsx"
-        },
-        {
-          "path": "components/ui/glass/table.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/table.tsx"
         }
       ],
       "dependencies": [
@@ -1666,7 +1445,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1676,9 +1454,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1689,11 +1467,6 @@
           "path": "components/ui/toggle.tsx",
           "type": "registry:component",
           "target": "components/ui/toggle.tsx"
-        },
-        {
-          "path": "components/ui/glass/toggle.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/toggle.tsx"
         }
       ]
     },
@@ -1709,7 +1482,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1719,9 +1491,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1732,11 +1504,6 @@
           "path": "components/ui/toggle-group.tsx",
           "type": "registry:component",
           "target": "components/ui/toggle-group.tsx"
-        },
-        {
-          "path": "components/ui/glass/toggle-group.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/toggle-group.tsx"
         }
       ]
     },
@@ -1754,7 +1521,6 @@
       ],
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1764,9 +1530,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1777,11 +1543,6 @@
           "path": "components/ui/mode-toggle.tsx",
           "type": "registry:component",
           "target": "components/ui/mode-toggle.tsx"
-        },
-        {
-          "path": "components/ui/glass/mode-toggle.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/mode-toggle.tsx"
         }
       ]
     },
@@ -1800,9 +1561,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1813,11 +1574,6 @@
           "path": "components/ui/spinner.tsx",
           "type": "registry:component",
           "target": "components/ui/spinner.tsx"
-        },
-        {
-          "path": "components/ui/glass/spinner.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/spinner.tsx"
         }
       ],
       "dependencies": [
@@ -1832,7 +1588,6 @@
       "title": "Button Group",
       "description": "A group of buttons with glassy variants.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/separator",
         "@sistine/theme"
       ],
@@ -1843,9 +1598,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1856,11 +1611,6 @@
           "path": "components/ui/button-group.tsx",
           "type": "registry:component",
           "target": "components/ui/button-group.tsx"
-        },
-        {
-          "path": "components/ui/glass/button-group.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/button-group.tsx"
         }
       ],
       "dependencies": [
@@ -1878,7 +1628,6 @@
       "registryDependencies": [
         "@sistine/button",
         "@sistine/input",
-        "@sistine/material",
         "@sistine/textarea",
         "@sistine/theme"
       ],
@@ -1889,9 +1638,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1902,11 +1651,6 @@
           "path": "components/ui/input-group.tsx",
           "type": "registry:component",
           "target": "components/ui/input-group.tsx"
-        },
-        {
-          "path": "components/ui/glass/input-group.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/input-group.tsx"
         }
       ],
       "dependencies": [
@@ -1921,7 +1665,6 @@
       "title": "Empty State",
       "description": "An empty state component with glassy variants.",
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1931,9 +1674,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1944,11 +1687,6 @@
           "path": "components/ui/empty-state.tsx",
           "type": "registry:component",
           "target": "components/ui/empty-state.tsx"
-        },
-        {
-          "path": "components/ui/glass/empty-state.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/empty-state.tsx"
         }
       ],
       "dependencies": [
@@ -1964,7 +1702,6 @@
       "description": "A menu bar component with glassy variants.",
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -1974,9 +1711,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -1987,11 +1724,6 @@
           "path": "components/ui/menu-bar.tsx",
           "type": "registry:component",
           "target": "components/ui/menu-bar.tsx"
-        },
-        {
-          "path": "components/ui/glass/menu-bar.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/menu-bar.tsx"
         }
       ],
       "dependencies": [
@@ -2016,7 +1748,6 @@
         "@sistine/button",
         "@sistine/calendar",
         "@sistine/input",
-        "@sistine/material",
         "@sistine/popover",
         "@sistine/theme"
       ],
@@ -2027,9 +1758,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -2040,11 +1771,6 @@
           "path": "components/ui/date-picker-input.tsx",
           "type": "registry:component",
           "target": "components/ui/date-picker-input.tsx"
-        },
-        {
-          "path": "components/ui/glass/date-picker-input.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/date-picker-input.tsx"
         }
       ]
     },
@@ -2061,7 +1787,6 @@
         "tailwind-merge"
       ],
       "registryDependencies": [
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -2071,9 +1796,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -2084,11 +1809,6 @@
           "path": "components/ui/context-menu.tsx",
           "type": "registry:component",
           "target": "components/ui/context-menu.tsx"
-        },
-        {
-          "path": "components/ui/glass/context-menu.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/context-menu.tsx"
         }
       ]
     },
@@ -2105,7 +1825,6 @@
       ],
       "registryDependencies": [
         "@sistine/button",
-        "@sistine/material",
         "@sistine/theme"
       ],
       "files": [
@@ -2115,9 +1834,9 @@
           "target": "lib/utils.ts"
         },
         {
-          "path": "lib/glass-utils.ts",
+          "path": "lib/material.ts",
           "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
+          "target": "lib/material.ts"
         },
         {
           "path": "lib/hover-effects.ts",
@@ -2128,11 +1847,6 @@
           "path": "components/ui/carousel.tsx",
           "type": "registry:component",
           "target": "components/ui/carousel.tsx"
-        },
-        {
-          "path": "components/ui/glass/carousel.tsx",
-          "type": "registry:component",
-          "target": "components/ui/glass/carousel.tsx"
         }
       ]
     },
@@ -2429,21 +2143,6 @@
           "path": "components/auto-foreground.tsx",
           "type": "registry:component",
           "target": "components/auto-foreground.tsx"
-        }
-      ],
-      "dependencies": []
-    },
-    {
-      "name": "glass-utils",
-      "type": "registry:lib",
-      "title": "Glass Utils",
-      "description": "Helpers and the GlassCustomization type for per-component glass tuning (color, blur, outline, glow).",
-      "registryDependencies": [],
-      "files": [
-        {
-          "path": "lib/glass-utils.ts",
-          "type": "registry:lib",
-          "target": "lib/glass-utils.ts"
         }
       ],
       "dependencies": []

@@ -4,7 +4,7 @@ import { Check } from "@phosphor-icons/react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass (the old glass-surface look). */
@@ -22,7 +22,7 @@ const Checkbox = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

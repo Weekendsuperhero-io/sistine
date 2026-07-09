@@ -4,7 +4,7 @@ import { Dot } from "@phosphor-icons/react";
 import { OTPInput, type RenderProps, type SlotProps } from "input-otp";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Root role: bordered adaptive glass (the old glass-surface look). */
@@ -26,13 +26,13 @@ const InputOTP = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", render, material, border, glow, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg",
   };
 
-  const m = resolveMaterial(ROOT_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROOT_ROLE, {
     material,
     border,
   });
@@ -87,7 +87,7 @@ const InputOTPSlot = React.forwardRef<
       glow?: boolean;
     }
 >(({ variant = "glass", material, border, glow, className, char, isActive, hasFakeCaret, placeholderChar = "○", ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default:
       "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
@@ -95,7 +95,7 @@ const InputOTPSlot = React.forwardRef<
       "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] backdrop-blur-[var(--blur-sm)] text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
   };
 
-  const m = resolveMaterial(SLOT_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : SLOT_ROLE, {
     material,
     border,
   });

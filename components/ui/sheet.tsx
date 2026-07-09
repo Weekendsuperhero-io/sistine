@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, type MaterialProps, resolveMaterial } from "@/lib/material";
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass at the elevated blur tier (the old glass-surface-lg look). */
@@ -57,7 +57,7 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, VariantProps<typeof sheetVariants> {
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
+  variant?: "default" | "glass";
   material?: Material;
   border?: boolean;
   veil?: boolean;
@@ -68,22 +68,10 @@ interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof Dialog
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, SheetContentProps>(
   ({ side = "right", variant = "glass", material, border, veil, gradient, glow, className, children, showCloseButton = true, ...props }, ref) => {
-    /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
-    const getVariantClass = () => {
-      if (variant === "default") return "bg-background border";
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+    const getVariantClass = () => (variant === "default" ? "bg-background border" : "text-foreground");
 
-      const variants = {
-        glass: "text-foreground",
-        frosted: "text-foreground",
-        crystal: "text-foreground",
-        opaque: "text-foreground",
-        surface: "text-foreground",
-        solid: "text-foreground",
-      };
-      return variants[variant] || variants.glass;
-    };
-
-    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
       veil,

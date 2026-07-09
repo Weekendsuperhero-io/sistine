@@ -3,7 +3,7 @@
 import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Slider } from "./slider";
 
@@ -42,8 +42,8 @@ export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass", 
     ],
   );
 
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

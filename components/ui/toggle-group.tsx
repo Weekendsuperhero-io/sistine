@@ -3,7 +3,7 @@
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 type ToggleGroupVariant = "default" | "glass";
@@ -35,13 +35,13 @@ const ToggleGroup = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", size = "default", spacing = 0, material, border, glow, children, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-md p-1",
   };
 
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

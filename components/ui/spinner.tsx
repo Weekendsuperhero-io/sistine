@@ -1,14 +1,11 @@
 import * as React from "react";
-import type { GlassCustomization } from "@/lib/glass-utils";
 import { cn } from "@/lib/utils";
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque";
   size?: "sm" | "md" | "lg";
-  glass?: GlassCustomization;
 }
 
-const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(({ className, variant = "glass", size = "md", glass, ...props }, ref) => {
+const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(({ className, size = "md", ...props }, ref) => {
   const sizeClasses = {
     sm: "h-4 w-4 border-2",
     md: "h-8 w-8 border-2",

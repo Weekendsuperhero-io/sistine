@@ -5,21 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Command as CommandPrimitive } from "cmdk";
 import type { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded-xl", {
   variants: {
     variant: {
       default: "bg-popover text-popover-foreground",
       glass: "text-foreground",
-      frosted: "text-foreground",
-      crystal: "text-foreground",
-      opaque: "text-foreground",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -43,7 +38,7 @@ const Command = React.forwardRef<
       glow?: boolean | "lg";
     }
 >(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,

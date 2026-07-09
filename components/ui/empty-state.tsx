@@ -1,21 +1,15 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const emptyStateVariants = cva("", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
       glass: "text-foreground",
-      frosted: "text-foreground",
-      crystal: "text-foreground",
-      opaque: "text-foreground",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -27,7 +21,6 @@ const emptyStateVariants = cva("", {
 const ROLE = {};
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof emptyStateVariants> {
-  glass?: GlassCustomization;
   material?: Material;
   border?: boolean;
   veil?: boolean;
@@ -38,8 +31,8 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, V
 }
 
 const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ className, variant = "glass", glass, material, border, veil, gradient, glow, sheen, effect, style, children, ...props }, ref) => {
-    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
       veil,
@@ -47,9 +40,6 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       glow,
       sheen,
     });
-
-    const hasCustomGlass = glass !== undefined;
-    const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
     return (
       <div
@@ -67,10 +57,6 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             }),
           className,
         )}
-        style={{
-          ...glassStyles,
-          ...style,
-        }}
         {...props}
       >
         {children}

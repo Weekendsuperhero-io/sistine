@@ -2,23 +2,17 @@
 
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const menuBarVariants = cva("", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
       glass: "text-foreground",
-      frosted: "text-foreground",
-      crystal: "text-foreground",
-      opaque: "text-foreground",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -30,7 +24,6 @@ const menuBarVariants = cva("", {
 const ROLE = {};
 
 export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {
-  glass?: GlassCustomization;
   material?: Material;
   border?: boolean;
   veil?: boolean;
@@ -41,8 +34,8 @@ export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, Vari
 }
 
 const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
-  ({ className, variant = "glass", glass, material, border, veil, gradient, glow, sheen, effect, style, children, ...props }, ref) => {
-    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
       veil,
@@ -50,9 +43,6 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
       glow,
       sheen,
     });
-
-    const hasCustomGlass = glass !== undefined;
-    const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
     return (
       <div
@@ -71,10 +61,6 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
             }),
           className,
         )}
-        style={{
-          ...glassStyles,
-          ...style,
-        }}
         {...props}
       >
         {children}

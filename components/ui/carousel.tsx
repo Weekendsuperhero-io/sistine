@@ -3,23 +3,17 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const carouselVariants = cva("", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
       glass: "text-foreground",
-      frosted: "text-foreground",
-      crystal: "text-foreground",
-      opaque: "text-foreground",
-      surface: "text-foreground",
-      solid: "text-foreground",
     },
   },
   defaultVariants: {
@@ -31,7 +25,6 @@ const carouselVariants = cva("", {
 const ROLE = {};
 
 export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {
-  glass?: GlassCustomization;
   material?: Material;
   border?: boolean;
   veil?: boolean;
@@ -45,23 +38,7 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, Var
 
 const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
   (
-    {
-      className,
-      variant = "glass",
-      glass,
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      effect,
-      autoPlay = false,
-      interval = 3000,
-      style,
-      children,
-      ...props
-    },
+    { className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, autoPlay = false, interval = 3000, children, ...props },
     ref,
   ) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -94,7 +71,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       setCurrentIndex((prev) => (prev + 1) % totalItems);
     };
 
-    const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
       veil,
@@ -102,9 +79,6 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       glow,
       sheen,
     });
-
-    const hasCustomGlass = glass !== undefined;
-    const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
 
     if (totalItems === 0) return null;
 
@@ -124,10 +98,6 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
             }),
           className,
         )}
-        style={{
-          ...glassStyles,
-          ...style,
-        }}
         {...props}
       >
         <div

@@ -26,7 +26,8 @@ export interface MaterialProps {
   border?: boolean;
   /** Element-composed legibility floor for read-through overlays (menus, tooltips, toasts). */
   veil?: boolean;
-  /** Blur/elevation tier — visible on the glass material only (others pin filter/shadow wholesale). */
+  /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
+   *  ("size" universally means a component's dimensions; the material tier must never shadow that). */
   size?: "sm" | "lg";
   /** Brand-gradient accent layered over the material. */
   gradient?: boolean;
@@ -35,6 +36,10 @@ export interface MaterialProps {
   /** Opt-in hover shimmer (pseudo-element based — avoid on sticky/fixed surfaces). */
   sheen?: boolean;
 }
+
+/** The PUBLIC per-instance axis props a component spreads onto its type. Excludes `size` (the material
+ *  blur tier is a role-internal detail — a component's own `size` prop owns that name). */
+export type MaterialAxisProps = Omit<MaterialProps, "size">;
 
 export interface MaterialAttrs {
   /** Spread-ready: undefined for adaptive and "none". */
@@ -68,82 +73,25 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
 }
 
 /**
- * Dual-API resolver — the migration bridge (and the final resolver once `variant` tiers die).
+ * The component-facing resolver: merge a component's ROLE (its default axes for a given semantic
+ * variant) with explicit per-instance material/axis props, and return the surface markup — or null
+ * when the element is NOT a glass surface (role === null, or material === "none").
  *
- * Merges three layers, most specific wins:
- *   1. explicit NEW-API props (material/border/veil/size/gradient/glow/sheen) — using ANY of them
- *      switches the element to the new channel, with the ROLE filling unspecified axes;
- *   2. else the legacy `variant` TIER, adapted to material props (preserves old visuals exactly —
- *      explicit tiers were always bordered, so the adapter says so even when the role doesn't);
- *   3. the component's ROLE defaults (its old `glass` look).
- *
- * Returns null when the element is NOT a glass surface (variant is semantic like "default"/
- * "destructive"-only styling, or material === "none") — the caller renders its plain classes.
+ * Explicit props override the role per-axis; unspecified axes fall back to the role.
  */
-const TIER_ADAPTER: Record<string, (role: MaterialProps) => MaterialProps> = {
-  glass: (role) => role,
-  surface: (role) => ({
-    ...role,
-    border: true,
-  }),
-  solid: (role) => ({
-    ...role,
-    border: true,
-    veil: true,
-  }),
-  frosted: (role) => ({
-    ...role,
-    border: true,
-    material: "frosted",
-  }),
-  crystal: (role) => ({
-    ...role,
-    border: true,
-    material: "crystal",
-  }),
-  opaque: (role) => ({
-    ...role,
-    border: true,
-    material: "opaque",
-  }),
-  gradient: (role) => ({
-    ...role,
-    border: true,
-    gradient: true,
-  }),
-};
-
-export function resolveMaterial(role: MaterialProps, variant: string | null | undefined, props: MaterialProps): MaterialAttrs | null {
-  const { material, border, veil, size, gradient, glow, sheen } = props;
-  const usesNew =
-    material !== undefined ||
-    border !== undefined ||
-    veil !== undefined ||
-    size !== undefined ||
-    gradient !== undefined ||
-    glow !== undefined ||
-    sheen !== undefined;
-  if (usesNew) {
-    if (material === "none") {
-      return null;
-    }
-    return glassMaterial({
-      material,
-      border: border ?? role.border,
-      veil: veil ?? role.veil,
-      size: size ?? role.size,
-      gradient: gradient ?? role.gradient,
-      glow: glow ?? role.glow,
-      sheen: sheen ?? role.sheen,
-    });
-  }
-  // null = explicitly NOT a glass surface (semantic variants like "default" pass null);
-  // undefined = no variant given → the component's glass role.
-  if (variant === null) {
+export function materialSurface(role: MaterialProps | null, props: MaterialProps): MaterialAttrs | null {
+  if (props.material === "none" || role === null) {
     return null;
   }
-  const tier = TIER_ADAPTER[variant ?? "glass"];
-  return tier ? glassMaterial(tier(role)) : null;
+  return glassMaterial({
+    material: props.material,
+    border: props.border ?? role.border,
+    veil: props.veil ?? role.veil,
+    size: props.size ?? role.size,
+    gradient: props.gradient ?? role.gradient,
+    glow: props.glow ?? role.glow,
+    sheen: props.sheen ?? role.sheen,
+  });
 }
 
 /**

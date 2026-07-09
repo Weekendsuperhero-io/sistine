@@ -5,11 +5,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const selectTriggerVariants = cva(
   "flex w-full items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 data-[placeholder]:text-muted-foreground [&>span]:line-clamp-1",
   {
@@ -17,11 +16,6 @@ const selectTriggerVariants = cva(
       variant: {
         default: "border-input bg-background",
         glass: "",
-        frosted: "",
-        crystal: "",
-        opaque: "",
-        surface: "text-foreground",
-        solid: "text-foreground",
       },
     },
     defaultVariants: {
@@ -37,11 +31,6 @@ const selectContentVariants = cva(
       variant: {
         default: "bg-popover text-popover-foreground border",
         glass: "text-foreground",
-        frosted: "text-foreground",
-        crystal: "text-foreground",
-        opaque: "text-foreground",
-        surface: "text-foreground",
-        solid: "text-foreground",
       },
     },
     defaultVariants: {
@@ -78,7 +67,7 @@ const SelectTrigger = React.forwardRef<
       glow?: boolean;
     }
 >(({ className, children, variant = "glass", size = "default", material, border, glow, ...props }, ref) => {
-  const m = resolveMaterial(TRIGGER_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : TRIGGER_ROLE, {
     material,
     border,
   });
@@ -142,22 +131,19 @@ const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> &
     VariantProps<typeof selectContentVariants> & {
-      glass?: GlassCustomization;
       material?: Material;
       border?: boolean;
       veil?: boolean;
       /** Resting glow (folded from the glass wrapper). */
       glow?: boolean;
     }
->(({ className, children, position = "popper", align = "center", variant = "glass", glass, material, border, veil, glow, style, ...props }, ref) => {
-  const m = resolveMaterial(CONTENT_ROLE, variant === "default" ? null : variant, {
+>(({ className, children, position = "popper", align = "center", variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  const m = materialSurface(variant === "default" ? null : CONTENT_ROLE, {
     material,
     border,
     veil,
   });
 
-  const hasCustomGlass = glass !== undefined;
-  const glassStyles = m !== null && hasCustomGlass ? getGlassStyles(glass) : {};
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -174,10 +160,6 @@ const SelectContent = React.forwardRef<
           glow && "glass-glow",
           className,
         )}
-        style={{
-          ...glassStyles,
-          ...style,
-        }}
         position={position}
         align={align}
         {...props}

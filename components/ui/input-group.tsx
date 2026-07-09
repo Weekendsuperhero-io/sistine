@@ -3,17 +3,15 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 
 interface InputGroupProps extends React.ComponentProps<"div"> {
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
-  glass?: GlassCustomization;
+  variant?: "default" | "glass";
   material?: Material;
   border?: boolean;
   /** Hover effect (folded from the glass wrapper). */
@@ -25,27 +23,14 @@ const ROLE = {
   border: true,
 };
 
-function InputGroup({ className, variant = "glass", glass, material, border, effect, style, ...props }: InputGroupProps) {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
-  const getVariantClass = () => {
-    if (variant === "default") return "border border-input shadow-xs dark:bg-input/30";
-    const variants = {
-      glass: "",
-      frosted: "",
-      crystal: "",
-      opaque: "",
-      surface: "",
-      solid: "",
-    };
-    return variants[variant] || variants.glass;
-  };
+function InputGroup({ className, variant = "glass", material, border, effect, ...props }: InputGroupProps) {
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
 
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });
-
-  const glassStyles = m !== null && glass !== undefined ? getGlassStyles(glass) : {};
 
   return (
     <div
@@ -72,10 +57,6 @@ function InputGroup({ className, variant = "glass", glass, material, border, eff
           }),
         className,
       )}
-      style={{
-        ...glassStyles,
-        ...style,
-      }}
       {...props}
     />
   );

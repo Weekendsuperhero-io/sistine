@@ -3,7 +3,7 @@
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass (the old glass-surface look). */
@@ -21,13 +21,13 @@ const ScrollArea = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", material, border, glow, children, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "relative overflow-hidden",
     glass: "relative overflow-hidden rounded-lg",
   };
 
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

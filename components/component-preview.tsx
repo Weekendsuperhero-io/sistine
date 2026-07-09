@@ -989,8 +989,8 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           <Spinner size="sm" />
           <Spinner size="md" />
           <Spinner size="lg" />
-          <Spinner variant="frosted" size="md" />
-          <Spinner variant="crystal" size="md" />
+          <Spinner size="md" />
+          <Spinner size="md" />
         </div>
       );
 

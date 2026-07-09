@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: borderless adaptive glass (the old glass-bg look). */
@@ -42,13 +42,13 @@ const DrawerContent = React.forwardRef<
     glow?: boolean | "lg";
   }
 >(({ className, children, variant = "glass", material, border, glow, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-background",
     glass: "text-foreground",
   };
 
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     glow,

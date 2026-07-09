@@ -1,6 +1,6 @@
 import { ArrowsHorizontalIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { type Button, buttonVariants } from "./button";
 
@@ -24,13 +24,13 @@ const PaginationContent = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg px-2 py-1",
   };
 
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });
@@ -65,7 +65,7 @@ const PaginationLink = ({ className, isActive, size = "icon", variant = "glass",
   // The glass surface rides the ACTIVE page only; inactive links keep the plain outline/ghost button look.
   const m =
     variant === "glass" && isActive
-      ? resolveMaterial(ROLE, variant, {
+      ? materialSurface(ROLE, {
           material,
           border,
         })

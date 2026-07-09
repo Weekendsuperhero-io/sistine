@@ -5,7 +5,7 @@ import { cva } from "class-variance-authority";
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Roles: the list bar is borderless adaptive glass (the old glass-bg look); the content and
@@ -44,13 +44,13 @@ const NavigationMenuList = React.forwardRef<
     glow?: boolean | "lg";
   }
 >(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "group flex flex-1 list-none items-center justify-center space-x-1",
     glass: "group flex flex-1 list-none items-center justify-center space-x-1 rounded-lg px-2 py-1",
   };
 
-  const m = resolveMaterial(LIST_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : LIST_ROLE, {
     material,
     border,
     glow,
@@ -109,7 +109,7 @@ const NavigationMenuContent = React.forwardRef<
   const inlineRenderStyles =
     "group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-xl group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95";
 
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: cn(
       "left-0 top-0 w-full p-2 pr-2.5 data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
@@ -122,7 +122,7 @@ const NavigationMenuContent = React.forwardRef<
     ),
   };
 
-  const m = resolveMaterial(OVERLAY_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : OVERLAY_ROLE, {
     material,
     border,
     veil,
@@ -167,7 +167,7 @@ const NavigationMenuViewport = React.forwardRef<
     glow?: boolean | "lg";
   }
 >(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default:
       "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
@@ -175,7 +175,7 @@ const NavigationMenuViewport = React.forwardRef<
       "origin-top-center relative mt-1.5 h-[var(--radix-navigation-menu-viewport-height)] w-full overflow-hidden rounded-xl text-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-90 md:w-[var(--radix-navigation-menu-viewport-width)]",
   };
 
-  const m = resolveMaterial(OVERLAY_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : OVERLAY_ROLE, {
     material,
     border,
     veil,

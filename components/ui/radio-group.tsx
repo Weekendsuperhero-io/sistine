@@ -4,7 +4,7 @@ import { Circle } from "@phosphor-icons/react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const RadioGroup = React.forwardRef<
@@ -30,7 +30,7 @@ const RadioGroupItem = React.forwardRef<
     glow?: boolean;
   }
 >(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
   });

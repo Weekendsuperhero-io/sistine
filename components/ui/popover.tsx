@@ -4,10 +4,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Popover as PopoverPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const popoverContentVariants = cva(
   "z-50 w-72 rounded-xl p-4 shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
   {
@@ -15,11 +15,6 @@ const popoverContentVariants = cva(
       variant: {
         default: "bg-popover text-popover-foreground border",
         glass: "text-foreground",
-        frosted: "text-foreground",
-        crystal: "text-foreground",
-        opaque: "text-foreground",
-        surface: "text-foreground",
-        solid: "text-foreground",
       },
     },
     defaultVariants: {
@@ -50,7 +45,7 @@ const PopoverContent = React.forwardRef<
       glow?: boolean | "lg";
     }
 >(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, glow, ...props }, ref) => {
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,

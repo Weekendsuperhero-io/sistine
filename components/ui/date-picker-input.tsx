@@ -15,7 +15,7 @@ export interface DatePickerInputProps extends Omit<React.ComponentProps<typeof I
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque";
+  variant?: "default" | "glass";
   /** Passed through to the trigger Button and PopoverContent — each resolves its own role. */
   material?: Material;
   effect?: HoverEffect;

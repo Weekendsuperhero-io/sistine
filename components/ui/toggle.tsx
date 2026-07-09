@@ -4,10 +4,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Toggle as TogglePrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const toggleVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -30,9 +30,13 @@ const toggleVariants = cva(
   },
 );
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
-const ROLE = {
-  border: true,
+/* Each semantic variant's surface role (default/outline render no glass surface). */
+const SURFACE_ROLE: Record<string, MaterialProps | null> = {
+  glass: {
+    border: true,
+  },
+  default: null,
+  outline: null,
 };
 
 const Toggle = React.forwardRef<
@@ -45,8 +49,7 @@ const Toggle = React.forwardRef<
       glow?: boolean;
     }
 >(({ className, variant = "glass", size, material, border, glow, ...props }, ref) => {
-  // "outline" and "default" are not glass tiers, so they resolve to no surface / the role glass.
-  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,
     border,
   });

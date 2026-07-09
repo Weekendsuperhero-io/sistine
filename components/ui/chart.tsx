@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { type Material, resolveMaterial } from "@/lib/material";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -72,13 +72,13 @@ const ChartContainer = React.forwardRef<
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg p-4",
   };
 
-  const m = resolveMaterial(SURFACE_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
     material,
     border,
     glow,
@@ -211,13 +211,13 @@ const ChartTooltipContent = React.forwardRef<
   ) => {
     const { config } = useChart();
 
-    /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
     const variants = {
       default: "bg-popover text-popover-foreground border",
       glass: "text-foreground",
     };
 
-    const m = resolveMaterial(TOOLTIP_ROLE, variant === "default" ? null : variant, {
+    const m = materialSurface(variant === "default" ? null : TOOLTIP_ROLE, {
       material,
       border,
       veil,
@@ -371,13 +371,13 @@ const ChartLegendContent = React.forwardRef<
 >(({ className, payload, verticalAlign = "bottom", variant = "glass", material, border, glow, hideIcon = false, nameKey }, ref) => {
   const { config } = useChart();
 
-  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg px-2 py-1",
   };
 
-  const m = resolveMaterial(SURFACE_ROLE, variant === "default" ? null : variant, {
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
     material,
     border,
     glow,
