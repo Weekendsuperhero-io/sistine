@@ -16,7 +16,8 @@
  *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
  *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
- *   7. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *   7. [sync]   public/r/theme.json embeds the CURRENT flattened theme (registry not stale).
+ *   7b.[artifact] registry/theme/globals.css (the committed flattened build) matches the live partials.
  *   8. [tint-sync] Every GlassTintSwitcher preset's h/c/a equals its [data-glass-tint] CSS block(s). The
  *               switcher INLINES the preset onto <html>, shadowing the CSS — so a divergent block renders
  *               fine on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
@@ -26,9 +27,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { flattenTheme } from "./lib/flatten-theme.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const css = readFileSync(join(root, "app/globals.css"), "utf8");
+// The theme is authored as app/theme/* partials behind the app/globals.css aggregator; every invariant
+// parses the FLATTENED single-file view — the same string consumers install via the registry.
+const css = flattenTheme(root);
 
 // Tint-composing tokens intentionally kept on bare :root/.dark: foreground is AutoForeground's, and
 // must NOT move into the grouped block or a scoped tint would reset a subtree's text color.
@@ -179,14 +183,22 @@ for (const rel of componentFiles) {
   }
 }
 
-// 7. [sync] shipped theme.json embeds the current globals.css
+// 7. [sync] shipped theme.json embeds the current flattened theme
 try {
   const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
-  const shipped = theme.files?.find((f) => f.path === "app/globals.css")?.content;
-  if (shipped == null) fail(`[sync] public/r/theme.json has no app/globals.css file.`);
-  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit public/r.`);
+  const shipped = theme.files?.find((f) => f.path === "registry/theme/globals.css")?.content;
+  if (shipped == null) fail(`[sync] public/r/theme.json has no registry/theme/globals.css file.`);
+  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
 } catch (e) {
   fail(`[sync] could not read public/r/theme.json: ${e.message}`);
+}
+
+// 7b. [artifact] the committed flattened artifact matches the live partials (build-theme output is current)
+try {
+  const artifact = readFileSync(join(root, "registry/theme/globals.css"), "utf8");
+  if (artifact !== css) fail(`[artifact] registry/theme/globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
+} catch (e) {
+  fail(`[artifact] could not read registry/theme/globals.css — run "pnpm registry:check" (${e.message}).`);
 }
 
 // 8. [tint-sync] every switcher preset's h/c/a matches its [data-glass-tint] CSS block(s). The switcher

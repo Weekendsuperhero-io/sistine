@@ -216,8 +216,14 @@ const reachesThemeViaDeps = (item) =>
   (item.registryDependencies ?? []).some((d) => uiPrimitiveNames.has(d.replace(`${NAMESPACE}/`, "")));
 
 for (const item of registry.items) {
-  if (item.type === "registry:theme") continue; // the theme item owns globals.css
-  item.files = (item.files ?? []).filter((f) => f.path !== "app/globals.css" && f.target !== "app/globals.css");
+  if (item.type === "registry:theme") continue; // the theme item owns the flattened theme css
+  item.files = (item.files ?? []).filter(
+    (f) =>
+      f.path !== "app/globals.css" &&
+      f.target !== "app/globals.css" &&
+      !f.path?.startsWith("app/theme/") &&
+      f.path !== "registry/theme/globals.css",
+  );
   const isUiPrimitive =
     existsSync(join(root, `components/ui/${item.name}.tsx`)) || existsSync(join(root, `components/ui/glass/${item.name}.tsx`));
   // Ui primitives keep the theme as before. Standalone theme-driven COMPONENTS/BLOCKS that depend only on

@@ -1,0 +1,46 @@
+/* Sonner Toast Notifications - Glass Effect Overrides */
+[data-sonner-toast] {
+  /* Glass gradient layered over a mostly-opaque surface so toast text stays legible.
+     Lower the popover % to make toasts more see-through, raise it to make them more solid. */
+  background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent) !important;
+  color: var(--foreground) !important;
+}
+
+/* Status toast borders — derived from the toast's own status tint (the merged status blocks above set
+   --glass-tint-h at the toast) instead of four hardcoded tailwind-500 literals; within ~0.1 L of the
+   originals on a 1px 30%-alpha border. NOT bare [data-type]: default/loading toasts keep the plain
+   glass border. */
+[data-sonner-toast][data-type="success"],
+[data-sonner-toast][data-type="error"],
+[data-sonner-toast][data-type="warning"],
+[data-sonner-toast][data-type="info"] {
+  border-color: oklch(0.7 0.18 var(--glass-tint-h) / 0.3) !important;
+}
+
+/* Toast description text */
+[data-sonner-toast] [data-description] {
+  color: var(--muted-foreground) !important;
+}
+
+/* Toast action / cancel / close buttons — one glass recipe (the hover fade now covers all three;
+   previously only the action button transitioned). Cancel dims to muted below. */
+[data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]) {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--blur-sm)) !important;
+  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--foreground) !important;
+  transition: opacity 0.2s ease !important;
+}
+
+[data-sonner-toast] [data-cancel] {
+  color: var(--muted-foreground) !important;
+}
+
+[data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]):hover {
+  opacity: 0.9 !important;
+}

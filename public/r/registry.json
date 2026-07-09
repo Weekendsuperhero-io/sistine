@@ -2287,7 +2287,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "app/globals.css",
+          "path": "registry/theme/globals.css",
           "type": "registry:style",
           "target": "app/globals.css"
         }

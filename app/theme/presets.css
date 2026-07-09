@@ -1,0 +1,104 @@
+/* ── Glass tint presets ─────────────────────────────────────────────────────
+   Set data-glass-tint on any element (commonly <html>) to recolor the glass in that subtree.
+   Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
+   gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling.
+   Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
+[data-glass-tint="sapphire"] {
+  --glass-tint-h: 255;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="emerald"] {
+  --glass-tint-h: 158;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="amethyst"] {
+  --glass-tint-h: 300;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="rose"] {
+  --glass-tint-h: 8;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="amber"] {
+  --glass-tint-h: 75;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+}
+[data-glass-tint="carnelian"] {
+  --glass-tint-h: 38;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="peridot"] {
+  --glass-tint-h: 128;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="turquoise"] {
+  --glass-tint-h: 190;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="aquamarine"] {
+  --glass-tint-h: 215;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="tourmaline"] {
+  --glass-tint-h: 342;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="bone"] {
+  /* Bone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
+     tint: texture-preserving and light-text in both modes, just a desaturated warm hue. Anchors its harmony
+     wheel at 0° (like neutral) so accents come out a colorful set, not a warp of the near-neutral hue. */
+  --glass-tint-h: 75;
+  --glass-tint-c: 0.047;
+  --glass-tint-a: 0.18;
+  --harmony-h: 0;
+  --glass-opaque-l: 94; /* bone daytime body lightness */
+  --glass-opaque-bg: oklch(94% 0.047 75); /* pinned bone cream (day) — overrides the tint-derived default */
+}
+.dark[data-glass-tint="bone"] {
+  /* Bone stays a proper pale CREAM in dark mode — the wash keeps its DAY lightness (knobs, not a wash
+     redeclaration), the opaque card floor is pinned to oklch(86.2% 0.047 75), and AutoForeground bands
+     per-card foreground against it (flipping to dark cream text) while the dark page keeps light text. */
+  --glass-wash-l: 72%;
+  --glass-wash-c-mult: 2;
+  --glass-opaque-bg: oklch(86.2% 0.047 75); /* pinned bone cream (night) */
+  --glass-opaque-l: 86.2;
+}
+
+/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
+   data-glass-tint="<status>", and sonner toasts hit the SAME hues via their data-type attribute
+   (destructive pairs with sonner's "error") — one block per status, joining the grouped engine
+   re-resolution above so --glass-bg / wash re-resolve at the alert/toast. */
+[data-glass-tint="info"],
+[data-sonner-toast][data-type="info"] {
+  --glass-tint-h: 255;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-glass-tint="success"],
+[data-sonner-toast][data-type="success"] {
+  --glass-tint-h: 150;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}
+[data-glass-tint="warning"],
+[data-sonner-toast][data-type="warning"] {
+  --glass-tint-h: 85;
+  --glass-tint-c: 0.11;
+  --glass-tint-a: 0.18;
+}
+[data-glass-tint="destructive"],
+[data-sonner-toast][data-type="error"] {
+  --glass-tint-h: 25;
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.18;
+}

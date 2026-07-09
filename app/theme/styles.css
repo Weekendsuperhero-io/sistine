@@ -1,0 +1,98 @@
+/* ── Site-wide style remaps + vendor cascade fixes ──────────────────────────── */
+
+/* Keep react-day-picker from painting over the glass background */
+@layer utilities {
+  .glass-bg[class*="rdp"],
+  .glass-bg .rdp,
+  .glass-bg .rdp-month {
+    background-color: transparent !important;
+  }
+}
+
+/* ── Site-wide glass style: token remaps ─────────────────────────────────────
+   Set data-glass on <html> (frosted | crystal | opaque) to re-skin the DEFAULT glass surfaces
+   (glass-bg / glass-surface / -sm / -lg / glass-solid) as that style. Each style is a REMAP of the
+   --srf-* tokens the default surfaces read — no re-declared rule bodies, no !important. Explicit
+   glass-frosted/glass-crystal variants don't read --srf-*, so they hold their look (except under
+   opaque — see the layered override at the end). Every remap sits on the CROSS-PRODUCT selectors so
+   the swapped stacks re-resolve inside scoped tints and toasts (a bare [data-glass] rule would bake
+   <html>'s tint into descendants' surfaces). */
+[data-glass="frosted"],
+[data-glass="frosted"] [data-glass-tint],
+[data-glass="frosted"][data-glass-tint],
+[data-glass="frosted"] [data-sonner-toast][data-type] {
+  --srf-bg-image: var(--frosted-stack-bg);
+  --srf-bg-color: var(--glass-tint-wash);
+  --srf-solid-bg-image: var(--frosted-solid-stack-bg);
+  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
+  --srf-border-color: var(--glass-frosted-border);
+  --srf-shadow: var(--glass-frosted-shadow);
+}
+[data-glass="crystal"],
+[data-glass="crystal"] [data-glass-tint],
+[data-glass="crystal"][data-glass-tint],
+[data-glass="crystal"] [data-sonner-toast][data-type] {
+  /* Static gloss rides inside --crystal-*-stack-bg (baked into the background — this re-skin can't use
+     ::before/::after; those need position:relative, which would break sticky/fixed surfaces). The hover
+     shimmer stays the opt-in glass-sheen utility. No saturate() on crystal, matching the variant. */
+  --srf-bg-image: var(--crystal-stack-bg);
+  --srf-bg-color: var(--glass-crystal-bg);
+  --srf-solid-bg-image: var(--crystal-stack-bg);
+  --srf-filter: blur(var(--blur-crystal));
+  --srf-border-color: var(--glass-crystal-border);
+  --srf-shadow: var(--glass-crystal-shadow);
+}
+/* Opaque — fully solid tinted panels, no see-through: solid floor, no blur, and (unlike frosted/
+   crystal) the overlays' floor (--srf-solid-bg-color) goes opaque too. */
+[data-glass="opaque"],
+[data-glass="opaque"] [data-glass-tint],
+[data-glass="opaque"][data-glass-tint],
+[data-glass="opaque"] [data-sonner-toast][data-type] {
+  --srf-bg-image: var(--glass-bg);
+  --srf-bg-color: var(--glass-opaque-bg);
+  --srf-solid-bg-image: var(--glass-bg);
+  --srf-solid-bg-color: var(--glass-opaque-bg);
+  --srf-filter: none;
+  --srf-shadow: var(--glass-shadow);
+}
+/* Opaque border — a real property ON the element (not a --srf token): --glass-opaque-outline is
+   documented as settable on ANY ancestor, so it must resolve at the element, not bake at the remap
+   scope. Bordered surfaces only — glass-bg stays borderless. */
+[data-glass="opaque"] .glass-surface,
+[data-glass="opaque"] .glass-surface-sm,
+[data-glass="opaque"] .glass-surface-lg,
+[data-glass="opaque"] .glass-solid {
+  border-color: var(--glass-opaque-outline, var(--glass-border));
+}
+/* Opaque cards paint the solid --glass-opaque-bg floor, which can be LIGHT (e.g. dark-mode bone cream)
+   while the page behind stays dark — so remap the foreground tiers to the per-card set AutoForeground
+   banded against that floor. Text inside (foreground / -soft / -strong / -ui / muted) flips to match. */
+[data-glass="opaque"] .glass-bg,
+[data-glass="opaque"] .glass-surface,
+[data-glass="opaque"] .glass-surface-sm,
+[data-glass="opaque"] .glass-surface-lg,
+[data-glass="opaque"] .glass-solid,
+[data-glass="opaque"] .glass-frosted,
+[data-glass="opaque"] .glass-crystal {
+  --foreground: var(--foreground-opaque);
+  --foreground-soft: var(--foreground-soft-opaque);
+  --foreground-strong: var(--foreground-strong-opaque);
+  --foreground-ui: var(--foreground-ui-opaque);
+  --muted-foreground: var(--muted-foreground-opaque);
+}
+/* Opaque wins over the EXPLICIT frosted/crystal variants too. Those utilities are !important (the
+   override-class stacking guarantee), and for !important declarations a *layered* rule beats an
+   *unlayered* one regardless of specificity — so this override must live in the SAME layer and win by
+   specificity: `[data-glass=opaque] .glass-crystal` (0,2,0) > `.glass-crystal` (0,1,0). Crystal's
+   ::before gloss stays visible over the opaque floor (matches the previous behavior). */
+@layer utilities {
+  [data-glass="opaque"] .glass-frosted,
+  [data-glass="opaque"] .glass-crystal {
+    background-image: var(--glass-bg) !important;
+    background-color: var(--glass-opaque-bg) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: var(--glass-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+    border-color: var(--glass-opaque-outline, var(--glass-border)) !important;
+  }
+}
