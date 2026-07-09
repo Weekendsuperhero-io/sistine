@@ -874,7 +874,9 @@
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   border: 1px solid var(--glass-crystal-border) !important;
   box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
-  transition: all 0.3s ease !important;
+  /* Scoped to box-shadow (hover only swaps the shadow) — `all` animated the 5-layer shadow AND every
+     color/layout prop, forcing full repaints on unrelated changes. */
+  transition: box-shadow 0.3s ease !important;
 
   /* Static gloss: top highlight + diagonal streak. No background-size/position, so it doesn't move.
      glass-sheen redeclares ::before later in the file with the 200%/hover shift to add the shimmer. */
