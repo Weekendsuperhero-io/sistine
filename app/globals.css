@@ -411,14 +411,9 @@
   --mono-chroma: calc(var(--color-chroma) * 0.6);
   /* (--color-* / --mono-* ready colors live in the mode-derived surfaces block below — their L is the
      mode envelope; the hue angles above are the mode-invariant part.) */
-  /* Solidify floor — the "component opacity" dial (--glass-opacity: 0 = the variant's natural sheer glass,
-     1 = fully solid). Appended as the BOTTOM background-image layer on every sheer glass utility; it fills
-     toward the theme's OPAQUE floor (--glass-opaque-bg — tinted + mode-aware, contrasts the page), scaled by
-     --glass-opacity via color-mix. So opacity 1 makes any glass read as its opaque variant, and the default
-     (0) mixes to transparent → zero change. Defined once here; the var()s re-resolve per element, so a scoped
-     --glass-opacity (the `glass` prop / the header Opacity slider on <html>) works everywhere. */
-  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
-  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  /* (The solidify floor — the --glass-opacity "component opacity" dial — is composed INSIDE each sheer
+     glass utility, at the element. Composing it here would bake :root's --glass-opacity into the value
+     and silently ignore a per-element glass={{opacity}} — the var-composition gotcha again.) */
   /* Blur values — Apple-standard moderate blur; per-variant sizes (mode-invariant). */
   --blur: 10px;
   --blur-sm: 4px;
@@ -530,19 +525,16 @@
   /* Crystal floor — clear glass; the alpha is the mode dial (--glass-crystal-bg-a). */
   --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
   /* Precomposed background STACKS — the background-image compositions, single-sourced. The surface
-     utilities consume them via --srf-* fallbacks, and the [data-glass] style remaps below swap them
-     wholesale. Live here so they re-resolve per tint scope and per mode wrapper. The crystal stacks bake
-     the gloss into the background (the site-wide re-skin can't use ::before/::after — those need
-     position:relative, which would break sticky/fixed surfaces). */
+     utilities consume them via --srf-* fallbacks (sheer utilities append the element-composed solidify
+     layer underneath), and the [data-glass] style remaps below swap them wholesale. Live here so they
+     re-resolve per tint scope and per mode wrapper. The crystal stack bakes the gloss into the
+     background (the site-wide re-skin can't use ::before/::after — those need position:relative, which
+     would break sticky/fixed surfaces). */
   --glass-wash-layer: linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash));
-  --glass-stack-bg: var(--glass-bg), var(--glass-wash-layer), var(--glass-solidify);
-  --glass-solid-stack-bg: var(--glass-bg), var(--glass-wash-layer);
-  --frosted-stack-bg: var(--glass-frosted-bg), var(--glass-solidify);
+  --glass-stack-bg: var(--glass-bg), var(--glass-wash-layer);
+  --frosted-stack-bg: var(--glass-frosted-bg);
   --frosted-solid-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
-  --crystal-skin-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer), var(--glass-solidify);
-  --crystal-solid-stack-bg:
+  --crystal-stack-bg:
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
     var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
 }
@@ -708,9 +700,15 @@
    rule body. Explicit variant utilities (glass-frosted / glass-crystal / glass-opaque / glass-gradient)
    deliberately do NOT read --srf-*, so they hold their own look under any site-wide style. */
 
-/* Borderless base — Apple-standard subtle glass (card, button, etc.) */
+/* Borderless base — Apple-standard subtle glass (card, button, etc.).
+   Every sheer utility composes the solidify floor HERE (not in the engine) so a per-element
+   --glass-opacity (the `glass` prop) resolves at the element — the "component opacity" dial: 0 = the
+   variant's natural sheer glass, 1 = reads as the opaque variant. It fills toward the theme's opaque
+   floor and is appended as the BOTTOM background-image layer. */
 @utility glass-bg {
-  background-image: var(--srf-bg-image, var(--glass-stack-bg));
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--srf-bg-color, transparent);
   backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
   -webkit-backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
@@ -719,7 +717,9 @@
 
 /* Bordered glass surface — the standard glass variant for panels & overlays */
 @utility glass-surface {
-  background-image: var(--srf-bg-image, var(--glass-stack-bg));
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--srf-bg-color, transparent);
   backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
   -webkit-backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
@@ -729,7 +729,9 @@
 
 /* Compact frost — smaller blur + shadow for small controls (inputs, badges). */
 @utility glass-surface-sm {
-  background-image: var(--srf-bg-image, var(--glass-stack-bg));
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--srf-bg-color, transparent);
   backdrop-filter: var(--srf-filter, blur(var(--blur-sm)) saturate(180%));
   -webkit-backdrop-filter: var(--srf-filter, blur(var(--blur-sm)) saturate(180%));
@@ -739,7 +741,9 @@
 
 /* Deep frost — larger blur + shadow for big overlays (dialogs, sheets). */
 @utility glass-surface-lg {
-  background-image: var(--srf-bg-image, var(--glass-stack-bg));
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--srf-bg-color, transparent);
   backdrop-filter: var(--srf-filter, blur(var(--blur-lg)) saturate(180%));
   -webkit-backdrop-filter: var(--srf-filter, blur(var(--blur-lg)) saturate(180%));
@@ -756,7 +760,7 @@
   /* Compose the floor HERE (not at :root) so --glass-solid-a + the mode lightness --glass-solid-l
      resolve on the element — a consumer can scope solid opacity by setting --glass-solid-a anywhere. */
   --glass-solid-bg: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
-  background-image: var(--srf-solid-bg-image, var(--glass-solid-stack-bg));
+  background-image: var(--srf-solid-bg-image, var(--glass-stack-bg));
   background-color: var(--srf-solid-bg-color, var(--glass-solid-bg));
   backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
   -webkit-backdrop-filter: var(--srf-filter, blur(var(--blur)) saturate(180%));
@@ -784,6 +788,8 @@
    sheen + blur. The "gradient" surface; drives the gradient Button variant and is usable on
    anything via the `glass-gradient` class. */
 @utility glass-gradient {
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   background-image: var(--gradient), var(--glass-bg), var(--glass-solidify);
   backdrop-filter: blur(var(--blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
@@ -797,7 +803,9 @@
    explicit variants (frosted/crystal) keep !important for that stacking guarantee; the default surfaces
    stay normal-strength and are re-skinned via the --srf-* tokens instead. */
 @utility glass-frosted {
-  background-image: var(--frosted-stack-bg) !important;
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--frosted-stack-bg), var(--glass-solidify) !important;
   background-color: var(--glass-tint-wash) !important;
   backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
   -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
@@ -866,10 +874,11 @@
    reads as crystal at rest. The hover SHIMMER (the gloss sliding on hover) is OPT-IN: add `glass-sheen`. */
 @utility glass-crystal {
   position: relative;
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   background-color: var(--glass-crystal-bg) !important;
   background-image:
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), linear-gradient(var(--glass-tint-wash), var(--glass-tint-wash)),
-    var(--glass-solidify) !important;
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer), var(--glass-solidify) !important;
   backdrop-filter: blur(var(--blur-crystal)) !important;
   -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
   border: 1px solid var(--glass-crystal-border) !important;
@@ -975,9 +984,9 @@
   /* Static gloss rides inside --crystal-*-stack-bg (baked into the background — this re-skin can't use
      ::before/::after; those need position:relative, which would break sticky/fixed surfaces). The hover
      shimmer stays the opt-in glass-sheen utility. No saturate() on crystal, matching the variant. */
-  --srf-bg-image: var(--crystal-skin-stack-bg);
+  --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-solid-bg-image: var(--crystal-solid-stack-bg);
+  --srf-solid-bg-image: var(--crystal-stack-bg);
   --srf-filter: blur(var(--blur-crystal));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
