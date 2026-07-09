@@ -3,6 +3,7 @@
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 type ToggleGroupVariant = "default" | "glass";
@@ -17,18 +18,33 @@ const ToggleGroupContext = React.createContext<{
   spacing: 0,
 });
 
+/* Role: bordered adaptive glass (the old glass-surface look). */
+const ROLE = {
+  border: true,
+};
+
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
     variant?: ToggleGroupVariant;
     size?: "default" | "sm" | "lg";
     spacing?: number;
+    material?: Material;
+    border?: boolean;
+    /** Resting glow (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", size = "default", spacing = 0, children, ...props }, ref) => {
+>(({ className, variant = "glass", size = "default", spacing = 0, material, border, glow, children, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "",
-    glass: "glass-surface rounded-md p-1",
+    glass: "rounded-md p-1",
   };
+
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
 
   return (
     <ToggleGroupPrimitive.Root
@@ -37,7 +53,14 @@ const ToggleGroup = React.forwardRef<
       data-variant={variant}
       data-size={size}
       data-spacing={spacing}
-      className={cn("group/toggle-group inline-flex items-center justify-center rounded-md", variants[variant], className)}
+      data-material={m?.["data-material"]}
+      className={cn(
+        m?.className,
+        "group/toggle-group inline-flex items-center justify-center rounded-md",
+        variants[variant],
+        glow && "glass-glow",
+        className,
+      )}
       {...props}
     >
       <ToggleGroupContext.Provider

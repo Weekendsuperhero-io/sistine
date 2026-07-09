@@ -5,6 +5,8 @@ import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Separator } from "./separator";
 
@@ -26,34 +28,63 @@ const buttonGroupVariants = cva(
 interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typeof buttonGroupVariants> {
   variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
   glass?: GlassCustomization;
+  material?: Material;
+  border?: boolean;
+  /** Hover effect (folded from the glass wrapper). */
+  effect?: HoverEffect;
 }
 
-function ButtonGroup({ className, orientation = "horizontal", variant = "glass", glass, style, ...props }: ButtonGroupProps) {
+/* Role: borderless adaptive glass (the old glass-bg look). */
+const ROLE = {};
+
+function ButtonGroup({
+  className,
+  orientation = "horizontal",
+  variant = "glass",
+  glass,
+  material,
+  border,
+  effect,
+  style,
+  ...props
+}: ButtonGroupProps) {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const getVariantClass = () => {
     if (variant === "default") return "";
     const variants = {
-      glass: "glass-bg rounded-md",
-      frosted: "glass-frosted rounded-md",
-      crystal: "glass-crystal rounded-md",
-      opaque: "glass-opaque rounded-md",
-      surface: "glass-surface rounded-md",
-      solid: "glass-solid rounded-md",
+      glass: "rounded-md",
+      frosted: "rounded-md",
+      crystal: "rounded-md",
+      opaque: "rounded-md",
+      surface: "rounded-md",
+      solid: "rounded-md",
     };
     return variants[variant] || variants.glass;
   };
 
-  const glassStyles = variant !== "default" && glass !== undefined ? getGlassStyles(glass) : {};
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
+
+  const glassStyles = m !== null && glass !== undefined ? getGlassStyles(glass) : {};
 
   return (
     <div
       role="group"
       data-slot="button-group"
       data-orientation={orientation}
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         buttonGroupVariants({
           orientation,
         }),
         getVariantClass(),
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
         className,
       )}
       style={{

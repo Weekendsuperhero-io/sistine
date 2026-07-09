@@ -2,6 +2,7 @@ import { ArrowsHorizontalIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const Breadcrumb = React.forwardRef<
@@ -14,22 +15,44 @@ const Breadcrumb = React.forwardRef<
 >(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" data-slot="breadcrumb" {...props} />);
 Breadcrumb.displayName = "Breadcrumb";
 
+/* Role: bordered adaptive glass (the old glass-surface look). */
+const ROLE = {
+  border: true,
+};
+
 const BreadcrumbList = React.forwardRef<
   HTMLOListElement,
   React.ComponentPropsWithoutRef<"ol"> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    /** Resting glow (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", ...props }, ref) => {
+>(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "",
-    glass: "glass-surface rounded-lg px-4 py-2",
+    glass: "rounded-lg px-4 py-2",
   };
+
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
 
   return (
     <ol
       ref={ref}
       data-slot="breadcrumb-list"
-      className={cn("flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5", variants[variant], className)}
+      data-material={m?.["data-material"]}
+      className={cn(
+        m?.className,
+        "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
+        variants[variant],
+        glow && "glass-glow",
+        className,
+      )}
       {...props}
     />
   );

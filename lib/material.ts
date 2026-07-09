@@ -137,7 +137,12 @@ export function resolveMaterial(role: MaterialProps, variant: string | null | un
       sheen: sheen ?? role.sheen,
     });
   }
-  const tier = variant ? TIER_ADAPTER[variant] : TIER_ADAPTER.glass;
+  // null = explicitly NOT a glass surface (semantic variants like "default" pass null);
+  // undefined = no variant given → the component's glass role.
+  if (variant === null) {
+    return null;
+  }
+  const tier = TIER_ADAPTER[variant ?? "glass"];
   return tier ? glassMaterial(tier(role)) : null;
 }
 

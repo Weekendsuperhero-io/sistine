@@ -3,13 +3,21 @@
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from "react-day-picker";
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   variant?: "default" | "glass";
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+  material?: Material;
+  border?: boolean;
+  /** Resting glow (folded from the glass wrapper). */
+  glow?: boolean;
 };
+
+/* Role: borderless adaptive glass (the old glass-bg look). */
+const ROLE = {};
 
 function Calendar({
   className,
@@ -18,6 +26,9 @@ function Calendar({
   variant = "glass",
   captionLayout = "label",
   buttonVariant = "ghost",
+  material,
+  border,
+  glow,
   locale,
   formatters,
   components,
@@ -25,17 +36,25 @@ function Calendar({
 }: CalendarProps) {
   const defaultClassNames = getDefaultClassNames();
 
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "",
-    glass: "glass-bg rounded-lg p-4",
+    glass: "rounded-lg p-4",
   };
+
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
+        m?.className,
         "group/calendar w-fit [--cell-radius:var(--radius-4xl)] [--cell-size:--spacing(9)]",
         variants[variant],
+        glow && "glass-glow",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,
@@ -109,7 +128,7 @@ function Calendar({
       }}
       components={{
         Root: ({ className, rootRef, ...props }) => {
-          return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
+          return <div data-slot="calendar" data-material={m?.["data-material"]} ref={rootRef} className={cn(className)} {...props} />;
         },
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {

@@ -25,8 +25,11 @@ const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
     variant?: "default" | "glass";
+    /** Glow rides the OPEN state (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", children, ...props }, ref) => {
+>(({ className, variant = "glass", glow, children, ...props }, ref) => {
+  // No glass surface here — the variants are hover tints only, so no resolveMaterial.
   const variants = {
     default: "hover:bg-accent",
     glass: "hover:bg-muted/50",
@@ -40,6 +43,7 @@ const AccordionTrigger = React.forwardRef<
         className={cn(
           "flex flex-1 items-start justify-between gap-4 rounded-md px-4 py-4 text-left font-medium outline-none transition-[color,background-color,box-shadow,border-color] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           variants[variant],
+          glow && "data-[state=open]:glass-glow",
           className,
         )}
         {...props}

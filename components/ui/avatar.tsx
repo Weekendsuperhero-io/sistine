@@ -8,9 +8,12 @@ import { cn } from "@/lib/utils";
 function Avatar({
   className,
   size = "default",
+  glow,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Root> & {
   size?: "default" | "sm" | "lg";
+  /** Themed ring + halo (folded from the glass wrapper). */
+  glow?: boolean;
 }) {
   return (
     <AvatarPrimitive.Root
@@ -18,6 +21,7 @@ function Avatar({
       data-size={size}
       className={cn(
         "group/avatar relative flex size-10 shrink-0 overflow-hidden rounded-full select-none [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)] data-[size=lg]:size-12 data-[size=sm]:size-8",
+        glow && "ring-2 ring-(color:--glass-glow) shadow-lg shadow-(color:--glass-glow) transition duration-200",
         className,
       )}
       {...props}

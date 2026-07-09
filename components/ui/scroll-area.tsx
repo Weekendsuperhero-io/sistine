@@ -3,21 +3,43 @@
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, resolveMaterial } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Role: bordered adaptive glass (the old glass-surface look). */
+const ROLE = {
+  border: true,
+};
 
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    /** Resting glow (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", children, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, glow, children, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from resolveMaterial. */
   const variants = {
     default: "relative overflow-hidden",
-    glass: "relative overflow-hidden glass-surface rounded-lg",
+    glass: "relative overflow-hidden rounded-lg",
   };
 
+  const m = resolveMaterial(ROLE, variant === "default" ? null : variant, {
+    material,
+    border,
+  });
+
   return (
-    <ScrollAreaPrimitive.Root ref={ref} data-slot="scroll-area" className={cn(variants[variant], className)} {...props}>
+    <ScrollAreaPrimitive.Root
+      ref={ref}
+      data-slot="scroll-area"
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, variants[variant], glow && "glass-glow", className)}
+      {...props}
+    >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
         className="h-full w-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
