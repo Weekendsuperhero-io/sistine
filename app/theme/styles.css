@@ -72,6 +72,7 @@
    read, and (b) the foreground remap must not leak into explicit materials. */
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
+  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);

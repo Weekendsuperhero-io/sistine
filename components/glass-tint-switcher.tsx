@@ -13,7 +13,17 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
 const OPACITY_KEY = "sistine-glass-opacity";
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
+const OUTLINE_W_KEY = "sistine-glass-opaque-outline-w";
 const ACCENT_KEY = "sistine-accent";
+
+/** Opaque-outline weight → the --glass-opaque-outline-w page var (hairline = unset → 1px default).
+ * Same ladder as the border axis (glass-border-rim/-frame); an element-level rim/frame beats this. */
+const OUTLINE_WEIGHTS = {
+  hairline: null,
+  rim: "4px",
+  frame: "8px",
+} as const;
+type OutlineWeight = keyof typeof OUTLINE_WEIGHTS;
 
 /**
  * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
@@ -281,6 +291,7 @@ export function GlassTintSwitcher() {
   const [opacity, setOpacity] = React.useState(0);
   const [lightness, setLightness] = React.useState(90);
   const [outline, setOutline] = React.useState(false);
+  const [outlineW, setOutlineW] = React.useState<OutlineWeight>("hairline");
   const [accentOn, setAccentOn] = React.useState(false);
   const [accentH, setAccentH] = React.useState(280);
   const [accentC, setAccentC] = React.useState(0.15);
@@ -313,6 +324,11 @@ export function GlassTintSwitcher() {
     const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
     setOutline(storedOutline);
     if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+    const storedOutlineW = localStorage.getItem(OUTLINE_W_KEY) as OutlineWeight | null;
+    if (storedOutlineW && OUTLINE_WEIGHTS[storedOutlineW]) {
+      setOutlineW(storedOutlineW);
+      document.documentElement.style.setProperty("--glass-opaque-outline-w", OUTLINE_WEIGHTS[storedOutlineW]);
+    }
     try {
       const acc = JSON.parse(localStorage.getItem(ACCENT_KEY) ?? "null");
       if (acc && typeof acc === "object") {
@@ -427,6 +443,21 @@ export function GlassTintSwitcher() {
 
   // Optional accent outline for opaque surfaces — sets --glass-opaque-outline to the theme accent so opaque
   // components gain a colored outline (flair) instead of the flat default border. Applies site-wide.
+  // Outline WEIGHT — page-wide width for the same borders the outline toggle colors (opaque material
+  // cards + adaptive surfaces on the opaque page style). hairline clears the var (1px default).
+  const changeOutlineW = (w: OutlineWeight) => {
+    setOutlineW(w);
+    const root = document.documentElement;
+    const px = OUTLINE_WEIGHTS[w];
+    if (px) root.style.setProperty("--glass-opaque-outline-w", px);
+    else root.style.removeProperty("--glass-opaque-outline-w");
+    try {
+      localStorage.setItem(OUTLINE_W_KEY, w);
+    } catch {
+      // ignore storage failures
+    }
+  };
+
   const changeOutline = (on: boolean) => {
     setOutline(on);
     const root = document.documentElement;
@@ -598,6 +629,24 @@ export function GlassTintSwitcher() {
           >
             {outline ? "accent" : "off"}
           </button>
+        </div>
+        <div className="flex items-center justify-between text-muted-foreground text-xs">
+          <span>Outline weight</span>
+          <div className="flex gap-1">
+            {(Object.keys(OUTLINE_WEIGHTS) as OutlineWeight[]).map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => changeOutlineW(w)}
+                className={cn(
+                  "rounded-md border px-2 py-0.5 font-medium transition-colors",
+                  outlineW === w ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+                )}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-2 border-[var(--glass-border)] border-t pt-3">

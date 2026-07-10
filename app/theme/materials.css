@@ -67,7 +67,9 @@
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  --srf-border-w: 1px;
+  /* Outline WEIGHT: an element rim/frame class (--brd-w) beats the page-level outline weight (the
+     switcher's --glass-opaque-outline-w on <html>), which beats the 1px hairline. */
+  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
   --srf-shadow: var(--glass-shadow);
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
