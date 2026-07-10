@@ -44,26 +44,28 @@ const buttonMaterialNames = [
   "opaque",
 ] as const;
 
-// gradient fill strengths to compare — the theme-aware --gradient hues (follow --glass-tint-h) at three alphas.
+// gradient fill strengths to compare — the engine's --gradient construction (--gradient-l/-c envelope,
+// --glass-fg-h + 63.53° sweep) at three alphas, so Medium (0.5) IS the accent token at every theme/mode,
+// including frescoes that decouple --glass-fg-h from the tint hue.
 const solidGradient = (a: number) =>
-  `linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 3 * 360 / 17) / ${a}) 0%, oklch(0.6 0.15 var(--glass-tint-h) / ${a}) 100%)`;
+  `linear-gradient(135deg, oklch(var(--gradient-l) var(--gradient-c) calc(var(--glass-fg-h) + 63.53) / ${a}) 0%, oklch(var(--gradient-l) var(--gradient-c) var(--glass-fg-h) / ${a}) 100%)`;
 
 const solidIntensities = [
   {
     label: "Subtle",
-    note: "20% · glassy (original)",
+    note: "20%",
     bg: solidGradient(0.2),
     text: "text-foreground",
   },
   {
     label: "Medium",
-    note: "50%",
+    note: "50% — the glass-gradient accent",
     bg: solidGradient(0.5),
     text: "text-foreground",
   },
   {
     label: "Bold",
-    note: "100% · current",
+    note: "100%",
     bg: solidGradient(1),
     text: "text-white",
   },
@@ -224,10 +226,10 @@ export default function ComponentsPage() {
         <div className="mb-12">
           <h2 className="mb-1 font-semibold text-foreground text-xl">gradient intensity, over each glass type</h2>
           <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The theme-aware <code className="text-xs">--gradient</code> (follows the tint hue) overlaid on each surface at three strengths.{" "}
-            <strong>Medium</strong> is the winner — it's the <code className="text-xs">glass-gradient</code> accent class, which the{" "}
-            <code className="text-xs">gradient</code> prop layers over any material. Note how <strong>Bold</strong> hides the surface (all types
-            converge) while <strong>Subtle</strong> keeps each glass texture.
+            The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue — the tint hue unless a fresco decouples it)
+            overlaid on each surface at three strengths. <strong>Medium</strong> is the winner — it's the{" "}
+            <code className="text-xs">glass-gradient</code> accent class, which the <code className="text-xs">gradient</code> prop layers over any
+            material. Note how <strong>Bold</strong> hides the surface (all types converge) while <strong>Subtle</strong> keeps each glass texture.
           </p>
           <div className="grid max-w-2xl grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-3">
             <span />
