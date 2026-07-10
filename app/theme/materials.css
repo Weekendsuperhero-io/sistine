@@ -16,7 +16,7 @@
      setter/reader is safe — the composition gotcha only bites pre-composed inherited values). */
   --srf-filter: blur(var(--srf-blur, var(--blur))) saturate(180%);
   --srf-border-color: var(--glass-border);
-  --srf-border-w: 1px;
+  --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
 }
 
@@ -27,7 +27,7 @@
   --srf-bg-color: transparent;
   --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
-  --srf-border-w: 0.5px;
+  --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
 }
 
@@ -40,7 +40,7 @@
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(var(--blur-crystal));
   --srf-border-color: var(--glass-crystal-border);
-  --srf-border-w: 1px;
+  --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
   transition: box-shadow 0.3s ease;
 }

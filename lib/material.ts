@@ -22,8 +22,9 @@ export type Material = "glass" | "frosted" | "crystal" | "opaque" | "none";
 export interface MaterialProps {
   /** undefined = adaptive (follows the page style); "none" = the component's plain fallback. */
   material?: Material;
-  /** Material border — 1px (0.5px under frosted). */
-  border?: boolean;
+  /** Material border. Three weights: `true`/"hairline" = the material's edge (1px; 0.5px under
+   *  frosted), "rim" = 4px, "frame" = 8px (thick frames pair best with larger radii). */
+  border?: boolean | "hairline" | "rim" | "frame";
   /** Element-composed legibility floor for read-through overlays (menus, tooltips, toasts). */
   veil?: boolean;
   /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
@@ -60,6 +61,8 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
     className: [
       "glass",
       border && "glass-border",
+      border === "rim" && "glass-border-rim",
+      border === "frame" && "glass-border-frame",
       veil && "glass-veil",
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
