@@ -146,8 +146,8 @@
   --popover-foreground: var(--foreground);
 
   /* Primary colors - Light mode */
-  --primary: oklch(0.42 0 0); /* Neutral dark grey — "pure glass" primary; the theme tint comes from the glass overlay on the button, not the token */
-  --primary-foreground: oklch(0.98 0 0); /* White text on the dark-grey primary */
+  --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
+  --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — ≥ Lc 85 at the worst hue (measured) */
 
   /* Secondary colors - Light mode */
   --secondary: oklch(0.96 0 0); /* Very light gray */
@@ -254,8 +254,8 @@
   --popover-foreground: var(--foreground);
 
   /* Primary colors - Apple-style white text */
-  --primary: oklch(0.78 0 0); /* Neutral light-grey — "pure glass" primary in dark mode; theme tint via the glass overlay */
-  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the light-grey primary — APCA |Lc| ~65 */
+  --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
+  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the primary ink — ≥ Lc 62 at the worst hue (measured) */
 
   /* Secondary colors - Apple-style white text */
   --secondary: oklch(0.25 0 0); /* Dark gray */

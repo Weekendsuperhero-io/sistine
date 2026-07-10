@@ -15,14 +15,14 @@ const buttonVariants = cva(
       variant: {
         glass: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         default:
-          "bg-primary text-primary-foreground [background-image:var(--glass-bg)] shadow-md hover:bg-primary/90 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
+          "bg-primary text-primary-foreground [background-image:var(--glass-bg)] shadow-[var(--glass-shadow)] hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
           "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
           "backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
+          "border border-border hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
         link: "text-primary underline-offset-4 hover:underline active:opacity-80",
       },
       size: {

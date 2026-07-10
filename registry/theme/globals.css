@@ -224,8 +224,8 @@
   --popover-foreground: var(--foreground);
 
   /* Primary colors - Light mode */
-  --primary: oklch(0.42 0 0); /* Neutral dark grey — "pure glass" primary; the theme tint comes from the glass overlay on the button, not the token */
-  --primary-foreground: oklch(0.98 0 0); /* White text on the dark-grey primary */
+  --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
+  --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — ≥ Lc 85 at the worst hue (measured) */
 
   /* Secondary colors - Light mode */
   --secondary: oklch(0.96 0 0); /* Very light gray */
@@ -332,8 +332,8 @@
   --popover-foreground: var(--foreground);
 
   /* Primary colors - Apple-style white text */
-  --primary: oklch(0.78 0 0); /* Neutral light-grey — "pure glass" primary in dark mode; theme tint via the glass overlay */
-  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the light-grey primary — APCA |Lc| ~65 */
+  --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
+  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the primary ink — ≥ Lc 62 at the worst hue (measured) */
 
   /* Secondary colors - Apple-style white text */
   --secondary: oklch(0.25 0 0); /* Dark gray */
@@ -522,6 +522,10 @@
   --glass-accent: oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
+  /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral
+     stays grey, bone whispers warm, jewels read clearly tinted. Lightness is the --primary-l mode knob
+     (0.42 light / 0.78 dark); the static --primary-foreground keeps ≥ Lc 62 at the worst hue. */
+  --primary: oklch(var(--primary-l) calc(var(--glass-tint-c) * 1.2) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
   --color-complement: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-complement));
   --color-analogous-1: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-analogous-1));

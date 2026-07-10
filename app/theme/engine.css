@@ -118,6 +118,10 @@
   --glass-accent: oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
+  /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral
+     stays grey, bone whispers warm, jewels read clearly tinted. Lightness is the --primary-l mode knob
+     (0.42 light / 0.78 dark); the static --primary-foreground keeps ≥ Lc 62 at the worst hue. */
+  --primary: oklch(var(--primary-l) calc(var(--glass-tint-c) * 1.2) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
   --color-complement: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-complement));
   --color-analogous-1: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-analogous-1));
