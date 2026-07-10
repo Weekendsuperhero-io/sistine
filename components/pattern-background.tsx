@@ -551,15 +551,17 @@ const SYNTHWAVE_STYLES = `
 // Pac-Man chase: a seamless scrolling "corridor" per lane — Pac chomps in place (clip-path) while the dot
 // stream flows left into its mouth and gets "eaten" (a STATIC mask on the clip wrapper hides dots once they
 // pass the mouth, so nothing animates the mask), and a ghost bobs ahead, fleeing, flashing fright-blue.
-// Dots + ghost move on compositor transforms; only Pac's tiny chomp repaints. Three lanes, desynced, fill
-// the screen. Iconic arcade palette (gold Pac, classic ghost hues, pale pellets) over a tint-darkened field.
-// Horizontal (E–W) lanes at 12/30/50/70/88% — positioned so the walls sit in the gaps BETWEEN them, never
-// on a lane (Pac was eating through walls). Each ghost hue rides the theme COMPLEMENT (var(--hue-complement))
-// ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it (fade out) mid-run; the others let
-// it escape ahead. Durations bumped way up — the old 7–11s zipped; 15–24s reads as a stroll.
-// NIGHT SCENE BY DESIGN: unlike synthwave/moonrise, chase does NOT flip with the mode toggle —
-// the CRT-arcade identity (gold Pac, pale pellets, fright-blue) assumes a dark field; a light maze would
-// need the whole sprite palette re-picked. Revisit only if users ask.
+// Dots + ghost move on compositor transforms; only Pac's tiny chomp repaints. Each ghost hue rides the theme
+// COMPLEMENT (var(--hue-complement)) ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it
+// (fade out) mid-run; the others let it escape ahead.
+// PELLET-GRID ALIGNMENT: lane top/left values below are NOMINAL — each lane snaps to the nearest pellet
+// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2 (pellet centers sit at
+// (k + 0.5)·cell), so Pac chomps ALONG a dot line at every density and viewport, no JS. Sprites are
+// --pac-sprite = min(cell, 34px): never bigger than one dot cell (dense shrinks them to the cell; sparse
+// keeps them 34px inside the larger cell), Pac and ghost the same size, centered on the row.
+// MODE-AWARE like the Tron scenes: the --pac-* palette carries a sunlit theme-tinted maze by day (tonal
+// paper field, tonal-dark pellets/walls) and the original CRT arcade values by night, all hue-tracking
+// the tint — the light/dark flip is pure CSS. Pac himself keeps his gold in both.
 const PAC_LANES = [
   {
     top: "12%",
@@ -626,114 +628,135 @@ const PAC_VLANES = [
   },
 ];
 
-// Chevron "walls" that block out pellets to carve the maze. Every block sits in a GAP between the E–W lane
-// bands (10-14/28-32/48-52/68-72/86-90%) and clear of the N–S columns (23-29% / 71-77%), so no Pac runs
+// Chevron "walls" that block out pellets to carve the maze. Every block sits in a GAP between the E–W
+// lanes and clear of the N–S columns (23-29% / 71-77%) — sized for the WORST-CASE lane position: a
+// snapped lane can shift up to ±cell/2 off its nominal %, and the sprite spans ±sprite/2 more, so each
+// wall band keeps ≳2% clear of every lane's worst envelope (H ≥ 600px, all densities). No Pac runs
 // through one.
 const PAC_WALLS = [
   {
-    top: "3%",
+    top: "2%",
     left: "40%",
     w: "18%",
-    h: "5%",
+    h: "2.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "6%",
     w: "12%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "46%",
     w: "18%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "84%",
     w: "11%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "36%",
+    top: "37.5%",
     left: "32%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "36%",
+    top: "37.5%",
     left: "56%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "8%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "44%",
     w: "16%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "80%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "76%",
+    top: "77.5%",
     left: "34%",
     w: "12%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "76%",
+    top: "77.5%",
     left: "58%",
     w: "10%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "93%",
+    top: "95.5%",
     left: "38%",
     w: "22%",
-    h: "5%",
+    h: "3%",
   },
 ];
 
 const PAC_STYLES = `
+[data-pattern="chase"] {
+  /* DAY — a sunlit arcade: theme-tinted paper field, tonal-dark pellets and walls. The maze recolors
+     with the tint; Pac and the ghosts keep their arcade identity. */
+  --pac-bg: oklch(0.93 0.035 var(--glass-tint-h));
+  --pac-pellet: oklch(0.45 0.09 var(--glass-tint-h));
+  --pac-wall-bg: oklch(0.86 0.05 var(--glass-tint-h));
+  --pac-wall-stripe: oklch(0.62 0.11 var(--glass-tint-h));
+  --pac-wall-edge: oklch(0.52 0.13 var(--glass-tint-h));
+}
+.dark [data-pattern="chase"] {
+  /* NIGHT — the original CRT palette (pellets now hue-track the tint like the walls always did). */
+  --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
+  --pac-pellet: oklch(0.82 0.05 var(--glass-tint-h));
+  --pac-wall-bg: oklch(0.19 0.05 var(--glass-tint-h));
+  --pac-wall-stripe: oklch(0.42 0.1 var(--glass-tint-h));
+  --pac-wall-edge: oklch(0.5 0.12 var(--glass-tint-h));
+}
 .pac-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
   background: var(--pac-bg);
+  /* Sprite box: one pellet cell, capped at the classic 34px — dense shrinks sprites to the cell,
+     sparse keeps them 34px centered INSIDE the larger cell. Pac and ghost share it. */
+  --pac-sprite: min(var(--pac-cell, 34px), 34px);
 }
 .pac-field {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle 2.6px at center, oklch(0.82 0.05 85) 0 2px, transparent 2.7px);
+  background-image: radial-gradient(circle 2.6px at center, var(--pac-pellet) 0 2px, transparent 2.7px);
   background-size: var(--pac-cell, 34px) var(--pac-cell, 34px);
   opacity: 0.5;
 }
 .pac-wall {
   position: absolute;
   border-radius: 6px;
-  background-color: oklch(0.19 0.05 var(--glass-tint-h));
+  background-color: var(--pac-wall-bg);
   background-image:
-    linear-gradient(135deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%),
-    linear-gradient(225deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%);
+    linear-gradient(135deg, var(--pac-wall-stripe) 25%, transparent 25%),
+    linear-gradient(225deg, var(--pac-wall-stripe) 25%, transparent 25%);
   background-size: 15px 15px;
-  box-shadow: inset 0 0 0 1.5px oklch(0.5 0.12 var(--glass-tint-h));
+  box-shadow: inset 0 0 0 1.5px var(--pac-wall-edge);
 }
 .pac-lane {
   position: absolute;
   left: 0;
   right: 0;
-  height: 40px;
+  height: var(--pac-sprite);
   transform: translateY(-50%);
 }
 /* Pac + his "wake" ride one runner that translates across; the wake is a bg-colored gradient trailing his
@@ -742,8 +765,8 @@ const PAC_STYLES = `
   position: absolute;
   top: 50%;
   left: 0;
-  width: 38px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-16vw, -50%);
   animation: pac-run var(--pac-dur, 9s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -755,10 +778,10 @@ const PAC_STYLES = `
 }
 .pac-wake {
   position: absolute;
-  right: 19px;
+  right: calc(var(--pac-sprite) / 2);
   top: 50%;
   width: 34vw;
-  height: 30px;
+  height: var(--pac-sprite);
   transform: translateY(-50%);
   background: linear-gradient(to left, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
@@ -778,8 +801,8 @@ const PAC_STYLES = `
   position: absolute;
   top: 50%;
   left: 0;
-  width: 34px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(4vw, -50%);
   animation: pac-flee var(--pac-dur, 9s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -822,15 +845,15 @@ const PAC_STYLES = `
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 38px;
+  width: var(--pac-sprite);
   transform: translateX(-50%);
 }
 .pac-vrunner {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 38px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-50%, -18vh);
   animation: pac-vrun-down var(--pac-dur, 18s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -852,23 +875,23 @@ const PAC_STYLES = `
 .pac-vwake {
   position: absolute;
   left: 50%;
-  bottom: 19px;
-  width: 30px;
+  bottom: calc(var(--pac-sprite) / 2);
+  width: var(--pac-sprite);
   height: 34vh;
   transform: translateX(-50%);
   background: linear-gradient(to top, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
 .pac-vlane.pac-vup .pac-vwake {
   bottom: auto;
-  top: 19px;
+  top: calc(var(--pac-sprite) / 2);
   background: linear-gradient(to bottom, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
 .pac-vghost-runner {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 34px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-50%, 2vh);
   animation: pac-vflee-down var(--pac-dur, 18s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -1033,7 +1056,9 @@ export function PatternBackground({
               className="pac-lane"
               style={
                 {
-                  top: lane.top,
+                  // Snap the nominal % to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell),
+                  // so Pac chomps along an actual dot line at every density and viewport.
+                  top: `calc(round(down, ${lane.top}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
                   "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
                   "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
                   "--pac-fright-dur": lane.frightDur,
@@ -1056,7 +1081,8 @@ export function PatternBackground({
               className={lane.up ? "pac-vlane pac-vup" : "pac-vlane"}
               style={
                 {
-                  left: lane.left,
+                  // Same pellet-grid snap as the E–W lanes, along the x axis (columns at (k+0.5)·cell).
+                  left: `calc(round(down, ${lane.left}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
                   "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
                   "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
                   "--pac-fright-dur": lane.frightDur,
