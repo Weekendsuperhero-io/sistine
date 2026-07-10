@@ -171,7 +171,7 @@ for (const s of statuses) {
 // 5. [fresco] every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry, so its
 //    canvas/gradient background matches it instead of collapsing to one hue.
 const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "utf8");
-const huesStart = canvasUtils.indexOf("FRESCO_HUES");
+const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
 const frescoPresets = new Set();

@@ -24,9 +24,12 @@
   [data-glass="frosted"] [data-sonner-toast][data-type]
 ) {
   --srf-bg-image: var(--frosted-stack-bg);
-  --srf-bg-color: var(--glass-tint-wash);
+  /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
+     as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
+     floor's channel. */
   --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
+  --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
 }
 :where(

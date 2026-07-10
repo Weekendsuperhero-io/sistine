@@ -14,6 +14,7 @@
  *               ramp (renamed from the old "circles").
  */
 
+import * as React from "react";
 import {
   chromaRampColors,
   formatOklch,
@@ -59,6 +60,74 @@ export const FRESCO_HUES: Record<string, number[]> = {
     278,
   ],
 };
+
+/** Live theme-tint snapshot for the JS-painted backdrops (GradientBackground + CanvasBackground):
+ * accent hue when the accent knob is on (else the tint hue), dark mode, the bespoke fresco preset,
+ * and P3 support — kept fresh by ONE MutationObserver on <html> (class + data-glass-tint + style). */
+export function useBackdropTint() {
+  const [state, setState] = React.useState<{
+    hue: number;
+    dark: boolean;
+    p3: boolean;
+    preset: string | undefined;
+  }>({
+    hue: 250,
+    dark: true,
+    p3: false,
+    preset: undefined,
+  });
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const read = () => {
+      const cs = getComputedStyle(root);
+      const acc = Number.parseFloat(cs.getPropertyValue("--accent-h"));
+      // Honor the accent hue when the accent knob is on, else the live tint hue.
+      const v = Number.isFinite(acc) ? acc : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
+      const next = {
+        hue: Number.isFinite(v) ? v : 250,
+        dark: root.classList.contains("dark"),
+        p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
+        preset: root.dataset.glassTint,
+      };
+      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 && prev.preset === next.preset ? prev : next));
+    };
+    read();
+    const observer = new MutationObserver(read);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+        "data-glass-tint",
+        "style",
+      ],
+    });
+    return () => observer.disconnect();
+  }, []);
+  return state;
+}
+
+/** The shared backdrop palette: base color (theme-tracking lightness, `hue` prop override) + the
+ * fresco multi-hue colors when a bespoke preset is active — gradient and canvas resolve identically. */
+export function backdropPalette(
+  tint: {
+    hue: number;
+    dark: boolean;
+    preset: string | undefined;
+  },
+  hue?: number,
+) {
+  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light.
+  const l = tint.dark ? 52 : 72;
+  const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
+  return {
+    base: {
+      l,
+      c: 0.15,
+      h: hue ?? tint.hue,
+    } as OklchColor,
+    frescoColors: frescoHues?.map((h) => `oklch(${l}% 0.15 ${h})`),
+  };
+}
 
 export interface CanvasConfig {
   width?: number;

@@ -90,27 +90,26 @@
 @utility glass-sheen {
   position: relative;
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--glass-gloss-top), var(--glass-gloss-streak);
-    background-size: 200% 200%;
-    background-position: 0% 0%;
-    opacity: 0.7;
-    pointer-events: none;
-    transition: background-position 0.3s ease;
-  }
-
+  &::before,
   &::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &::before {
+    background: var(--glass-gloss-top), var(--glass-gloss-streak);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    opacity: 0.7;
+    transition: background-position 0.3s ease;
+  }
+
+  &::after {
     background: var(--glass-gloss-glow);
     opacity: 0.8;
-    pointer-events: none;
   }
 
   &:hover::before {

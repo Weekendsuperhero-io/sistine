@@ -694,27 +694,26 @@
 @utility glass-sheen {
   position: relative;
 
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--glass-gloss-top), var(--glass-gloss-streak);
-    background-size: 200% 200%;
-    background-position: 0% 0%;
-    opacity: 0.7;
-    pointer-events: none;
-    transition: background-position 0.3s ease;
-  }
-
+  &::before,
   &::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &::before {
+    background: var(--glass-gloss-top), var(--glass-gloss-streak);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    opacity: 0.7;
+    transition: background-position 0.3s ease;
+  }
+
+  &::after {
     background: var(--glass-gloss-glow);
     opacity: 0.8;
-    pointer-events: none;
   }
 
   &:hover::before {
@@ -803,6 +802,9 @@
      switcher's --glass-opaque-outline-w on <html>), which beats the 1px hairline. */
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
   --srf-shadow: var(--glass-shadow);
+  /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
+     PAGE style makes (menus/toasts must stay legible on a solid ground). */
+  --glass-solid-a: 1;
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);
@@ -892,9 +894,12 @@
   [data-glass="frosted"] [data-sonner-toast][data-type]
 ) {
   --srf-bg-image: var(--frosted-stack-bg);
-  --srf-bg-color: var(--glass-tint-wash);
+  /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
+     as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
+     floor's channel. */
   --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
+  --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
 }
 :where(
