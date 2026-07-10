@@ -100,20 +100,29 @@
      drift. LOWER = deeper tint. */
   --glass-opaque-l: 90;
   --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
-  /* ── Glass shadows — mode TWINS (not knobs: the light↔dark alpha ratios are irregular). They compose
-     only --shadow-ink/-highlight, never tint vars, so bare placement is legal. */
+  /* ── Glass shadows — mode TWINS (not knobs: the light↔dark alpha ratios AND layer structures are
+     irregular). They compose only --shadow-ink/-highlight, never tint vars, so bare placement is legal.
+     LIGHT twins carry extra definition layers dark mode gets for free (a light surface on a dark page
+     separates itself): a tight CONTACT drop + 1px dark outer HAIRLINE define the edge on same-lightness
+     backdrops, and a directional BEVEL (bright top inner edge, ink bottom inner edge) makes pills read
+     convex instead of printed. Layer order: ambient drop, contact drop, hairline, top bevel, bottom
+     shade, inner glow. */
   --glass-shadow:
-    0 4px 16px oklch(var(--shadow-ink) / 0.13), 0 1px 4px oklch(var(--shadow-ink) / 0.07), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset,
+    0 4px 16px oklch(var(--shadow-ink) / 0.13), 0 1px 3px oklch(var(--shadow-ink) / 0.11), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset,
     0 0 12px oklch(var(--shadow-highlight) / 0.12) inset;
   --glass-shadow-lg:
-    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 8px oklch(var(--shadow-ink) / 0.09), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset,
+    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.45) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 20px oklch(var(--shadow-highlight) / 0.14) inset;
   --glass-shadow-sm:
-    0 2px 8px oklch(var(--shadow-ink) / 0.1), 0 1px 2px oklch(var(--shadow-ink) / 0.05), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.08) inset,
+    0 2px 8px oklch(var(--shadow-ink) / 0.1), 0 1px 2px oklch(var(--shadow-ink) / 0.09), 0 0 0 1px oklch(var(--shadow-ink) / 0.04),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset,
     0 0 8px oklch(var(--shadow-highlight) / 0.1) inset;
   --glass-frosted-border: oklch(100% 0 0 / 0.3);
   --glass-frosted-shadow:
-    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 8px oklch(var(--shadow-ink) / 0.11), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset,
+    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
