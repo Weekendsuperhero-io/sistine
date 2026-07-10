@@ -4,9 +4,10 @@ import { Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
+import type { Material } from "@/lib/material";
 import { Button } from "./button";
 
-export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass" }) {
+export function ModeToggle({ variant = "glass", material }: { variant?: "default" | "glass"; material?: Material }) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -19,6 +20,7 @@ export function ModeToggle({ variant = "glass" }: { variant?: "default" | "glass
   return (
     <Button
       variant={variant === "glass" ? "glass" : "outline"}
+      material={material}
       size="icon"
       onClick={mounted ? () => setTheme(isDark ? "light" : "dark") : undefined}
       aria-label="Toggle theme"

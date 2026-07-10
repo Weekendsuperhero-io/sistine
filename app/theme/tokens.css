@@ -1,0 +1,357 @@
+/* ── Design tokens — @theme mapping, base shadcn colors, mode knobs + shadow twins, base layer ─────
+   :root carries light values + the LEAF mode knobs the engine composes; .dark carries the dark twins.
+   .dark must come after :root (same-element ties resolve by source order on html.dark). */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-foreground-strong: var(--foreground-strong);
+  --color-foreground-ui: var(--foreground-ui);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 1.25rem;
+  /* Shadow ink — the base black/white that every shadow, pressed-inset, and bevel highlight is built
+     from. Mode-invariant (only the ALPHA changes per surface/mode), so apply alpha at the call site:
+     oklch(var(--shadow-ink) / <a>). One knob to retint every shadow at once (e.g. a cooler, less-flat
+     ink) instead of hunting down dozens of oklch(0% 0 0) / oklch(100% 0 0) literals. */
+  --shadow-ink: 0% 0 0; /* drop + pressed-inset shadow color */
+  --shadow-highlight: 100% 0 0; /* inner bevel / top highlight */
+  /* Active/pressed shadow SCALE, built from the ink above and mode-aware (deeper in dark; overridden in
+     .dark), so components reference these with NO dark: twin. Depth ladder — all inset "push-in" presses
+     except --active-shadow, which LIFTS the selected tab/toggle. --press-shadow-strong shares the
+     standard press's 0.2 primary and stacks a contact layer (was 0.15; raised so the two-layer presses
+     build ON the single-layer one instead of undercutting it):
+       --press-shadow-sm     — subtle press          (ghost, outline)
+       --press-shadow        — standard press         (default, gradient, opaque)
+       --press-shadow-strong — firm two-layer press   (glass, destructive, secondary, frosted)
+       --press-shadow-deep   — deepest press          (crystal)
+       --active-shadow       — selected-control LIFT   (tabs, toggle) */
+  --press-shadow-sm: inset 0 1px 2px oklch(var(--shadow-ink) / 0.1);
+  --press-shadow: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2);
+  --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2), inset 0 1px 2px oklch(var(--shadow-ink) / 0.15);
+  --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.25), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
+  --active-shadow: 0 1px 3px oklch(var(--shadow-ink) / 0.1), inset 0 1px 1px oklch(var(--shadow-highlight) / 0.5);
+  /* ── Mode knobs ──────────────────────────────────────────────────────────
+     Single-number dials the glass engine's mode-derived block composes (light values here, dark twins in
+     .dark). LEAVES ONLY — none composes a tint var (check-theme invariant 1), so they may live on the bare
+     blocks and inherit into tint scopes, where the engine re-resolves the derived tokens. */
+  --glass-sheet-a: 0.11; /* sheer glass sheet base alpha (per-stop offsets ride on top) */
+  --glass-sheet-a1: 0.04; /* the sheet's TOP-stop offset (dark tapers it to 0.03) */
+  --glass-frost-boost: 0.1; /* frosted = the sheet lifted by this much */
+  --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
+  /* Crystal gloss defaults (mode-shared; the demo's Light/Tint sliders override inline). AutoForeground's
+     crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
+  --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
+  --glass-gloss-tint: 4.25; /* gloss chroma multiplier over the tint ("Tint") */
+  --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
+  --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (bone night quiets it to 2) */
+  --glass-accent-l: 0.6; /* accent envelope — lifted in dark so the hue pops */
+  --glass-accent-c: 0.15;
+  --glass-glow-lc: 0.62 0.2; /* glow L+C pair */
+  --glass-glow-a: 0.45;
+  --harmonic-l: 0.6; /* --color-* accent-tier lightness */
+  --mono-l-1: 0.75; /* mono ramp steps (irregular light↔dark lifts — three dials, not one) */
+  --mono-l-2: 0.6;
+  --mono-l-3: 0.45;
+  --gradient-l: 0.6; /* brand-gradient envelope (matches --glass-accent-l/-c) */
+  --gradient-c: 0.15;
+  --gradient-contrast-l: 0.32; /* contrast gradient text: dark-on-light here, light-on-dark in .dark */
+  --gradient-contrast-c: 0.14;
+  --glass-crystal-bg-a: 0.3; /* crystal floor alpha (near-clear in dark) */
+  /* glass-solid floor — the "how solid" dial (0 = sheer, 1 = fully solid; shared by light/dark) + the
+     mode floor lightness; composed in @utility glass-veil so a scoped --glass-solid-a resolves there. */
+  --glass-solid-a: 0.65;
+  --glass-solid-l: 99%;
+  /* Opaque tint BODY lightness (plain number → % in the engine). The header L slider drives this; the
+     opaque floor color AND AutoForeground's --foreground-opaque banding both read it, so they can't
+     drift. LOWER = deeper tint. */
+  --glass-opaque-l: 90;
+  --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
+  /* ── Glass shadows — mode TWINS (not knobs: the light↔dark alpha ratios AND layer structures are
+     irregular). They compose only --shadow-ink/-highlight, never tint vars, so bare placement is legal.
+     LIGHT twins carry extra definition layers dark mode gets for free (a light surface on a dark page
+     separates itself): a tight CONTACT drop + 1px dark outer HAIRLINE define the edge on same-lightness
+     backdrops, and a directional BEVEL (bright top inner edge, ink bottom inner edge) makes pills read
+     convex instead of printed. The last layer flips family per mode: dark's white inner GLOW (luminous
+     glass) becomes an ink VIGNETTE in light — a white wash on a light surface brightens without
+     defining, while a faint vignette reads as glass thickness. (Frosted keeps its white glow in both
+     modes: milkiness IS that material.) The top bevel stays WHITE in both — it's a specular, not a
+     shadow; grey speculars read as grime. Layer order: ambient drop, contact drop, hairline, top
+     bevel, bottom shade, inner glow/vignette. */
+  --glass-shadow:
+    0 4px 16px oklch(var(--shadow-ink) / 0.13), 0 1px 3px oklch(var(--shadow-ink) / 0.11), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset,
+    0 0 12px oklch(var(--shadow-ink) / 0.05) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.45) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
+    0 0 20px oklch(var(--shadow-ink) / 0.06) inset;
+  --glass-shadow-sm:
+    0 2px 8px oklch(var(--shadow-ink) / 0.1), 0 1px 2px oklch(var(--shadow-ink) / 0.09), 0 0 0 1px oklch(var(--shadow-ink) / 0.04),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset,
+    0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
+  --glass-frosted-border: oklch(100% 0 0 / 0.3);
+  --glass-frosted-shadow:
+    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
+    0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
+  --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
+  --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
+  /* Base colors - Light mode with dark text */
+  --background: transparent;
+  --foreground: oklch(
+    0.22 0.04 var(--glass-fg-h)
+  ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(0.4 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
+  --foreground-strong: oklch(0.12 0.04 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
+  --foreground-ui: oklch(0.46 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  /* Static baselines for the OPAQUE + CRYSTAL tier sets (the [data-material] remaps read these) —
+     WITHOUT them, a no-JS consumer (or SSR first paint) would substitute an unset var and INHERIT the
+     page foreground onto those floors. Light mode: the opaque floor (L90) and crystal surface share
+     the page's direction, so the normal literals apply; AutoForeground refines when mounted. */
+  --foreground-opaque: oklch(0.22 0.04 var(--glass-fg-h));
+  --foreground-soft-opaque: oklch(0.4 0.04 var(--glass-fg-h));
+  --foreground-strong-opaque: oklch(0.12 0.04 var(--glass-fg-h));
+  --foreground-ui-opaque: oklch(0.46 0.05 var(--glass-fg-h));
+  --muted-foreground-opaque: oklch(0.14 0.04 var(--glass-fg-h));
+  --foreground-crystal: oklch(0.22 0.04 var(--glass-fg-h));
+  --foreground-soft-crystal: oklch(0.4 0.04 var(--glass-fg-h));
+  --foreground-strong-crystal: oklch(0.12 0.04 var(--glass-fg-h));
+  --foreground-ui-crystal: oklch(0.46 0.05 var(--glass-fg-h));
+  --muted-foreground-crystal: oklch(0.14 0.04 var(--glass-fg-h));
+  --card: transparent;
+  --card-foreground: var(--foreground);
+  --popover: transparent;
+  --popover-foreground: var(--foreground);
+
+  /* Primary colors - Light mode */
+  --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
+  --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — ≥ Lc 85 at the worst hue (measured) */
+
+  /* Secondary colors - Light mode */
+  --secondary: oklch(0.96 0 0); /* Very light gray */
+  --secondary-foreground: var(--foreground);
+
+  /* Muted colors - Light mode */
+  --muted: oklch(0.85 0 0); /* Dark gray - darker shade to avoid glass effect override */
+  --muted-foreground: oklch(0.14 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
+
+  /* Accent colors - Light mode */
+  --accent: oklch(0.96 0 0); /* Very light gray */
+  --accent-foreground: var(--foreground);
+
+  /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
+  --destructive: oklch(0.55 0.22 25); /* Red - 4.5:1 with white */
+  --destructive-foreground: oklch(0.98 0 0); /* White text on red */
+
+  /* Border and input - WCAG AA compliant (3:1 for UI components) */
+  --border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
+  --input: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
+  --ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
+
+  /* Chart colors - WCAG AA compliant */
+  --chart-1: oklch(0.6 0.2 250); /* Blue */
+  --chart-2: oklch(0.55 0.15 150); /* Green */
+  --chart-3: oklch(0.5 0.2 50); /* Yellow */
+  --chart-4: oklch(0.65 0.2 300); /* Purple */
+  --chart-5: oklch(0.6 0.2 20); /* Orange */
+
+  /* Sidebar colors - Light mode */
+  --sidebar: oklch(0.98 0 0); /* Near white */
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: oklch(0.5 0.2 250); /* Blue */
+  --sidebar-primary-foreground: oklch(0.98 0 0); /* White text on primary */
+  --sidebar-accent: oklch(0.15 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
+  --sidebar-ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
+}
+
+.dark {
+  /* Base colors - Apple-style white text */
+  --background: transparent;
+  /* Pressed/active shadow SCALE — dark overrides: primaries deepen +0.1, contact layers +0.05, so the
+     push-in still reads on dark surfaces (see :root for the light ladder + rationale). */
+  --press-shadow-sm: inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
+  --press-shadow: inset 0 2px 4px oklch(var(--shadow-ink) / 0.3);
+  --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.3), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
+  --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.35), inset 0 1px 2px oklch(var(--shadow-ink) / 0.25);
+  --active-shadow:
+    0 2px 6px oklch(var(--shadow-ink) / 0.4), inset 0 1px 2px oklch(var(--shadow-highlight) / 0.15),
+    inset 0 0 8px oklch(var(--shadow-highlight) / 0.1);
+  /* ── Mode knobs — dark twins (see :root for what each dial does). */
+  --glass-sheet-a: 0.05;
+  --glass-sheet-a1: 0.03;
+  --glass-frost-boost: 0.06;
+  --glass-border-a: 0.15;
+  --glass-wash-l: 58%;
+  --glass-accent-l: 0.68;
+  --glass-accent-c: 0.14;
+  --glass-glow-lc: 0.7 0.18;
+  --glass-glow-a: 0.5;
+  --harmonic-l: 0.68;
+  --mono-l-1: 0.82;
+  --mono-l-2: 0.68;
+  --mono-l-3: 0.5;
+  --gradient-l: 0.68;
+  --gradient-c: 0.14;
+  --gradient-contrast-l: 0.9;
+  --gradient-contrast-c: 0.09;
+  --glass-crystal-bg-a: 0.1;
+  /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
+     like amber in-gamut instead of hard-clipping to rust. */
+  --glass-solid-l: 18%;
+  --glass-opaque-l: 32;
+  --glass-opaque-c-scale: 0.9;
+  /* ── Glass shadows — dark twins (deeper drops, brighter bevels). */
+  --glass-shadow:
+    0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset,
+    0 0 12px oklch(var(--shadow-highlight) / 0.15) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(var(--shadow-ink) / 0.4), 0 2px 8px oklch(var(--shadow-ink) / 0.2), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset,
+    0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
+  --glass-shadow-sm:
+    0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset,
+    0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
+  --glass-frosted-border: oklch(100% 0 0 / 0.25);
+  --glass-frosted-shadow:
+    0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
+    0 0 20px oklch(var(--shadow-highlight) / 0.22) inset;
+  --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
+  --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
+  --foreground: oklch(
+    0.92 0.04 var(--glass-fg-h)
+  ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */
+  /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
+     these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
+  --foreground-soft: oklch(0.78 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
+  --foreground-strong: oklch(0.96 0.035 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
+  --foreground-ui: oklch(0.75 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  /* Static OPAQUE + CRYSTAL tier baselines, dark twins — the standard dark opaque floor (L32) and
+     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (bone
+     cream) override the -opaque set in their own block; AutoForeground refines when mounted. */
+  --foreground-opaque: oklch(0.92 0.04 var(--glass-fg-h));
+  --foreground-soft-opaque: oklch(0.78 0.04 var(--glass-fg-h));
+  --foreground-strong-opaque: oklch(0.96 0.035 var(--glass-fg-h));
+  --foreground-ui-opaque: oklch(0.75 0.05 var(--glass-fg-h));
+  --muted-foreground-opaque: oklch(0.89 0.04 var(--glass-fg-h));
+  --foreground-crystal: oklch(0.92 0.04 var(--glass-fg-h));
+  --foreground-soft-crystal: oklch(0.78 0.04 var(--glass-fg-h));
+  --foreground-strong-crystal: oklch(0.96 0.035 var(--glass-fg-h));
+  --foreground-ui-crystal: oklch(0.75 0.05 var(--glass-fg-h));
+  --muted-foreground-crystal: oklch(0.89 0.04 var(--glass-fg-h));
+  --card: transparent;
+  --card-foreground: var(--foreground);
+  --popover: transparent;
+  --popover-foreground: var(--foreground);
+
+  /* Primary colors - Apple-style white text */
+  --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
+  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the primary ink — ≥ Lc 62 at the worst hue (measured) */
+
+  /* Secondary colors - Apple-style white text */
+  --secondary: oklch(0.25 0 0); /* Dark gray */
+  --secondary-foreground: var(--foreground);
+
+  /* Muted colors - Apple-style white text */
+  --muted: oklch(0.18 0 0); /* Darker gray - darker shade to avoid glass effect override */
+  --muted-foreground: oklch(0.89 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
+
+  /* Accent colors - Apple-style white text */
+  --accent: oklch(0.25 0 0); /* Dark gray */
+  --accent-foreground: var(--foreground);
+
+  /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
+  --destructive: oklch(0.65 0.22 25); /* Light red - 4.5:1 with dark background */
+  --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
+
+  /* Border and input - WCAG AA compliant (3:1 for UI components) */
+  --border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
+  --input: oklch(0.25 0 0); /* Dark gray - 3:1 contrast */
+  --ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
+
+  /* Chart colors - WCAG AA compliant */
+  --chart-1: oklch(0.65 0.2 250); /* Light blue */
+  --chart-2: oklch(0.7 0.15 150); /* Light green */
+  --chart-3: oklch(0.75 0.2 50); /* Light yellow */
+  --chart-4: oklch(0.7 0.2 300); /* Light purple */
+  --chart-5: oklch(0.68 0.2 20); /* Light orange */
+
+  /* Sidebar colors - Apple-style white text */
+  --sidebar: oklch(0.18 0 0); /* Dark gray */
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: oklch(0.56 0.16 250); /* Match --primary; white text clears APCA */
+  --sidebar-primary-foreground: oklch(1 0 0); /* White - Apple-style */
+  --sidebar-accent: oklch(1 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
+  --sidebar-ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 22%, transparent) transparent;
+  }
+  body {
+    /* Text uses the band-picked --foreground (set on <html> by AutoForeground on theme/tint change;
+       globals carries a static fallback so there's no flash). */
+    color: var(--foreground);
+    background-color: transparent;
+  }
+  /* Thin, glass-friendly scrollbars (replaces the chunky native bar) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--foreground) 38%, transparent);
+  }
+}

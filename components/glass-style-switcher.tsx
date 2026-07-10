@@ -37,12 +37,12 @@ function applyStyle(style: GlassStyle) {
 }
 
 /**
- * Re-skins every default glass surface (glass-bg / glass-surface) across the site as
+ * Re-skins every adaptive glass surface across the site as
  * the chosen style via a `data-glass` attribute on <html> — handy for previewing each
  * look. The CSS overrides live in globals.css; this just toggles the attribute.
  */
 export function GlassStyleSwitcher() {
-  const [style, setStyle] = React.useState<GlassStyle>("glass");
+  const [style, setStyle] = React.useState<GlassStyle>("crystal");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as GlassStyle | null;
@@ -65,7 +65,7 @@ export function GlassStyleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="glass" size="icon" className="h-9 w-9" aria-label="Glass style" title="Glass style">
+        <Button size="icon" className="h-9 w-9" aria-label="Glass style" title="Glass style">
           <DiamondIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>

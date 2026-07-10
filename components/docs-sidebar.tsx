@@ -103,7 +103,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <aside className="w-full md:w-64">
-      <Card variant="glass" className="sticky top-[5rem] h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] flex flex-col">
+      <Card className="sticky top-[5rem] h-[calc(100vh-7rem)] md:h-[calc(100vh-7rem)] flex flex-col">
         <CardContent className="p-4 md:p-6 overflow-y-auto flex-1">
           <nav className="space-y-6">
             {docsNav.map((section) => (
@@ -125,7 +125,7 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                           {isActive && <CaretRightIcon className="h-4 w-4 text-foreground-ui" />}
                           <span className="truncate flex-1">{item.title}</span>
                           {item.isNew === true && (
-                            <Badge variant="glass" className="border-primary/40 text-xs px-1.5 py-0.5">
+                            <Badge className="border-primary/40 text-xs px-1.5 py-0.5">
                               <ReadableText accent="--primary">NEW</ReadableText>
                             </Badge>
                           )}

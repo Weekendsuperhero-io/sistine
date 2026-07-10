@@ -67,10 +67,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export function Example() {
   return (
     <div>
-      <Button variant="glass" effect="glow">
+      <Button effect="glow">
         Click me
       </Button>
-      <Card variant="glass" gradient animated>
+      <Card material="frosted" border gradient>
         <CardHeader>
           <CardTitle>Beautiful Card</CardTitle>
         </CardHeader>
@@ -116,21 +116,14 @@ Visit `http://localhost:6006` after starting Storybook.
 
 ## 🏗️ Architecture
 
-Sistine follows a two-layer component architecture:
+Every component lives in a single tree — `components/ui/[name].tsx` (published under `registry/ui/`) — and draws its surface from the **material system** in `lib/material.ts`:
 
-### Base Components (`registry/ui/`)
-Foundation components with glassy variants providing:
-- Core functionality
-- Glassy effect variants
-- Accessibility features (Radix UI)
-- TypeScript support
+- **Four materials** — `glass` (adaptive, the default), `frosted`, `crystal`, `opaque` — via the `material` prop.
+- **Orthogonal axes** — `border`, `veil`, `gradient`, `glow`, `sheen` — composable booleans layered on top of any material.
+- **Hover effects** — `effect="glow | shimmer | ripple | lift | scale"` from `lib/hover-effects.ts`.
+- Accessibility from Radix UI primitives, fully typed, and themed through CSS tokens.
 
-### Sistine Components (`registry/ui/glass/`)
-Enhanced components built on top of base components with:
-- Enhanced visual effects (glow, shimmer, ripple)
-- Advanced styling options
-- Gradient and animation support
-- Custom design patterns
+Components call `materialSurface()` from `lib/material.ts` instead of hardcoding recipe class strings, so the material → markup mapping lives in one place.
 
 ## 🎨 Customization
 
@@ -148,18 +141,16 @@ Every color is authored in **oklch** in `app/globals.css` (full reference: [`doc
 
 Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
+**Presets are turnkey, pure CSS.** Set the attribute and toggle `.dark` (e.g. next-themes) — every preset and fresco carries its own day + night values, the scene backgrounds flip with the mode, and static text baselines keep all four materials legible with no JavaScript. Optionally install and mount `<AutoForeground />` (once, in your root layout) to upgrade those baselines to exact APCA-solved foregrounds that re-band live as the tint, mode, or surface knobs change — it refines, it is never required.
+
 ### Per-Component Customization
 
+Pass CSS-variable overrides through the `glassVars` helper (the successor to the old `glass={{…}}` prop — it emits `--glass-*` / `--srf-*` custom properties that route through the token system):
+
 ```tsx
-<Card
-  variant="glass"
-  glass={{
-    color: "oklch(0.6 0.22 293 / 0.2)",
-    blur: 30,
-    transparency: 0.3,
-    outline: "oklch(0.6 0.22 293 / 0.5)"
-  }}
->
+import { glassVars } from "@/lib/material"
+
+<Card style={glassVars({ tintH: 293, blur: 30, opacity: 0.3 })}>
   Content
 </Card>
 ```
@@ -230,8 +221,7 @@ sistine/
 ├── lib/                    # Utilities and helpers
 ├── public/                 # Static assets
 ├── registry/
-│   ├── ui/                # Base components
-│   └── ui/glass/          # Sistine components
+│   └── ui/                # Components (one tree, material system)
 ├── stories/               # Storybook stories
 └── registry.json          # Component registry
 ```

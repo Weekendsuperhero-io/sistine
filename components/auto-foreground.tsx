@@ -215,6 +215,26 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // still hits each tier's ARC-Bronze APCA target, so accent-tinted text stays legible.
       const accentH = num("--accent-h", Number.NaN);
       const accentC = num("--accent-c", 0.15);
+      // Uncertainty-aware contrast margin. The normal tiers are banded against the veiled floor MODEL,
+      // whose only unknown is the backdrop showing through — and the backdrop's weight in that mix is
+      // exactly (1 − solidA)·(1 − tintA) (see glassSolidSurface). The more the backdrop shows, the less
+      // the model can be trusted, so each band's TARGET gets a safety margin of up to +LC_MARGIN
+      // (≈ one ARC band step) at fully-sheer, decaying to +0 at a fully-known floor (solidA 1 — e.g. the
+      // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
+      const LC_MARGIN = 12;
+      const solidA = num("--glass-solid-a", 0.65);
+      // Wash knobs — bone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
+      // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
+      // every bone-night surface banded ~3 L too dark (bright page, faint text). num() reads the
+      // truth on the computed path; snapshots can't carry these, so the FALLBACK is bone-aware via
+      // the data-glass-tint attribute (cheap, race-free on both paths). Every other theme resolves
+      // to the standard mode values either way — this is a bone-only correction by construction.
+      // check-theme [bone-sync] keeps these mirrored constants equal to presets.css.
+      const bone = root.dataset.glassTint === "bone";
+      const washL = num("--glass-wash-l", bone && dark ? 64 : dark ? 58 : 72);
+      const washCMult = num("--glass-wash-c-mult", bone && dark ? 2 : 2.5);
+      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA), 0), 1);
+      const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
       const fgHarmonyH = huelessAccent ? accentH : harmonyH;
@@ -255,13 +275,22 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         },
         suffix: string,
         adaptive: boolean,
+        lcBoost = 0,
       ) => {
+        // Uncertainty margin: lift the band's TARGET toward its ceiling by the show-through boost (0 for
+        // fully-known floors like the opaque set). Floors/ceilings stay — the margin aims higher, it
+        // never legalizes a harsher pick than the band already allowed.
+        const boost = (band: { floor: number; target: number; ceiling: number }) => ({
+          ...band,
+          target: Math.min(band.target + lcBoost, band.ceiling),
+        });
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
         // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (bone cream).
-        const tier = (band: { floor: number; target: number; ceiling: number }) =>
-          formatOklch(
+        const tier = (rawBand: { floor: number; target: number; ceiling: number }) => {
+          const band = boost(rawBand);
+          return formatOklch(
             adaptive
               ? readableForeground(surface, {
                   floor: band.floor,
@@ -274,6 +303,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                 })
               : pickInBand(ramp, surface, band),
           );
+        };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
         root.style.setProperty(
           `--muted-foreground${suffix}`,
@@ -293,7 +323,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             ? tier(READABLE_USAGE[usage])
             : formatOklch(
                 readableForeground(surface, {
-                  usage,
+                  ...boost(READABLE_USAGE[usage]),
                   hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
                   chroma: 0.15,
                 }),
@@ -308,7 +338,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           `--foreground-ui${suffix}`,
           formatOklch(
             readableForeground(surface, {
-              usage: "ui",
+              ...boost(READABLE_USAGE.ui),
               hue: iconH,
               chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
             }),
@@ -316,7 +346,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         );
       };
 
-      // Normal surface: the glass-SOLID floor body text sits on (page + translucent/solid cards).
+      // Normal surface: the veiled floor body text sits on (page + translucent/veiled cards), with the
+      // show-through margin lifting each band target as the floor gets sheerer.
       applyTiers(
         glassSolidSurface(
           dark,
@@ -325,10 +356,13 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             c: num("--glass-tint-c", 0),
             a: tintA,
           },
-          num("--glass-solid-a", 0.65),
+          solidA,
+          washL,
+          washCMult,
         ),
         "",
         false,
+        normalLcBoost,
       );
       // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it (its lightness
       // is exposed as the numeric --glass-opaque-l token; chroma/hue from the tint). `adaptive` so a LIGHT
@@ -342,6 +376,34 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         "-opaque",
         true,
       );
+      // Crystal cards: the specular gloss is baked UNDER content, so title-zone text sits on a locally
+      // LIGHTENED surface — worst in dark mode, where the ~L94 highlight over a dark floor pulls the
+      // local surface toward mid-gray. Band a THIRD set against the crystal surface + the title zone's
+      // MEAN gloss term (the top highlight peaks at 0.4α and fades out by 30% height → ≈0.2 effective;
+      // modeling the 0.4 peak would make the band unsatisfiable on mid-gray). [data-material="crystal"]
+      // and the crystal page style remap the tiers to this set — except veiled crystal, whose floor is
+      // what the NORMAL tiers are banded for. Same show-through margin logic: the backdrop's weight in
+      // this mix is (1−crysA)(1−tintA)(1−glossA).
+      {
+        const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
+        const glossL = num("--glass-gloss-l", 66);
+        const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
+        const baseL = dark ? 20 : 95;
+        const floorL = baseL * (1 - crysA) + 100 * crysA;
+        const washedL = floorL * (1 - tintA) + washL * tintA;
+        const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;
+        const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A), 0), 1);
+        applyTiers(
+          {
+            l: crystalL,
+            c: num("--glass-tint-c", 0) * 0.6,
+            h: tintH,
+          },
+          "-crystal",
+          true,
+          LC_MARGIN * uCrystal,
+        );
+      }
       if (dbg) {
         const dur = performance.now() - t0;
         // Wall-time = the getComputedStyle forced recalc + the JS solve (58 µs). The post-write recalc from
@@ -363,11 +425,36 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     update();
     // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
     // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
-    const observer = new MutationObserver(() => update());
+    // Inline STYLE mutations re-band ONLY when a surface-model input actually changed: --glass-solid-a
+    // (the veil-floor slider) or --glass-gloss-l (the crystal gloss-boldness slider) — the two inputs
+    // with no FG_EVENT. The old-vs-new gate keeps tint drags on the event fast path AND breaks the
+    // self-trigger loop from our own --foreground* writes (which touch neither).
+    const STYLE_INPUTS = [
+      /--glass-solid-a:\s*([^;]+)/,
+      /--glass-gloss-l:\s*([^;]+)/,
+    ];
+    const observer = new MutationObserver((muts) => {
+      for (const m of muts) {
+        if (m.attributeName === "class") {
+          update();
+          return;
+        }
+        if (m.attributeName === "style") {
+          const now = root.getAttribute("style") ?? "";
+          const was = m.oldValue ?? "";
+          if (STYLE_INPUTS.some((re) => re.exec(was)?.[1]?.trim() !== re.exec(now)?.[1]?.trim())) {
+            update();
+            return;
+          }
+        }
+      }
+    });
     observer.observe(root, {
       attributes: true,
+      attributeOldValue: true,
       attributeFilter: [
         "class",
+        "style",
       ],
     });
     const onFg = (e: Event) => update((e as CustomEvent<Record<string, number>>).detail ?? undefined);

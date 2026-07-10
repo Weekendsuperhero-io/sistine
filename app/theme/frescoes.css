@@ -1,0 +1,127 @@
+/* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
+   GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
+   shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
+   Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
+   --glass-fg-h are CSS-only — no preset counterpart.) */
+
+/* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in
+   dark, so it tracks the day/night background. Pick the look with the light/dark/system toggle. */
+[data-glass-tint="muse"] {
+  /* Day: the daytime cityscape — a cool sweep blue → cyan → teal-green (glass towers, sky, foliage),
+     interpolated `in oklch` so it actually reads as a gradient instead of one flat blue. */
+  --glass-tint-h: 230;
+  --glass-tint-c: 0.06;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(94% 0.07 235 / 0.32) 0%, oklch(93% 0.08 205 / 0.28) 50%, oklch(91% 0.08 155 / 0.28) 100%);
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(94% 0.07 235 / 0.46) 0%,
+    oklch(93% 0.08 205 / 0.42) 50%,
+    oklch(91% 0.08 155 / 0.42) 100%
+  );
+  --glass-opaque-bg: oklch(91% 0.06 222);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="muse"] {
+  /* Night: the neon city — cyan → magenta → pink → amber (the night photo's brightest points),
+     interpolated `in oklch` so the neon stays saturated instead of greying between stops. The text/accent
+     anchor is a purple-magenta (off the cyan gradient start) so night text reads legibly, not washed-blue. */
+  --glass-tint-h: 230; /* surface: mirrors the Muse switcher preset (same as day); night character is the --glass-bg below */
+  --glass-fg-h: 290; /* text/accent anchor: violet (hand-selected) — matches the new 290 gradient stop */
+  --glass-tint-c: 0.06;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(85% 0.1 222 / 0.24) 0%,
+    oklch(80% 0.17 290 / 0.22) 22%,
+    oklch(78% 0.2 326 / 0.2) 45%,
+    oklch(79% 0.12 350 / 0.2) 70%,
+    oklch(84% 0.12 74 / 0.22) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(85% 0.1 222 / 0.36) 0%,
+    oklch(80% 0.17 290 / 0.34) 22%,
+    oklch(78% 0.2 326 / 0.32) 45%,
+    oklch(79% 0.12 350 / 0.32) 70%,
+    oklch(84% 0.12 74 / 0.34) 100%
+  );
+  --glass-opaque-bg: oklch(34% 0.12 288);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
+   in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
+   averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
+[data-glass-tint="sistine"] {
+  --glass-tint-h: 75; /* surface: mirrors the Sistine switcher preset */
+  --glass-fg-h: 18; /* text/accent anchor: crimson (hand-selected) — hue 18 reads as deep red, not the rose at h8 */
+  --glass-tint-c: 0.1;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(90% 0.11 75 / 0.34) 0%,
+    oklch(86% 0.11 8 / 0.3) 33%,
+    oklch(86% 0.11 255 / 0.3) 66%,
+    oklch(87% 0.11 158 / 0.32) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(90% 0.11 75 / 0.46) 0%,
+    oklch(86% 0.11 8 / 0.42) 33%,
+    oklch(86% 0.11 255 / 0.42) 66%,
+    oklch(87% 0.11 158 / 0.44) 100%
+  );
+  /* Crystal composes its own background (not --glass-bg), so hand it the fresco explicitly. */
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="sistine"] {
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(86% 0.11 75 / 0.22) 0%,
+    oklch(82% 0.11 8 / 0.2) 33%,
+    oklch(82% 0.11 255 / 0.2) 66%,
+    oklch(83% 0.11 158 / 0.22) 100%
+  );
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(86% 0.11 75 / 0.32) 0%,
+    oklch(82% 0.11 8 / 0.3) 33%,
+    oklch(82% 0.11 255 / 0.3) 66%,
+    oklch(83% 0.11 158 / 0.32) 100%
+  );
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Aurora — northern lights: spring-green → teal → violet, interpolated `in oklch` so the cool sweep
+   stays vivid. Border + crystal + accent pick up the teal base via the tint vars. */
+[data-glass-tint="aurora"] {
+  --glass-tint-h: 178;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.32) 0%, oklch(89% 0.1 196 / 0.3) 50%, oklch(84% 0.13 292 / 0.3) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.44) 0%, oklch(89% 0.1 196 / 0.42) 50%, oklch(84% 0.13 292 / 0.42) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="aurora"] {
+  --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 152 / 0.22) 0%, oklch(85% 0.1 196 / 0.2) 50%, oklch(80% 0.13 292 / 0.22) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 152 / 0.32) 0%, oklch(85% 0.1 196 / 0.3) 50%, oklch(80% 0.13 292 / 0.32) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+
+/* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
+   glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
+[data-glass-tint="gloaming"] {
+  --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.16;
+  --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}
+.dark[data-glass-tint="gloaming"] {
+  --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
+  --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
+  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);
+  --glass-crystal-fresco: var(--glass-bg);
+}

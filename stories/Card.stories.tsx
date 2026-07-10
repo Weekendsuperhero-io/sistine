@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/glass/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const meta = {
   title: "Sistine/Card",
@@ -15,12 +15,21 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
     },
-    hover: {
+    border: {
+      control: "boolean",
+    },
+    effect: {
       control: "select",
       options: [
         "none",
@@ -40,7 +49,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Glass: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <CardHeader>
@@ -60,7 +68,8 @@ export const Glass: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     children: (
       <>
         <CardHeader>
@@ -77,7 +86,8 @@ export const Frosted: Story = {
 
 export const Crystal: Story = {
   args: {
-    variant: "crystal",
+    material: "crystal",
+    border: true,
     children: (
       <>
         <CardHeader>
@@ -94,8 +104,7 @@ export const Crystal: Story = {
 
 export const WithGlowHover: Story = {
   args: {
-    variant: "glass",
-    hover: "glow",
+    effect: "glow",
     children: (
       <>
         <CardHeader>
@@ -112,8 +121,7 @@ export const WithGlowHover: Story = {
 
 export const WithShimmerHover: Story = {
   args: {
-    variant: "glass",
-    hover: "shimmer",
+    effect: "shimmer",
     children: (
       <>
         <CardHeader>
@@ -130,8 +138,7 @@ export const WithShimmerHover: Story = {
 
 export const WithLiftHover: Story = {
   args: {
-    variant: "glass",
-    hover: "lift",
+    effect: "lift",
     children: (
       <>
         <CardHeader>
@@ -148,8 +155,7 @@ export const WithLiftHover: Story = {
 
 export const WithCustomGlass: Story = {
   args: {
-    variant: "glass",
-    hover: "scale",
+    effect: "scale",
     glass: {
       color: "rgba(139, 92, 246, 0.15)",
       blur: 25,

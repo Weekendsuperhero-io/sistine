@@ -2,20 +2,17 @@
 
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const menuBarVariants = cva("", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
-      glass: "glass-bg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "text-foreground",
     },
   },
   defaultVariants: {
@@ -23,36 +20,54 @@ const menuBarVariants = cva("", {
   },
 });
 
+/* Role: borderless adaptive glass. */
+const ROLE = {};
+
 export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {
-  glass?: GlassCustomization;
+  material?: Material;
+  border?: boolean;
+  veil?: boolean;
+  gradient?: boolean;
+  glow?: boolean | "lg";
+  sheen?: boolean;
+  effect?: HoverEffect;
 }
 
-const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, variant = "glass", glass, children, ...props }, ref) => {
-  const hasCustomGlass = glass !== undefined;
-  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
+const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+    });
 
-  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
-
-  return (
-    <div
-      ref={ref}
-      role="menubar"
-      className={cn(
-        "inline-flex items-center gap-1 rounded-md p-1",
-        menuBarVariants({
-          variant: effectiveVariant,
-        }),
-        className,
-      )}
-      style={{
-        ...glassStyles,
-      }}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-});
+    return (
+      <div
+        ref={ref}
+        role="menubar"
+        data-material={m?.["data-material"]}
+        className={cn(
+          m?.className,
+          "inline-flex items-center gap-1 rounded-md p-1",
+          menuBarVariants({
+            variant,
+          }),
+          effect &&
+            hoverEffects({
+              hover: effect,
+            }),
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  },
+);
 MenuBar.displayName = "MenuBar";
 
 export interface MenuBarItemProps extends React.ComponentProps<typeof Button> {

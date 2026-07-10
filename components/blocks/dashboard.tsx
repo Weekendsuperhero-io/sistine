@@ -12,7 +12,7 @@ export function DashboardBlock() {
     <div className="space-y-6 p-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Total Revenue</CardTitle>
             <CurrencyDollarSimpleIcon className="h-4 w-4 text-muted-foreground" />
@@ -24,7 +24,7 @@ export function DashboardBlock() {
             </p>
           </CardContent>
         </Card>
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Subscriptions</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -36,7 +36,7 @@ export function DashboardBlock() {
             </p>
           </CardContent>
         </Card>
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Sales</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -48,7 +48,7 @@ export function DashboardBlock() {
             </p>
           </CardContent>
         </Card>
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-foreground">Active Now</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
@@ -64,13 +64,13 @@ export function DashboardBlock() {
 
       {/* Charts and Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Recent Activity</CardTitle>
             <CardDescription className="text-muted-foreground">Latest transactions and events</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table variant="glass">
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-foreground">User</TableHead>
@@ -83,14 +83,14 @@ export function DashboardBlock() {
                   <TableCell className="text-foreground">John Doe</TableCell>
                   <TableCell className="text-foreground">Purchase</TableCell>
                   <TableCell>
-                    <Badge variant="glass">Completed</Badge>
+                    <Badge>Completed</Badge>
                   </TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-foreground">Jane Smith</TableCell>
                   <TableCell className="text-foreground">Subscription</TableCell>
                   <TableCell>
-                    <Badge variant="glass">Active</Badge>
+                    <Badge>Active</Badge>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -98,7 +98,7 @@ export function DashboardBlock() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Overview</CardTitle>
             <CardDescription className="text-muted-foreground">Performance metrics</CardDescription>
@@ -115,7 +115,6 @@ export function DashboardBlock() {
                   color: "var(--chart-2)",
                 },
               }}
-              variant="glass"
               className="h-[300px]"
             >
               <BarChart

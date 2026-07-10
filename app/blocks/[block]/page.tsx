@@ -107,7 +107,7 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+      <pre className="glass p-4 rounded-lg font-mono text-sm overflow-x-auto">
         <code className="text-foreground whitespace-pre">{code}</code>
       </pre>
       <Button
@@ -155,12 +155,12 @@ export default function BlockPage({
         </div>
 
         <Tabs defaultValue="preview" className="space-y-6">
-          <TabsList variant="glass">
+          <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="code">Code</TabsTrigger>
           </TabsList>
           <TabsContent value="preview" className="space-y-4">
-            <Card variant="glass" className="text-foreground">
+            <Card className="text-foreground">
               <CardContent className="p-0">
                 <div className="bg-background/50 backdrop-blur-sm rounded-lg">
                   <Component />
@@ -169,7 +169,7 @@ export default function BlockPage({
             </Card>
           </TabsContent>
           <TabsContent value="code" className="space-y-4">
-            <Card variant="glass" className="text-foreground">
+            <Card className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Install</CardTitle>
                 <CardDescription className="text-muted-foreground">
@@ -180,7 +180,7 @@ export default function BlockPage({
                 <CodeBlock code={`npx shadcn@latest add @sistine/${registryName}`} />
               </CardContent>
             </Card>
-            <Card variant="glass" className="text-foreground">
+            <Card className="text-foreground">
               <CardHeader>
                 <CardTitle className="text-foreground">Usage</CardTitle>
                 <CardDescription className="text-muted-foreground">Then use it in your project</CardDescription>

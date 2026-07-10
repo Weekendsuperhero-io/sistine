@@ -60,6 +60,9 @@ export const GRADIENT_POSITIONS: {
   },
 ];
 
+/** The position values the cycler steps through (labels live in GRADIENT_POSITIONS). */
+const GRADIENT_POSITION_VALUES = GRADIENT_POSITIONS.map((p) => p.value);
+
 /** Radial shape + size options. */
 export const RADIAL_SHAPES: NonNullable<GradientGeometry["radialShape"]>[] = [
   "circle",
@@ -70,6 +73,18 @@ export const RADIAL_SIZES: NonNullable<GradientGeometry["radialSize"]>[] = [
   "farthest-side",
   "closest-corner",
   "closest-side",
+];
+
+/** Angle presets — 45° steps around the circle, shared by the gradient + canvas angle cyclers. */
+const ANGLES = [
+  0,
+  45,
+  90,
+  135,
+  180,
+  225,
+  270,
+  315,
 ];
 
 /** Steps-per-side presets the canvas/ramps cycle through (4–12). */
@@ -122,6 +137,32 @@ function pickRandom<T>(items: readonly T[]): T {
 function cycle<T>(items: readonly T[], current: T): T {
   const i = items.indexOf(current);
   return items[(i + 1) % items.length];
+}
+
+/**
+ * State that steps through a fixed preset list, wrapping at the end. Returns the value, a stable
+ * advance-to-the-next-preset callback, and the raw setter.
+ */
+function useCycle<T>(
+  items: readonly T[],
+  initial: T,
+): [
+  T,
+  () => void,
+  React.Dispatch<React.SetStateAction<T>>,
+] {
+  const [value, setValue] = React.useState(initial);
+  const next = React.useCallback(
+    () => setValue((v) => cycle(items, v)),
+    [
+      items,
+    ],
+  );
+  return [
+    value,
+    next,
+    setValue,
+  ];
 }
 
 interface BackgroundContextValue {
@@ -292,25 +333,25 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   // SSR + first client render use "gradient" so hydration matches; localStorage is read after mount.
-  const [background, setBackgroundState] = React.useState<BackgroundType>("gradient");
+  const [background, setBackgroundState] = React.useState<BackgroundType>("pattern");
   const [gradientAxis, setGradientAxisState] = React.useState<RampGradientAxis>("tonal");
-  const [gradientAngle, setGradientAngle] = React.useState(90);
-  const [gradientShape, setGradientShape] = React.useState<GradientShape>("linear");
-  const [gradientPosition, setGradientPosition] = React.useState("50% 50%");
-  const [radialShape, setRadialShape] = React.useState<NonNullable<GradientGeometry["radialShape"]>>("circle");
-  const [radialSize, setRadialSize] = React.useState<NonNullable<GradientGeometry["radialSize"]>>("farthest-corner");
+  const [gradientAngle, cycleGradientAngle] = useCycle(ANGLES, 90);
+  const [gradientShape, cycleGradientShape] = useCycle(GRADIENT_SHAPES, "linear");
+  const [gradientPosition, cycleGradientPosition] = useCycle(GRADIENT_POSITION_VALUES, "50% 50%");
+  const [radialShape, cycleRadialShape] = useCycle(RADIAL_SHAPES, "circle");
+  const [radialSize, cycleRadialSize] = useCycle(RADIAL_SIZES, "farthest-corner");
   const [canvasStyle, setCanvasStyleState] = React.useState<CanvasStyle>("gradient");
   const [canvasRamp, setCanvasRampState] = React.useState<RampGradientAxis>("tonal");
-  const [canvasSteps, setCanvasSteps] = React.useState(6);
-  const [canvasAngle, setCanvasAngle] = React.useState(90);
-  const [canvasSpeed, setCanvasSpeed] = React.useState(1);
+  const [canvasSteps, cycleCanvasSteps] = useCycle<number>(CANVAS_STEPS, 6);
+  const [canvasAngle, cycleCanvasAngle] = useCycle(ANGLES, 90);
+  const [canvasSpeed, cycleCanvasSpeed] = useCycle<number>(CANVAS_SPEEDS, 1);
   const [canvasAnimated, setCanvasAnimated] = React.useState(false);
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
-  const [patternStyle, setPatternStyleState] = React.useState<PatternStyle>("dots");
-  const [patternDensity, setPatternDensityState] = React.useState<PatternDensity>("medium");
-  const [patternSpeed, setPatternSpeed] = React.useState<number>(8);
-  const [baseColor, setBaseColorState] = React.useState<string | null>(null);
-  const [patternDisc, setPatternDisc] = React.useState<(typeof PATTERN_DISCS)[number]>("right");
+  const [patternStyle, cyclePatternStyleState, setPatternStyleState] = useCycle(PATTERN_STYLES, "moonrise");
+  const [patternDensity, cyclePatternDensityState] = useCycle(PATTERN_DENSITIES, "medium");
+  const [patternSpeed, cyclePatternSpeedState] = useCycle<number>(PATTERN_SPEEDS, 8);
+  const [baseColor, setBaseColor] = React.useState<string | null>(null);
+  const [patternDisc, cyclePatternDiscState] = useCycle(PATTERN_DISCS, "right");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -319,192 +360,62 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     }
   }, []);
 
-  const setBackground = React.useCallback((next: BackgroundType) => {
-    setBackgroundState(next);
-    persistBackground(next);
-  }, []);
+  /** The coupling every per-style setter/cycler shares: switch to that background type, apply, persist. */
+  const withType =
+    <A extends unknown[]>(type: BackgroundType, fn: (...args: A) => void) =>
+    (...args: A) => {
+      setBackgroundState(type);
+      fn(...args);
+      persistBackground(type);
+    };
 
-  const setBaseColor = React.useCallback((color: string | null) => {
-    setBaseColorState(color);
-  }, []);
-
-  const setGradientAxis = React.useCallback((axis: RampGradientAxis) => {
-    setBackgroundState("gradient");
-    setGradientAxisState(axis);
-    persistBackground("gradient");
-  }, []);
-
-  const cycleGradientAngle = React.useCallback(() => {
-    setGradientAngle((a) => (a + 45) % 360);
-  }, []);
-
-  const cycleGradientShape = React.useCallback(() => {
-    setGradientShape((s) => cycle(GRADIENT_SHAPES, s));
-  }, []);
-
-  const cycleGradientPosition = React.useCallback(() => {
-    setGradientPosition((p) => {
-      const i = GRADIENT_POSITIONS.findIndex((x) => x.value === p);
-      return GRADIENT_POSITIONS[(i + 1) % GRADIENT_POSITIONS.length].value;
-    });
-  }, []);
-
-  const cycleRadialShape = React.useCallback(() => {
-    setRadialShape((s) => cycle(RADIAL_SHAPES, s));
-  }, []);
-
-  const cycleRadialSize = React.useCallback(() => {
-    setRadialSize((s) => cycle(RADIAL_SIZES, s));
-  }, []);
-
-  const setCanvasStyle = React.useCallback((style: CanvasStyle) => {
-    setBackgroundState("canvas");
-    setCanvasStyleState(style);
-    persistBackground("canvas");
-  }, []);
-
-  const setCanvasRamp = React.useCallback((axis: RampGradientAxis) => {
-    setBackgroundState("canvas");
-    setCanvasRampState(axis);
-    persistBackground("canvas");
-  }, []);
-
-  const cycleCanvasSteps = React.useCallback(() => {
-    setCanvasSteps((s) => cycle(CANVAS_STEPS, s as (typeof CANVAS_STEPS)[number]));
-  }, []);
-
-  const cycleCanvasAngle = React.useCallback(() => {
-    setCanvasAngle((a) => (a + 45) % 360);
-  }, []);
-
-  const cycleCanvasSpeed = React.useCallback(() => {
-    setCanvasSpeed((s) => cycle(CANVAS_SPEEDS, s as (typeof CANVAS_SPEEDS)[number]));
-  }, []);
-
-  const toggleCanvasAnimated = React.useCallback(() => {
-    setCanvasAnimated((on) => !on);
-  }, []);
-
-  const shuffleCanvas = React.useCallback(() => {
-    setBackgroundState("canvas");
-    setCanvasStyleState(pickRandom(CANVAS_STYLES));
-    setCanvasRampState(pickRandom(RAMP_AXES));
-    setCanvasSeed(Math.random().toString(36).slice(2));
-    persistBackground("canvas");
-  }, []);
-
-  const setPatternStyle = React.useCallback((style: PatternStyle) => {
-    setBackgroundState("pattern");
-    setPatternStyleState(style);
-    persistBackground("pattern");
-  }, []);
-
-  const cyclePatternStyle = React.useCallback(() => {
-    setBackgroundState("pattern");
-    setPatternStyleState((s) => cycle(PATTERN_STYLES, s));
-    persistBackground("pattern");
-  }, []);
-
-  const cyclePatternDensity = React.useCallback(() => {
-    setBackgroundState("pattern");
-    setPatternDensityState((d) => cycle(PATTERN_DENSITIES, d));
-    persistBackground("pattern");
-  }, []);
-
-  const cyclePatternSpeed = React.useCallback(() => {
-    setBackgroundState("pattern");
-    setPatternSpeed((s) => cycle(PATTERN_SPEEDS, s as (typeof PATTERN_SPEEDS)[number]));
-    persistBackground("pattern");
-  }, []);
-
-  const cyclePatternDisc = React.useCallback(() => {
-    setBackgroundState("pattern");
-    setPatternDisc((d) => cycle(PATTERN_DISCS, d));
-    persistBackground("pattern");
-  }, []);
-
-  const value = React.useMemo(
-    () => ({
-      background,
-      setBackground,
-      gradientAxis,
-      setGradientAxis,
-      gradientAngle,
-      cycleGradientAngle,
-      gradientShape,
-      cycleGradientShape,
-      gradientPosition,
-      cycleGradientPosition,
-      radialShape,
-      cycleRadialShape,
-      radialSize,
-      cycleRadialSize,
-      canvasStyle,
-      setCanvasStyle,
-      canvasRamp,
-      setCanvasRamp,
-      canvasSteps,
-      cycleCanvasSteps,
-      canvasAngle,
-      cycleCanvasAngle,
-      canvasSpeed,
-      cycleCanvasSpeed,
-      canvasAnimated,
-      toggleCanvasAnimated,
-      shuffleCanvas,
-      patternStyle,
-      setPatternStyle,
-      cyclePatternStyle,
-      patternDensity,
-      cyclePatternDensity,
-      patternSpeed,
-      cyclePatternSpeed,
-      patternDisc,
-      cyclePatternDisc,
-      baseColor,
-      setBaseColor,
+  const value: BackgroundContextValue = {
+    background,
+    setBackground: (next) => {
+      setBackgroundState(next);
+      persistBackground(next);
+    },
+    gradientAxis,
+    setGradientAxis: withType("gradient", setGradientAxisState),
+    gradientAngle,
+    cycleGradientAngle,
+    gradientShape,
+    cycleGradientShape,
+    gradientPosition,
+    cycleGradientPosition,
+    radialShape,
+    cycleRadialShape,
+    radialSize,
+    cycleRadialSize,
+    canvasStyle,
+    setCanvasStyle: withType("canvas", setCanvasStyleState),
+    canvasRamp,
+    setCanvasRamp: withType("canvas", setCanvasRampState),
+    canvasSteps,
+    cycleCanvasSteps,
+    canvasAngle,
+    cycleCanvasAngle,
+    canvasSpeed,
+    cycleCanvasSpeed,
+    canvasAnimated,
+    toggleCanvasAnimated: () => setCanvasAnimated((on) => !on),
+    shuffleCanvas: withType("canvas", () => {
+      setCanvasStyleState(pickRandom(CANVAS_STYLES));
+      setCanvasRampState(pickRandom(RAMP_AXES));
+      setCanvasSeed(Math.random().toString(36).slice(2));
     }),
-    [
-      background,
-      setBackground,
-      gradientAxis,
-      setGradientAxis,
-      gradientAngle,
-      cycleGradientAngle,
-      gradientShape,
-      cycleGradientShape,
-      gradientPosition,
-      cycleGradientPosition,
-      radialShape,
-      cycleRadialShape,
-      radialSize,
-      cycleRadialSize,
-      canvasStyle,
-      setCanvasStyle,
-      canvasRamp,
-      setCanvasRamp,
-      canvasSteps,
-      cycleCanvasSteps,
-      canvasAngle,
-      cycleCanvasAngle,
-      canvasSpeed,
-      cycleCanvasSpeed,
-      canvasAnimated,
-      toggleCanvasAnimated,
-      shuffleCanvas,
-      patternStyle,
-      setPatternStyle,
-      cyclePatternStyle,
-      patternDensity,
-      cyclePatternDensity,
-      patternSpeed,
-      cyclePatternSpeed,
-      patternDisc,
-      cyclePatternDisc,
-      baseColor,
-      setBaseColor,
-    ],
-  );
+    patternStyle,
+    setPatternStyle: withType("pattern", setPatternStyleState),
+    cyclePatternStyle: withType("pattern", cyclePatternStyleState),
+    patternDensity,
+    cyclePatternDensity: withType("pattern", cyclePatternDensityState),
+    patternSpeed,
+    cyclePatternSpeed: withType("pattern", cyclePatternSpeedState),
+    patternDisc,
+    cyclePatternDisc: withType("pattern", cyclePatternDiscState),
+    baseColor,
+    setBaseColor,
+  };
 
   return (
     <BackgroundContext.Provider value={value}>

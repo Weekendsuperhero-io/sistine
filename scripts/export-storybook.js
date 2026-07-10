@@ -53,7 +53,13 @@ if (fs.existsSync(targetDir)) {
   });
 }
 
-// Copy files
+// Copy files — but NOT the build's own nested "storybook" dir: staticDirs ("../public") makes the build
+// swallow public/storybook (the PREVIOUS export), so copying it back would nest a stale snapshot one
+// level deeper on every build cycle (public/storybook/storybook/… kept fossilized pre-rename bundles).
 console.log(`Copying Storybook files from ${sourceDir} to ${targetDir}...`);
-copyRecursiveSync(sourceDir, targetDir);
+fs.mkdirSync(targetDir, { recursive: true });
+for (const child of fs.readdirSync(sourceDir)) {
+  if (child === "storybook") continue;
+  copyRecursiveSync(path.join(sourceDir, child), path.join(targetDir, child));
+}
 console.log("✓ Storybook files exported successfully!");

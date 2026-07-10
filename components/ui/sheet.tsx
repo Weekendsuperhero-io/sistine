@@ -5,7 +5,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Role: bordered adaptive glass at the elevated blur tier. */
+const ROLE: MaterialProps = {
+  border: true,
+  size: "lg",
+};
 
 const Sheet = DialogPrimitive.Root;
 
@@ -50,25 +57,27 @@ const sheetVariants = cva(
 );
 
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, VariantProps<typeof sheetVariants> {
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
+  variant?: "default" | "glass";
+  material?: Material;
+  border?: boolean;
+  veil?: boolean;
+  gradient?: boolean;
+  glow?: boolean | "lg";
   showCloseButton?: boolean;
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", variant = "glass", className, children, showCloseButton = true, ...props }, ref) => {
-    const getVariantClass = () => {
-      if (variant === "default") return "bg-background border";
+  ({ side = "right", variant = "glass", material, border, veil, gradient, glow, className, children, showCloseButton = true, ...props }, ref) => {
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+    const getVariantClass = () => (variant === "default" ? "bg-background border" : "text-foreground");
 
-      const variants = {
-        glass: "glass-surface-lg text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
-      };
-      return variants[variant] || variants.glass;
-    };
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+    });
 
     return (
       <SheetPortal>
@@ -76,7 +85,9 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
         <DialogPrimitive.Content
           ref={ref}
           data-slot="sheet-content"
+          data-material={m?.["data-material"]}
           className={cn(
+            m?.className,
             sheetVariants({
               side,
             }),

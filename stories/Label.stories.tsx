@@ -27,7 +27,7 @@ export const WithInput: Story = {
   render: () => (
     <div className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="email">Email</Label>
-      <Input type="email" id="email" placeholder="Email" variant="glass" />
+      <Input type="email" id="email" placeholder="Email" />
     </div>
   ),
 };
@@ -47,7 +47,7 @@ export const Required: Story = {
       <Label htmlFor="username">
         Username <span className="text-destructive">*</span>
       </Label>
-      <Input id="username" placeholder="Username" variant="glass" />
+      <Input id="username" placeholder="Username" />
     </div>
   ),
 };

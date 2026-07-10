@@ -1,0 +1,28 @@
+/* ── Registrations — @custom-variant + @property pins for JS-only tokens ──────
+   Loaded first so the dark variant and typed properties exist before anything composes them. */
+
+/* Class-based dark mode, v4-standard form: matches the `.dark` element ITSELF and its descendants, so
+   consumers can toggle `.dark` on any wrapper (not just <html> / next-themes), at zero specificity
+   (`:where`) so `dark:` overrides by cascade order like every other variant. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
+   folds in `var(--glow-layer, …)` so the glow rides INSIDE each style's shadow — surviving the
+   per-style `!important` box-shadow overrides instead of being replaced. inherits:false keeps a
+   glowing surface from lighting up its glass children. */
+@property --glow-layer {
+  syntax: "*";
+  inherits: false;
+}
+
+/* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
+   rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as
+   the harmonic tokens below). Registered here to pin them. DO NOT REMOVE. */
+@property --gradient-text {
+  syntax: "*";
+  inherits: true;
+}
+@property --gradient-text-contrast {
+  syntax: "*";
+  inherits: true;
+}

@@ -3,68 +3,98 @@
  * harmony anchor hue (--harmony-h), no JS. Every swatch is `oklch(… var(--hue-*))` / `var(--color-*)`, so it
  * FOLLOWS THE ACTIVE THEME automatically: switch the tint from the header switcher and the whole set rotates
  * in context (the inline vars re-resolve via the cascade — no re-render). Neutral + bone anchor the wheel at
- * 0°, so their accents stay a colorful red-based harmony. Sibling of gradient-schemes-demo (JS generator);
- * this one proves the same relationships work as static, everywhere-usable tokens.
+ * 0°, so their accents stay a colorful red-based harmony. One labeled ROW per harmony STYLE (complement /
+ * analogous / split / triad / tetrad / square / monochromatic) so each relationship reads left-to-right from
+ * its base hue. Sibling of gradient-schemes-demo (JS generator); this one proves the same relationships work
+ * as static, everywhere-usable tokens.
  */
 
-const HUES = [
-  [
-    "base",
-    "--hue-base",
-  ],
-  [
-    "complement",
-    "--hue-complement",
-  ],
-  [
-    "analogous-1",
-    "--hue-analogous-1",
-  ],
-  [
-    "analogous-2",
-    "--hue-analogous-2",
-  ],
-  [
-    "split-1",
-    "--hue-split-1",
-  ],
-  [
-    "split-2",
-    "--hue-split-2",
-  ],
-  [
-    "triad-1",
-    "--hue-triad-1",
-  ],
-  [
-    "triad-2",
-    "--hue-triad-2",
-  ],
-  [
-    "tetrad-1",
-    "--hue-tetrad-1",
-  ],
-  [
-    "tetrad-2",
-    "--hue-tetrad-2",
-  ],
-  [
-    "tetrad-3",
-    "--hue-tetrad-3",
-  ],
-  [
-    "square-1",
-    "--hue-square-1",
-  ],
-  [
-    "square-2",
-    "--hue-square-2",
-  ],
-  [
-    "square-3",
-    "--hue-square-3",
-  ],
-] as const;
+type Swatch = {
+  label: string;
+  bg: string;
+};
+
+/** Angle-token swatch at the fixed illustrative chroma (reveals the hue relationship in every theme). */
+function hueSwatch(label: string, v: string): Swatch {
+  return {
+    label,
+    bg: `oklch(0.62 0.16 var(${v}))`,
+  };
+}
+
+/** One row per harmony style — same swatch rendering as before, regrouped by relationship (base hue first,
+ *  then its offsets). Monochromatic uses the ready --mono-* tones (same hue, stepped lightness). */
+const ROWS: {
+  label: string;
+  swatches: Swatch[];
+}[] = [
+  {
+    label: "Complement",
+    swatches: [
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+180", "--hue-complement"),
+    ],
+  },
+  {
+    label: "Analogous",
+    swatches: [
+      hueSwatch("−30", "--hue-analogous-1"),
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+30", "--hue-analogous-2"),
+    ],
+  },
+  {
+    label: "Split",
+    swatches: [
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+150", "--hue-split-1"),
+      hueSwatch("+210", "--hue-split-2"),
+    ],
+  },
+  {
+    label: "Triad",
+    swatches: [
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+120", "--hue-triad-1"),
+      hueSwatch("+240", "--hue-triad-2"),
+    ],
+  },
+  {
+    label: "Tetrad",
+    swatches: [
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+60", "--hue-tetrad-1"),
+      hueSwatch("+180", "--hue-tetrad-2"),
+      hueSwatch("+240", "--hue-tetrad-3"),
+    ],
+  },
+  {
+    label: "Square",
+    swatches: [
+      hueSwatch("base", "--hue-base"),
+      hueSwatch("+90", "--hue-square-1"),
+      hueSwatch("+180", "--hue-square-2"),
+      hueSwatch("+270", "--hue-square-3"),
+    ],
+  },
+  {
+    label: "Monochromatic",
+    swatches: [
+      {
+        label: "mono-1",
+        bg: "var(--mono-1)",
+      },
+      {
+        label: "mono-2",
+        bg: "var(--mono-2)",
+      },
+      {
+        label: "mono-3",
+        bg: "var(--mono-3)",
+      },
+    ],
+  },
+];
 
 const COLORS = [
   "complement",
@@ -78,7 +108,7 @@ const COLORS = [
 
 export function HarmonicSwatchesDemo() {
   return (
-    <section className="glass-surface w-full max-w-2xl rounded-xl p-6">
+    <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
       <h2 className="mb-1 font-semibold text-foreground text-xl">Harmonic color tokens</h2>
       <p className="mb-6 text-muted-foreground text-sm">
         CSS custom properties derived from the harmony anchor hue (<code className="text-xs">--harmony-h</code>) — no JS. Each is{" "}
@@ -87,18 +117,26 @@ export function HarmonicSwatchesDemo() {
       </p>
 
       <h3 className="mb-2 font-medium text-foreground text-sm">
-        <code className="text-xs">--hue-*</code> — angle tokens, shown at a fixed illustrative chroma to reveal each angle
+        One row per harmony style — <code className="text-xs">--hue-*</code> angle tokens at a fixed illustrative chroma (mono row:{" "}
+        <code className="text-xs">--mono-1..3</code>)
       </h3>
-      <div className="mb-6 grid grid-cols-4 gap-3 sm:grid-cols-7">
-        {HUES.map(([label, v]) => (
-          <div key={v} className="flex flex-col items-center gap-1.5">
-            <div
-              className="h-14 w-full rounded-lg border border-[var(--glass-border)]"
-              style={{
-                background: `oklch(0.62 0.16 var(${v}))`,
-              }}
-            />
-            <span className="font-mono text-[10px] text-muted-foreground">{label}</span>
+      <div className="mb-6 space-y-3">
+        {ROWS.map((row) => (
+          <div key={row.label} className="flex items-center gap-3">
+            <span className="w-28 shrink-0 text-muted-foreground text-xs">{row.label}</span>
+            <div className="flex gap-2">
+              {row.swatches.map((s) => (
+                <div key={s.label} className="flex w-14 flex-col items-center gap-1">
+                  <div
+                    className="h-10 w-full rounded-lg border border-[var(--glass-border)]"
+                    style={{
+                      background: s.bg,
+                    }}
+                  />
+                  <span className="font-mono text-[10px] text-muted-foreground">{s.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -120,49 +158,26 @@ export function HarmonicSwatchesDemo() {
         ))}
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 className="mb-2 font-medium text-foreground text-sm">
-            <code className="text-xs">--mono-1..3</code>
-          </h3>
-          <div className="flex overflow-hidden rounded-lg border border-[var(--glass-border)]">
-            {[
-              1,
-              2,
-              3,
-            ].map((n) => (
-              <div
-                key={n}
-                className="h-12 flex-1"
-                style={{
-                  background: `var(--mono-${n})`,
-                }}
-              />
-            ))}
-          </div>
-        </div>
-        <div>
-          <h3 className="mb-2 font-medium text-foreground text-sm">
-            <code className="text-xs">--alpha-1..6</code> — accent at each tier
-          </h3>
-          <div className="flex overflow-hidden rounded-lg border border-[var(--glass-border)]">
-            {[
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-            ].map((n) => (
-              <div
-                key={n}
-                className="h-12 flex-1"
-                style={{
-                  background: `oklch(0.6 0.18 var(--glass-fg-h) / var(--alpha-${n}))`,
-                }}
-              />
-            ))}
-          </div>
+      <div>
+        <h3 className="mb-2 font-medium text-foreground text-sm">Alpha tiers — accent at 0.04 → 0.5</h3>
+        <div className="flex overflow-hidden rounded-lg border border-[var(--glass-border)]">
+          {/* Design-guidance ramp (not theme tokens): hairline → subtle → standard → pressed → prominent → scrim. */}
+          {[
+            0.04,
+            0.08,
+            0.12,
+            0.2,
+            0.32,
+            0.5,
+          ].map((a) => (
+            <div
+              key={a}
+              className="h-12 flex-1"
+              style={{
+                background: `oklch(0.6 0.18 var(--glass-fg-h) / ${a})`,
+              }}
+            />
+          ))}
         </div>
       </div>
     </section>

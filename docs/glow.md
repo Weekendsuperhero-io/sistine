@@ -20,16 +20,17 @@ The `effect="glow"` hover effect is `glass-glow hover:glass-glow-lg` (rest → i
 
 ### Why a *layer* and not a plain shadow
 
-Each glass **style** enforces its own shadow with `!important`:
+Each material swaps the surface shadow by setting a **token** (`--srf-shadow`) that the `glass` utility reads:
 
 ```css
-[data-glass="crystal"] .glass-bg { box-shadow: var(--glass-crystal-shadow) !important; }
+[data-material="crystal"] { --srf-shadow: var(--glass-crystal-shadow); }
 ```
 
-A plain `shadow-lg shadow-(color:--glass-glow)` glow gets **clobbered** (and out-specified) by that, so it only survived the default `glass` style. Folding `--glow-layer` into *each style's own* shadow means the glow rides **inside** it and survives every style:
+A plain `shadow-lg shadow-(color:--glass-glow)` glow would be **replaced** the moment a material swaps that shadow, so it wouldn't survive frosted / crystal / opaque. Folding `--glow-layer` into the single `box-shadow` the `glass` utility composes means the glow rides **alongside** whatever shadow the material set, and survives every material:
 
 ```css
-box-shadow: var(--glass-crystal-shadow), var(--glow-layer, 0 0 0 0 transparent) !important;
+/* @utility glass */
+box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 ```
 
 > **Exceptions:** the avatar root and separator aren't glass surfaces (their `box-shadow` is never clobbered), so they keep a direct `shadow-(color:--glass-glow)` instead of the layer.

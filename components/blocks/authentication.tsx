@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 export function AuthenticationBlock() {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
-      <Card variant="glass" className="w-full max-w-md text-foreground">
+      <Card className="w-full max-w-md text-foreground">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-foreground">Welcome back</CardTitle>
           <CardDescription className="text-muted-foreground">Enter your credentials to sign in to your account</CardDescription>
@@ -20,23 +20,17 @@ export function AuthenticationBlock() {
             <Label htmlFor="email" className="text-foreground">
               Email
             </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              variant="glass"
-              className="text-foreground placeholder:text-muted-foreground"
-            />
+            <Input id="email" type="email" placeholder="name@example.com" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password" className="text-foreground">
               Password
             </Label>
-            <Input id="password" type="password" variant="glass" className="text-foreground placeholder:text-muted-foreground" />
+            <Input id="password" type="password" className="text-foreground placeholder:text-muted-foreground" />
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="remember" variant="glass" />
+              <Checkbox id="remember" />
               <Label htmlFor="remember" className="text-foreground text-sm cursor-pointer">
                 Remember me
               </Label>
@@ -45,12 +39,10 @@ export function AuthenticationBlock() {
               Forgot password?
             </Button>
           </div>
-          <Button variant="glass" className="w-full text-foreground">
-            Sign In
-          </Button>
+          <Button className="w-full text-foreground">Sign In</Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <Separator variant="glass" />
+              <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">Or continue with</span>

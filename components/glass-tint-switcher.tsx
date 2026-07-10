@@ -13,7 +13,55 @@ const CUSTOM_KEY = "sistine-glass-tint-custom";
 const OPACITY_KEY = "sistine-glass-opacity";
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
+const OUTLINE_W_KEY = "sistine-glass-opaque-outline-w";
 const ACCENT_KEY = "sistine-accent";
+
+/** Opaque-outline weight → the --glass-opaque-outline-w page var (hairline = unset → 1px default).
+ * Same ladder as the border axis (glass-border-rim/-frame); an element-level rim/frame beats this. */
+const OUTLINE_WEIGHTS = {
+  hairline: null,
+  rim: "4px",
+  frame: "8px",
+} as const;
+type OutlineWeight = keyof typeof OUTLINE_WEIGHTS;
+
+/** Accent harmony styles → hue offsets from the harmony origin (base hue first), mirroring the CSS --hue-*
+ * anchors in app/theme/engine.css. Hues are computed in JS (not read from the CSS vars) so the swatches can
+ * preview + apply an accent even before it is switched on. */
+const HARMONIES = {
+  complement: [
+    0,
+    180,
+  ],
+  analogous: [
+    0,
+    -30,
+    30,
+  ],
+  split: [
+    0,
+    150,
+    210,
+  ],
+  triad: [
+    0,
+    120,
+    240,
+  ],
+  tetrad: [
+    0,
+    60,
+    180,
+    240,
+  ],
+  square: [
+    0,
+    90,
+    180,
+    270,
+  ],
+} as const;
+type Harmony = keyof typeof HARMONIES;
 
 /**
  * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
@@ -274,19 +322,22 @@ function readLmap(): {
  * with the theme + glass-style switchers.
  */
 export function GlassTintSwitcher() {
-  const [base, setBase] = React.useState<PresetValue>("neutral");
+  const [base, setBase] = React.useState<PresetValue>("amethyst");
   const [h, setH] = React.useState(250);
   const [c, setC] = React.useState(0);
   const [a, setA] = React.useState(0);
   const [opacity, setOpacity] = React.useState(0);
   const [lightness, setLightness] = React.useState(90);
   const [outline, setOutline] = React.useState(false);
+  const [outlineW, setOutlineW] = React.useState<OutlineWeight>("hairline");
   const [accentOn, setAccentOn] = React.useState(false);
   const [accentH, setAccentH] = React.useState(280);
   const [accentC, setAccentC] = React.useState(0.15);
+  // Which harmony style the accent swatch row previews — pure UI state, intentionally not persisted.
+  const [harmony, setHarmony] = React.useState<Harmony>("complement");
 
   React.useEffect(() => {
-    const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "neutral";
+    const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "amethyst";
     const preset = PRESETS.find((p) => p.value === storedBase);
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;
@@ -313,6 +364,11 @@ export function GlassTintSwitcher() {
     const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
     setOutline(storedOutline);
     if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+    const storedOutlineW = localStorage.getItem(OUTLINE_W_KEY) as OutlineWeight | null;
+    if (storedOutlineW && OUTLINE_WEIGHTS[storedOutlineW]) {
+      setOutlineW(storedOutlineW);
+      document.documentElement.style.setProperty("--glass-opaque-outline-w", OUTLINE_WEIGHTS[storedOutlineW]);
+    }
     try {
       const acc = JSON.parse(localStorage.getItem(ACCENT_KEY) ?? "null");
       if (acc && typeof acc === "object") {
@@ -427,6 +483,21 @@ export function GlassTintSwitcher() {
 
   // Optional accent outline for opaque surfaces — sets --glass-opaque-outline to the theme accent so opaque
   // components gain a colored outline (flair) instead of the flat default border. Applies site-wide.
+  // Outline WEIGHT — page-wide width for the same borders the outline toggle colors (opaque material
+  // cards + adaptive surfaces on the opaque page style). hairline clears the var (1px default).
+  const changeOutlineW = (w: OutlineWeight) => {
+    setOutlineW(w);
+    const root = document.documentElement;
+    const px = OUTLINE_WEIGHTS[w];
+    if (px) root.style.setProperty("--glass-opaque-outline-w", px);
+    else root.style.removeProperty("--glass-opaque-outline-w");
+    try {
+      localStorage.setItem(OUTLINE_W_KEY, w);
+    } catch {
+      // ignore storage failures
+    }
+  };
+
   const changeOutline = (on: boolean) => {
     setOutline(on);
     const root = document.documentElement;
@@ -497,6 +568,10 @@ export function GlassTintSwitcher() {
     });
   };
 
+  // Harmony origin for the accent swatches — same hue-less rule as applyTint/emitFg: neutral (chroma 0) and
+  // bone anchor the wheel at 0°; every other tint harmonizes from the current tint hue.
+  const harmonyOrigin = c === 0 || base === "bone" ? 0 : h;
+
   const triggerSwatch =
     base === "sistine" || base === "muse"
       ? (PRESETS.find((p) => p.value === base)?.swatch ?? "oklch(90% 0.02 250)")
@@ -507,7 +582,7 @@ export function GlassTintSwitcher() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="glass" size="icon" className="h-9 w-9" aria-label="Glass color" title="Glass color">
+        <Button size="icon" className="h-9 w-9" aria-label="Glass color" title="Glass color">
           <span
             className="size-4 rounded-full border border-[var(--glass-border)]"
             style={{
@@ -599,6 +674,24 @@ export function GlassTintSwitcher() {
             {outline ? "accent" : "off"}
           </button>
         </div>
+        <div className="flex items-center justify-between text-muted-foreground text-xs">
+          <span>Outline weight</span>
+          <div className="flex gap-1">
+            {(Object.keys(OUTLINE_WEIGHTS) as OutlineWeight[]).map((w) => (
+              <button
+                key={w}
+                type="button"
+                onClick={() => changeOutlineW(w)}
+                className={cn(
+                  "rounded-md border px-2 py-0.5 font-medium transition-colors",
+                  outlineW === w ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+                )}
+              >
+                {w}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="space-y-2 border-[var(--glass-border)] border-t pt-3">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
@@ -623,6 +716,44 @@ export function GlassTintSwitcher() {
             >
               {accentOn ? "on" : "off"}
             </button>
+          </div>
+          {/* Harmony picker: pick a style, then click a swatch to APPLY that hue as the accent — same
+              changeAccent path as the Accent-hue slider (apply + persist + emitFg), forcing the accent on. */}
+          <div className="flex flex-wrap gap-1 text-muted-foreground text-xs">
+            {(Object.keys(HARMONIES) as Harmony[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setHarmony(k)}
+                className={cn(
+                  "rounded-md border px-2 py-0.5 font-medium transition-colors",
+                  harmony === k ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+                )}
+              >
+                {k}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {HARMONIES[harmony].map((off) => {
+              const hue = (((harmonyOrigin + off) % 360) + 360) % 360;
+              return (
+                <button
+                  key={off}
+                  type="button"
+                  onClick={() => changeAccent(true, hue, accentC)}
+                  title={`${Math.round(hue)}°`}
+                  aria-label={`Set accent hue ${Math.round(hue)}°`}
+                  className={cn(
+                    "size-6 rounded-full border border-[var(--glass-border)] transition-transform active:scale-[0.96]",
+                    accentOn && accentH === hue ? "ring-2 ring-foreground/60" : "hover:scale-110",
+                  )}
+                  style={{
+                    background: `oklch(0.62 ${Math.max(accentC, 0.12)} ${hue})`,
+                  }}
+                />
+              );
+            })}
           </div>
           {accentOn && (
             <>

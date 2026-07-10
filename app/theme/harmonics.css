@@ -1,0 +1,37 @@
+/* ── Harmonic color registrations — compacted one-liners (biome's CSS formatter is excluded for this
+   file; see biome.json). WHY these exist: the comment below. */
+
+/* ── Harmonic token registration ──────────────────────────────────────────────────────────────
+   The harmonic tokens (--harmony-h, --hue-*, --color-*, --mono-*, defined in engine.css) are
+   consumed ONLY from JS / inline styles (HarmonicSwatchesDemo, AutoForeground) — never referenced by
+   a CSS rule. Tailwind v4's Lightning CSS optimizer constant-folds + dead-code-eliminates any custom
+   property no CSS rule uses, which silently dropped this ENTIRE subgraph from the COMPILED stylesheet
+   (so every `oklch(L C var(--hue-*))` / `var(--color-*)` resolved to nothing at runtime). Registering
+   them via @property marks them as first-class typed API the optimizer must preserve. DO NOT REMOVE. */
+@property --harmony-h { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --color-chroma { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --mono-chroma { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-base { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-complement { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-analogous-1 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-analogous-2 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-split-1 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-split-2 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-triad-1 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-triad-2 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-tetrad-1 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-tetrad-2 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-tetrad-3 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-square-1 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-square-2 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --hue-square-3 { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --color-complement { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-analogous-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-analogous-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-split-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-split-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-triad-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --color-triad-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --mono-1 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --mono-2 { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --mono-3 { syntax: "<color>"; inherits: true; initial-value: transparent; }

@@ -12,11 +12,17 @@
  *   1. [scope]  No tint-composing glass token is declared on a BARE :root/.dark (must be grouped).
  *   2. [fg]     The grouped [data-glass-tint] blocks carry NO foreground token (a scoped tint must
  *               not reset a subtree's text color — AutoForeground owns those on :root).
+ *   2b.[veil]   --glass-solid-a is composed only inside @utility glass-veil (element-level), and the
+ *               veil floor is defined there.
+ *   6a.[materials] each [data-material="…"] block pins the full --srf-* set (+ opaque fg / crystal hover).
+ *   6b.[recipes-dead] no retired recipe utility (glass-bg/-surface/-solid/…) is defined or class-used.
+ *   6c.[material-union] lib/material.ts's Material type == the four CSS materials + "none".
  *   3. [preset] Every GlassTintSwitcher preset (except neutral) has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
  *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
- *   7. [sync]   public/r/theme.json embeds the CURRENT app/globals.css (registry not stale).
+ *   7. [sync]   public/r/theme.json embeds the CURRENT flattened theme (registry not stale).
+ *   7b.[artifact] registry/theme/globals.css (the committed flattened build) matches the live partials.
  *   8. [tint-sync] Every GlassTintSwitcher preset's h/c/a equals its [data-glass-tint] CSS block(s). The
  *               switcher INLINES the preset onto <html>, shadowing the CSS — so a divergent block renders
  *               fine on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
@@ -26,9 +32,12 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { flattenTheme } from "./lib/flatten-theme.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const css = readFileSync(join(root, "app/globals.css"), "utf8");
+// The theme is authored as app/theme/* partials behind the app/globals.css aggregator; every invariant
+// parses the FLATTENED single-file view — the same string consumers install via the registry.
+const css = flattenTheme(root);
 
 // Tint-composing tokens intentionally kept on bare :root/.dark: foreground is AutoForeground's, and
 // must NOT move into the grouped block or a scoped tint would reset a subtree's text color.
@@ -110,17 +119,26 @@ for (const r of rules) {
   }
 }
 
-// 2b. [solid] --glass-solid-a must be composed on the ELEMENT (in @utility glass-solid), never in a
-//     token context (:root/.dark/grouped) — else a scoped --glass-solid-a wouldn't resolve there.
+// 2b. [veil] --glass-solid-a must be composed on the ELEMENT (in @utility glass-veil), never in a token
+//     context (:root/.dark/grouped) — else a scoped --glass-solid-a wouldn't resolve there. (The opaque
+//     PAGE style may set --glass-solid-a: 1 as a leaf — that's an override, not a composition — so this
+//     only bans it inside a var() expression.)
 for (const r of rules) {
   if (!(isBareRootOrDark(r.selector) || coversScopedTint(r.selector))) continue;
   for (const d of decls(r.body)) {
     if (/var\(--glass-solid-a\)/.test(d.value)) {
       fail(
-        `[solid] ${d.name} composes var(--glass-solid-a) in "${r.selector}". ` +
-          `Compose it in @utility glass-solid (resolves at the element) so a scoped --glass-solid-a works.`,
+        `[veil] ${d.name} composes var(--glass-solid-a) in "${r.selector}". ` +
+          `Compose it in @utility glass-veil (resolves at the element) so a scoped --glass-solid-a works.`,
       );
     }
+  }
+}
+// 2b+. [veil] @utility glass-veil must compose the floor at the element.
+{
+  const veil = rules.find((r) => r.selector === "@utility glass-veil");
+  if (!veil || !/--veil-floor:\s*oklch\(\s*var\(--glass-solid-l\)\s+0\s+0\s*\/\s*var\(--glass-solid-a\)\s*\)/.test(veil.body)) {
+    fail(`[veil] @utility glass-veil must compose --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a)) — element-level.`);
   }
 }
 
@@ -153,9 +171,27 @@ for (const s of statuses) {
 // 5. [fresco] every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry, so its
 //    canvas/gradient background matches it instead of collapsing to one hue.
 const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "utf8");
-const huesStart = canvasUtils.indexOf("FRESCO_HUES");
+const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
+// 5b. [bone-sync] bone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
+//     fg snapshots can't carry them) — the JS constants must equal presets.css, or bone-night text
+//     bands against the wrong surface model again (the exact bug the mirror fixes).
+{
+  const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
+  const boneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="bone"]');
+  if (boneDark) {
+    const washL = boneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
+    const cMult = boneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
+    if (washL && !autoFg.includes(`bone && dark ? ${washL} :`))
+      fail(`[bone-sync] presets.css bone night --glass-wash-l is ${washL}% but auto-foreground's mirrored fallback differs.`);
+    if (cMult && !autoFg.includes(`bone && dark ? ${cMult} :`))
+      fail(`[bone-sync] presets.css bone night --glass-wash-c-mult is ${cMult} but auto-foreground's mirrored fallback differs.`);
+  } else {
+    fail('[bone-sync] could not locate the .dark[data-glass-tint="bone"] block in the theme rules.');
+  }
+}
+
 const frescoPresets = new Set();
 for (const r of rules) {
   const m = r.selector.match(/\[data-glass-tint="([a-z]+)"\]/);
@@ -167,26 +203,77 @@ for (const p of frescoPresets) {
   }
 }
 
-// 6. [variants] every glass component (defines a crystal: variant) also defines surface: + solid:,
-//    so the four tier names (glass/surface/solid/opaque) are uniformly available on the variant prop.
-for (const rel of componentFiles) {
-  const src = readFileSync(join(root, "components", rel), "utf8");
-  if (!/\bcrystal:\s*"glass-crystal/.test(src)) continue;
-  for (const k of ["surface", "solid"]) {
-    if (!new RegExp(`\\b${k}:\\s*"glass-${k}`).test(src)) {
-      fail(`[variants] ${rel} has the glass variant set but no "${k}" variant (→ glass-${k}). Add it so glass/surface/solid/opaque are all available.`);
+// 6a. [materials] each of the four [data-material] blocks declares the FULL --srf-* pin set, so an
+//     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
+//     the foreground tiers; crystal swaps its shadow on :hover.
+const MATERIALS = ["glass", "frosted", "crystal", "opaque"];
+const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow"];
+const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
+for (const m of MATERIALS) {
+  const rule = rules.find((r) => selectors(r.selector).includes(`[data-material="${m}"]`));
+  if (!rule) {
+    fail(`[materials] the theme has no [data-material="${m}"] block.`);
+    continue;
+  }
+  const names = new Set(decls(rule.body).map((d) => d.name));
+  for (const t of PIN_SET) {
+    if (!names.has(t)) fail(`[materials] [data-material="${m}"] is missing ${t} — an inherited [data-glass] remap would leak through the un-pinned channel.`);
+  }
+  if (m === "opaque") {
+    for (const t of OPAQUE_FG) if (!names.has(t)) fail(`[materials] opaque must remap ${t} to its -opaque twin (its floor can be lighter than the page).`);
+  }
+}
+if (!rules.some((r) => r.selector.includes(`[data-material="crystal"]:hover`) && /--srf-shadow/.test(r.body))) {
+  fail(`[materials] crystal is missing its :hover { --srf-shadow } swap.`);
+}
+
+// 6b. [recipes-dead] the retired recipe utilities must not be DEFINED (flattened theme) or class-USED
+//     (component/app source). The lookbehind/ahead guards exclude the still-live --glass-* TOKENS: in
+//     `--glass-solid-a` the leading `-` and trailing `-a` fail the (?<![-\w]) / (?![-\w]) anchors, so
+//     only a standalone class (space/quote-delimited) matches. `surface-sm|-lg` precede `surface` so
+//     the longer form wins.
+const RECIPE_CLASS = /(?<![-\w])glass-(?:bg|surface-sm|surface-lg|surface|solid|frosted|crystal|opaque)(?![-\w])/;
+if (/@utility glass-(?:bg|surface|solid|frosted|crystal|opaque)\b/.test(css)) {
+  fail(`[recipes-dead] the flattened theme still defines a retired recipe @utility — use the material system.`);
+}
+for (const dir of ["components", "app"]) {
+  for (const rel of readdirSync(join(root, dir), { recursive: true })) {
+    if (typeof rel !== "string" || !/\.(tsx|ts)$/.test(rel)) continue;
+    // Only class-string positions (className="…" / cn("…") / class inside a JSX code-sample backtick),
+    // so aria-labels, prose, and comments don't false-fail; the token-name guards above handle the
+    // --glass-* references that live inside those same backticks.
+    const src = readFileSync(join(root, dir, rel), "utf8");
+    for (const lit of src.matchAll(/(?:className=|cn\()\s*"([^"]*)"|`([^`]*)`/g)) {
+      const hit = (lit[1] ?? lit[2] ?? "").match(RECIPE_CLASS);
+      if (hit) fail(`[recipes-dead] ${dir}/${rel} uses "${hit[0]}" — use glassMaterial / the glass + axis classes instead.`);
     }
   }
 }
 
-// 7. [sync] shipped theme.json embeds the current globals.css
+// 6c. [material-union] lib/material.ts's Material union == the four CSS materials (+ "none").
+const matSrc = readFileSync(join(root, "lib/material.ts"), "utf8");
+const union = [...(matSrc.match(/type Material =([^;]+);/)?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
+const expectedUnion = [...MATERIALS, "none"];
+if (union.length !== expectedUnion.length || !expectedUnion.every((v) => union.includes(v))) {
+  fail(`[material-union] lib/material.ts Material = [${union}] != CSS materials + "none" [${expectedUnion}].`);
+}
+
+// 7. [sync] shipped theme.json embeds the current flattened theme
 try {
   const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
-  const shipped = theme.files?.find((f) => f.path === "app/globals.css")?.content;
-  if (shipped == null) fail(`[sync] public/r/theme.json has no app/globals.css file.`);
-  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit public/r.`);
+  const shipped = theme.files?.find((f) => f.path === "registry/theme/globals.css")?.content;
+  if (shipped == null) fail(`[sync] public/r/theme.json has no registry/theme/globals.css file.`);
+  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
 } catch (e) {
   fail(`[sync] could not read public/r/theme.json: ${e.message}`);
+}
+
+// 7b. [artifact] the committed flattened artifact matches the live partials (build-theme output is current)
+try {
+  const artifact = readFileSync(join(root, "registry/theme/globals.css"), "utf8");
+  if (artifact !== css) fail(`[artifact] registry/theme/globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
+} catch (e) {
+  fail(`[artifact] could not read registry/theme/globals.css — run "pnpm registry:check" (${e.message}).`);
 }
 
 // 8. [tint-sync] every switcher preset's h/c/a matches its [data-glass-tint] CSS block(s). The switcher

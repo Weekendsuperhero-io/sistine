@@ -1,0 +1,127 @@
+/* ── Glass surface utilities (@utility — tree-shaken per consumer usage) ──────
+   The material system: ONE structural `glass` utility + orthogonal axis classes (border, veil, sm/lg,
+   gradient, glow, sheen). Materials live in materials.css as [data-material] token sets; page styles
+   in styles.css remap the same --srf-* tokens. No recipe utilities, no !important. */
+
+/* The glow itself — a punchy two-layer colored halo, centralized so its strength is tunable in ONE
+   place. `glass-glow` is the resting glow; `glass-glow-lg` (used on hover) intensifies it. Both set
+   --glow-layer, which every glass box-shadow folds in, so the glow shows under EVERY glass style.
+   Full mechanism + tuning + troubleshooting: docs/glow.md */
+@utility glass-glow {
+  --glow-layer: 0 0 8px 1px var(--glass-glow), 0 0 18px 3px var(--glass-glow);
+}
+@utility glass-glow-lg {
+  --glow-layer: 0 0 12px 2px var(--glass-glow), 0 0 28px 5px var(--glass-glow);
+}
+
+/* ── THE MATERIAL SYSTEM (Sistine 2.0) ────────────────────────────────────────
+   ONE structural utility (`glass`) + orthogonal axis classes. The material (a token set) comes from
+   [data-material] (materials.css) or the inherited [data-glass] page remap (styles.css); with
+   neither, the --srf-* fallbacks render the default glass material. Axis utilities only SET custom
+   props (or properties `glass` never touches), so Tailwind's emission order can never flip a result.
+   (The legacy recipe utilities below coexist during the migration and die with it.) */
+
+/* Structural glass — background/filter/shadow plumbing only; borderless (add glass-border).
+   Channels, outermost first:
+     background-image  = [--acc-gradient accent slot] + [--srf-bg-image material stack] + [solidify]
+     background-color  = --veil-floor (element veil) > --srf-bg-color (material floor) > transparent
+     backdrop-filter   = --srf-filter (material) > blur(--srf-blur > --blur) saturate(180%)
+     box-shadow        = --srf-shadow (material) > --srf-elev (size axis) > --glass-shadow, + glow
+   The leading gradient slot is a no-op transparent layer so `glass-gradient` composes over ANY
+   material (same pattern as the fresco slot inside --crystal-stack-bg). The solidify floor
+   (--glass-opacity dial) is composed HERE, at the element — never in a token context (the
+   var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). */
+@utility glass {
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0) * 100%), transparent);
+  --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
+  background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
+  background-color: var(--veil-floor, var(--srf-bg-color, transparent));
+  backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
+}
+
+/* Border axis — the material picks the color; width resolves material pin (--srf-border-w, which
+   itself reads the --brd-w weight slot) → weight slot directly (adaptive surfaces) → 1px hairline. */
+@utility glass-border {
+  border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--srf-border-color, var(--glass-border));
+}
+/* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
+   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 4px,
+   frame = 8px. */
+@utility glass-border-rim {
+  --brd-w: 4px;
+}
+@utility glass-border-frame {
+  --brd-w: 8px;
+}
+
+/* Veil axis — the legibility floor for read-through overlays (menus, tooltips, toasts).
+   Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
+   The veil rides the background-COLOR channel, under the material's image stack, and — being
+   element-declared — beats any inherited --srf-bg-color remap. */
+@utility glass-veil {
+  --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
+}
+
+/* Size axes — blur + elevation tiers. These feed the GLASS material only: frosted/crystal/opaque
+   (and page remaps) set --srf-filter/--srf-shadow wholesale, which flattens the tiers — matching
+   the old system, where the [data-glass] styles flattened glass-surface-sm/-lg. */
+@utility glass-sm {
+  --srf-blur: var(--blur-sm);
+  --srf-elev: var(--glass-shadow-sm);
+}
+@utility glass-lg {
+  --srf-blur: var(--blur-lg);
+  --srf-elev: var(--glass-shadow-lg);
+}
+
+/* ── Gradient ACCENT — a brand wash ON a material, not a material. Fills the no-op --acc-gradient
+   slot at the top of every `glass` background, so it composes over glass, frosted, crystal, and
+   opaque alike. A token-setter (no property `glass` sets), so it's immune to utility emission order. */
+@utility glass-gradient {
+  --acc-gradient: var(--gradient);
+}
+
+/* Sheen — the OPT-IN hover shimmer (the gloss slides across on hover). Self-contained (highlight + diagonal
+   + glow + the 200%/hover shift), so it works on any glass surface AND, layered on glass-crystal (which
+   already has the static gloss), its ::before/::after override crystal's to add the motion. Pseudo-element
+   based → position:relative; avoid on sticky/fixed surfaces. */
+@utility glass-sheen {
+  position: relative;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &::before {
+    background: var(--glass-gloss-top), var(--glass-gloss-streak);
+    background-size: 200% 200%;
+    background-position: 0% 0%;
+    opacity: 0.7;
+    transition: background-position 0.3s ease;
+  }
+
+  &::after {
+    background: var(--glass-gloss-glow);
+    opacity: 0.8;
+  }
+
+  &:hover::before {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

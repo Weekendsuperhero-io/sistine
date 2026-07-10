@@ -67,7 +67,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent">
       <div className="container mx-auto px-4 pt-4">
-        <div className="glass-surface flex h-16 items-center justify-between px-4 md:px-6 rounded-xl">
+        <div className="glass glass-border flex h-16 items-center justify-between px-4 md:px-6 rounded-xl">
           <div className="flex items-center gap-4 md:gap-8">
             <Link href="/" className="flex items-center gap-2">
               {mounted && (
@@ -112,7 +112,7 @@ export function Header() {
                 rel="noopener noreferrer"
                 className="hidden sm:flex items-center"
               >
-                <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
+                <Badge className="flex items-center gap-1.5 h-9 px-3">
                   <GithubLogoIcon className="h-4 w-4" />
                   <span className="text-xs font-semibold tabular-nums">{starCount.toLocaleString()}</span>
                 </Badge>
@@ -120,14 +120,14 @@ export function Header() {
             )}
             <GlassStyleSwitcher />
             <GlassTintSwitcher />
-            <ModeToggle variant="glass" />
+            <ModeToggle />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden h-9 w-9" aria-label="Toggle menu">
                   <ListIcon className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent variant="glass" side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
                 <div className="flex flex-col gap-6 mt-8">
                   <div className="flex items-center gap-2 pb-4 border-b border-border">
                     {mounted && (
@@ -165,7 +165,7 @@ export function Header() {
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center"
                       >
-                        <Badge variant="glass" className="flex items-center gap-1.5 h-9 px-3">
+                        <Badge className="flex items-center gap-1.5 h-9 px-3">
                           <GithubLogoIcon className="h-4 w-4" />
                           <span className="text-xs font-semibold tabular-nums">{starCount.toLocaleString()}</span>
                         </Badge>

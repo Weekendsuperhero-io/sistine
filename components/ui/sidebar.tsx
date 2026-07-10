@@ -171,7 +171,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "glass-bg flex h-full w-(--sidebar-width) flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)]",
+          "glass flex h-full w-(--sidebar-width) flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)]",
           className,
         )}
         {...props}
@@ -188,7 +188,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="glass-bg w-(--sidebar-width) border-[var(--glass-border)] p-0 text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)] [&>button]:hidden"
+          className="glass w-(--sidebar-width) border-[var(--glass-border)] p-0 text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)] [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -245,7 +245,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="glass-bg flex h-full w-full flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)] group-data-[variant=floating]:rounded-xl group-data-[variant=floating]:border group-data-[variant=floating]:border-[var(--glass-border)] group-data-[variant=floating]:shadow-[var(--glass-shadow)]"
+          className="glass flex h-full w-full flex-col border-[var(--glass-border)] text-foreground shadow-[var(--glass-shadow)] backdrop-blur-[var(--blur)] group-data-[variant=floating]:rounded-xl group-data-[variant=floating]:border group-data-[variant=floating]:border-[var(--glass-border)] group-data-[variant=floating]:shadow-[var(--glass-shadow)]"
         >
           {children}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { type CanvasRamp, type CanvasStyle, createCanvas, FRESCO_HUES } from "@/lib/canvas-background-utils";
+import { backdropPalette, type CanvasRamp, type CanvasStyle, createCanvas, useBackdropTint } from "@/lib/canvas-background-utils";
 
 interface CanvasBackgroundProps {
   /** Canvas style: gradient | lava | circle. */
@@ -47,17 +47,9 @@ export function CanvasBackground({
     height: 1080,
     dpr: 1,
   });
-  // Live base color tracks the glass tint, so the canvas recolors with the theme (like the CSS
-  // gradient background).
-  const [tint, setTint] = React.useState<{
-    hue: number;
-    dark: boolean;
-    preset: string | undefined;
-  }>({
-    hue: 250,
-    dark: true,
-    preset: undefined,
-  });
+  // Live base color tracks the glass tint, so the canvas recolors with the theme (shared with the
+  // CSS gradient background).
+  const tint = useBackdropTint();
 
   React.useEffect(() => {
     const update = () => {
@@ -75,33 +67,6 @@ export function CanvasBackground({
   }, []);
 
   React.useEffect(() => {
-    const root = document.documentElement;
-    const read = () => {
-      const cs = getComputedStyle(root);
-      const acc = Number.parseFloat(cs.getPropertyValue("--accent-h"));
-      // Honor the accent hue when the accent knob is on, else the live tint hue.
-      const v = Number.isFinite(acc) ? acc : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
-      const next = {
-        hue: Number.isFinite(v) ? v : 250,
-        dark: root.classList.contains("dark"),
-        preset: root.dataset.glassTint,
-      };
-      setTint((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.preset === next.preset ? prev : next));
-    };
-    read();
-    const observer = new MutationObserver(read);
-    observer.observe(root, {
-      attributes: true,
-      attributeFilter: [
-        "class",
-        "data-glass-tint",
-        "style",
-      ],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  React.useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", {
@@ -111,29 +76,20 @@ export function CanvasBackground({
     canvas.width = dimensions.width;
     canvas.height = dimensions.height;
 
-    const p3 = window.matchMedia?.("(color-gamut: p3)").matches ?? false;
-    // Center color tracks the theme so it doesn't blast bright on dark / wash out on light.
-    const base = {
-      l: tint.dark ? 52 : 72,
-      c: 0.15,
-      h: hue ?? tint.hue,
-    };
-    // A fresco tint (sistine/muse/…) feeds its multi-hue palette at the canvas's standard L/C, so the
-    // canvas matches the fresco glass instead of using just its base hue. The `hue` prop override wins.
-    const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
-    const colors = frescoHues?.map((h) => `oklch(${tint.dark ? 52 : 72}% 0.15 ${h})`);
+    // Shared with GradientBackground: theme-tracking base + fresco palette (`hue` prop overrides both).
+    const { base, frescoColors } = backdropPalette(tint, hue);
     const { step } = createCanvas({
       width: dimensions.width,
       height: dimensions.height,
       dpr: dimensions.dpr,
       color: base,
-      colors,
+      colors: frescoColors,
       style: canvasStyle,
       ramp,
       steps,
       angle,
       speed,
-      p3,
+      p3: tint.p3,
       seed: seed || window.location.pathname,
     });
 

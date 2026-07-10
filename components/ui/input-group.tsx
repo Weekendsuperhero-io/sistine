@@ -3,38 +3,42 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 
 interface InputGroupProps extends React.ComponentProps<"div"> {
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque" | "surface" | "solid";
-  glass?: GlassCustomization;
+  variant?: "default" | "glass";
+  material?: Material;
+  border?: boolean;
+  /** Hover effect (folded from the glass wrapper). */
+  effect?: HoverEffect;
 }
 
-function InputGroup({ className, variant = "glass", glass, style, ...props }: InputGroupProps) {
-  const getVariantClass = () => {
-    if (variant === "default") return "border border-input shadow-xs dark:bg-input/30";
-    const variants = {
-      glass: "glass-surface",
-      frosted: "glass-frosted",
-      crystal: "glass-crystal",
-      opaque: "glass-opaque",
-      surface: "glass-surface",
-      solid: "glass-solid",
-    };
-    return variants[variant] || variants.glass;
-  };
+/* Role: bordered adaptive glass. */
+const ROLE = {
+  border: true,
+};
 
-  const glassStyles = variant !== "default" && glass !== undefined ? getGlassStyles(glass) : {};
+function InputGroup({ className, variant = "glass", material, border, effect, ...props }: InputGroupProps) {
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
+
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+  });
 
   return (
     <div
       data-slot="input-group"
       role="group"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         "group/input-group relative flex w-full items-center rounded-md transition-[color,box-shadow] outline-none",
         "h-9 min-w-0 has-[>textarea]:h-auto",
         // Variants based on alignment.
@@ -47,12 +51,12 @@ function InputGroup({ className, variant = "glass", glass, style, ...props }: In
         // Error state.
         "has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40",
         getVariantClass(),
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
         className,
       )}
-      style={{
-        ...glassStyles,
-        ...style,
-      }}
       {...props}
     />
   );

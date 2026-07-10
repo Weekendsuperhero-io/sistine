@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
-import { DatePickerInput } from "@/components/ui/glass/date-picker-input";
+import { DatePickerInput } from "@/components/ui/date-picker-input";
 
 const meta = {
   title: "Sistine/DatePickerInput",
@@ -16,9 +16,15 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
     },
     effect: {
@@ -44,7 +50,6 @@ export const Default: Story = {
     return <DatePickerInput {...args} value={date} onChange={setDate} />;
   },
   args: {
-    variant: "glass",
     placeholder: "Pick a date",
   },
 };
@@ -55,7 +60,7 @@ export const Frosted: Story = {
     return <DatePickerInput {...args} value={date} onChange={setDate} />;
   },
   args: {
-    variant: "frosted",
+    material: "frosted",
     placeholder: "Pick a date",
   },
 };

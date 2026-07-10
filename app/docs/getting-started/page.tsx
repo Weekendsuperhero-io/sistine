@@ -38,7 +38,7 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto whitespace-pre-wrap break-all">
+      <pre className="glass p-4 rounded-lg font-mono text-sm overflow-x-auto whitespace-pre-wrap break-all">
         <code className="text-foreground">{code}</code>
       </pre>
       <Button
@@ -62,7 +62,7 @@ export default function GettingStartedPage() {
       </div>
 
       <div className="space-y-8">
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Installation</CardTitle>
             <CardDescription className="text-muted-foreground">Install Sistine components using the shadcn CLI</CardDescription>
@@ -89,12 +89,12 @@ export default function GettingStartedPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">4. Start building</h3>
-              <p className="text-muted-foreground">Import and use components in your application. All components default to glass variants.</p>
+              <p className="text-muted-foreground">Import and use components in your application. All components default to adaptive glass.</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground" id="mcp">
+        <Card className="text-foreground" id="mcp">
           <CardHeader>
             <CardTitle className="text-foreground">MCP (Model Context Protocol) Setup</CardTitle>
             <CardDescription className="text-muted-foreground">Configure MCP to use Sistine components with AI assistants</CardDescription>
@@ -125,23 +125,23 @@ export default function GettingStartedPage() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Basic Usage</CardTitle>
             <CardDescription className="text-muted-foreground">Example of using Sistine components</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="example" className="w-full">
-              <TabsList variant="glass" className="mb-4">
+              <TabsList className="mb-4">
                 <TabsTrigger value="example">Example</TabsTrigger>
                 <TabsTrigger value="code">Code</TabsTrigger>
               </TabsList>
               <TabsContent value="example" className="space-y-4">
                 <div className="space-y-2">
-                  <Button variant="glass">Glass Button</Button>
+                  <Button>Glass Button</Button>
                   <Button variant="outline">Outline Button</Button>
                 </div>
-                <Card variant="glass" className="text-foreground">
+                <Card className="text-foreground">
                   <CardHeader>
                     <CardTitle className="text-foreground">Glass Card</CardTitle>
                     <CardDescription className="text-muted-foreground">This is a card with glass effect</CardDescription>
@@ -159,8 +159,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export function Example() {
   return (
     <div>
-      <Button variant="glass">Glass Button</Button>
-      <Card variant="glass">
+      {/* No material prop = adaptive glass, the default */}
+      <Button>Glass Button</Button>
+      <Card>
         <CardHeader>
           <CardTitle>Glass Card</CardTitle>
           <CardDescription>This is a card with glass effect</CardDescription>
@@ -178,7 +179,7 @@ export function Example() {
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground" id="glass-customization">
+        <Card className="text-foreground" id="glass-customization">
           <CardHeader>
             <CardTitle className="text-foreground">Customizing Glass Effects</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -298,22 +299,21 @@ export function Example() {
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Per-Component Customization</h3>
               <p className="text-muted-foreground mb-4">
-                You can also customize glass effects for individual components using the <code className="bg-muted px-1 rounded">glass</code> prop:
+                To customize an individual component, use the <code className="bg-muted px-1 rounded">glassVars</code> helper from{" "}
+                <code className="bg-muted px-1 rounded">@/lib/material</code>. It returns a <code className="bg-muted px-1 rounded">style</code>{" "}
+                object of CSS custom properties (<code className="bg-muted px-1 rounded">tintH</code> →{" "}
+                <code className="bg-muted px-1 rounded">--glass-tint-h</code>, <code className="bg-muted px-1 rounded">blur</code> →{" "}
+                <code className="bg-muted px-1 rounded">--srf-blur</code>, <code className="bg-muted px-1 rounded">opacity</code> →{" "}
+                <code className="bg-muted px-1 rounded">--glass-opacity</code>, …), so the overrides route through the token system and can&apos;t
+                fight a material, page style, or the theme:
               </p>
               <CodeBlock
                 code={`import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { glassVars } from "@/lib/material"
 
 export function CustomGlassCard() {
   return (
-    <Card
-      variant="glass"
-      glass={{
-        color: "oklch(60.5631% 0.218915 292.717225 / 0.2)",  // Purple tint
-        blur: 40,                                              // 40px blur
-        transparency: 0.3,                                     // 30% opacity
-        outline: "oklch(60.5631% 0.218915 292.717225 / 0.5)",  // Purple border
-      }}
-    >
+    <Card style={glassVars({ tintH: 292, blur: 40, opacity: 0.3 })}>
       <CardHeader>
         <CardTitle>Custom Glass Card</CardTitle>
       </CardHeader>

@@ -3,7 +3,11 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* Role: borderless adaptive glass. */
+const ROLE = {};
 
 const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root data-slot="drawer" shouldScaleBackground={shouldScaleBackground} {...props} />
@@ -33,12 +37,22 @@ const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    glow?: boolean | "lg";
   }
->(({ className, children, variant = "glass", ...props }, ref) => {
+>(({ className, children, variant = "glass", material, border, glow, ...props }, ref) => {
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-background",
-    glass: "glass-bg text-foreground",
+    glass: "text-foreground",
   };
+
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+    glow,
+  });
 
   return (
     <DrawerPortal data-slot="drawer-portal">
@@ -46,7 +60,9 @@ const DrawerContent = React.forwardRef<
       <DrawerPrimitive.Content
         ref={ref}
         data-slot="drawer-content"
+        data-material={m?.["data-material"]}
         className={cn(
+          m?.className,
           "group/drawer-content fixed z-50 flex h-auto flex-col",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:mb-24 data-[vaul-drawer-direction=top]:max-h-[80vh] data-[vaul-drawer-direction=top]:rounded-b-xl data-[vaul-drawer-direction=top]:border-b",
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[80vh] data-[vaul-drawer-direction=bottom]:rounded-t-xl data-[vaul-drawer-direction=bottom]:border-t",

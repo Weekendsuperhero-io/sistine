@@ -3,6 +3,7 @@
 import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Slider } from "./slider";
 
@@ -11,9 +12,19 @@ interface CropperProps {
   onCropComplete: (croppedArea: Area, croppedAreaPixels: Area) => void;
   aspect?: number;
   variant?: "default" | "glass";
+  material?: Material;
+  border?: boolean;
+  /** Resting glow (folded from the glass wrapper). */
+  glow?: boolean;
+  className?: string;
 }
 
-export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass" }: CropperProps) {
+/* Role: bordered adaptive glass. */
+const ROLE = {
+  border: true,
+};
+
+export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass", material, border, glow, className }: CropperProps) {
   const [crop, setCrop] = React.useState<Point>({
     x: 0,
     y: 0,
@@ -31,8 +42,17 @@ export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass" }
     ],
   );
 
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+  });
+
   return (
-    <div className={cn("relative w-full h-[400px]", variant === "glass" && "glass-surface rounded-lg overflow-hidden")}>
+    <div
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, "relative w-full h-[400px]", variant === "glass" && "rounded-lg overflow-hidden", glow && "glass-glow", className)}
+    >
       <CropperLib
         image={image}
         crop={crop}

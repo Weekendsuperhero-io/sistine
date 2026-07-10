@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { CalendarDays } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/glass/button";
+import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 const meta = {
@@ -18,10 +18,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
   },
 } satisfies Meta<typeof HoverCard>;
@@ -35,7 +44,7 @@ export const Glass: Story = {
       <HoverCardTrigger asChild>
         <Button variant="link">@nextjs</Button>
       </HoverCardTrigger>
-      <HoverCardContent variant="glass" className="w-80">
+      <HoverCardContent className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
             <AvatarImage src="/logo-dark.png" />
@@ -61,7 +70,7 @@ export const Frosted: Story = {
       <HoverCardTrigger asChild>
         <Button variant="link">@shadcn</Button>
       </HoverCardTrigger>
-      <HoverCardContent variant="frosted" className="w-80">
+      <HoverCardContent material="frosted" border className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
             <AvatarImage src="/logo-dark.png" />
@@ -87,7 +96,7 @@ export const Crystal: Story = {
       <HoverCardTrigger asChild>
         <Button variant="link">@premium</Button>
       </HoverCardTrigger>
-      <HoverCardContent variant="crystal" className="w-80">
+      <HoverCardContent material="crystal" border className="w-80">
         <div className="flex justify-between space-x-4">
           <Avatar>
             <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500">PR</AvatarFallback>
@@ -112,7 +121,7 @@ export const SimpleText: Story = {
       <HoverCardTrigger asChild>
         <span className="cursor-pointer underline">Hover here</span>
       </HoverCardTrigger>
-      <HoverCardContent variant="glass">
+      <HoverCardContent>
         <p className="text-sm">This is a simple hover card with just text content.</p>
       </HoverCardContent>
     </HoverCard>

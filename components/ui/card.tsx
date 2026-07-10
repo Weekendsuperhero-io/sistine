@@ -1,18 +1,15 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
-      glass: "glass-bg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "text-foreground",
     },
   },
   defaultVariants: {
@@ -20,35 +17,58 @@ const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6", {
   },
 });
 
+/* Role: borderless adaptive glass. */
+const ROLE = {};
+
 function Card({
   className,
   variant = "glass",
-  glass,
-  style,
+  material,
+  border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  effect,
+  animated,
   ...props
 }: React.ComponentProps<"div"> &
   VariantProps<typeof cardVariants> & {
-    glass?: GlassCustomization;
+    material?: Material;
+    border?: boolean;
+    veil?: boolean;
+    gradient?: boolean;
+    glow?: boolean | "lg";
+    sheen?: boolean;
+    effect?: HoverEffect;
+    /** Scale + deepen shadow on hover (folded from the glass wrapper). */
+    animated?: boolean;
   }) {
-  // Custom glass props apply on top of the base glass-bg surface (so getGlassStyles can override),
-  // which is exactly the "glass" variant; "default" opts out of glass entirely.
-  const hasCustomGlass = glass !== undefined;
-  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
-  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+  });
 
   return (
     <div
       data-slot="card"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         cardVariants({
-          variant: effectiveVariant,
+          variant,
         }),
+        animated && "transition duration-300 hover:scale-[1.02] hover:shadow-[var(--glass-shadow-lg)]",
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
         className,
       )}
-      style={{
-        ...glassStyles,
-        ...style,
-      }}
       {...props}
     />
   );

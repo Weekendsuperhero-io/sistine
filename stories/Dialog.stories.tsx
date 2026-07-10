@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "@/components/ui/glass/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog";
-import { Input } from "@/components/ui/glass/input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const meta = {
@@ -22,9 +22,9 @@ export const Glass: Story = {
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="glass">Open Dialog</Button>
+        <Button>Open Dialog</Button>
       </DialogTrigger>
-      <DialogContent variant="glass">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription>
@@ -34,19 +34,17 @@ export const Glass: Story = {
             <Label htmlFor="name" className="text-right">
               Name
             </Label>
-            <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" variant="glass" />
+            <Input id="name" defaultValue="Pedro Duarte" className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="username" className="text-right">
               Username
             </Label>
-            <Input id="username" defaultValue="@peduarte" className="col-span-3" variant="glass" />
+            <Input id="username" defaultValue="@peduarte" className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
-          <Button type="submit" variant="glass">
-            Save changes
-          </Button>
+          <Button type="submit">Save changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -57,9 +55,11 @@ export const Frosted: Story = {
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="frosted">Open Frosted Dialog</Button>
+        <Button material="frosted" border>
+          Open Frosted Dialog
+        </Button>
       </DialogTrigger>
-      <DialogContent variant="frosted">
+      <DialogContent material="frosted" border>
         <DialogHeader>
           <DialogTitle>Frosted Glass Dialog</DialogTitle>
           <DialogDescription>This dialog uses a frosted glass effect with enhanced blur.</DialogDescription>
@@ -76,9 +76,11 @@ export const Crystal: Story = {
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="crystal">Open Crystal Dialog</Button>
+        <Button material="crystal" border>
+          Open Crystal Dialog
+        </Button>
       </DialogTrigger>
-      <DialogContent variant="crystal">
+      <DialogContent material="crystal" border>
         <DialogHeader>
           <DialogTitle>Crystal Glass Dialog</DialogTitle>
           <DialogDescription>This dialog features layered crystal effects with animations.</DialogDescription>
@@ -87,7 +89,9 @@ export const Crystal: Story = {
           <p className="text-sm">The crystal variant combines multiple layers with gradients and subtle animations for a premium look.</p>
         </div>
         <DialogFooter>
-          <Button variant="crystal">Continue</Button>
+          <Button material="crystal" border>
+            Continue
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -98,9 +102,9 @@ export const WithForm: Story = {
   render: () => (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="glass">Create Account</Button>
+        <Button>Create Account</Button>
       </DialogTrigger>
-      <DialogContent variant="glass">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Create your account</DialogTitle>
           <DialogDescription>Enter your information to create a new account.</DialogDescription>
@@ -108,19 +112,19 @@ export const WithForm: Story = {
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="email@example.com" variant="glass" />
+            <Input id="email" type="email" placeholder="email@example.com" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" variant="glass" />
+            <Input id="password" type="password" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="confirm">Confirm Password</Label>
-            <Input id="confirm" type="password" variant="glass" />
+            <Input id="confirm" type="password" />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="glass">Create Account</Button>
+          <Button>Create Account</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

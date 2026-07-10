@@ -4,6 +4,7 @@ import { Circle } from "@phosphor-icons/react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const RadioGroup = React.forwardRef<
@@ -14,24 +15,36 @@ const RadioGroup = React.forwardRef<
 });
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
+/* Role: bordered adaptive glass. */
+const ROLE = {
+  border: true,
+};
+
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> & {
     variant?: "default" | "glass";
+    material?: Material;
+    border?: boolean;
+    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
+    glow?: boolean;
   }
->(({ className, variant = "glass", ...props }, ref) => {
-  const variants = {
-    default: "border-primary",
-    glass: "glass-surface",
-  };
+>(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+  });
 
   return (
     <RadioGroupPrimitive.Item
       ref={ref}
       data-slot="radio-group-item"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         "aspect-square h-4 w-4 shrink-0 rounded-full border shadow transition-[color,box-shadow] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
-        variants[variant],
+        m === null && "border-primary",
+        glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
       {...props}

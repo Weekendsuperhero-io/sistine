@@ -3,20 +3,17 @@
 import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const carouselVariants = cva("", {
   variants: {
     variant: {
       default: "bg-card text-card-foreground border shadow-sm",
-      glass: "glass-bg text-foreground",
-      frosted: "glass-frosted text-foreground",
-      crystal: "glass-crystal text-foreground",
-      opaque: "glass-opaque text-foreground",
-      surface: "glass-surface text-foreground",
-      solid: "glass-solid text-foreground",
+      glass: "text-foreground",
     },
   },
   defaultVariants: {
@@ -24,14 +21,26 @@ const carouselVariants = cva("", {
   },
 });
 
+/* Role: borderless adaptive glass. */
+const ROLE = {};
+
 export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {
-  glass?: GlassCustomization;
+  material?: Material;
+  border?: boolean;
+  veil?: boolean;
+  gradient?: boolean;
+  glow?: boolean | "lg";
+  sheen?: boolean;
+  effect?: HoverEffect;
   autoPlay?: boolean;
   interval?: number;
 }
 
 const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
-  ({ className, variant = "glass", glass, autoPlay = false, interval = 3000, children, ...props }, ref) => {
+  (
+    { className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, autoPlay = false, interval = 3000, children, ...props },
+    ref,
+  ) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
     const items = React.Children.toArray(children);
     const totalItems = items.length;
@@ -62,26 +71,33 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       setCurrentIndex((prev) => (prev + 1) % totalItems);
     };
 
-    const hasCustomGlass = glass !== undefined;
-    const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
-
-    const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+    });
 
     if (totalItems === 0) return null;
 
     return (
       <div
         ref={ref}
+        data-material={m?.["data-material"]}
         className={cn(
+          m?.className,
           "relative w-full overflow-hidden rounded-lg",
           carouselVariants({
-            variant: effectiveVariant,
+            variant,
           }),
+          effect &&
+            hoverEffects({
+              hover: effect,
+            }),
           className,
         )}
-        style={{
-          ...glassStyles,
-        }}
         {...props}
       >
         <div
@@ -102,17 +118,12 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
+              className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass"
               onClick={goToPrevious}
             >
               <CaretLeftIcon className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass-bg"
-              onClick={goToNext}
-            >
+            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full glass" onClick={goToNext}>
               <CaretRightIcon className="h-4 w-4" />
             </Button>
 

@@ -23,38 +23,60 @@ import * as React from "react";
 import { toast } from "sonner";
 import { GradientText } from "@/components/gradient-text";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/glass/badge";
-import { Button } from "@/components/ui/glass/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/glass/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/glass/dialog";
-import { Input } from "@/components/ui/glass/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/glass/select";
-import { Toaster } from "@/components/ui/glass/sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/glass/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-/** Glass surface utilities, sheerest → most solid — the showcase cards below swap between these. */
+/** The material system's composable surfaces, sheerest → most solid — the showcase cards below swap
+ *  between them: bare structural glass, + the border axis, + the veil floor, and the opaque material. */
 const SURFACES = [
-  "glass-bg",
-  "glass-surface",
-  "glass-solid",
-  "glass-opaque",
+  {
+    value: "glass",
+    label: "Glass",
+    className: "glass",
+    material: undefined,
+  },
+  {
+    value: "border",
+    label: "Border",
+    className: "glass glass-border",
+    material: undefined,
+  },
+  {
+    value: "veil",
+    label: "Veil",
+    className: "glass glass-border glass-veil",
+    material: undefined,
+  },
+  {
+    value: "opaque",
+    label: "Opaque",
+    className: "glass glass-border",
+    material: "opaque",
+  },
 ] as const;
 
 export default function Home() {
   const [copied, setCopied] = React.useState(false);
-  const [surface, setSurface] = React.useState<(typeof SURFACES)[number]>("glass-bg");
+  const [surface, setSurface] = React.useState<(typeof SURFACES)[number]["value"]>("glass");
   const [solidAlpha, setSolidAlpha] = React.useState(0.5);
+  const activeSurface = SURFACES.find((s) => s.value === surface) ?? SURFACES[0];
 
-  // --glass-solid-bg resolves var(--glass-solid-a) at :root (where it's declared), so the demo
-  // slider must set --glass-solid-a on <html> — not on a descendant. Reset when not on Solid.
+  // glass-veil composes var(--glass-solid-a) at the ELEMENT, so the slider could scope it anywhere;
+  // <html> keeps the one dial driving every veiled card below. Reset when not on Veil.
   React.useEffect(() => {
     const root = document.documentElement;
-    if (surface === "glass-solid") root.style.setProperty("--glass-solid-a", String(solidAlpha));
+    if (surface === "veil") root.style.setProperty("--glass-solid-a", String(solidAlpha));
     else root.style.removeProperty("--glass-solid-a");
     return () => {
       root.style.removeProperty("--glass-solid-a");
@@ -77,7 +99,7 @@ export default function Home() {
         {/* ───────────────────── Hero ───────────────────── */}
         <section className="container mx-auto px-4 pt-24 pb-32 md:pt-32 md:pb-40">
           <div className="max-w-3xl mx-auto text-center">
-            <Badge variant="glass" className="mb-8 px-4 py-1.5 text-sm">
+            <Badge className="mb-8 px-4 py-1.5 text-sm">
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
               50+ Liquid Glass Components
             </Badge>
@@ -94,7 +116,7 @@ export default function Home() {
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
-              <Button asChild size="lg" variant="glass" effect="glow">
+              <Button asChild size="lg" effect="glow">
                 <Link href="/docs/getting-started">
                   Get Started
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -106,7 +128,7 @@ export default function Home() {
             </div>
 
             <div
-              className="glass-bg max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
+              className="glass max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
               onClick={handleCopy}
             >
               <code className="text-foreground/70 truncate select-all">pnpm dlx shadcn@latest add @sistine/button</code>
@@ -126,21 +148,21 @@ export default function Home() {
             <p className="text-muted-foreground max-w-lg mx-auto">Real UI patterns built entirely with Liquid Glass components.</p>
           </div>
 
-          {/* Surface switcher — swaps the glass surface utility on every card below (styled like the variants tabs). */}
+          {/* Surface switcher — swaps the material-system axes on every card below. */}
           <div className="max-w-3xl mx-auto mb-10">
-            <Tabs value={surface} onValueChange={(v) => setSurface(v as (typeof SURFACES)[number])}>
-              <TabsList variant="glass" className="w-full grid grid-cols-4">
-                <TabsTrigger value="glass-bg">Glass</TabsTrigger>
-                <TabsTrigger value="glass-surface">Surface</TabsTrigger>
-                <TabsTrigger value="glass-solid">Solid</TabsTrigger>
-                <TabsTrigger value="glass-opaque">Opaque</TabsTrigger>
+            <Tabs value={surface} onValueChange={(v) => setSurface(v as (typeof SURFACES)[number]["value"])}>
+              <TabsList className="w-full grid grid-cols-4">
+                {SURFACES.map((s) => (
+                  <TabsTrigger key={s.value} value={s.value}>
+                    {s.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </Tabs>
-            {surface === "glass-solid" && (
+            {surface === "veil" && (
               <div className="mx-auto mt-4 flex max-w-xs items-center gap-3">
                 <span className="whitespace-nowrap text-muted-foreground text-xs">opacity</span>
                 <Slider
-                  variant="glass"
                   value={[
                     solidAlpha,
                   ]}
@@ -157,7 +179,10 @@ export default function Home() {
 
           <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Settings */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -171,13 +196,12 @@ export default function Home() {
                     <Label className="text-sm">Dark Mode</Label>
                     <p className="text-xs text-muted-foreground">Use dark theme</p>
                   </div>
-                  <Switch variant="glass" />
+                  <Switch />
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label className="text-sm">Volume</Label>
                   <Slider
-                    variant="glass"
                     defaultValue={[
                       65,
                     ]}
@@ -191,13 +215,16 @@ export default function Home() {
                     <Label className="text-sm">Notifications</Label>
                     <p className="text-xs text-muted-foreground">Push alerts</p>
                   </div>
-                  <Switch variant="glass" defaultChecked />
+                  <Switch defaultChecked />
                 </div>
               </CardContent>
             </div>
 
             {/* Chat */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Bot className="h-4 w-4" />
@@ -213,12 +240,12 @@ export default function Home() {
                         <Bot className="h-3.5 w-3.5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="glass-bg rounded-lg px-3 py-2">
+                    <div className="glass rounded-lg px-3 py-2">
                       <p className="text-sm">How can I help you today?</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2 justify-end">
-                    <div className="glass-bg rounded-lg px-3 py-2 max-w-[80%]">
+                    <div className="glass rounded-lg px-3 py-2 max-w-[80%]">
                       <p className="text-sm">Show me the glass variants.</p>
                     </div>
                     <Avatar className="h-7 w-7">
@@ -227,8 +254,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Input variant="glass" placeholder="Type a message..." className="flex-1 min-w-0" />
-                  <Button variant="glass" size="icon" effect="glow" className="shrink-0">
+                  <Input placeholder="Type a message..." className="flex-1 min-w-0" />
+                  <Button size="icon" effect="glow" className="shrink-0">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
@@ -236,7 +263,10 @@ export default function Home() {
             </div>
 
             {/* Profile */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -259,9 +289,7 @@ export default function Home() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Status</span>
-                    <Badge variant="glass" className="bg-green-500/20 text-green-600 dark:text-green-400">
-                      Active
-                    </Badge>
+                    <Badge className="bg-green-500/20 text-green-600 dark:text-green-400">Active</Badge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Role</span>
@@ -275,7 +303,10 @@ export default function Home() {
             </div>
 
             {/* Metrics */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <TrendingUp className="h-4 w-4" />
@@ -284,7 +315,7 @@ export default function Home() {
                 <CardDescription>Key performance data</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="glass-bg rounded-lg p-3">
+                <div className="glass rounded-lg p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-muted-foreground">Revenue</span>
                     <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
@@ -295,7 +326,7 @@ export default function Home() {
                     +20.1% from last month
                   </p>
                 </div>
-                <div className="glass-bg rounded-lg p-3">
+                <div className="glass rounded-lg p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-muted-foreground">Users</span>
                     <User className="h-3.5 w-3.5 text-muted-foreground" />
@@ -310,7 +341,10 @@ export default function Home() {
             </div>
 
             {/* Payment */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <CreditCard className="h-4 w-4" />
@@ -319,10 +353,10 @@ export default function Home() {
                 <CardDescription>Saved payment method</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="glass-bg rounded-lg p-4">
+                <div className="glass rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <CreditCard className="h-5 w-5 text-muted-foreground" />
-                    <Badge variant="glass">Primary</Badge>
+                    <Badge>Primary</Badge>
                   </div>
                   <p className="text-sm font-mono tracking-wider text-foreground">**** **** **** 4242</p>
                   <p className="text-xs text-muted-foreground mt-1">Expires 12/27</p>
@@ -335,7 +369,10 @@ export default function Home() {
             </div>
 
             {/* Sign In */}
-            <div className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", surface)}>
+            <div
+              data-material={activeSurface.material}
+              className={cn("flex flex-col gap-6 rounded-xl py-6 text-foreground", activeSurface.className)}
+            >
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="h-4 w-4" />
@@ -344,9 +381,9 @@ export default function Home() {
                 <CardDescription>Authentication form</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input variant="glass" placeholder="Email address" icon={<Mail className="h-4 w-4 text-muted-foreground" />} />
-                <Input variant="glass" type="password" placeholder="Password" icon={<Lock className="h-4 w-4 text-muted-foreground" />} />
-                <Button variant="glass" className="w-full" effect="glow">
+                <Input placeholder="Email address" icon={<Mail className="h-4 w-4 text-muted-foreground" />} />
+                <Input type="password" placeholder="Password" icon={<Lock className="h-4 w-4 text-muted-foreground" />} />
+                <Button className="w-full" effect="glow">
                   Sign In
                 </Button>
               </CardContent>
@@ -357,13 +394,13 @@ export default function Home() {
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct glass variants</h2>
-            <p className="text-muted-foreground">Every component ships with Glass, Frosted, Crystal, and Opaque styles.</p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct materials</h2>
+            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, and Opaque materials.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
             <Tabs defaultValue="glass">
-              <TabsList variant="glass" className="mb-6 w-full grid grid-cols-4">
+              <TabsList className="mb-6 w-full grid grid-cols-4">
                 <TabsTrigger value="glass">Glass</TabsTrigger>
                 <TabsTrigger value="frosted">Frosted</TabsTrigger>
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
@@ -379,24 +416,24 @@ export default function Home() {
                 ] as const
               ).map((v) => (
                 <TabsContent key={v} value={v}>
-                  <Card variant={v} className={v === "crystal" ? "glass-sheen" : undefined}>
+                  <Card material={v} border sheen={v === "crystal"}>
                     <CardHeader>
-                      <CardTitle className="capitalize">{v} Variant</CardTitle>
+                      <CardTitle className="capitalize">{v} Material</CardTitle>
                       <CardDescription>
                         {v === "crystal"
-                          ? "Crystal ships clear — this card opts into the glass-sheen utility for the highlight + shimmer."
-                          : `See how every primitive adapts to the ${v} style.`}
+                          ? "Crystal ships clear — this card opts into the sheen axis for the highlight + shimmer."
+                          : `See how every primitive adapts to the ${v} material.`}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant={v}>Badge</Badge>
-                        <Badge variant={v}>Status</Badge>
-                        <Badge variant={v}>Tag</Badge>
+                        <Badge material={v}>Badge</Badge>
+                        <Badge material={v}>Status</Badge>
+                        <Badge material={v}>Tag</Badge>
                       </div>
-                      <Input variant={v} placeholder={`${v} input...`} />
+                      <Input material={v} placeholder={`${v} input...`} />
                       <div className="flex gap-3">
-                        <Button variant={v} effect="glow" className="flex-1">
+                        <Button material={v} border effect="glow" className="flex-1">
                           Primary
                         </Button>
                         <Button variant="outline" className="flex-1">
@@ -421,23 +458,23 @@ export default function Home() {
           <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
             <Dialog>
               <DialogTrigger asChild>
-                <button className="glass-bg rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]">
+                <button className="glass rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]">
                   <div className="font-semibold text-foreground">Open Dialog</div>
                   <div className="text-xs text-muted-foreground mt-1">Glass modal overlay</div>
                 </button>
               </DialogTrigger>
-              <DialogContent variant="frosted" className="max-w-md">
+              <DialogContent material="frosted" className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Glass Dialog</DialogTitle>
                   <DialogDescription>A frosted glass modal with form controls inside.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
-                  <Input variant="glass" placeholder="Your name" />
+                  <Input placeholder="Your name" />
                   <Select>
-                    <SelectTrigger variant="glass">
+                    <SelectTrigger>
                       <SelectValue placeholder="Pick an option" />
                     </SelectTrigger>
-                    <SelectContent variant="glass">
+                    <SelectContent>
                       <SelectItem value="a">Option A</SelectItem>
                       <SelectItem value="b">Option B</SelectItem>
                       <SelectItem value="c">Option C</SelectItem>
@@ -445,16 +482,14 @@ export default function Home() {
                   </Select>
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline">Cancel</Button>
-                    <Button variant="glass" effect="glow">
-                      Confirm
-                    </Button>
+                    <Button effect="glow">Confirm</Button>
                   </div>
                 </div>
               </DialogContent>
             </Dialog>
 
             <button
-              className="glass-bg rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="glass rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() =>
                 toast.success("Success!", {
                   description: "This is a glass toast notification.",
@@ -466,7 +501,7 @@ export default function Home() {
             </button>
 
             <button
-              className="glass-bg rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="glass rounded-lg py-6 px-4 text-center transition-transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() =>
                 toast("New update available", {
                   description: "Sistine v2.0 includes 10 new components.",
@@ -513,8 +548,8 @@ export default function Home() {
                 desc: "Built on Radix UI primitives with full keyboard navigation and screen reader support.",
               },
             ].map((f) => (
-              <div key={f.title} className="glass-bg rounded-xl p-6 text-center">
-                <div className="glass-bg w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <div key={f.title} className="glass rounded-xl p-6 text-center">
+                <div className="glass w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <f.icon className="h-6 w-6 text-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-2">{f.title}</h3>
@@ -532,7 +567,7 @@ export default function Home() {
               Install a single component or the full library. Works with any Next.js + shadcn/ui project.
             </p>
             <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Button asChild size="lg" variant="glass" effect="glow">
+              <Button asChild size="lg" effect="glow">
                 <Link href="/docs/getting-started">
                   Read the Docs
                   <ArrowRight className="ml-2 h-4 w-4" />

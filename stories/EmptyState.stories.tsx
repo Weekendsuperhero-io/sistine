@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Inbox } from "@phosphor-icons/react";
-import { Button } from "@/components/ui/glass/button";
-import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/glass/empty-state";
+import { Button } from "@/components/ui/button";
+import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
 
 const meta = {
   title: "Sistine/EmptyState",
@@ -17,10 +17,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
     effect: {
       control: "select",
@@ -41,7 +50,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    variant: "glass",
     children: (
       <>
         <EmptyStateIcon>
@@ -49,9 +57,7 @@ export const Default: Story = {
         </EmptyStateIcon>
         <EmptyStateTitle>No items found</EmptyStateTitle>
         <EmptyStateDescription>Get started by creating a new item.</EmptyStateDescription>
-        <Button variant="glass" className="mt-4">
-          Create Item
-        </Button>
+        <Button className="mt-4">Create Item</Button>
       </>
     ),
   },
@@ -59,7 +65,8 @@ export const Default: Story = {
 
 export const Frosted: Story = {
   args: {
-    variant: "frosted",
+    material: "frosted",
+    border: true,
     children: (
       <>
         <EmptyStateIcon>
@@ -67,9 +74,7 @@ export const Frosted: Story = {
         </EmptyStateIcon>
         <EmptyStateTitle>No items found</EmptyStateTitle>
         <EmptyStateDescription>Get started by creating a new item.</EmptyStateDescription>
-        <Button variant="glass" className="mt-4">
-          Create Item
-        </Button>
+        <Button className="mt-4">Create Item</Button>
       </>
     ),
   },

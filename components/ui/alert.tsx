@@ -1,27 +1,26 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
+import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
+import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from materialSurface.
+   Status variants ride a BORDERLESS glass surface (their colored border is their own chrome). */
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
     variants: {
       variant: {
         default: "bg-background text-foreground",
-        glass: "glass-surface text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
-        info: "glass-bg backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
+        glass: "text-foreground",
+        info: "backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
-          "glass-bg backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
+          "backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
         warning:
-          "glass-bg backdrop-blur-[var(--blur)] border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
+          "backdrop-blur-[var(--blur)] border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
         destructive:
-          "glass-bg backdrop-blur-[var(--blur)] border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
+          "backdrop-blur-[var(--blur)] border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
       },
     },
     defaultVariants: {
@@ -30,33 +29,64 @@ const alertVariants = cva(
   },
 );
 
-const Alert = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>>(
-  ({ className, variant, ...props }, ref) => (
+const STATUS_VARIANTS = [
+  "info",
+  "success",
+  "warning",
+  "destructive",
+] as const;
+
+/* Each semantic variant's surface role: statuses ride a BORDERLESS glass surface (their colored
+   border is their own chrome); default renders no glass surface. */
+const SURFACE_ROLE: Record<string, MaterialProps | null> = {
+  default: null,
+  glass: {},
+  info: {},
+  success: {},
+  warning: {},
+  destructive: {},
+};
+
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> &
+    VariantProps<typeof alertVariants> & {
+      material?: Material;
+      border?: boolean;
+      glow?: boolean | "lg";
+      effect?: HoverEffect;
+    }
+>(({ className, variant, material, border, glow, effect, ...props }, ref) => {
+  const isStatus = variant !== null && variant !== undefined && (STATUS_VARIANTS as readonly string[]).includes(variant);
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
+    material,
+    border,
+    glow,
+  });
+
+  return (
     <div
       ref={ref}
       data-slot="alert"
       role="alert"
-      data-glass-tint={
-        variant &&
-        [
-          "info",
-          "success",
-          "warning",
-          "destructive",
-        ].includes(variant)
-          ? variant
-          : undefined
-      }
+      data-material={m?.["data-material"]}
+      data-glass-tint={isStatus ? variant : undefined}
       className={cn(
+        m?.className,
         alertVariants({
           variant,
         }),
+        effect && "relative overflow-hidden transition duration-200",
+        effect &&
+          hoverEffects({
+            hover: effect,
+          }),
         className,
       )}
       {...props}
     />
-  ),
-);
+  );
+});
 Alert.displayName = "Alert";
 
 const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (

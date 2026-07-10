@@ -69,23 +69,23 @@ export function CalendarBlock() {
           <h2 className="text-3xl font-bold text-foreground">Calendar</h2>
           <p className="text-muted-foreground">Manage your schedule and events</p>
         </div>
-        <Button variant="glass" className="text-foreground" onClick={addEvent} disabled={!selectedDate}>
+        <Button className="text-foreground" onClick={addEvent} disabled={!selectedDate}>
           New Event
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card variant="glass" className="lg:col-span-2 text-foreground">
+        <Card className="lg:col-span-2 text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Calendar View</CardTitle>
             <CardDescription className="text-muted-foreground">Select a date to view events</CardDescription>
           </CardHeader>
           <CardContent>
-            <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} variant="glass" className="rounded-md border" />
+            <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} className="rounded-md border" />
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Upcoming Events</CardTitle>
             <CardDescription className="text-muted-foreground">{dateLabel}</CardDescription>
@@ -97,10 +97,10 @@ export function CalendarBlock() {
                   <p className="text-sm text-muted-foreground">No events for this date — use New Event to add one.</p>
                 ) : (
                   dayEvents.map((event) => (
-                    <div key={event.id} className="p-4 rounded-lg glass-surface">
+                    <div key={event.id} className="p-4 rounded-lg glass glass-border">
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-semibold text-foreground">{event.title}</h4>
-                        <Badge variant="glass">{isSameDay(event.date, new Date()) ? "Today" : "Scheduled"}</Badge>
+                        <Badge>{isSameDay(event.date, new Date()) ? "Today" : "Scheduled"}</Badge>
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">

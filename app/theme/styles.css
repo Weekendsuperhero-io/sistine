@@ -1,0 +1,84 @@
+/* ── Site-wide style remaps + vendor cascade fixes ──────────────────────────── */
+
+/* Keep react-day-picker from painting over the glass background */
+@layer utilities {
+  .glass[class*="rdp"],
+  .glass .rdp,
+  .glass .rdp-month {
+    background-color: transparent !important;
+  }
+}
+
+/* ── Site-wide glass style: token remaps ─────────────────────────────────────
+   data-glass on <html> (frosted | crystal | opaque) re-skins every ADAPTIVE surface (`glass` with no
+   data-material) by remapping the --srf-* tokens it reads. An element-level [data-material] pins its
+   own tokens and beats these by cascade physics — reinforced by the :where() wrapper, which drops
+   every remap (incl. its cross-product legs) to specificity (0,0,0), so a co-located data-material on
+   a toast or tint-scope element always wins. The cross-product legs keep the swapped stacks
+   re-resolving inside scoped tints and status toasts (a bare [data-glass] rule would bake <html>'s
+   tint into descendants' surfaces). Veiled surfaces (glass-veil) keep their element-composed floor. */
+:where(
+  [data-glass="frosted"],
+  [data-glass="frosted"] [data-glass-tint],
+  [data-glass="frosted"][data-glass-tint],
+  [data-glass="frosted"] [data-sonner-toast][data-type]
+) {
+  --srf-bg-image: var(--frosted-stack-bg);
+  /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
+     as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
+     floor's channel. */
+  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
+  --srf-border-color: var(--glass-frosted-border);
+  --srf-border-w: var(--brd-w, 0.5px);
+  --srf-shadow: var(--glass-frosted-shadow);
+}
+:where(
+  [data-glass="crystal"],
+  [data-glass="crystal"] [data-glass-tint],
+  [data-glass="crystal"][data-glass-tint],
+  [data-glass="crystal"] [data-sonner-toast][data-type]
+) {
+  /* Gloss rides inside --crystal-stack-bg (baked — sticky/fixed-safe). Shimmer stays the opt-in
+     glass-sheen. No saturate(), matching the material. */
+  --srf-bg-image: var(--crystal-stack-bg);
+  --srf-bg-color: var(--glass-crystal-bg);
+  --srf-filter: blur(var(--blur-crystal));
+  --srf-border-color: var(--glass-crystal-border);
+  --srf-shadow: var(--glass-crystal-shadow);
+}
+/* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
+   as the material remap in materials.css — the baked gloss lightens title zones there too. */
+[data-glass="crystal"] :where(.glass):not([data-material]):not(.glass-veil) {
+  --foreground: var(--foreground-crystal);
+  --foreground-soft: var(--foreground-soft-crystal);
+  --foreground-strong: var(--foreground-strong-crystal);
+  --foreground-ui: var(--foreground-ui-crystal);
+  --muted-foreground: var(--muted-foreground-crystal);
+}
+/* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
+   (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
+:where(
+  [data-glass="opaque"],
+  [data-glass="opaque"] [data-glass-tint],
+  [data-glass="opaque"][data-glass-tint],
+  [data-glass="opaque"] [data-sonner-toast][data-type]
+) {
+  --srf-bg-image: var(--glass-bg);
+  --srf-bg-color: var(--glass-opaque-bg);
+  --srf-filter: none;
+  --srf-shadow: var(--glass-shadow);
+  --glass-solid-a: 1;
+}
+/* Opaque page: element-level touches for ADAPTIVE surfaces only (`.glass` with no explicit material —
+   an explicit frosted/crystal card keeps its translucency AND its normal foreground). Declared ON the
+   element because (a) --glass-opaque-outline is settable on any ancestor and must resolve where it's
+   read, and (b) the foreground remap must not leak into explicit materials. */
+[data-glass="opaque"] :where(.glass):not([data-material]) {
+  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
+  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  --foreground: var(--foreground-opaque);
+  --foreground-soft: var(--foreground-soft-opaque);
+  --foreground-strong: var(--foreground-strong-opaque);
+  --foreground-ui: var(--foreground-ui-opaque);
+  --muted-foreground: var(--muted-foreground-opaque);
+}

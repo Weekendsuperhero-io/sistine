@@ -3,6 +3,8 @@
 import { CalendarIcon } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import * as React from "react";
+import type { HoverEffect } from "@/lib/hover-effects";
+import type { Material } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
@@ -13,22 +15,30 @@ export interface DatePickerInputProps extends Omit<React.ComponentProps<typeof I
   value?: Date;
   onChange?: (date: Date | undefined) => void;
   placeholder?: string;
-  variant?: "default" | "glass" | "frosted" | "crystal" | "opaque";
+  variant?: "default" | "glass";
+  /** Passed through to the trigger Button and PopoverContent — each resolves its own role. */
+  material?: Material;
+  effect?: HoverEffect;
 }
 
 const DatePickerInput = React.forwardRef<HTMLInputElement, DatePickerInputProps>(
-  ({ className, value, onChange, placeholder = "Pick a date", variant = "glass" }, _ref) => {
+  ({ className, value, onChange, placeholder = "Pick a date", variant = "glass", material, effect }, _ref) => {
     const [open, setOpen] = React.useState(false);
 
     return (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant={variant} className={cn("w-full justify-start text-left font-normal", !value && "text-muted-foreground", className)}>
+          <Button
+            variant={variant}
+            material={material}
+            effect={effect}
+            className={cn("w-full justify-start text-left font-normal", !value && "text-muted-foreground", className)}
+          >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {value ? format(value, "PPP") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" variant={variant}>
+        <PopoverContent className="w-auto p-0" variant={variant} material={material}>
           <Calendar
             mode="single"
             selected={value}

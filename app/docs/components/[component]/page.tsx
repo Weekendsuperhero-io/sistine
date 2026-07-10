@@ -25,7 +25,7 @@ function CodeBlock({ code }: { code: string }) {
 
   return (
     <div className="relative">
-      <pre className="glass-bg p-4 rounded-lg font-mono text-sm overflow-x-auto">
+      <pre className="glass p-4 rounded-lg font-mono text-sm overflow-x-auto">
         <code className="text-foreground whitespace-pre break-words">{code}</code>
       </pre>
       <Button
@@ -62,11 +62,9 @@ export default function ComponentPage({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
-            <Badge variant="glass" className="w-fit">
-              Component
-            </Badge>
+            <Badge className="w-fit">Component</Badge>
           </div>
-          <Button variant="glass" size="sm" asChild>
+          <Button size="sm" asChild>
             <a href={getStorybookUrl(component.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-fit">
               <BookOpen className="h-4 w-4" />
               View in Storybook
@@ -77,7 +75,7 @@ export default function ComponentPage({
       </div>
 
       <div className="space-y-8">
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Installation</CardTitle>
             <CardDescription className="text-muted-foreground">
@@ -89,14 +87,14 @@ export default function ComponentPage({
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Usage</CardTitle>
             <CardDescription className="text-muted-foreground">Example code for using this component</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="example" className="w-full">
-              <TabsList variant="glass" className="mb-4">
+              <TabsList className="mb-4">
                 <TabsTrigger value="example">Example</TabsTrigger>
                 <TabsTrigger value="code">Code</TabsTrigger>
               </TabsList>
@@ -112,7 +110,7 @@ export default function ComponentPage({
           </CardContent>
         </Card>
 
-        <Card variant="glass" className="text-foreground">
+        <Card className="text-foreground">
           <CardHeader>
             <CardTitle className="text-foreground">Props</CardTitle>
             <CardDescription className="text-muted-foreground">Component props and variants</CardDescription>

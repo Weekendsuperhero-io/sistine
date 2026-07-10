@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/glass/button";
+import { Button } from "@/components/ui/button";
 
 const meta = {
   title: "Sistine/AlertDialog",
@@ -30,9 +30,9 @@ export const Glass: Story = {
   render: () => (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="glass">Delete Account</Button>
+        <Button>Delete Account</Button>
       </AlertDialogTrigger>
-      <AlertDialogContent variant="glass">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -52,9 +52,11 @@ export const Frosted: Story = {
   render: () => (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="frosted">Show Frosted Alert</Button>
+        <Button material="frosted" border>
+          Show Frosted Alert
+        </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent variant="frosted">
+      <AlertDialogContent material="frosted" border>
         <AlertDialogHeader>
           <AlertDialogTitle>Confirm your action</AlertDialogTitle>
           <AlertDialogDescription>This dialog uses a frosted glass effect. Are you sure you want to proceed?</AlertDialogDescription>
@@ -72,9 +74,11 @@ export const Crystal: Story = {
   render: () => (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="crystal">Show Crystal Alert</Button>
+        <Button material="crystal" border>
+          Show Crystal Alert
+        </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent variant="crystal">
+      <AlertDialogContent material="crystal" border>
         <AlertDialogHeader>
           <AlertDialogTitle>Premium Action</AlertDialogTitle>
           <AlertDialogDescription>This crystal glass dialog provides a premium feel with layered effects and animations.</AlertDialogDescription>
@@ -94,7 +98,7 @@ export const Destructive: Story = {
       <AlertDialogTrigger asChild>
         <Button variant="destructive">Delete Everything</Button>
       </AlertDialogTrigger>
-      <AlertDialogContent variant="glass">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="text-destructive">Warning: Destructive Action</AlertDialogTitle>
           <AlertDialogDescription>

@@ -150,7 +150,7 @@ export function OklchRampDemo() {
   } as React.CSSProperties;
 
   return (
-    <Card variant="glass" className="w-full max-w-3xl">
+    <Card className="w-full max-w-3xl">
       <CardHeader>
         <CardTitle>OKLCH ramps</CardTitle>
         <CardDescription>
@@ -256,7 +256,6 @@ export function OklchRampDemo() {
           </div>
           <div className="flex flex-wrap items-center gap-2" style={previewTintStyle}>
             <Button
-              variant="glass"
               style={{
                 color: textColor,
               }}
@@ -265,7 +264,6 @@ export function OklchRampDemo() {
               Button
             </Button>
             <Button
-              variant="glass"
               size="sm"
               style={{
                 color: textColor,
@@ -278,7 +276,6 @@ export function OklchRampDemo() {
               Delete
             </Button>
             <Badge
-              variant="glass"
               style={{
                 color: textColor,
               }}

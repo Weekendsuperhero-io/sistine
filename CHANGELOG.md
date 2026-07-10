@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Material system (BREAKING)** — redesigned the glass API around four **materials** (`glass`, `frosted`, `crystal`, `opaque`) selected with a `material` prop (undefined = adaptive glass, the default; `material="none"` = plain, non-glass), composed with orthogonal **axes** — `border`, `veil` (the legibility floor for menus/overlays), `gradient`, `glow`, `sheen` — while `size` stays the component's own dimension. On raw elements the surface is the single structural `glass` utility plus the `glass-border` / `glass-veil` / `glass-sm` / `glass-lg` / `glass-gradient` / `glass-glow` / `glass-glow-lg` / `glass-sheen` axis classes, with the material set via a `data-material` attribute. Components now live in **one tree** (`components/ui/*`) and resolve their surface through `materialSurface` / `glassMaterial` in `lib/material.ts` instead of hardcoded recipe-class strings. Renamed the crystal gloss attribute `data-crystal` → `data-gloss`. The page-style `data-glass` and tint `data-glass-tint` attributes are unchanged.
+
+### Removed
+- **Legacy glass API (BREAKING)** — removed the `variant="glass|frosted|crystal|opaque|surface|solid"` surface tiers, the recipe utility classes (`glass-bg`, `glass-surface`, `glass-solid`, `glass-opaque`, `glass-frosted`, `glass-crystal`), the per-component `glass={{ color, blur, transparency, outline }}` prop — replaced by the `glassVars({ tintH, tintC, tintA, opacity, blur, solidA })` helper that emits CSS custom properties — and the `components/ui/glass/*` wrapper tree.
+
 ### Added
 - **ARC Bronze contrast** — introduced APCA contrast banding targeting for size-tiered text foregrounds and icons.
 - **Perceptual hue helpers** — added `complement` and `harmony` OKLCH hue helpers for theme-complementary accents.

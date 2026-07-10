@@ -15,10 +15,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
   },
 } satisfies Meta<typeof Table>;
@@ -61,7 +70,7 @@ const invoices = [
 
 export const Glass: Story = {
   render: () => (
-    <Table variant="glass">
+    <Table>
       <TableCaption>A list of your recent invoices.</TableCaption>
       <TableHeader>
         <TableRow>
@@ -87,7 +96,7 @@ export const Glass: Story = {
 
 export const Frosted: Story = {
   render: () => (
-    <Table variant="frosted">
+    <Table material="frosted" border>
       <TableCaption>Recent transactions with frosted glass effect.</TableCaption>
       <TableHeader>
         <TableRow>
@@ -113,7 +122,7 @@ export const Frosted: Story = {
 
 export const Crystal: Story = {
   render: () => (
-    <Table variant="crystal">
+    <Table material="crystal" border>
       <TableCaption>Premium table with crystal glass effect.</TableCaption>
       <TableHeader>
         <TableRow>
@@ -139,7 +148,7 @@ export const Crystal: Story = {
 
 export const Simple: Story = {
   render: () => (
-    <Table variant="glass">
+    <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>

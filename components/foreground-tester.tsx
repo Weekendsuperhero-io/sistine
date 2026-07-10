@@ -267,7 +267,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
 
   return (
     <div className="space-y-4 text-xs">
-      <Card variant="glass">
+      <Card>
         <CardContent className="space-y-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="inline-flex rounded-lg border border-foreground/15 p-0.5">
@@ -332,7 +332,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
 
       {/* Picks rendered on a real glass-solid panel over the page background — the opacity slider changes it. */}
       <div
-        className="glass-solid space-y-3 rounded-xl p-4"
+        className="glass glass-border glass-veil space-y-3 rounded-xl p-4"
         style={
           {
             "--glass-solid-a": String(solidA),
@@ -421,7 +421,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         </div>
       </div>
 
-      <Card variant="glass">
+      <Card>
         <CardContent className="space-y-3 p-4">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">

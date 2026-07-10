@@ -3,6 +3,7 @@
 import { PaletteIcon, PauseIcon, PlayIcon, ProhibitIcon, ShuffleIcon, SparkleIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
 import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle } from "@/components/pattern-background";
+import type { RampGradientAxis } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
 const options: {
@@ -48,6 +49,39 @@ const SIZE_SHORT: Record<string, string> = {
 };
 
 const segmentButton = "inline-flex h-7 items-center justify-center rounded-md transition-colors";
+const active = "bg-foreground/10 text-foreground";
+const idle = "text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
+
+/** The ramp-axis button group (T / H / L / C) shared by the Gradient and Canvas panels. */
+function AxisPicker({
+  value,
+  onSelect,
+  titleFor,
+  labelFor,
+}: {
+  value: RampGradientAxis;
+  onSelect: (axis: RampGradientAxis) => void;
+  titleFor: (axis: RampGradientAxis) => string;
+  labelFor: (axis: RampGradientAxis) => string;
+}) {
+  return (
+    <>
+      {RAMP_AXES.map((axis) => (
+        <button
+          key={axis}
+          type="button"
+          title={titleFor(axis)}
+          aria-label={labelFor(axis)}
+          aria-pressed={value === axis}
+          onClick={() => onSelect(axis)}
+          className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", value === axis ? active : idle)}
+        >
+          {axis[0]}
+        </button>
+      ))}
+    </>
+  );
+}
 
 /**
  * Compact segmented control to switch the site-wide background. Gradient exposes a ramp-axis +
@@ -95,8 +129,6 @@ export function BackgroundSwitcher() {
     setBaseColor,
   } = useBackground();
 
-  const active = "bg-foreground/10 text-foreground";
-  const idle = "text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
   const nextStyle = CANVAS_STYLES[(CANVAS_STYLES.indexOf(canvasStyle) + 1) % CANVAS_STYLES.length];
 
   return (
@@ -121,19 +153,12 @@ export function BackgroundSwitcher() {
 
       {background === "gradient" && (
         <div className="flex items-center gap-0.5 border-[var(--glass-border)] border-l pl-0.5" role="group" aria-label="Gradient ramp + angle">
-          {RAMP_AXES.map((axis) => (
-            <button
-              key={axis}
-              type="button"
-              title={`${axis} gradient`}
-              aria-label={`${axis} gradient`}
-              aria-pressed={gradientAxis === axis}
-              onClick={() => setGradientAxis(axis)}
-              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", gradientAxis === axis ? active : idle)}
-            >
-              {axis[0]}
-            </button>
-          ))}
+          <AxisPicker
+            value={gradientAxis}
+            onSelect={setGradientAxis}
+            titleFor={(axis) => `${axis} gradient`}
+            labelFor={(axis) => `${axis} gradient`}
+          />
           {/* Shape: linear | radial | conic */}
           <button
             type="button"
@@ -207,19 +232,12 @@ export function BackgroundSwitcher() {
             {canvasStyle}
           </button>
           {/* Ramp axis (lightness = "linear") */}
-          {RAMP_AXES.map((axis) => (
-            <button
-              key={axis}
-              type="button"
-              title={`${axis === "lightness" ? "linear (lightness)" : axis} ramp`}
-              aria-label={`${axis} ramp`}
-              aria-pressed={canvasRamp === axis}
-              onClick={() => setCanvasRamp(axis)}
-              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", canvasRamp === axis ? active : idle)}
-            >
-              {axis[0]}
-            </button>
-          ))}
+          <AxisPicker
+            value={canvasRamp}
+            onSelect={setCanvasRamp}
+            titleFor={(axis) => `${axis === "lightness" ? "linear (lightness)" : axis} ramp`}
+            labelFor={(axis) => `${axis} ramp`}
+          />
           {/* Steps per side (4–12) */}
           <button
             type="button"

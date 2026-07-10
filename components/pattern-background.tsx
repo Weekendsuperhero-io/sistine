@@ -4,53 +4,28 @@ import type { CSSProperties } from "react";
  * Pure-CSS pattern backgrounds — tileable wallpapers built entirely from `background-image` layers
  * (multiple backgrounds + gradients) and SVG `mask-image` silhouettes, all colored off the live
  * OKLCH tint tokens so they recolor with the theme. No canvas, no rAF loop: each static style is a
- * single GPU paint. The one animated style, `ghost`, is a small field of tetrad-colored ghosts that
- * drift (compositor-only `transform`) and periodically flash to the background-complement — all CSS.
- * Sibling of GradientBackground (CSS gradient) and CanvasBackground (JS canvas).
+ * single GPU paint; the animated scenes (synthwave / moonrise grid scroll, the Pac-Man chase) move
+ * on compositor-only transforms. Sibling of GradientBackground (CSS gradient) and CanvasBackground
+ * (JS canvas).
  */
 
-export type PatternStyle =
-  | "dots"
-  | "grid"
-  | "checkerboard"
-  | "diamonds"
-  | "chevron"
-  | "mesh"
-  | "starfield"
-  | "daybreak"
-  | "synthwave"
-  | "moonrise"
-  | "hexagons"
-  | "pacman"
-  | "ghost"
-  | "invader"
-  | "chase";
+export type PatternStyle = "dots" | "grid" | "mesh" | "starfield" | "synthwave" | "moonrise" | "chase";
 
 export const PATTERN_STYLES: PatternStyle[] = [
   "dots",
   "grid",
-  "checkerboard",
-  "diamonds",
-  "chevron",
   "mesh",
   "starfield",
-  "daybreak",
   "synthwave",
   "moonrise",
-  "hexagons",
-  "pacman",
-  "ghost",
-  "invader",
   "chase",
 ];
 
 /** Patterns that animate (CSS keyframes) — gates the speed control and shares the --pat-dur/--pat-play pace. */
 export const ANIMATED_PATTERNS = new Set<PatternStyle>([
-  "ghost",
   "synthwave",
   "moonrise",
   "chase",
-  "daybreak",
 ]);
 
 /** Horizon scenes with a sun/moon disc that can be placed left / center / right. */
@@ -71,17 +46,18 @@ const STAR_COUNT: Record<PatternDensity, number> = {
   medium: 33,
   dense: 50,
 };
-/** How many of the 16 drifting ghosts render, per density. */
-const GHOST_COUNT: Record<PatternDensity, number> = {
-  sparse: 8,
-  medium: 12,
-  dense: 16,
-};
-/** Tile-size scale per density — sparse = larger cells (fewer per screen), dense = smaller (more). */
+/** Chase pellet-cell scale per density — sparse = larger cells (fewer per screen), dense = smaller (more). */
 const DENSITY_SCALE: Record<PatternDensity, number> = {
   sparse: 1.4,
   medium: 1,
   dense: 0.68,
+};
+/** Tile-size scale for the geometric tiles (dots / grid) — a much airier ladder: the old sparse (1.4)
+ * is the new DENSE, with medium and sparse extrapolated outward on the same ~1.4× step. */
+const TILE_SCALE: Record<PatternDensity, number> = {
+  sparse: 2.8,
+  medium: 2,
+  dense: 1.4,
 };
 
 // SVG silhouettes as mask sources. White fill + transparent ground works whether the browser samples
@@ -89,32 +65,9 @@ const DENSITY_SCALE: Record<PatternDensity, number> = {
 const svgMask = (body: string, viewBox = "0 0 100 100") =>
   `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='${viewBox}' fill='#fff'>${body}</svg>`)}")`;
 
-const PACMAN = svgMask("<path d='M50 50 L98 26 A50 50 0 1 0 98 74 Z'/>");
+// The ghost silhouette — used by the chase scene's fleeing ghosts.
 const GHOST = svgMask(
   "<path fill-rule='evenodd' d='M50 6 A38 38 0 0 0 12 44 V94 L24 84 L36 94 L48 84 L60 94 L72 84 L84 94 V44 A38 38 0 0 0 50 6 Z M37 40 a8 9 0 1 0 .1 0 Z M63 40 a8 9 0 1 0 .1 0 Z'/>",
-);
-const HEXAGON = svgMask("<path d='M50 4 L89 27 V73 L50 96 L11 73 V27 Z'/>");
-// viewBox padded (11×8 sprite centered in a 17×14 tile) so tiled invaders sit apart instead of touching.
-const INVADER = svgMask(
-  [
-    "00100000100",
-    "00010001000",
-    "00111111100",
-    "01101110110",
-    "11111111111",
-    "10111111101",
-    "10100000101",
-    "00011011000",
-  ]
-    .map((row, y) =>
-      [
-        ...row,
-      ]
-        .map((c, x) => (c === "1" ? `<rect x='${x}' y='${y}' width='1' height='1'/>` : ""))
-        .join(""),
-    )
-    .join(""),
-  "-3 -3 17 14",
 );
 
 // Scattered "points" for the galaxy — a fixed set so it's deterministic (SSR-safe, no Math.random).
@@ -343,7 +296,9 @@ const MUSE_STYLES = `
   pointer-events: none;
   --muse-h: var(--accent-h, var(--glass-tint-h));
   filter: drop-shadow(0 0 1px oklch(0.72 0.17 var(--muse-h) / 0.5));
-  opacity: 0.9;
+  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode; DIMMED (not hidden) with
+     them in starfield's day mode. */
+  opacity: calc(0.9 * var(--sw-stars-o, 1));
 }
 .star-muse circle {
   fill: oklch(0.96 0.04 var(--muse-h));
@@ -362,169 +317,121 @@ function MuseConstellation() {
   );
 }
 
-// The four Pac-Man ghost colors, drawn from the theme's tetrad (rectangle) harmony so they recolor
-// with the tint. --hue-* are the registered harmonic tokens; each ghost picks one inline.
-// L/C kept inside the sRGB gamut for EVERY hue — high chroma at high L gamut-maps toward grey for most
-// hues (only yellow survives), which is why the tetrad "didn't work". 0.7/0.16 renders all four as color.
-const TETRAD = [
-  "oklch(0.7 0.16 var(--hue-base))",
-  "oklch(0.7 0.16 var(--hue-tetrad-1))",
-  "oklch(0.7 0.16 var(--hue-tetrad-2))",
-  "oklch(0.7 0.16 var(--hue-tetrad-3))",
-];
-
-// Scattered ghost anchors (%). Each roams from here along one of the axis-aligned maze paths below.
-const GHOSTS = [
-  [
-    8,
-    16,
-  ],
-  [
-    30,
-    62,
-  ],
-  [
-    52,
-    22,
-  ],
-  [
-    72,
-    70,
-  ],
-  [
-    88,
-    32,
-  ],
-  [
-    18,
-    82,
-  ],
-  [
-    62,
-    50,
-  ],
-  [
-    40,
-    8,
-  ],
-  [
-    4,
-    44,
-  ],
-  [
-    22,
-    34,
-  ],
-  [
-    44,
-    78,
-  ],
-  [
-    58,
-    88,
-  ],
-  [
-    78,
-    14,
-  ],
-  [
-    92,
-    58,
-  ],
-  [
-    12,
-    68,
-  ],
-  [
-    68,
-    30,
-  ],
-];
-
-// Ghost field styling: the drift (continuous, compositor-only transform) + the shared "frightened"
-// flash (every ghost holds its own --ghost-color, then all turn to the bg-complement --fright, then
-// back). One fright keyframe serves all ghosts because the two colors are CSS vars.
-const GHOST_STYLES = `
-.pattern-ghost {
-  position: absolute;
-  width: 42px;
-  height: 42px;
-  background-color: var(--ghost-color);
-  -webkit-mask: ${GHOST} center / contain no-repeat;
-  mask: ${GHOST} center / contain no-repeat;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear, ease-in-out;
-  animation-play-state: var(--pat-play, running);
-  /* Only the drift (transform) composites; the fright flash (background-color) can't and is rare, so it's
-     left off will-change — hinting a non-compositable property just keeps the layer busier for no gain. */
-  will-change: transform;
-}
-@keyframes pattern-ghost-fright {
-  0%, 60%, 100% { background-color: var(--ghost-color); }
-  70%, 88% { background-color: var(--fright); }
-}
-/* Maze paths: every segment moves ONE axis only (Pac-Man corridors — sharp right-angle turns, no diagonals). */
-@keyframes pattern-ghost-path-0 {
-  0%, 100% { transform: translate(0, 0); }
-  14% { transform: translate(96px, 0); }
-  28% { transform: translate(96px, 60px); }
-  42% { transform: translate(36px, 60px); }
-  57% { transform: translate(36px, -42px); }
-  71% { transform: translate(-48px, -42px); }
-  85% { transform: translate(-48px, 0); }
-}
-@keyframes pattern-ghost-path-1 {
-  0%, 100% { transform: translate(0, 0); }
-  16% { transform: translate(0, 72px); }
-  33% { transform: translate(-84px, 72px); }
-  50% { transform: translate(-84px, -30px); }
-  66% { transform: translate(30px, -30px); }
-  83% { transform: translate(30px, 0); }
-}
-@keyframes pattern-ghost-path-2 {
-  0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-60px, 0); }
-  40% { transform: translate(-60px, -54px); }
-  60% { transform: translate(54px, -54px); }
-  80% { transform: translate(54px, 0); }
-}
-@keyframes pattern-ghost-path-3 {
-  0%, 100% { transform: translate(0, 0); }
-  16% { transform: translate(0, -66px); }
-  33% { transform: translate(78px, -66px); }
-  50% { transform: translate(78px, 36px); }
-  66% { transform: translate(-42px, 36px); }
-  83% { transform: translate(-42px, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .pattern-ghost { animation: none !important; }
-}`;
-
-// Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon).
-// A perspective grid receding to a glowing horizon line, a disc rising from it, and a starfield sky.
-// The grid + horizon glow ride the selectable --sw-line (accent hue; Tron-cyan for the sun, violet for
-// the moon). Layers back→front: sky gradient (.sw-scene) · stars · disc · dark ground (hides the disc's
-// dip) · horizon glow · floor-grid. moonrise reskins sky/disc/ground/glow via [data-pattern="moonrise"].
-// The floor uses PARENT perspective (.sw-floor, perspective-origin at the horizon) so lines converge at
-// the horizon, not the near edge. The lone motion is the grid's background-position scroll.
+// Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
+// each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
+// --sw-* custom property: day values sit on [data-pattern="…"], night values on `.dark [data-pattern="…"]`
+// (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
+// rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
+// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the
+// sky/ground also take a gentle cast of the theme tint (--sw-cast, gated on tint chroma so neutral stays
+// the authored scene). Layers back→front: sky gradient (.sw-scene) · stars (day-hidden via --sw-stars-o) ·
+// disc · ground (hides the disc's dip) · horizon glow · floor-grid. The floor uses PARENT perspective
+// (.sw-floor, perspective-origin at the horizon) so lines converge at the horizon, not the near edge. The
+// lone motion is the grid's compositor-only translateY scroll.
 const SYNTHWAVE_STYLES = `
+[data-pattern="synthwave"] {
+  /* DAY — a bright, hazy outrun morning */
+  --sw-line-h: 195; /* scene identity hue (Tron cyan) — shared by both modes */
+  /* Day tint cast — how much of the theme tint bleeds into sky/ground. Gated on the tint's chroma, so the
+     near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
+     gentle atmospheric wash. Day-only; night keeps its authored neon. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
+  --sw-line: oklch(0.48 0.08 var(--accent-h, var(--sw-line-h))); /* C 0.08 stays in-gamut at L 0.48 for EVERY accent hue */
+  --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
+  --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-sky-c: color-mix(in oklch, oklch(0.9 0.07 330), oklch(0.9 0.06 var(--glass-tint-h, 330)) var(--sw-cast));
+  --sw-sky-d: color-mix(in oklch, oklch(0.92 0.04 25), oklch(0.92 0.04 var(--glass-tint-h, 25)) var(--sw-cast));
+  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.03 320), oklch(0.93 0.03 var(--glass-tint-h, 320)) var(--sw-cast));
+  --sw-ground-b: color-mix(in oklch, oklch(0.87 0.045 310), oklch(0.87 0.04 var(--glass-tint-h, 310)) var(--sw-cast));
+  --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
+  --sw-glow-core: oklch(0.72 0.11 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-bloom: oklch(0.75 0.12 340 / 0.35);
+  --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
+  --sw-disc-2: oklch(0.65 0.22 6);
+  --sw-disc-3: oklch(0.72 0.18 42);
+  --sw-disc-4: oklch(0.8 0.165 74);
+  --sw-disc-5: oklch(0.88 0.16 95);
+  --sw-disc-glow: oklch(0.7 0.19 20 / 0.35);
+  --sw-stars-o: 0; /* stars hidden by day (also gates the Muse constellation) */
+}
+.dark [data-pattern="synthwave"] {
+  /* NIGHT — the original neon scene, verbatim */
+  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: oklch(0.12 0.085 285);
+  --sw-sky-b: oklch(0.15 0.1 305);
+  --sw-sky-c: oklch(0.24 0.14 332);
+  --sw-sky-d: oklch(0.34 0.16 350);
+  --sw-below: oklch(0.09 0.03 282);
+  --sw-ground-a: oklch(0.1 0.04 286);
+  --sw-ground-b: oklch(0.06 0.02 280);
+  --sw-glow-core: var(--sw-line);
+  --sw-glow-bloom: oklch(0.62 0.24 340 / 0.4);
+  --sw-disc-1: oklch(0.6 0.27 352);
+  --sw-disc-2: oklch(0.66 0.25 6);
+  --sw-disc-3: oklch(0.74 0.21 42);
+  --sw-disc-4: oklch(0.85 0.19 74);
+  --sw-disc-5: oklch(0.93 0.17 100);
+  --sw-disc-glow: oklch(0.6 0.26 348 / 0.5);
+  --sw-stars-o: 1;
+}
+[data-pattern="moonrise"] {
+  /* DAY — a pale morning sky with a faint daytime moon */
+  --sw-line-h: 270; /* scene identity hue (violet) */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
+  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: color-mix(in oklch, oklch(0.87 0.04 245), oklch(0.87 0.05 var(--glass-tint-h, 245)) var(--sw-cast));
+  --sw-sky-b: color-mix(in oklch, oklch(0.9 0.045 260), oklch(0.9 0.045 var(--glass-tint-h, 260)) var(--sw-cast));
+  --sw-sky-c: color-mix(in oklch, oklch(0.92 0.035 275), oklch(0.92 0.035 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-sky-d: color-mix(in oklch, oklch(0.94 0.03 300), oklch(0.94 0.03 var(--glass-tint-h, 300)) var(--sw-cast));
+  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.02 275), oklch(0.93 0.025 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-ground-b: color-mix(in oklch, oklch(0.88 0.035 280), oklch(0.88 0.035 var(--glass-tint-h, 280)) var(--sw-cast));
+  --sw-below: var(--sw-ground-a);
+  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-bloom: oklch(0.8 0.07 290 / 0.3);
+  --sw-moon-1: oklch(0.94 0.02 270); /* daytime moon: whitish, barely-there */
+  --sw-moon-2: oklch(0.9 0.04 278);
+  --sw-moon-3: oklch(0.85 0.06 288);
+  --sw-maria: 0.72 0.06 285; /* L C H triple (alpha at the call site) — same convention as --glass-gloss-ink */
+  --sw-disc-glow: oklch(0.85 0.05 280 / 0.35);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="moonrise"] {
+  /* NIGHT — the original midnight scene, verbatim */
+  --sw-line: oklch(0.72 0.16 var(--accent-h, var(--sw-line-h)));
+  --sw-sky-a: oklch(0.09 0.05 265);
+  --sw-sky-b: oklch(0.12 0.07 272);
+  --sw-sky-c: oklch(0.17 0.09 283);
+  --sw-sky-d: oklch(0.23 0.11 293);
+  --sw-below: oklch(0.07 0.03 270);
+  --sw-ground-a: oklch(0.09 0.04 276);
+  --sw-ground-b: oklch(0.05 0.02 270);
+  --sw-glow-core: var(--sw-line);
+  --sw-glow-bloom: oklch(0.58 0.2 292 / 0.4);
+  --sw-moon-1: oklch(0.75 0.11 278);
+  --sw-moon-2: oklch(0.6 0.16 290);
+  --sw-moon-3: oklch(0.47 0.17 300);
+  --sw-maria: 0.4 0.13 296;
+  --sw-disc-glow: oklch(0.58 0.17 286 / 0.5);
+  --sw-stars-o: 1;
+}
 .sw-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
   background: linear-gradient(
     to bottom,
-    oklch(0.12 0.085 285) 0%,
-    oklch(0.15 0.1 305) 30%,
-    oklch(0.24 0.14 332) 50%,
-    oklch(0.34 0.16 350) 57%,
-    oklch(0.09 0.03 282) 58%
+    var(--sw-sky-a) 0%,
+    var(--sw-sky-b) 30%,
+    var(--sw-sky-c) 50%,
+    var(--sw-sky-d) 57%,
+    var(--sw-below) 58%
   );
 }
 .sw-stars {
   position: absolute;
   inset: 0 0 42% 0;
   background-repeat: no-repeat;
+  opacity: var(--sw-stars-o, 1);
   -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 50%, transparent 100%);
 }
@@ -538,11 +445,11 @@ const SYNTHWAVE_STYLES = `
   border-radius: 50%;
   background: linear-gradient(
     to top,
-    oklch(0.6 0.27 352) 0%,
-    oklch(0.66 0.25 6) 24%,
-    oklch(0.74 0.21 42) 52%,
-    oklch(0.85 0.19 74) 78%,
-    oklch(0.93 0.17 100) 100%
+    var(--sw-disc-1) 0%,
+    var(--sw-disc-2) 24%,
+    var(--sw-disc-3) 52%,
+    var(--sw-disc-4) 78%,
+    var(--sw-disc-5) 100%
   );
   -webkit-mask-image:
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
@@ -550,7 +457,7 @@ const SYNTHWAVE_STYLES = `
   mask-image:
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
     repeating-linear-gradient(to bottom, #000 0 0.85vh, transparent 0.85vh 1.7vh);
-  filter: drop-shadow(0 0 5vh oklch(0.6 0.26 348 / 0.5));
+  filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
 }
 .sw-ground {
   position: absolute;
@@ -558,7 +465,7 @@ const SYNTHWAVE_STYLES = `
   right: 0;
   bottom: 0;
   height: 42%;
-  background: linear-gradient(to bottom, oklch(0.1 0.04 286) 0%, oklch(0.06 0.02 280) 100%);
+  background: linear-gradient(to bottom, var(--sw-ground-a) 0%, var(--sw-ground-b) 100%);
 }
 .sw-glow {
   position: absolute;
@@ -566,8 +473,8 @@ const SYNTHWAVE_STYLES = `
   right: 0;
   bottom: 42%;
   height: 2px;
-  background: var(--sw-line);
-  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.62 0.24 340 / 0.4);
+  background: var(--sw-glow-core);
+  box-shadow: 0 0 12px 2px var(--sw-glow-core), 0 0 52px 12px var(--sw-glow-bloom);
 }
 .sw-floor {
   position: absolute;
@@ -632,7 +539,7 @@ const SYNTHWAVE_STYLES = `
 }
 
 /* Moonrise variant — a purple-blue moon over a midnight sky, no scanlines. Shares every structural
-   class; only the sky, disc, ground, and glow bloom recolor (via [data-pattern="moonrise"]). */
+   class; the [data-pattern="moonrise"] palette blocks above swap the colors — no per-property reskins. */
 .sw-moon {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -642,38 +549,62 @@ const SYNTHWAVE_STYLES = `
   transform: translate(-50%, 30%);
   border-radius: 50%;
   background:
-    radial-gradient(34% 30% at 63% 30%, oklch(0.4 0.13 296 / 0.55) 0, transparent 62%),
-    radial-gradient(20% 18% at 38% 56%, oklch(0.4 0.13 296 / 0.5) 0, transparent 62%),
-    radial-gradient(13% 12% at 56% 72%, oklch(0.4 0.13 296 / 0.45) 0, transparent 62%),
-    radial-gradient(circle at 42% 38%, oklch(0.75 0.11 278) 0%, oklch(0.6 0.16 290) 52%, oklch(0.47 0.17 300) 100%);
-  filter: drop-shadow(0 0 5vh oklch(0.58 0.17 286 / 0.5));
+    radial-gradient(34% 30% at 63% 30%, oklch(var(--sw-maria) / 0.55) 0, transparent 62%),
+    radial-gradient(20% 18% at 38% 56%, oklch(var(--sw-maria) / 0.5) 0, transparent 62%),
+    radial-gradient(13% 12% at 56% 72%, oklch(var(--sw-maria) / 0.45) 0, transparent 62%),
+    radial-gradient(circle at 42% 38%, var(--sw-moon-1) 0%, var(--sw-moon-2) 52%, var(--sw-moon-3) 100%);
+  filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
+}`;
+
+// Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
+// bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
+// leave an empty gradient; the Tron scenes can hide theirs because the sun/grid carry the scene).
+// Same mode recipe as the other scenes: --sf-* palette vars, day on [data-pattern="starfield"], night
+// verbatim under .dark. The star dots themselves stay white in both modes — only their layer's opacity
+// flips, via the shared --sw-stars-o gate (which the Muse constellation also rides).
+const STARFIELD_STYLES = `
+[data-pattern="starfield"] {
+  /* DAY — morning haze */
+  --sf-bg: oklch(0.82 0.05 var(--accent-h, var(--glass-tint-h)));
+  --sf-nebula-1: oklch(0.92 var(--accent-c, 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
+  --sf-nebula-2: oklch(0.88 var(--accent-c, 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
+  --sw-stars-o: 0.75;
 }
-[data-pattern="moonrise"] .sw-scene {
-  background: linear-gradient(
-    to bottom,
-    oklch(0.09 0.05 265) 0%,
-    oklch(0.12 0.07 272) 30%,
-    oklch(0.17 0.09 283) 50%,
-    oklch(0.23 0.11 293) 57%,
-    oklch(0.07 0.03 270) 58%
-  );
+.dark [data-pattern="starfield"] {
+  /* NIGHT — the original deep field, verbatim */
+  --sf-bg: oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)));
+  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
+  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3);
+  --sw-stars-o: 1;
 }
-[data-pattern="moonrise"] .sw-ground {
-  background: linear-gradient(to bottom, oklch(0.09 0.04 276) 0%, oklch(0.05 0.02 270) 100%);
+.sf-scene {
+  position: absolute;
+  inset: 0;
+  background-color: var(--sf-bg);
+  background-image:
+    radial-gradient(65% 55% at 50% 30%, var(--sf-nebula-1) 0, transparent 72%),
+    radial-gradient(45% 42% at 80% 78%, var(--sf-nebula-2) 0, transparent 70%);
 }
-[data-pattern="moonrise"] .sw-glow {
-  box-shadow: 0 0 12px 2px var(--sw-line), 0 0 52px 12px oklch(0.58 0.2 292 / 0.4);
+.sf-stars {
+  position: absolute;
+  inset: 0;
+  opacity: var(--sw-stars-o, 1);
 }`;
 
 // Pac-Man chase: a seamless scrolling "corridor" per lane — Pac chomps in place (clip-path) while the dot
 // stream flows left into its mouth and gets "eaten" (a STATIC mask on the clip wrapper hides dots once they
 // pass the mouth, so nothing animates the mask), and a ghost bobs ahead, fleeing, flashing fright-blue.
-// Dots + ghost move on compositor transforms; only Pac's tiny chomp repaints. Three lanes, desynced, fill
-// the screen. Iconic arcade palette (gold Pac, classic ghost hues, pale pellets) over a tint-darkened field.
-// Horizontal (E–W) lanes at 12/30/50/70/88% — positioned so the walls sit in the gaps BETWEEN them, never
-// on a lane (Pac was eating through walls). Each ghost hue rides the theme COMPLEMENT (var(--hue-complement))
-// ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it (fade out) mid-run; the others let
-// it escape ahead. Durations bumped way up — the old 7–11s zipped; 15–24s reads as a stroll.
+// Dots + ghost move on compositor transforms; only Pac's tiny chomp repaints. Each ghost hue rides the theme
+// COMPLEMENT (var(--hue-complement)) ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it
+// (fade out) mid-run; the others let it escape ahead.
+// PELLET-GRID ALIGNMENT: lane top/left values below are NOMINAL — each lane snaps to the nearest pellet
+// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2 (pellet centers sit at
+// (k + 0.5)·cell), so Pac chomps ALONG a dot line at every density and viewport, no JS. Sprites are
+// --pac-sprite = min(cell, 34px): never bigger than one dot cell (dense shrinks them to the cell; sparse
+// keeps them 34px inside the larger cell), Pac and ghost the same size, centered on the row.
+// MODE-AWARE like the Tron scenes: the --pac-* palette carries a sunlit theme-tinted maze by day (tonal
+// paper field, tonal-dark pellets/walls) and the original CRT arcade values by night, all hue-tracking
+// the tint — the light/dark flip is pure CSS. Pac himself keeps his gold in both.
 const PAC_LANES = [
   {
     top: "12%",
@@ -740,114 +671,135 @@ const PAC_VLANES = [
   },
 ];
 
-// Chevron "walls" that block out pellets to carve the maze. Every block sits in a GAP between the E–W lane
-// bands (10-14/28-32/48-52/68-72/86-90%) and clear of the N–S columns (23-29% / 71-77%), so no Pac runs
+// Chevron "walls" that block out pellets to carve the maze. Every block sits in a GAP between the E–W
+// lanes and clear of the N–S columns (23-29% / 71-77%) — sized for the WORST-CASE lane position: a
+// snapped lane can shift up to ±cell/2 off its nominal %, and the sprite spans ±sprite/2 more, so each
+// wall band keeps ≳2% clear of every lane's worst envelope (H ≥ 600px, all densities). No Pac runs
 // through one.
 const PAC_WALLS = [
   {
-    top: "3%",
+    top: "2%",
     left: "40%",
     w: "18%",
-    h: "5%",
+    h: "2.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "6%",
     w: "12%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "46%",
     w: "18%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "18%",
+    top: "19.5%",
     left: "84%",
     w: "11%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "36%",
+    top: "37.5%",
     left: "32%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "36%",
+    top: "37.5%",
     left: "56%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "8%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "44%",
     w: "16%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "56%",
+    top: "57.5%",
     left: "80%",
     w: "12%",
-    h: "8%",
+    h: "5%",
   },
   {
-    top: "76%",
+    top: "77.5%",
     left: "34%",
     w: "12%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "76%",
+    top: "77.5%",
     left: "58%",
     w: "10%",
-    h: "7%",
+    h: "3.5%",
   },
   {
-    top: "93%",
+    top: "95.5%",
     left: "38%",
     w: "22%",
-    h: "5%",
+    h: "3%",
   },
 ];
 
 const PAC_STYLES = `
+[data-pattern="chase"] {
+  /* DAY — a sunlit arcade: theme-tinted paper field, tonal-dark pellets and walls. The maze recolors
+     with the tint; Pac and the ghosts keep their arcade identity. */
+  --pac-bg: oklch(0.93 0.035 var(--glass-tint-h));
+  --pac-pellet: oklch(0.45 0.09 var(--glass-tint-h));
+  --pac-wall-bg: oklch(0.86 0.05 var(--glass-tint-h));
+  --pac-wall-stripe: oklch(0.62 0.11 var(--glass-tint-h));
+  --pac-wall-edge: oklch(0.52 0.13 var(--glass-tint-h));
+}
+.dark [data-pattern="chase"] {
+  /* NIGHT — the original CRT palette (pellets now hue-track the tint like the walls always did). */
+  --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
+  --pac-pellet: oklch(0.82 0.05 var(--glass-tint-h));
+  --pac-wall-bg: oklch(0.19 0.05 var(--glass-tint-h));
+  --pac-wall-stripe: oklch(0.42 0.1 var(--glass-tint-h));
+  --pac-wall-edge: oklch(0.5 0.12 var(--glass-tint-h));
+}
 .pac-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
   background: var(--pac-bg);
+  /* Sprite box: one pellet cell, capped at the classic 34px — dense shrinks sprites to the cell,
+     sparse keeps them 34px centered INSIDE the larger cell. Pac and ghost share it. */
+  --pac-sprite: min(var(--pac-cell, 34px), 34px);
 }
 .pac-field {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle 2.6px at center, oklch(0.82 0.05 85) 0 2px, transparent 2.7px);
+  background-image: radial-gradient(circle 2.6px at center, var(--pac-pellet) 0 2px, transparent 2.7px);
   background-size: var(--pac-cell, 34px) var(--pac-cell, 34px);
   opacity: 0.5;
 }
 .pac-wall {
   position: absolute;
   border-radius: 6px;
-  background-color: oklch(0.19 0.05 var(--glass-tint-h));
+  background-color: var(--pac-wall-bg);
   background-image:
-    linear-gradient(135deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%),
-    linear-gradient(225deg, oklch(0.42 0.1 var(--glass-tint-h)) 25%, transparent 25%);
+    linear-gradient(135deg, var(--pac-wall-stripe) 25%, transparent 25%),
+    linear-gradient(225deg, var(--pac-wall-stripe) 25%, transparent 25%);
   background-size: 15px 15px;
-  box-shadow: inset 0 0 0 1.5px oklch(0.5 0.12 var(--glass-tint-h));
+  box-shadow: inset 0 0 0 1.5px var(--pac-wall-edge);
 }
 .pac-lane {
   position: absolute;
   left: 0;
   right: 0;
-  height: 40px;
+  height: var(--pac-sprite);
   transform: translateY(-50%);
 }
 /* Pac + his "wake" ride one runner that translates across; the wake is a bg-colored gradient trailing his
@@ -856,8 +808,8 @@ const PAC_STYLES = `
   position: absolute;
   top: 50%;
   left: 0;
-  width: 38px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-16vw, -50%);
   animation: pac-run var(--pac-dur, 9s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -869,10 +821,10 @@ const PAC_STYLES = `
 }
 .pac-wake {
   position: absolute;
-  right: 19px;
+  right: calc(var(--pac-sprite) / 2);
   top: 50%;
   width: 34vw;
-  height: 30px;
+  height: var(--pac-sprite);
   transform: translateY(-50%);
   background: linear-gradient(to left, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
@@ -892,8 +844,8 @@ const PAC_STYLES = `
   position: absolute;
   top: 50%;
   left: 0;
-  width: 34px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(4vw, -50%);
   animation: pac-flee var(--pac-dur, 9s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -936,15 +888,15 @@ const PAC_STYLES = `
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 38px;
+  width: var(--pac-sprite);
   transform: translateX(-50%);
 }
 .pac-vrunner {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 38px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-50%, -18vh);
   animation: pac-vrun-down var(--pac-dur, 18s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -966,23 +918,23 @@ const PAC_STYLES = `
 .pac-vwake {
   position: absolute;
   left: 50%;
-  bottom: 19px;
-  width: 30px;
+  bottom: calc(var(--pac-sprite) / 2);
+  width: var(--pac-sprite);
   height: 34vh;
   transform: translateX(-50%);
   background: linear-gradient(to top, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
 .pac-vlane.pac-vup .pac-vwake {
   bottom: auto;
-  top: 19px;
+  top: calc(var(--pac-sprite) / 2);
   background: linear-gradient(to bottom, var(--pac-bg), var(--pac-bg) 30%, transparent);
 }
 .pac-vghost-runner {
   position: absolute;
   left: 50%;
   top: 0;
-  width: 34px;
-  height: 38px;
+  width: var(--pac-sprite);
+  height: var(--pac-sprite);
   transform: translate(-50%, 2vh);
   animation: pac-vflee-down var(--pac-dur, 18s) linear infinite;
   animation-delay: var(--pac-delay, 0s);
@@ -1031,123 +983,14 @@ const PAC_STYLES = `
   .pac-vrunner, .pac-vman, .pac-vghost-runner, .pac-vghost { animation: none; }
 }`;
 
-// Daybreak — the daytime pair for the night starfield: an accent-blue sky, an OFF-CENTER glowing sun (so
-// centered content stays clear), and soft clouds drifting across on the shared --pat-dur pace. Density picks
-// how many clouds render. All compositor transforms; the sky/sun follow the accent hue.
-const CLOUD = svgMask(
-  "<ellipse cx='52' cy='48' rx='47' ry='20'/><circle cx='30' cy='38' r='16'/><circle cx='55' cy='27' r='23'/><circle cx='78' cy='40' r='16'/>",
-  "0 0 104 72",
-);
-const DAY_CLOUDS = [
-  {
-    top: "13%",
-    size: "20vw",
-    factor: 6,
-    delay: "0s",
-    op: 0.9,
-  },
-  {
-    top: "62%",
-    size: "22vw",
-    factor: 5.5,
-    delay: "-30s",
-    op: 0.82,
-  },
-  {
-    top: "30%",
-    size: "13vw",
-    factor: 8,
-    delay: "-18s",
-    op: 0.72,
-  },
-  {
-    top: "46%",
-    size: "16vw",
-    factor: 7,
-    delay: "-48s",
-    op: 0.7,
-  },
-  {
-    top: "22%",
-    size: "24vw",
-    factor: 5,
-    delay: "-64s",
-    op: 0.85,
-  },
-  {
-    top: "74%",
-    size: "12vw",
-    factor: 9,
-    delay: "-40s",
-    op: 0.6,
-  },
-];
-const DAY_CLOUD_COUNT: Record<PatternDensity, number> = {
-  sparse: 3,
-  medium: 5,
-  dense: 6,
-};
-const DAY_STYLES = `
-.day-scene {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: linear-gradient(to bottom,
-    oklch(0.82 0.1 var(--accent-h, 230)) 0%,
-    oklch(0.9 0.07 var(--accent-h, 230)) 52%,
-    oklch(0.96 0.04 calc(var(--accent-h, 230) + 28)) 100%);
-}
-.day-sun {
-  position: absolute;
-  top: 11%;
-  right: 15%;
-  width: 21vh;
-  height: 21vh;
-  border-radius: 50%;
-  background: radial-gradient(circle, oklch(0.99 0.08 95) 0%, oklch(0.92 0.16 85) 52%, oklch(0.9 0.18 72 / 0) 72%);
-  filter: drop-shadow(0 0 7vh oklch(0.92 0.15 84 / 0.5));
-}
-.day-cloud {
-  position: absolute;
-  left: 0;
-  aspect-ratio: 104 / 72;
-  background-color: #fff;
-  -webkit-mask: ${CLOUD} center / contain no-repeat;
-  mask: ${CLOUD} center / contain no-repeat;
-  transform: translateX(-45vw);
-  animation: day-drift calc(var(--pat-dur, 8s) * var(--cloud-factor, 6)) linear infinite;
-  animation-delay: var(--cloud-delay, 0s);
-  animation-play-state: var(--pat-play, running);
-  will-change: transform;
-}
-@keyframes day-drift {
-  from { transform: translateX(-45vw); }
-  to   { transform: translateX(135vw); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .day-cloud { animation: none; }
-}`;
-
 function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
   const bg = "var(--background)";
   // Ink follows the accent (fallback: tint hue) so every geometric pattern recolors with the accent knob.
   const ink = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.5)";
-  const inkSoft = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.22)";
-  // Density scales the tile size for every pattern.
-  const d = DENSITY_SCALE[density];
+  // Density scales the tile size (dots/grid use the airier TILE_SCALE ladder; chase has its own cells).
+  const d = TILE_SCALE[density];
   const px = (n: number) => `${Math.round(n * d)}px`;
   const sq = (n: number) => `${px(n)} ${px(n)}`;
-  const sprite = (mask: string, color: string, size: string): CSSProperties => ({
-    backgroundColor: color,
-    maskImage: mask,
-    WebkitMaskImage: mask,
-    maskSize: size,
-    WebkitMaskSize: size,
-    maskRepeat: "repeat",
-    WebkitMaskRepeat: "repeat",
-    maskPosition: "center",
-    WebkitMaskPosition: "center",
-  });
 
   switch (style) {
     case "grid":
@@ -1162,26 +1005,6 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
         backgroundImage: `radial-gradient(${ink} 1.6px, transparent 1.8px)`,
         backgroundSize: sq(24),
       };
-    case "checkerboard":
-      return {
-        backgroundColor: bg,
-        backgroundImage: `linear-gradient(45deg, ${inkSoft} 25%, transparent 25% 75%, ${inkSoft} 75%), linear-gradient(45deg, ${inkSoft} 25%, transparent 25% 75%, ${inkSoft} 75%)`,
-        backgroundSize: sq(48),
-        backgroundPosition: `0 0, ${px(24)} ${px(24)}`,
-      };
-    case "diamonds":
-      return {
-        backgroundColor: bg,
-        backgroundImage: `linear-gradient(135deg, ${ink} 25%, transparent 25%), linear-gradient(225deg, ${ink} 25%, transparent 25%), linear-gradient(45deg, ${ink} 25%, transparent 25%), linear-gradient(315deg, ${ink} 25%, transparent 25%)`,
-        backgroundPosition: `${px(24)} 0, ${px(24)} 0, 0 0, 0 0`,
-        backgroundSize: sq(48),
-      };
-    case "chevron":
-      return {
-        backgroundColor: bg,
-        backgroundImage: `linear-gradient(135deg, ${ink} 25%, transparent 25%), linear-gradient(225deg, ${ink} 25%, transparent 25%)`,
-        backgroundSize: sq(36),
-      };
     case "mesh": {
       // Mesh blobs center on the accent (hue + vividness) when it's on, else the tint's content hue —
       // rotated 0/90/180/270 for a full spread.
@@ -1192,40 +1015,23 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
         backgroundImage: `radial-gradient(40% 40% at 15% 20%, oklch(0.65 ${mc} ${mh} / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 85% 15%, oklch(0.65 ${mc} calc(${mh} + 90) / 0.5) 0, transparent 100%), radial-gradient(45% 45% at 22% 85%, oklch(0.65 ${mc} calc(${mh} + 180) / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 82% 82%, oklch(0.65 ${mc} calc(${mh} + 270) / 0.5) 0, transparent 100%)`,
       };
     }
-    case "starfield": {
-      // Nebula "patch" + deep backdrop follow the accent (hue + vividness) when it's on, else the tint.
-      // Density picks how many star points render — sparse / medium / dense.
-      const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    case "starfield":
+      // Rendered by its own branch in PatternBackground (day/night palettes live in STARFIELD_STYLES'
+      // [data-pattern] var blocks); kept exhaustive here.
       return {
         backgroundColor: "oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)))",
-        backgroundImage: `radial-gradient(65% 55% at 50% 30%, oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42) 0, transparent 72%), radial-gradient(45% 42% at 80% 78%, oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3) 0, transparent 70%), ${stars}`,
-      };
-    }
-    case "daybreak":
-      // Rendered by its own branch in PatternBackground; kept exhaustive here.
-      return {
-        backgroundColor: "oklch(0.88 0.08 var(--accent-h, 230))",
       };
     case "synthwave":
-      // Rendered by its own multi-layer branch in PatternBackground; keeps the switch exhaustive.
+      // Rendered by its own multi-layer branch in PatternBackground (day/night palettes live in
+      // SYNTHWAVE_STYLES' [data-pattern] var blocks); keeps the switch exhaustive.
       return {
         backgroundColor: "oklch(0.09 0.03 282)",
       };
     case "moonrise":
-      // Rendered alongside synthwave in PatternBackground's shared branch; kept exhaustive here.
+      // Rendered alongside synthwave in PatternBackground's shared branch (palettes in SYNTHWAVE_STYLES);
+      // kept exhaustive here.
       return {
         backgroundColor: "oklch(0.07 0.03 270)",
-      };
-    case "hexagons":
-      return sprite(HEXAGON, ink, px(52));
-    case "pacman":
-      return sprite(PACMAN, "oklch(0.85 0.18 95)", px(56));
-    case "invader":
-      return sprite(INVADER, "oklch(0.72 0.2 145)", px(68));
-    case "ghost":
-      // Ghost is rendered by its own branch in PatternBackground; this keeps the switch exhaustive.
-      return {
-        backgroundColor: "oklch(0.16 0.045 var(--glass-tint-h))",
       };
     case "chase":
       // Pac-Man chase is rendered by its own branch in PatternBackground; kept exhaustive here.
@@ -1290,7 +1096,9 @@ export function PatternBackground({
               className="pac-lane"
               style={
                 {
-                  top: lane.top,
+                  // Snap the nominal % to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell),
+                  // so Pac chomps along an actual dot line at every density and viewport.
+                  top: `calc(round(down, ${lane.top}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
                   "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
                   "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
                   "--pac-fright-dur": lane.frightDur,
@@ -1313,7 +1121,8 @@ export function PatternBackground({
               className={lane.up ? "pac-vlane pac-vup" : "pac-vlane"}
               style={
                 {
-                  left: lane.left,
+                  // Same pellet-grid snap as the E–W lanes, along the x axis (columns at (k+0.5)·cell).
+                  left: `calc(round(down, ${lane.left}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
                   "--pac-dur": `calc(var(--pat-dur, 8s) * ${lane.factor})`,
                   "--pac-ghost": `oklch(0.68 0.19 ${lane.hue})`,
                   "--pac-fright-dur": lane.frightDur,
@@ -1334,40 +1143,6 @@ export function PatternBackground({
       </div>
     );
   }
-  if (style === "ghost") {
-    return (
-      <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        style={
-          {
-            backgroundColor: "oklch(0.16 0.045 var(--glass-tint-h))",
-            "--fright": "oklch(0.72 0.17 var(--hue-complement))",
-            "--pat-dur": patDur,
-            "--pat-play": patPlay,
-          } as CSSProperties
-        }
-        data-pattern="ghost"
-      >
-        <style>{GHOST_STYLES}</style>
-        {GHOSTS.slice(0, GHOST_COUNT[density]).map(([x, y], i) => (
-          <span
-            key={`${x}-${y}`}
-            className="pattern-ghost"
-            style={
-              {
-                left: `${x}%`,
-                top: `${y}%`,
-                "--ghost-color": TETRAD[i % 4],
-                animationName: `pattern-ghost-path-${i % 4}, pattern-ghost-fright`,
-                animationDuration: `calc(var(--pat-dur, 8s) * ${(2.2 + (i % 5) * 0.38).toFixed(2)}), calc(var(--pat-dur, 8s) * 1.35)`,
-                animationDelay: `${(-i * 1.7).toFixed(1)}s, 0s`,
-              } as CSSProperties
-            }
-          />
-        ))}
-      </div>
-    );
-  }
   if (style === "synthwave" || style === "moonrise") {
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     const moon = style === "moonrise";
@@ -1376,8 +1151,8 @@ export function PatternBackground({
         className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
-            // Selectable grid/glow color: accent hue, defaulting Tron-cyan for the sun, violet for the moon.
-            "--sw-line": moon ? "oklch(0.72 0.16 var(--accent-h, 270))" : "oklch(0.82 0.19 var(--accent-h, 195))",
+            // Scene colors (incl. --sw-line) live in SYNTHWAVE_STYLES' [data-pattern] palette blocks so the
+            // .dark day/night switch can override them — an inline declaration would beat every stylesheet rule.
             // Sun/moon horizontal placement (left/center/right).
             "--sw-disc-x": discX,
             // Grid scroll pace — one cell every --pat-dur seconds (shared pace across animated patterns).
@@ -1409,48 +1184,21 @@ export function PatternBackground({
       </div>
     );
   }
-  if (style === "daybreak") {
-    return (
-      <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        style={
-          {
-            "--pat-dur": patDur,
-            "--pat-play": patPlay,
-          } as CSSProperties
-        }
-        data-pattern="daybreak"
-      >
-        <style>{DAY_STYLES}</style>
-        <div className="day-scene">
-          <div className="day-sun" />
-          {DAY_CLOUDS.slice(0, DAY_CLOUD_COUNT[density]).map((c) => (
-            <div
-              key={c.top}
-              className="day-cloud"
-              style={
-                {
-                  top: c.top,
-                  width: c.size,
-                  opacity: c.op,
-                  "--cloud-factor": c.factor,
-                  "--cloud-delay": c.delay,
-                } as CSSProperties
-              }
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
   if (style === "starfield") {
-    // Same star background as styleFor, but as a container so the easter-egg constellation can overlay it.
+    // Scene colors live in STARFIELD_STYLES' palette blocks (an inline background would beat the .dark
+    // day/night flip); only the star GLINTS — white in both modes — are painted inline, on their own
+    // layer so the palette's --sw-stars-o can dim them by day.
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
-      <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        style={styleFor(style, density)}
-        data-pattern="starfield"
-      >
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500" data-pattern="starfield">
+        <style>{STARFIELD_STYLES}</style>
+        <div className="sf-scene" />
+        <div
+          className="sf-stars"
+          style={{
+            backgroundImage: stars,
+          }}
+        />
         <MuseConstellation />
       </div>
     );

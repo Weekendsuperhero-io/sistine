@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { EnvelopeSimpleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { Input } from "@/components/ui/glass/input";
+import { Input } from "@/components/ui/input";
 
 const meta = {
   title: "Sistine/Input",
@@ -16,10 +16,19 @@ const meta = {
       control: "select",
       options: [
         "default",
+      ],
+    },
+    material: {
+      control: "select",
+      options: [
         "glass",
         "frosted",
         "crystal",
+        "opaque",
       ],
+    },
+    border: {
+      control: "boolean",
     },
   },
 } satisfies Meta<typeof Input>;
@@ -30,28 +39,28 @@ type Story = StoryObj<typeof meta>;
 export const Glass: Story = {
   args: {
     placeholder: "Enter text...",
-    variant: "glass",
   },
 };
 
 export const Frosted: Story = {
   args: {
     placeholder: "Frosted input...",
-    variant: "frosted",
+    material: "frosted",
+    border: true,
   },
 };
 
 export const Crystal: Story = {
   args: {
     placeholder: "Crystal input...",
-    variant: "crystal",
+    material: "crystal",
+    border: true,
   },
 };
 
 export const WithIcon: Story = {
   args: {
     placeholder: "Search...",
-    variant: "glass",
     icon: <MagnifyingGlassIcon className="h-4 w-4" />,
   },
 };
@@ -59,7 +68,6 @@ export const WithIcon: Story = {
 export const WithEmailIcon: Story = {
   args: {
     placeholder: "Email address...",
-    variant: "glass",
     icon: <EnvelopeSimpleIcon className="h-4 w-4" />,
     type: "email",
   },
@@ -68,7 +76,6 @@ export const WithEmailIcon: Story = {
 export const Disabled: Story = {
   args: {
     placeholder: "Disabled input",
-    variant: "glass",
     disabled: true,
   },
 };

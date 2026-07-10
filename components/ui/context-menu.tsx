@@ -5,21 +5,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type GlassCustomization, getGlassStyles } from "@/lib/glass-utils";
+import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const contextMenuSubContentVariants = cva(
   "z-50 min-w-[8rem] origin-(--radix-context-menu-content-transform-origin) overflow-hidden rounded-xl p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
   {
     variants: {
       variant: {
         default: "bg-popover text-popover-foreground border",
-        glass: "glass-solid text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
+        glass: "text-foreground",
       },
     },
     defaultVariants: {
@@ -34,12 +30,7 @@ const contextMenuContentVariants = cva(
     variants: {
       variant: {
         default: "bg-popover text-popover-foreground border",
-        glass: "glass-solid text-foreground",
-        frosted: "glass-frosted text-foreground",
-        crystal: "glass-crystal text-foreground",
-        opaque: "glass-opaque text-foreground",
-        surface: "glass-surface text-foreground",
-        solid: "glass-solid text-foreground",
+        glass: "text-foreground",
       },
     },
     defaultVariants: {
@@ -47,6 +38,12 @@ const contextMenuContentVariants = cva(
     },
   },
 );
+
+/* Role: bordered + veiled adaptive glass. */
+const ROLE = {
+  border: true,
+  veil: true,
+};
 
 const ContextMenu = ({ ...props }: React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Root>) => (
   <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
@@ -103,13 +100,28 @@ ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
 
 const ContextMenuSubContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> & VariantProps<typeof contextMenuSubContentVariants>
->(({ className, variant = "glass", ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> &
+    VariantProps<typeof contextMenuSubContentVariants> & {
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      glow?: boolean | "lg";
+    }
+>(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+    veil,
+    glow,
+  });
+
   return (
     <ContextMenuPrimitive.SubContent
       ref={ref}
       data-slot="context-menu-sub-content"
+      data-material={m?.["data-material"]}
       className={cn(
+        m?.className,
         contextMenuSubContentVariants({
           variant,
         }),
@@ -125,25 +137,33 @@ const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> &
     VariantProps<typeof contextMenuContentVariants> & {
-      glass?: GlassCustomization;
+      material?: Material;
+      border?: boolean;
+      veil?: boolean;
+      glow?: boolean | "lg";
     }
->(({ className, variant = "glass", glass, style, ...props }, ref) => {
-  const hasCustomGlass = glass !== undefined;
-  const effectiveVariant = hasCustomGlass && variant !== "default" ? "glass" : variant;
-  const glassStyles = variant !== "default" ? getGlassStyles(glass) : {};
+>(({ className, variant = "glass", material, border, veil, glow, style, ...props }, ref) => {
+  const m = materialSurface(variant === "default" ? null : ROLE, {
+    material,
+    border,
+    veil,
+    glow,
+  });
+
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
         ref={ref}
         data-slot="context-menu-content"
+        data-material={m?.["data-material"]}
         className={cn(
+          m?.className,
           contextMenuContentVariants({
-            variant: effectiveVariant,
+            variant,
           }),
           className,
         )}
         style={{
-          ...glassStyles,
           ...style,
         }}
         {...props}

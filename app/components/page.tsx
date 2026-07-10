@@ -7,9 +7,8 @@ import { ReadableText } from "@/components/readable-text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button as GlassButton } from "@/components/ui/glass/button";
-import { Input } from "@/components/ui/glass/input";
-import { chromaRampColors, hueRampColors, lightnessRampColors, maxP3Chroma, type OklchColor, tonalScaleColors } from "@/lib/oklch-utils";
+import { Input } from "@/components/ui/input";
+import { type OklchColor, rampAxisColors } from "@/lib/oklch-utils";
 import { getComponents } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 
@@ -27,15 +26,9 @@ const newComponents = new Set([
   "carousel",
 ]);
 
-// Every Button glass style, shown side-by-side so gradient (the theme-aware --gradient) and
-// opaque are visible to evaluate.
+// Semantic Button variants (behavior styles), shown side-by-side.
 const buttonVariantNames = [
   "default",
-  "glass",
-  "gradient",
-  "frosted",
-  "crystal",
-  "opaque",
   "destructive",
   "outline",
   "secondary",
@@ -43,26 +36,36 @@ const buttonVariantNames = [
   "link",
 ] as const;
 
-// gradient fill strengths to compare — the theme-aware --gradient hues (follow --glass-tint-h) at three alphas.
+// The four materials, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
+const buttonMaterialNames = [
+  "glass",
+  "frosted",
+  "crystal",
+  "opaque",
+] as const;
+
+// gradient fill strengths to compare — the engine's --gradient construction (--gradient-l/-c envelope,
+// --glass-fg-h + 63.53° sweep) at three alphas, so Medium (0.5) IS the accent token at every theme/mode,
+// including frescoes that decouple --glass-fg-h from the tint hue.
 const solidGradient = (a: number) =>
-  `linear-gradient(135deg, oklch(0.6 0.15 calc(var(--glass-tint-h) + 3 * 360 / 17) / ${a}) 0%, oklch(0.6 0.15 var(--glass-tint-h) / ${a}) 100%)`;
+  `linear-gradient(135deg, oklch(var(--gradient-l) var(--gradient-c) calc(var(--glass-fg-h) + 63.53) / ${a}) 0%, oklch(var(--gradient-l) var(--gradient-c) var(--glass-fg-h) / ${a}) 100%)`;
 
 const solidIntensities = [
   {
     label: "Subtle",
-    note: "20% · glassy (original)",
+    note: "20%",
     bg: solidGradient(0.2),
     text: "text-foreground",
   },
   {
     label: "Medium",
-    note: "50%",
+    note: "50% — the glass-gradient accent",
     bg: solidGradient(0.5),
     text: "text-foreground",
   },
   {
     label: "Bold",
-    note: "100% · current",
+    note: "100%",
     bg: solidGradient(1),
     text: "text-white",
   },
@@ -146,16 +149,14 @@ export default function ComponentsPage() {
       const b = ramp[mid] ?? base;
       return `linear-gradient(135deg, ${css(a)} 0%, ${css(b)} 100%), var(--glass-bg)`;
     };
+    // THE shared axis mapping (rampAxisColors) — the same math the gradient + canvas backgrounds
+    // render, so this demo can't drift from what an axis actually looks like.
+    const gamut = p3 ? ("p3" as const) : ("srgb" as const);
     const ramps: Record<(typeof GRADIENT_AXES)[number], OklchColor[]> = {
-      hue: hueRampColors(base, 8),
-      chroma: chromaRampColors(base, 8, p3 ? maxP3Chroma(base.l, base.h) : undefined),
-      lightness: lightnessRampColors(base, 8),
-      tonal: tonalScaleColors({
-        hue: tintH,
-        steps: 17,
-        chroma: 0.2,
-        gamut: p3 ? "p3" : "srgb",
-      }),
+      hue: rampAxisColors("hue", base, 8, gamut),
+      chroma: rampAxisColors("chroma", base, 8, gamut),
+      lightness: rampAxisColors("lightness", base, 8, gamut),
+      tonal: rampAxisColors("tonal", base, 8, gamut),
     };
     return GRADIENT_AXES.map((key) => ({
       key,
@@ -186,7 +187,6 @@ export default function ComponentsPage() {
               placeholder="Search components..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              variant="glass"
               icon={<Search className="h-4 w-4 text-muted-foreground" />}
               className="text-foreground placeholder:text-muted-foreground"
             />
@@ -196,25 +196,38 @@ export default function ComponentsPage() {
         <div className="mb-12">
           <h2 className="mb-1 font-semibold text-foreground text-xl">Button variants</h2>
           <p className="mb-4 text-muted-foreground text-sm">
-            Every glass style on <code className="text-xs">Button</code> — including <code className="text-xs">gradient</code> (the theme-aware{" "}
-            <code className="text-xs">--gradient</code>) and <code className="text-xs">opaque</code>.
+            Semantic <code className="text-xs">variant</code>s on <code className="text-xs">Button</code> — behavior styles, each riding its default
+            surface.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="mb-8 flex flex-wrap items-center gap-3">
             {buttonVariantNames.map((v) => (
               <Button key={v} variant={v}>
                 {v}
               </Button>
             ))}
           </div>
+          <h2 className="mb-1 font-semibold text-foreground text-xl">Button materials</h2>
+          <p className="mb-4 text-muted-foreground text-sm">
+            The four materials via the <code className="text-xs">material</code> prop — plus the <code className="text-xs">gradient</code> axis
+            layering the theme-aware brand gradient over the material.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {buttonMaterialNames.map((v) => (
+              <Button key={v} material={v}>
+                {v}
+              </Button>
+            ))}
+            <Button gradient>gradient</Button>
+          </div>
         </div>
 
         <div className="mb-12">
           <h2 className="mb-1 font-semibold text-foreground text-xl">gradient intensity, over each glass type</h2>
           <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The theme-aware <code className="text-xs">--gradient</code> (follows the tint hue) overlaid on each surface at three strengths.{" "}
-            <strong>Medium</strong> is the winner — it's now the <code className="text-xs">glass-gradient</code> utility (and the{" "}
-            <code className="text-xs">gradient</code> Button). Note how <strong>Bold</strong> hides the surface (all types converge) while{" "}
-            <strong>Subtle</strong> keeps each glass texture.
+            The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue — the tint hue unless a fresco decouples it)
+            overlaid on each surface at three strengths. <strong>Medium</strong> is the winner — it's the{" "}
+            <code className="text-xs">glass-gradient</code> accent class, which the <code className="text-xs">gradient</code> prop layers over any
+            material. Note how <strong>Bold</strong> hides the surface (all types converge) while <strong>Subtle</strong> keeps each glass texture.
           </p>
           <div className="grid max-w-2xl grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-3">
             <span />
@@ -227,7 +240,7 @@ export default function ComponentsPage() {
               <React.Fragment key={type}>
                 <span className="pr-3 font-mono text-muted-foreground text-xs">{type}</span>
                 {solidIntensities.map((s) => (
-                  <Button key={s.label} variant={type} size="sm" className="relative w-full overflow-hidden">
+                  <Button key={s.label} material={type} border size="sm" className="relative w-full overflow-hidden">
                     <span
                       aria-hidden
                       className="absolute inset-0"
@@ -277,22 +290,22 @@ export default function ComponentsPage() {
         <div className="mb-12">
           <h2 className="mb-1 font-semibold text-foreground text-xl">Glow</h2>
           <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The Button's default <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
+            The Button's <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
             avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint — so it recolors
             per theme. <strong>Off</strong> on the left, <strong>on</strong> across four tints. Hover any to watch it intensify.
           </p>
           <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
             <div className="flex flex-col items-center gap-2">
-              <GlassButton effect="none" size="lg">
+              <Button effect="none" size="lg">
                 Off
-              </GlassButton>
+              </Button>
               <span className="font-mono text-muted-foreground text-xs">none</span>
             </div>
             {glowTints.map((tint) => (
               <div key={tint} data-glass-tint={tint} className="flex flex-col items-center gap-2">
-                <GlassButton effect="glow" size="lg">
+                <Button effect="glow" size="lg">
                   Glow
-                </GlassButton>
+                </Button>
                 <span className="font-mono text-muted-foreground text-xs">{tint}</span>
               </div>
             ))}
@@ -308,9 +321,9 @@ export default function ComponentsPage() {
           <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
             {effectShowcase.map((effect) => (
               <div key={effect} className="flex flex-col items-center gap-2">
-                <GlassButton effect={effect} size="lg">
+                <Button effect={effect} size="lg">
                   {effect.charAt(0).toUpperCase() + effect.slice(1)}
-                </GlassButton>
+                </Button>
                 <span className="font-mono text-muted-foreground text-xs">{effect}</span>
               </div>
             ))}
@@ -320,12 +333,12 @@ export default function ComponentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map((component) => (
             <Link key={component.name} href={`/docs/components/${component.name}`} className="group">
-              <Card variant="glass" className="h-full transition-opacity hover:opacity-90">
+              <Card className="h-full transition-opacity hover:opacity-90">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-1">
                     <CardTitle className="text-foreground">{component.title || component.name}</CardTitle>
                     {newComponents.has(component.name) && (
-                      <Badge variant="glass" className="border-primary/40">
+                      <Badge className="border-primary/40">
                         <ReadableText accent="--primary">NEW</ReadableText>
                       </Badge>
                     )}
