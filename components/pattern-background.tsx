@@ -289,7 +289,8 @@ const MUSE_STYLES = `
   pointer-events: none;
   --muse-h: var(--accent-h, var(--glass-tint-h));
   filter: drop-shadow(0 0 1px oklch(0.72 0.17 var(--muse-h) / 0.5));
-  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode; starfield (no gate) keeps 0.9. */
+  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode; DIMMED (not hidden) with
+     them in starfield's day mode. */
   opacity: calc(0.9 * var(--sw-stars-o, 1));
 }
 .star-muse circle {
@@ -546,6 +547,41 @@ const SYNTHWAVE_STYLES = `
     radial-gradient(13% 12% at 56% 72%, oklch(var(--sw-maria) / 0.45) 0, transparent 62%),
     radial-gradient(circle at 42% 38%, var(--sw-moon-1) 0%, var(--sw-moon-2) 52%, var(--sw-moon-3) 100%);
   filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
+}`;
+
+// Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
+// bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
+// leave an empty gradient; the Tron scenes can hide theirs because the sun/grid carry the scene).
+// Same mode recipe as the other scenes: --sf-* palette vars, day on [data-pattern="starfield"], night
+// verbatim under .dark. The star dots themselves stay white in both modes — only their layer's opacity
+// flips, via the shared --sw-stars-o gate (which the Muse constellation also rides).
+const STARFIELD_STYLES = `
+[data-pattern="starfield"] {
+  /* DAY — morning haze */
+  --sf-bg: oklch(0.82 0.05 var(--accent-h, var(--glass-tint-h)));
+  --sf-nebula-1: oklch(0.92 var(--accent-c, 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
+  --sf-nebula-2: oklch(0.88 var(--accent-c, 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
+  --sw-stars-o: 0.75;
+}
+.dark [data-pattern="starfield"] {
+  /* NIGHT — the original deep field, verbatim */
+  --sf-bg: oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)));
+  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
+  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3);
+  --sw-stars-o: 1;
+}
+.sf-scene {
+  position: absolute;
+  inset: 0;
+  background-color: var(--sf-bg);
+  background-image:
+    radial-gradient(65% 55% at 50% 30%, var(--sf-nebula-1) 0, transparent 72%),
+    radial-gradient(45% 42% at 80% 78%, var(--sf-nebula-2) 0, transparent 70%);
+}
+.sf-stars {
+  position: absolute;
+  inset: 0;
+  opacity: var(--sw-stars-o, 1);
 }`;
 
 // Pac-Man chase: a seamless scrolling "corridor" per lane — Pac chomps in place (clip-path) while the dot
@@ -972,15 +1008,12 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
         backgroundImage: `radial-gradient(40% 40% at 15% 20%, oklch(0.65 ${mc} ${mh} / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 85% 15%, oklch(0.65 ${mc} calc(${mh} + 90) / 0.5) 0, transparent 100%), radial-gradient(45% 45% at 22% 85%, oklch(0.65 ${mc} calc(${mh} + 180) / 0.5) 0, transparent 100%), radial-gradient(40% 40% at 82% 82%, oklch(0.65 ${mc} calc(${mh} + 270) / 0.5) 0, transparent 100%)`,
       };
     }
-    case "starfield": {
-      // Nebula "patch" + deep backdrop follow the accent (hue + vividness) when it's on, else the tint.
-      // Density picks how many star points render — sparse / medium / dense.
-      const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    case "starfield":
+      // Rendered by its own branch in PatternBackground (day/night palettes live in STARFIELD_STYLES'
+      // [data-pattern] var blocks); kept exhaustive here.
       return {
         backgroundColor: "oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)))",
-        backgroundImage: `radial-gradient(65% 55% at 50% 30%, oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42) 0, transparent 72%), radial-gradient(45% 42% at 80% 78%, oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3) 0, transparent 70%), ${stars}`,
       };
-    }
     case "synthwave":
       // Rendered by its own multi-layer branch in PatternBackground (day/night palettes live in
       // SYNTHWAVE_STYLES' [data-pattern] var blocks); keeps the switch exhaustive.
@@ -1145,13 +1178,20 @@ export function PatternBackground({
     );
   }
   if (style === "starfield") {
-    // Same star background as styleFor, but as a container so the easter-egg constellation can overlay it.
+    // Scene colors live in STARFIELD_STYLES' palette blocks (an inline background would beat the .dark
+    // day/night flip); only the star GLINTS — white in both modes — are painted inline, on their own
+    // layer so the palette's --sw-stars-o can dim them by day.
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
-      <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        style={styleFor(style, density)}
-        data-pattern="starfield"
-      >
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500" data-pattern="starfield">
+        <style>{STARFIELD_STYLES}</style>
+        <div className="sf-scene" />
+        <div
+          className="sf-stars"
+          style={{
+            backgroundImage: stars,
+          }}
+        />
         <MuseConstellation />
       </div>
     );
