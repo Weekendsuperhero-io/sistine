@@ -100,8 +100,8 @@ const SWATCHES = [
  */
 export function CrystalGlossDemo() {
   const [mode, setMode] = React.useState<Mode>("tonal");
-  const [l, setL] = React.useState(94);
-  const [tint, setTint] = React.useState(2);
+  const [l, setL] = React.useState(66);
+  const [tint, setTint] = React.useState(4.25);
   const [span, setSpan] = React.useState(40);
   const [dir, setDir] = React.useState(1);
   const [dark, setDark] = React.useState(false);
@@ -140,8 +140,8 @@ export function CrystalGlossDemo() {
   React.useEffect(() => {
     const raw = localStorage.getItem(MODE_KEY);
     const m: Mode = raw === "white" || raw === "hue" ? raw : "tonal";
-    const nl = Number.parseFloat(localStorage.getItem(L_KEY) ?? "94");
-    const nt = Number.parseFloat(localStorage.getItem(TINT_KEY) ?? "2");
+    const nl = Number.parseFloat(localStorage.getItem(L_KEY) ?? "66");
+    const nt = Number.parseFloat(localStorage.getItem(TINT_KEY) ?? "4.25");
     const ns = Number.parseFloat(localStorage.getItem(SPAN_KEY) ?? "40");
     const nd = Number.parseFloat(localStorage.getItem(DIR_KEY) ?? "1");
     const L = Number.isFinite(nl) ? nl : 94;

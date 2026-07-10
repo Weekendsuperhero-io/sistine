@@ -386,7 +386,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // this mix is (1−crysA)(1−tintA)(1−glossA).
       {
         const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
-        const glossL = num("--glass-gloss-l", 94);
+        const glossL = num("--glass-gloss-l", 66);
         const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
         const baseL = dark ? 20 : 95;
         const floorL = baseL * (1 - crysA) + 100 * crysA;

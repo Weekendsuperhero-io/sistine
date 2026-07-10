@@ -333,7 +333,7 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
  */
 export function BackgroundProvider({ children }: { children: React.ReactNode }) {
   // SSR + first client render use "gradient" so hydration matches; localStorage is read after mount.
-  const [background, setBackgroundState] = React.useState<BackgroundType>("gradient");
+  const [background, setBackgroundState] = React.useState<BackgroundType>("pattern");
   const [gradientAxis, setGradientAxisState] = React.useState<RampGradientAxis>("tonal");
   const [gradientAngle, cycleGradientAngle] = useCycle(ANGLES, 90);
   const [gradientShape, cycleGradientShape] = useCycle(GRADIENT_SHAPES, "linear");
@@ -347,7 +347,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [canvasSpeed, cycleCanvasSpeed] = useCycle<number>(CANVAS_SPEEDS, 1);
   const [canvasAnimated, setCanvasAnimated] = React.useState(false);
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
-  const [patternStyle, cyclePatternStyleState, setPatternStyleState] = useCycle(PATTERN_STYLES, "dots");
+  const [patternStyle, cyclePatternStyleState, setPatternStyleState] = useCycle(PATTERN_STYLES, "moonrise");
   const [patternDensity, cyclePatternDensityState] = useCycle(PATTERN_DENSITIES, "medium");
   const [patternSpeed, cyclePatternSpeedState] = useCycle<number>(PATTERN_SPEEDS, 8);
   const [baseColor, setBaseColor] = React.useState<string | null>(null);

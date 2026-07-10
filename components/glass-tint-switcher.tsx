@@ -284,7 +284,7 @@ function readLmap(): {
  * with the theme + glass-style switchers.
  */
 export function GlassTintSwitcher() {
-  const [base, setBase] = React.useState<PresetValue>("neutral");
+  const [base, setBase] = React.useState<PresetValue>("amethyst");
   const [h, setH] = React.useState(250);
   const [c, setC] = React.useState(0);
   const [a, setA] = React.useState(0);
@@ -297,7 +297,7 @@ export function GlassTintSwitcher() {
   const [accentC, setAccentC] = React.useState(0.15);
 
   React.useEffect(() => {
-    const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "neutral";
+    const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "amethyst";
     const preset = PRESETS.find((p) => p.value === storedBase);
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;

@@ -42,7 +42,7 @@ function applyStyle(style: GlassStyle) {
  * look. The CSS overrides live in globals.css; this just toggles the attribute.
  */
 export function GlassStyleSwitcher() {
-  const [style, setStyle] = React.useState<GlassStyle>("glass");
+  const [style, setStyle] = React.useState<GlassStyle>("crystal");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as GlassStyle | null;
