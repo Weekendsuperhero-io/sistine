@@ -223,6 +223,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
       const LC_MARGIN = 12;
       const solidA = num("--glass-solid-a", 0.65);
+      // Wash knobs — bone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
+      // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
+      // every bone-night surface banded ~3 L too dark (bright page, faint text). num() reads the
+      // truth on the computed path; snapshots can't carry these, so the FALLBACK is bone-aware via
+      // the data-glass-tint attribute (cheap, race-free on both paths). Every other theme resolves
+      // to the standard mode values either way — this is a bone-only correction by construction.
+      // check-theme [bone-sync] keeps these mirrored constants equal to presets.css.
+      const bone = root.dataset.glassTint === "bone";
+      const washL = num("--glass-wash-l", bone && dark ? 64 : dark ? 58 : 72);
+      const washCMult = num("--glass-wash-c-mult", bone && dark ? 2 : 2.5);
       const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA), 0), 1);
       const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
@@ -347,6 +357,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             a: tintA,
           },
           solidA,
+          washL,
+          washCMult,
         ),
         "",
         false,
@@ -377,7 +389,6 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const glossL = num("--glass-gloss-l", 94);
         const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
         const baseL = dark ? 20 : 95;
-        const washL = dark ? 58 : 72;
         const floorL = baseL * (1 - crysA) + 100 * crysA;
         const washedL = floorL * (1 - tintA) + washL * tintA;
         const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;

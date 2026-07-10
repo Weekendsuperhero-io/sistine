@@ -69,12 +69,15 @@
   --glass-opaque-c-scale: 1;
 }
 .dark[data-glass-tint="bone"] {
-  /* Bone stays a proper pale CREAM in dark mode — the wash keeps its DAY lightness (knobs, not a wash
-     redeclaration), the opaque card floor derives to oklch(86.2% 0.047 75), and AutoForeground bands
-     per-card foreground against it (flipping to dark cream text) while the dark page keeps light text. */
-  --glass-wash-l: 72%;
+  /* Bone night — a WARM cream night, not a bright one. The wash sits a few points above the standard
+     58% (warmth without glare; h75 carries more real luminance per OKLCH point than the cool tints,
+     so pale-warm washes read brighter than their numbers), and the opaque floor keeps its cream
+     identity at a deeper L80 (vs the old 86.2 glare; other themes sit at 32). AutoForeground reads
+     BOTH knobs live (+ the [bone-sync] mirrored fallback), so page text and per-card dark-cream text
+     re-band automatically. */
+  --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 86.2;
+  --glass-opaque-l: 80;
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render

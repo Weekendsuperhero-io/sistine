@@ -654,14 +654,17 @@ export function glassSolidSurface(
     a: number;
   },
   solidA: number,
+  // Wash knobs — pass the LIVE --glass-wash-l / --glass-wash-c-mult when a theme overrides them
+  // (bone night: 72 / 2), else the defaults mirror the CSS mode values exactly.
+  washL: number = dark ? 58 : 72,
+  washCMult = 2.5,
 ): OklchColor {
   const baseL = dark ? 20 : 95;
   const solidL = dark ? 18 : 99;
-  const washL = dark ? 58 : 72;
   const floorL = baseL * (1 - solidA) + solidL * solidA;
   return {
     l: floorL * (1 - tint.a) + washL * tint.a,
-    c: tint.c * 2.5 * tint.a,
+    c: tint.c * washCMult * tint.a,
     h: tint.h,
   };
 }

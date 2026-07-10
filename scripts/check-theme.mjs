@@ -174,6 +174,24 @@ const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "
 const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
+// 5b. [bone-sync] bone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
+//     fg snapshots can't carry them) — the JS constants must equal presets.css, or bone-night text
+//     bands against the wrong surface model again (the exact bug the mirror fixes).
+{
+  const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
+  const boneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="bone"]');
+  if (boneDark) {
+    const washL = boneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
+    const cMult = boneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
+    if (washL && !autoFg.includes(`bone && dark ? ${washL} :`))
+      fail(`[bone-sync] presets.css bone night --glass-wash-l is ${washL}% but auto-foreground's mirrored fallback differs.`);
+    if (cMult && !autoFg.includes(`bone && dark ? ${cMult} :`))
+      fail(`[bone-sync] presets.css bone night --glass-wash-c-mult is ${cMult} but auto-foreground's mirrored fallback differs.`);
+  } else {
+    fail('[bone-sync] could not locate the .dark[data-glass-tint="bone"] block in the theme rules.');
+  }
+}
+
 const frescoPresets = new Set();
 for (const r of rules) {
   const m = r.selector.match(/\[data-glass-tint="([a-z]+)"\]/);
