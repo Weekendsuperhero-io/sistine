@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { chromaRampColors, hueRampColors, lightnessRampColors, maxP3Chroma, type OklchColor, tonalScaleColors } from "@/lib/oklch-utils";
+import { type OklchColor, rampAxisColors } from "@/lib/oklch-utils";
 import { getComponents } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 
@@ -149,16 +149,14 @@ export default function ComponentsPage() {
       const b = ramp[mid] ?? base;
       return `linear-gradient(135deg, ${css(a)} 0%, ${css(b)} 100%), var(--glass-bg)`;
     };
+    // THE shared axis mapping (rampAxisColors) — the same math the gradient + canvas backgrounds
+    // render, so this demo can't drift from what an axis actually looks like.
+    const gamut = p3 ? ("p3" as const) : ("srgb" as const);
     const ramps: Record<(typeof GRADIENT_AXES)[number], OklchColor[]> = {
-      hue: hueRampColors(base, 8),
-      chroma: chromaRampColors(base, 8, p3 ? maxP3Chroma(base.l, base.h) : undefined),
-      lightness: lightnessRampColors(base, 8),
-      tonal: tonalScaleColors({
-        hue: tintH,
-        steps: 17,
-        chroma: 0.2,
-        gamut: p3 ? "p3" : "srgb",
-      }),
+      hue: rampAxisColors("hue", base, 8, gamut),
+      chroma: rampAxisColors("chroma", base, 8, gamut),
+      lightness: rampAxisColors("lightness", base, 8, gamut),
+      tonal: rampAxisColors("tonal", base, 8, gamut),
     };
     return GRADIENT_AXES.map((key) => ({
       key,

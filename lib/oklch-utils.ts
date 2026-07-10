@@ -456,6 +456,25 @@ export function wrapGradient(shape: GradientShape, stops: string, geom: Gradient
  * steps each side (clamped [3,8]). Interpolated `in oklch` for a perceptual blend.
  * e.g. rampGradient("tonal", { l: 62, c: 0.15, h: 250 }, 5).
  */
+/**
+ * THE one axis → colors mapping every backdrop shares (CSS gradient background, canvas background,
+ * docs demos), seed-centered with `count` steps per side. Single-sourced so an axis can't mean
+ * different math in different engines: `tonal` is the seed's own lightness ramp, gamut-clamped
+ * (theme-true — the pure-CSS gradient's original definition), NOT the fixed-chroma tonal scale.
+ */
+export function rampAxisColors(axis: RampGradientAxis, seed: OklchColor, count: number, gamut: "srgb" | "p3" = "srgb"): OklchColor[] {
+  switch (axis) {
+    case "hue":
+      return hueRampColors(seed, count);
+    case "lightness":
+      return lightnessRampColors(seed, count);
+    case "chroma":
+      return chromaRampColors(seed, count, gamut === "p3" ? maxP3Chroma(seed.l, seed.h) : maxSrgbChroma(seed.l, seed.h));
+    default:
+      return lightnessRampColors(seed, count).map((color) => clampToGamut(color, gamut));
+  }
+}
+
 export function rampGradient(
   axis: RampGradientAxis,
   seed: OklchColor,
@@ -466,20 +485,7 @@ export function rampGradient(
   } & GradientGeometry = {},
 ): string {
   const { gamut = "srgb", shape = "linear", angle, position, radialShape, radialSize } = options;
-  let colors: OklchColor[];
-  switch (axis) {
-    case "hue":
-      colors = hueRampColors(seed, count);
-      break;
-    case "lightness":
-      colors = lightnessRampColors(seed, count);
-      break;
-    case "chroma":
-      colors = chromaRampColors(seed, count, gamut === "p3" ? maxP3Chroma(seed.l, seed.h) : maxSrgbChroma(seed.l, seed.h));
-      break;
-    default:
-      colors = lightnessRampColors(seed, count).map((color) => clampToGamut(color, gamut));
-  }
+  const colors = rampAxisColors(axis, seed, count, gamut);
   const mid = Math.floor(colors.length / 2);
   const plateau = 7; // half-width (%) of the centered theme-color band
   const leftEnd = 50 - plateau;

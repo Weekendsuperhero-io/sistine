@@ -15,18 +15,7 @@
  */
 
 import * as React from "react";
-import {
-  chromaRampColors,
-  formatOklch,
-  hueRampColors,
-  lightnessRampColors,
-  maxP3Chroma,
-  maxSrgbChroma,
-  type OklchColor,
-  parseOklch,
-  type RampGradientAxis,
-  tonalScaleColors,
-} from "./oklch-utils";
+import { formatOklch, type OklchColor, parseOklch, type RampGradientAxis, rampAxisColors } from "./oklch-utils";
 
 export type CanvasStyle = "gradient" | "lava" | "circle";
 /** Ramp axis the canvas colors follow. `lightness` is the "linear" ramp. */
@@ -176,27 +165,9 @@ function clampSteps(steps: number): number {
  * gamut-displayable max (sRGB, or P3 when `p3`) so it reaches the visible edge, not a flat 0.37.
  */
 function rampColors(base: OklchColor, ramp: CanvasRamp, count: number, p3: boolean): string[] {
-  let colors: OklchColor[];
-  switch (ramp) {
-    case "hue":
-      colors = hueRampColors(base, count);
-      break;
-    case "lightness":
-      colors = lightnessRampColors(base, count);
-      break;
-    case "chroma":
-      colors = chromaRampColors(base, count, (p3 ? maxP3Chroma : maxSrgbChroma)(base.l, base.h));
-      break;
-    default: // tonal — match the symmetric ramps' length so styles look consistent across axes
-      colors = tonalScaleColors({
-        hue: base.h,
-        steps: 2 * count + 1,
-        chroma: 0.2,
-        gamut: p3 ? "p3" : "srgb",
-      });
-      break;
-  }
-  return colors.map((c) => formatOklch(c));
+  // Delegates to THE shared axis mapping (oklch-utils), so canvas axes — tonal included — render the
+  // same color math as the pure-CSS gradient background.
+  return rampAxisColors(ramp, base, count, p3 ? "p3" : "srgb").map((c) => formatOklch(c));
 }
 
 /** Add (or replace) the alpha on an oklch() string. */
