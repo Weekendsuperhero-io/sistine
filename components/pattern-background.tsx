@@ -46,11 +46,18 @@ const STAR_COUNT: Record<PatternDensity, number> = {
   medium: 33,
   dense: 50,
 };
-/** Tile-size scale per density — sparse = larger cells (fewer per screen), dense = smaller (more). */
+/** Chase pellet-cell scale per density — sparse = larger cells (fewer per screen), dense = smaller (more). */
 const DENSITY_SCALE: Record<PatternDensity, number> = {
   sparse: 1.4,
   medium: 1,
   dense: 0.68,
+};
+/** Tile-size scale for the geometric tiles (dots / grid) — a much airier ladder: the old sparse (1.4)
+ * is the new DENSE, with medium and sparse extrapolated outward on the same ~1.4× step. */
+const TILE_SCALE: Record<PatternDensity, number> = {
+  sparse: 2.8,
+  medium: 2,
+  dense: 1.4,
 };
 
 // SVG silhouettes as mask sources. White fill + transparent ground works whether the browser samples
@@ -980,8 +987,8 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
   const bg = "var(--background)";
   // Ink follows the accent (fallback: tint hue) so every geometric pattern recolors with the accent knob.
   const ink = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.5)";
-  // Density scales the tile size for every pattern.
-  const d = DENSITY_SCALE[density];
+  // Density scales the tile size (dots/grid use the airier TILE_SCALE ladder; chase has its own cells).
+  const d = TILE_SCALE[density];
   const px = (n: number) => `${Math.round(n * d)}px`;
   const sq = (n: number) => `${px(n)} ${px(n)}`;
 
