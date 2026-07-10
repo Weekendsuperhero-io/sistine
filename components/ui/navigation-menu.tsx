@@ -8,8 +8,8 @@ import * as React from "react";
 import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Roles: the list bar is borderless adaptive glass (the old glass-bg look); the content and
-   viewport flyouts are bordered + veiled (the old glass-solid look). */
+/* Roles: the list bar is borderless adaptive glass; the content and
+   viewport flyouts are bordered + veiled. */
 const LIST_ROLE = {};
 const OVERLAY_ROLE = {
   border: true,

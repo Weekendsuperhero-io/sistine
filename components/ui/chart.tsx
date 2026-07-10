@@ -12,8 +12,8 @@ const THEMES = {
   dark: ".dark",
 } as const;
 
-/* Roles: the container and legend are bordered adaptive glass (the old glass-surface look);
-   the tooltip is bordered + veiled (the old glass-solid look). */
+/* Roles: the container and legend are bordered adaptive glass;
+   the tooltip is bordered + veiled. */
 const SURFACE_ROLE = {
   border: true,
 };

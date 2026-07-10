@@ -15,7 +15,7 @@ const RadioGroup = React.forwardRef<
 });
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

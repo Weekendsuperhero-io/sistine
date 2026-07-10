@@ -8,7 +8,7 @@ import * as React from "react";
 import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Role: bordered adaptive glass at the elevated blur tier (the old glass-surface-lg look). */
+/* Role: bordered adaptive glass at the elevated blur tier. */
 const ROLE: MaterialProps = {
   border: true,
   size: "lg",

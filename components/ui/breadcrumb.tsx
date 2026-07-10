@@ -15,7 +15,7 @@ const Breadcrumb = React.forwardRef<
 >(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" data-slot="breadcrumb" {...props} />);
 Breadcrumb.displayName = "Breadcrumb";
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

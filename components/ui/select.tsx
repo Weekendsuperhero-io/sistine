@@ -39,12 +39,12 @@ const selectContentVariants = cva(
   },
 );
 
-/* Trigger role: bordered adaptive glass (the old glass-surface look). */
+/* Trigger role: bordered adaptive glass. */
 const TRIGGER_ROLE = {
   border: true,
 };
 
-/* Content role: bordered + veiled adaptive glass (the old glass-solid look — the solid tier is identical). */
+/* Content role: bordered + veiled adaptive glass. */
 const CONTENT_ROLE = {
   border: true,
   veil: true,

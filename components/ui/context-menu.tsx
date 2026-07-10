@@ -39,7 +39,7 @@ const contextMenuContentVariants = cva(
   },
 );
 
-/* Role: bordered + veiled adaptive glass (the old glass-solid look). */
+/* Role: bordered + veiled adaptive glass. */
 const ROLE = {
   border: true,
   veil: true,

@@ -18,7 +18,7 @@ const ToggleGroupContext = React.createContext<{
   spacing: 0,
 });
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

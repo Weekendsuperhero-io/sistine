@@ -20,7 +20,7 @@ const menuBarVariants = cva("", {
   },
 });
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {

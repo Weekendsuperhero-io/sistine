@@ -21,7 +21,7 @@ const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounde
   },
 });
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

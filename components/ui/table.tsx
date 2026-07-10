@@ -17,7 +17,7 @@ const tableVariants = cva("w-full caption-bottom text-sm", {
   },
 });
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

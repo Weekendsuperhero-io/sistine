@@ -22,7 +22,7 @@ const commandVariants = cva("flex h-full w-full flex-col overflow-hidden rounded
   },
 });
 
-/* Role: bordered + veiled adaptive glass (the old glass-solid look). */
+/* Role: bordered + veiled adaptive glass. */
 const ROLE = {
   border: true,
   veil: true,

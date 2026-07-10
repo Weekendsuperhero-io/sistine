@@ -18,7 +18,7 @@ interface InputGroupProps extends React.ComponentProps<"div"> {
   effect?: HoverEffect;
 }
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

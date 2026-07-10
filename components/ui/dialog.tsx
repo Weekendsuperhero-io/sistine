@@ -21,7 +21,7 @@ const dialogContentVariants = cva("", {
   },
 });
 
-/* Role: bordered adaptive glass at the elevated blur tier (the old glass-surface-lg look). */
+/* Role: bordered adaptive glass at the elevated blur tier. */
 const ROLE: MaterialProps = {
   border: true,
   size: "lg",

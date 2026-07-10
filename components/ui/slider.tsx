@@ -6,7 +6,7 @@ import * as React from "react";
 import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Role: bordered adaptive glass (the old glass-surface thumb). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };

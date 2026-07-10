@@ -16,7 +16,7 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   glow?: boolean;
 };
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 function Calendar({

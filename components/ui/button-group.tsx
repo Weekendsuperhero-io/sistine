@@ -32,7 +32,7 @@ interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typ
   effect?: HoverEffect;
 }
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 function ButtonGroup({ className, orientation = "horizontal", variant = "glass", material, border, effect, ...props }: ButtonGroupProps) {

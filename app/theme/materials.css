@@ -79,9 +79,9 @@
 }
 
 /* ── Gloss flavors ────────────────────────────────────────────────────────────
-   data-gloss on <html> (or any ancestor) swaps the crystal gloss (successor to data-crystal, which
-   coexists during the migration). Default (unset) = tonal. Token remaps only — they compose with
-   [data-material="crystal"] AND the [data-glass="crystal"] page style, in both modes. */
+   data-gloss on <html> (or any ancestor) swaps the crystal gloss. Default (unset) = tonal. Token
+   remaps only — they compose with [data-material="crystal"] AND the [data-glass="crystal"] page
+   style, in both modes. */
 [data-gloss="white"] {
   --glass-gloss-ink: var(--shadow-highlight); /* 100% 0 0 — the classic flat white specular */
 }

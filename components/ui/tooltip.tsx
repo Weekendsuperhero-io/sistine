@@ -6,7 +6,7 @@ import * as React from "react";
 import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Role: bordered + veiled adaptive glass (the old glass-solid look). */
+/* Role: bordered + veiled adaptive glass. */
 const ROLE = {
   border: true,
   veil: true,

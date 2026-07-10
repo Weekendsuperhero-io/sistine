@@ -21,7 +21,7 @@ const carouselVariants = cva("", {
   },
 });
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {

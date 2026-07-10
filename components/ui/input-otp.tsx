@@ -7,12 +7,12 @@ import * as React from "react";
 import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Root role: bordered adaptive glass (the old glass-surface look). */
+/* Root role: bordered adaptive glass. */
 const ROOT_ROLE = {
   border: true,
 };
 
-/* Slot role: borderless adaptive glass (the old glass-bg look — the slot draws its own border-y/border-r chrome). */
+/* Slot role: borderless adaptive glass (the slot draws its own border-y/border-r chrome). */
 const SLOT_ROLE = {};
 
 const InputOTP = React.forwardRef<

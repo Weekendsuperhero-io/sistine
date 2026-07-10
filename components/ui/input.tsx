@@ -16,7 +16,7 @@ const inputVariants = cva("", {
   },
 });
 
-/* Role: bordered adaptive glass at the small blur tier (the old glass-surface-sm look). */
+/* Role: bordered adaptive glass at the small blur tier. */
 const ROLE: MaterialProps = {
   border: true,
   size: "sm",

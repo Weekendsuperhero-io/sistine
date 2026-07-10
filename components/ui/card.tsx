@@ -17,7 +17,7 @@ const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6", {
   },
 });
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 function Card({

@@ -6,7 +6,7 @@ import { Drawer as DrawerPrimitive } from "vaul";
 import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Role: borderless adaptive glass (the old glass-bg look). */
+/* Role: borderless adaptive glass. */
 const ROLE = {};
 
 const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (

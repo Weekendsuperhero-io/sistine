@@ -4,7 +4,7 @@ import { type Material, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { type Button, buttonVariants } from "./button";
 
-/* Role: bordered adaptive glass (the old glass-surface look). */
+/* Role: bordered adaptive glass. */
 const ROLE = {
   border: true,
 };
