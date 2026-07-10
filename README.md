@@ -141,6 +141,8 @@ Every color is authored in **oklch** in `app/globals.css` (full reference: [`doc
 
 Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
+**Presets are turnkey, pure CSS.** Set the attribute and toggle `.dark` (e.g. next-themes) — every preset and fresco carries its own day + night values, the scene backgrounds flip with the mode, and static text baselines keep all four materials legible with no JavaScript. Optionally install and mount `<AutoForeground />` (once, in your root layout) to upgrade those baselines to exact APCA-solved foregrounds that re-band live as the tint, mode, or surface knobs change — it refines, it is never required.
+
 ### Per-Component Customization
 
 Pass CSS-variable overrides through the `glassVars` helper (the successor to the old `glass={{…}}` prop — it emits `--glass-*` / `--srf-*` custom properties that route through the token system):

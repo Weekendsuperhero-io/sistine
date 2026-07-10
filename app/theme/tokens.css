@@ -140,6 +140,20 @@
   --foreground-soft: oklch(0.4 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
   --foreground-strong: oklch(0.12 0.04 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
   --foreground-ui: oklch(0.46 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  /* Static baselines for the OPAQUE + CRYSTAL tier sets (the [data-material] remaps read these) —
+     WITHOUT them, a no-JS consumer (or SSR first paint) would substitute an unset var and INHERIT the
+     page foreground onto those floors. Light mode: the opaque floor (L90) and crystal surface share
+     the page's direction, so the normal literals apply; AutoForeground refines when mounted. */
+  --foreground-opaque: oklch(0.22 0.04 var(--glass-fg-h));
+  --foreground-soft-opaque: oklch(0.4 0.04 var(--glass-fg-h));
+  --foreground-strong-opaque: oklch(0.12 0.04 var(--glass-fg-h));
+  --foreground-ui-opaque: oklch(0.46 0.05 var(--glass-fg-h));
+  --muted-foreground-opaque: oklch(0.14 0.04 var(--glass-fg-h));
+  --foreground-crystal: oklch(0.22 0.04 var(--glass-fg-h));
+  --foreground-soft-crystal: oklch(0.4 0.04 var(--glass-fg-h));
+  --foreground-strong-crystal: oklch(0.12 0.04 var(--glass-fg-h));
+  --foreground-ui-crystal: oklch(0.46 0.05 var(--glass-fg-h));
+  --muted-foreground-crystal: oklch(0.14 0.04 var(--glass-fg-h));
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
@@ -248,6 +262,19 @@
   --foreground-soft: oklch(0.78 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
   --foreground-strong: oklch(0.96 0.035 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
   --foreground-ui: oklch(0.75 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  /* Static OPAQUE + CRYSTAL tier baselines, dark twins — the standard dark opaque floor (L32) and
+     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (bone
+     cream) override the -opaque set in their own block; AutoForeground refines when mounted. */
+  --foreground-opaque: oklch(0.92 0.04 var(--glass-fg-h));
+  --foreground-soft-opaque: oklch(0.78 0.04 var(--glass-fg-h));
+  --foreground-strong-opaque: oklch(0.96 0.035 var(--glass-fg-h));
+  --foreground-ui-opaque: oklch(0.75 0.05 var(--glass-fg-h));
+  --muted-foreground-opaque: oklch(0.89 0.04 var(--glass-fg-h));
+  --foreground-crystal: oklch(0.92 0.04 var(--glass-fg-h));
+  --foreground-soft-crystal: oklch(0.78 0.04 var(--glass-fg-h));
+  --foreground-strong-crystal: oklch(0.96 0.035 var(--glass-fg-h));
+  --foreground-ui-crystal: oklch(0.75 0.05 var(--glass-fg-h));
+  --muted-foreground-crystal: oklch(0.89 0.04 var(--glass-fg-h));
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;

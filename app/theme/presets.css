@@ -78,6 +78,14 @@
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
   --glass-opaque-l: 80;
+  /* Static -opaque tier baselines for bone's LIGHT night floor — the global dark baselines assume a
+     dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep bone's
+     opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */
+  --foreground-opaque: oklch(0.24 0.04 75);
+  --foreground-soft-opaque: oklch(0.38 0.05 75);
+  --foreground-strong-opaque: oklch(0.16 0.04 75);
+  --foreground-ui-opaque: oklch(0.4 0.06 75);
+  --muted-foreground-opaque: oklch(0.32 0.05 75);
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
