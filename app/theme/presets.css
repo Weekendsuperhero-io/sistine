@@ -62,15 +62,18 @@
   --glass-tint-a: 0.18;
   --harmony-h: 0;
   --glass-opaque-l: 94; /* bone daytime body lightness */
-  --glass-opaque-bg: oklch(94% 0.047 75); /* pinned bone cream (day) — overrides the tint-derived default */
+  /* NO pinned --glass-opaque-bg: the floor must stay DERIVED from --glass-opaque-l (engine), because the
+     lightness slider / stored per-mode L land as an INLINE --glass-opaque-l that shadows this block — a
+     literal pin would freeze the paint while AutoForeground keeps banding text against the token (light
+     text on cream). c-scale 1 makes the derived color exactly the old bone cream in both modes. */
+  --glass-opaque-c-scale: 1;
 }
 .dark[data-glass-tint="bone"] {
   /* Bone stays a proper pale CREAM in dark mode — the wash keeps its DAY lightness (knobs, not a wash
-     redeclaration), the opaque card floor is pinned to oklch(86.2% 0.047 75), and AutoForeground bands
+     redeclaration), the opaque card floor derives to oklch(86.2% 0.047 75), and AutoForeground bands
      per-card foreground against it (flipping to dark cream text) while the dark page keeps light text. */
   --glass-wash-l: 72%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-bg: oklch(86.2% 0.047 75); /* pinned bone cream (night) */
   --glass-opaque-l: 86.2;
 }
 
