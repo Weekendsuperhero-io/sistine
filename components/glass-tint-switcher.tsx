@@ -25,6 +25,44 @@ const OUTLINE_WEIGHTS = {
 } as const;
 type OutlineWeight = keyof typeof OUTLINE_WEIGHTS;
 
+/** Accent harmony styles → hue offsets from the harmony origin (base hue first), mirroring the CSS --hue-*
+ * anchors in app/theme/engine.css. Hues are computed in JS (not read from the CSS vars) so the swatches can
+ * preview + apply an accent even before it is switched on. */
+const HARMONIES = {
+  complement: [
+    0,
+    180,
+  ],
+  analogous: [
+    0,
+    -30,
+    30,
+  ],
+  split: [
+    0,
+    150,
+    210,
+  ],
+  triad: [
+    0,
+    120,
+    240,
+  ],
+  tetrad: [
+    0,
+    60,
+    180,
+    240,
+  ],
+  square: [
+    0,
+    90,
+    180,
+    270,
+  ],
+} as const;
+type Harmony = keyof typeof HARMONIES;
+
 /**
  * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
  * "Bone" is a warm, very-low-chroma off-white you can nudge further with the Chroma slider. "Sistine" is
@@ -295,6 +333,8 @@ export function GlassTintSwitcher() {
   const [accentOn, setAccentOn] = React.useState(false);
   const [accentH, setAccentH] = React.useState(280);
   const [accentC, setAccentC] = React.useState(0.15);
+  // Which harmony style the accent swatch row previews — pure UI state, intentionally not persisted.
+  const [harmony, setHarmony] = React.useState<Harmony>("complement");
 
   React.useEffect(() => {
     const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "amethyst";
@@ -528,6 +568,10 @@ export function GlassTintSwitcher() {
     });
   };
 
+  // Harmony origin for the accent swatches — same hue-less rule as applyTint/emitFg: neutral (chroma 0) and
+  // bone anchor the wheel at 0°; every other tint harmonizes from the current tint hue.
+  const harmonyOrigin = c === 0 || base === "bone" ? 0 : h;
+
   const triggerSwatch =
     base === "sistine" || base === "muse"
       ? (PRESETS.find((p) => p.value === base)?.swatch ?? "oklch(90% 0.02 250)")
@@ -672,6 +716,44 @@ export function GlassTintSwitcher() {
             >
               {accentOn ? "on" : "off"}
             </button>
+          </div>
+          {/* Harmony picker: pick a style, then click a swatch to APPLY that hue as the accent — same
+              changeAccent path as the Accent-hue slider (apply + persist + emitFg), forcing the accent on. */}
+          <div className="flex flex-wrap gap-1 text-muted-foreground text-xs">
+            {(Object.keys(HARMONIES) as Harmony[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setHarmony(k)}
+                className={cn(
+                  "rounded-md border px-2 py-0.5 font-medium transition-colors",
+                  harmony === k ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+                )}
+              >
+                {k}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {HARMONIES[harmony].map((off) => {
+              const hue = (((harmonyOrigin + off) % 360) + 360) % 360;
+              return (
+                <button
+                  key={off}
+                  type="button"
+                  onClick={() => changeAccent(true, hue, accentC)}
+                  title={`${Math.round(hue)}°`}
+                  aria-label={`Set accent hue ${Math.round(hue)}°`}
+                  className={cn(
+                    "size-6 rounded-full border border-[var(--glass-border)] transition-transform active:scale-[0.96]",
+                    accentOn && accentH === hue ? "ring-2 ring-foreground/60" : "hover:scale-110",
+                  )}
+                  style={{
+                    background: `oklch(0.62 ${Math.max(accentC, 0.12)} ${hue})`,
+                  }}
+                />
+              );
+            })}
           </div>
           {accentOn && (
             <>
