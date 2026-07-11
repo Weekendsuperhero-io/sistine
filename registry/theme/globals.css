@@ -985,6 +985,11 @@
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  /* Paint the border HERE, not just the tokens: borderless roles (Card default) never render
+     glass-border, so without this only bordered roles showed the outline — "some cards get it,
+     some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
+     resolve the same vars, so nothing double-draws. */
+  border: var(--srf-border-w) solid var(--srf-border-color);
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);
