@@ -5,7 +5,7 @@ import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Separator } from "./separator";
 
@@ -24,10 +24,8 @@ const buttonGroupVariants = cva(
   },
 );
 
-interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typeof buttonGroupVariants> {
+interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typeof buttonGroupVariants>, MaterialAxisProps {
   variant?: "default" | "glass";
-  material?: Material;
-  border?: boolean;
   /** Hover effect (folded from the glass wrapper). */
   effect?: HoverEffect;
 }
@@ -35,13 +33,31 @@ interface ButtonGroupProps extends React.ComponentProps<"div">, VariantProps<typ
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-function ButtonGroup({ className, orientation = "horizontal", variant = "glass", material, border, effect, ...props }: ButtonGroupProps) {
+function ButtonGroup({
+  className,
+  orientation = "horizontal",
+  variant = "glass",
+  material,
+  border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  diffuse,
+  effect,
+  ...props
+}: ButtonGroupProps) {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const getVariantClass = () => (variant === "default" ? "" : "rounded-md");
 
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (

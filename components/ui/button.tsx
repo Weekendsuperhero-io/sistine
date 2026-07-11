@@ -71,6 +71,7 @@ function Button({
   gradient,
   glow,
   sheen,
+  diffuse,
   effect,
   ...props
 }: React.ComponentProps<"button"> &
@@ -88,6 +89,7 @@ function Button({
     gradient,
     glow,
     sheen,
+    diffuse,
   });
 
   return (

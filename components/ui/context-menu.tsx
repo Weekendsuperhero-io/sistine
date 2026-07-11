@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -100,19 +100,16 @@ ContextMenuSubTrigger.displayName = ContextMenuPrimitive.SubTrigger.displayName;
 
 const ContextMenuSubContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> &
-    VariantProps<typeof contextMenuSubContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
-    }
->(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> & VariantProps<typeof contextMenuSubContentVariants> & MaterialAxisProps
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -135,19 +132,16 @@ ContextMenuSubContent.displayName = ContextMenuPrimitive.SubContent.displayName;
 
 const ContextMenuContent = React.forwardRef<
   React.ElementRef<typeof ContextMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> &
-    VariantProps<typeof contextMenuContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
-    }
->(({ className, variant = "glass", material, border, veil, glow, style, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & VariantProps<typeof contextMenuContentVariants> & MaterialAxisProps
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, style, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

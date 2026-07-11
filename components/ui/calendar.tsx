@@ -3,18 +3,15 @@
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from "react-day-picker";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
-  variant?: "default" | "glass";
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"];
-  material?: Material;
-  border?: boolean;
-  /** Resting glow (folded from the glass wrapper). */
-  glow?: boolean;
-};
+export type CalendarProps = React.ComponentProps<typeof DayPicker> &
+  MaterialAxisProps & {
+    variant?: "default" | "glass";
+    buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+  };
 
 /* Role: borderless adaptive glass. */
 const ROLE = {};
@@ -28,7 +25,11 @@ function Calendar({
   buttonVariant = "ghost",
   material,
   border,
+  veil,
+  gradient,
   glow,
+  sheen,
+  diffuse,
   locale,
   formatters,
   components,
@@ -45,6 +46,11 @@ function Calendar({
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -54,7 +60,6 @@ function Calendar({
         m?.className,
         "group/calendar w-fit [--cell-radius:var(--radius-4xl)] [--cell-size:--spacing(9)]",
         variants[variant],
-        glow && "glass-glow",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,

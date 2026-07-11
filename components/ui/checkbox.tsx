@@ -4,7 +4,7 @@ import { Check } from "@phosphor-icons/react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -14,17 +14,19 @@ const ROLE = {
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+  /* `glow` rides the CHECKED state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    sheen,
+    diffuse,
   });
 
   return (

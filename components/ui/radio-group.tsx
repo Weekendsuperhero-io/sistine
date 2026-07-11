@@ -4,7 +4,7 @@ import { Circle } from "@phosphor-icons/react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const RadioGroup = React.forwardRef<
@@ -22,17 +22,19 @@ const ROLE = {
 
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+  /* `glow` rides the CHECKED state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    sheen,
+    diffuse,
   });
 
   return (

@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -27,13 +27,17 @@ function Textarea({
   variant = "glass",
   material,
   border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  diffuse,
   icon,
   error,
   ...props
 }: React.ComponentProps<"textarea"> &
-  VariantProps<typeof textareaVariants> & {
-    material?: Material;
-    border?: boolean;
+  VariantProps<typeof textareaVariants> &
+  MaterialAxisProps & {
     /** Leading icon (folded from the glass wrapper). */
     icon?: React.ReactNode;
     /** Destructive border + focus ring (folded from the glass wrapper). */
@@ -42,6 +46,11 @@ function Textarea({
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   const textarea = (

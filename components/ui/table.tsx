@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -25,18 +25,20 @@ const ROLE = {
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> &
-    VariantProps<typeof tableVariants> & {
-      material?: Material;
-      border?: boolean;
-      glow?: boolean | "lg";
+    VariantProps<typeof tableVariants> &
+    MaterialAxisProps & {
       /** When true, rows alternate in brightness and the per-row dividers are removed. */
       striped?: boolean;
     }
->(({ className, variant = "glass", material, border, glow, striped = false, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, striped = false, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   const stripedClass = striped

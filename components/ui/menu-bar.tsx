@@ -3,7 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -23,18 +23,12 @@ const menuBarVariants = cva("", {
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
-  sheen?: boolean;
+export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants>, MaterialAxisProps {
   effect?: HoverEffect;
 }
 
 const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
-  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, children, ...props }, ref) => {
     const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
@@ -42,6 +36,7 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
       gradient,
       glow,
       sheen,
+      diffuse,
     });
 
     return (

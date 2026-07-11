@@ -4,7 +4,7 @@ import { Dot } from "@phosphor-icons/react";
 import { OTPInput, type RenderProps, type SlotProps } from "input-otp";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Root role: bordered adaptive glass. */
@@ -17,15 +17,12 @@ const SLOT_ROLE = {};
 
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
-  Omit<React.ComponentPropsWithoutRef<typeof OTPInput>, "render" | "children"> & {
-    variant?: "default" | "glass";
-    render?: (props: RenderProps) => React.ReactNode;
-    material?: Material;
-    border?: boolean;
-    /** Resting glow (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", render, material, border, glow, ...props }, ref) => {
+  Omit<React.ComponentPropsWithoutRef<typeof OTPInput>, "render" | "children"> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+      render?: (props: RenderProps) => React.ReactNode;
+    }
+>(({ className, variant = "glass", render, material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
@@ -35,6 +32,11 @@ const InputOTP = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : ROOT_ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   const defaultRender = ({ slots }: { slots: SlotProps[] }) => (
@@ -50,7 +52,7 @@ const InputOTP = React.forwardRef<
       ref={ref}
       data-slot="input-otp"
       data-material={m?.["data-material"]}
-      containerClassName={cn(m?.className, "flex items-center gap-2 has-disabled:opacity-50", variants[variant], glow && "glass-glow", className)}
+      containerClassName={cn(m?.className, "flex items-center gap-2 has-disabled:opacity-50", variants[variant], className)}
       className="disabled:cursor-not-allowed"
       render={render || defaultRender}
       {...props}
@@ -79,52 +81,73 @@ InputOTPGroup.displayName = "InputOTPGroup";
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<"div">,
   SlotProps &
-    React.ComponentPropsWithoutRef<"div"> & {
+    React.ComponentPropsWithoutRef<"div"> &
+    MaterialAxisProps & {
       variant?: "default" | "glass";
-      material?: Material;
-      border?: boolean;
-      /** Resting glow (folded from the glass wrapper). */
-      glow?: boolean;
     }
->(({ variant = "glass", material, border, glow, className, char, isActive, hasFakeCaret, placeholderChar = "○", ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-  const variants = {
-    default:
-      "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
-    glass:
-      "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
-  };
+>(
+  (
+    {
+      variant = "glass",
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      className,
+      char,
+      isActive,
+      hasFakeCaret,
+      placeholderChar = "○",
+      ...props
+    },
+    ref,
+  ) => {
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+    const variants = {
+      default:
+        "relative flex h-12 w-12 items-center justify-center border-y border-r border-input text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
+      glass:
+        "relative flex h-12 w-12 items-center justify-center border-y border-r border-[var(--glass-border)] text-foreground text-lg font-semibold transition-[color,border-color,box-shadow] first:rounded-l-md first:border-l last:rounded-r-md",
+    };
 
-  const m = materialSurface(variant === "default" ? null : SLOT_ROLE, {
-    material,
-    border,
-  });
+    const m = materialSurface(variant === "default" ? null : SLOT_ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+    });
 
-  return (
-    <div
-      ref={ref}
-      data-slot="input-otp-slot"
-      data-active={isActive}
-      data-material={m?.["data-material"]}
-      className={cn(
-        m?.className,
-        variants[variant],
-        isActive && "z-10 ring-2 ring-ring ring-offset-background opacity-100",
-        !char && !isActive && "opacity-70",
-        glow && "glass-glow",
-        className,
-      )}
-      {...props}
-    >
-      <span className={cn("text-foreground font-semibold", !char && "text-muted-foreground")}>{char ?? placeholderChar}</span>
-      {hasFakeCaret && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-6 w-0.5 bg-foreground animate-pulse" />
-        </div>
-      )}
-    </div>
-  );
-});
+    return (
+      <div
+        ref={ref}
+        data-slot="input-otp-slot"
+        data-active={isActive}
+        data-material={m?.["data-material"]}
+        className={cn(
+          m?.className,
+          variants[variant],
+          isActive && "z-10 ring-2 ring-ring ring-offset-background opacity-100",
+          !char && !isActive && "opacity-70",
+          className,
+        )}
+        {...props}
+      >
+        <span className={cn("text-foreground font-semibold", !char && "text-muted-foreground")}>{char ?? placeholderChar}</span>
+        {hasFakeCaret && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-6 w-0.5 bg-foreground animate-pulse" />
+          </div>
+        )}
+      </div>
+    );
+  },
+);
 InputOTPSlot.displayName = "InputOTPSlot";
 
 const InputOTPSeparator = React.forwardRef<React.ElementRef<"div">, React.ComponentPropsWithoutRef<"div">>(({ ...props }, ref) => (

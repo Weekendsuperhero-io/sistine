@@ -5,7 +5,7 @@ import { cva } from "class-variance-authority";
 import { NavigationMenu as NavigationMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Roles: the list bar is borderless adaptive glass; the content and
@@ -37,13 +37,11 @@ NavigationMenu.displayName = NavigationMenuPrimitive.Root.displayName;
 
 const NavigationMenuList = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.List> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.List> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "group flex flex-1 list-none items-center justify-center space-x-1",
@@ -53,7 +51,11 @@ const NavigationMenuList = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : LIST_ROLE, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -98,14 +100,11 @@ NavigationMenuTrigger.displayName = NavigationMenuPrimitive.Trigger.displayName;
 
 const NavigationMenuContent = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    veil?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const inlineRenderStyles =
     "group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden group-data-[viewport=false]/navigation-menu:rounded-xl group-data-[viewport=false]/navigation-menu:border group-data-[viewport=false]/navigation-menu:shadow group-data-[viewport=false]/navigation-menu:duration-200 **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none group-data-[viewport=false]/navigation-menu:data-[state=closed]:animate-out group-data-[viewport=false]/navigation-menu:data-[state=closed]:fade-out-0 group-data-[viewport=false]/navigation-menu:data-[state=closed]:zoom-out-95 group-data-[viewport=false]/navigation-menu:data-[state=open]:animate-in group-data-[viewport=false]/navigation-menu:data-[state=open]:fade-in-0 group-data-[viewport=false]/navigation-menu:data-[state=open]:zoom-in-95";
 
@@ -126,7 +125,10 @@ const NavigationMenuContent = React.forwardRef<
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -159,14 +161,11 @@ NavigationMenuLink.displayName = NavigationMenuPrimitive.Link.displayName;
 
 const NavigationMenuViewport = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Viewport>,
-  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Viewport> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    veil?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Viewport> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default:
@@ -179,7 +178,10 @@ const NavigationMenuViewport = React.forwardRef<
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

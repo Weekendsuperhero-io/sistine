@@ -2,7 +2,7 @@ import { ArrowsHorizontalIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const Breadcrumb = React.forwardRef<
@@ -22,14 +22,11 @@ const ROLE = {
 
 const BreadcrumbList = React.forwardRef<
   HTMLOListElement,
-  React.ComponentPropsWithoutRef<"ol"> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Resting glow (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"ol"> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
@@ -39,6 +36,11 @@ const BreadcrumbList = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -50,7 +52,6 @@ const BreadcrumbList = React.forwardRef<
         m?.className,
         "flex flex-wrap items-center gap-1.5 break-words text-sm text-muted-foreground sm:gap-2.5",
         variants[variant],
-        glow && "glass-glow",
         className,
       )}
       {...props}

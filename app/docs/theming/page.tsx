@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DiffuseComparisonDemo } from "@/components/diffuse-comparison-demo";
 import { ForegroundTester } from "@/components/foreground-tester";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VeilComparisonDemo } from "@/components/veil-comparison-demo";
@@ -763,6 +764,11 @@ const onAccent = useReadableForeground(accent, "large");
               text in both.
             </p>
             <VeilComparisonDemo />
+            <p className="mt-6 text-muted-foreground">
+              The veil's opt-in sibling: <IC>diffuse</IC> — a readability blur FLOOR for surfaces that must stay translucent. Crystal keeps its 2px
+              identity unless a surface opts in; opaque ignores the floor entirely. Drag the floor and compare.
+            </p>
+            <DiffuseComparisonDemo />
           </CardContent>
         </Card>
 

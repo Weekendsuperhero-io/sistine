@@ -4,7 +4,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -24,13 +24,7 @@ const carouselVariants = cva("", {
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
-  sheen?: boolean;
+export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants>, MaterialAxisProps {
   effect?: HoverEffect;
   autoPlay?: boolean;
   interval?: number;
@@ -38,7 +32,22 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, Var
 
 const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
   (
-    { className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, autoPlay = false, interval = 3000, children, ...props },
+    {
+      className,
+      variant = "glass",
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      effect,
+      autoPlay = false,
+      interval = 3000,
+      children,
+      ...props
+    },
     ref,
   ) => {
     const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -78,6 +87,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       gradient,
       glow,
       sheen,
+      diffuse,
     });
 
     if (totalItems === 0) return null;

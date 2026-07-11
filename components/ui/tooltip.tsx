@@ -3,7 +3,7 @@
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered + veiled adaptive glass. */
@@ -24,14 +24,11 @@ const TooltipTrigger = ({ ...props }: React.ComponentProps<typeof TooltipPrimiti
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    veil?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ className, variant = "glass", material, border, veil, glow, sideOffset = 4, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, sideOffset = 4, children, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-primary text-primary-foreground",
@@ -42,7 +39,10 @@ const TooltipContent = React.forwardRef<
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Popover as PopoverPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -37,19 +37,16 @@ const PopoverAnchor = PopoverPrimitive.Anchor;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> &
-    VariantProps<typeof popoverContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
-    }
->(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & VariantProps<typeof popoverContentVariants> & MaterialAxisProps
+>(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

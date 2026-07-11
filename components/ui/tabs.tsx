@@ -5,7 +5,7 @@ import { Tabs as TabsPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -43,17 +43,19 @@ Tabs.displayName = TabsPrimitive.Root.displayName;
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> &
-    VariantProps<typeof tabsListVariants> & {
-      material?: Material;
-      border?: boolean;
-      glow?: boolean | "lg";
+    VariantProps<typeof tabsListVariants> &
+    MaterialAxisProps & {
       effect?: HoverEffect;
     }
->(({ className, variant = "glass", material, border, glow, effect, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

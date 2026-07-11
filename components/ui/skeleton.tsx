@@ -1,4 +1,4 @@
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -11,15 +11,19 @@ function Skeleton({
   variant = "glass",
   material,
   border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  diffuse,
   shimmer = true,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & {
-  variant?: "default" | "glass";
-  material?: Material;
-  border?: boolean;
-  /** Moving shimmer highlight (folded from the glass wrapper). */
-  shimmer?: boolean;
-}) {
+}: React.HTMLAttributes<HTMLDivElement> &
+  MaterialAxisProps & {
+    variant?: "default" | "glass";
+    /** Moving shimmer highlight (folded from the glass wrapper). */
+    shimmer?: boolean;
+  }) {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-muted animate-pulse",
@@ -29,6 +33,11 @@ function Skeleton({
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (

@@ -174,6 +174,18 @@ const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "
 const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
+// 6e. [axis-props] any component that calls materialSurface must type its per-instance axes via the
+//     canonical MaterialAxisProps (lib/material) — a hand-listed subset goes stale whenever an axis is
+//     added (diffuse) or widened (border weights), so the new knob silently fails to type.
+{
+  const uiDir = join(root, 'components/ui');
+  for (const f of readdirSync(uiDir).filter((x) => x.endsWith('.tsx'))) {
+    const src = readFileSync(join(uiDir, f), 'utf8');
+    if (src.includes('materialSurface(') && !src.includes('MaterialAxisProps'))
+      fail(`[axis-props] ${f}: calls materialSurface but hand-lists axis props — spread MaterialAxisProps so new axes (diffuse, border weights) type everywhere.`);
+  }
+}
+
 // 6d. [blur-coupling] surface blur must route through --srf-filter (the token system), never raw
 //     backdrop-blur utilities in component class strings — a raw blur keeps paying GPU (and blurring
 //     nothing) when the opaque material/page short-circuits the filter. The ONLY sanctioned raw use

@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -100,19 +100,16 @@ DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayNam
 
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> &
-    VariantProps<typeof dropdownMenuSubContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
-    }
->(({ className, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> & VariantProps<typeof dropdownMenuSubContentVariants> & MaterialAxisProps
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -135,19 +132,16 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> &
-    VariantProps<typeof dropdownMenuContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
-    }
->(({ className, sideOffset = 4, variant = "glass", material, border, veil, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & VariantProps<typeof dropdownMenuContentVariants> & MaterialAxisProps
+>(({ className, sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
     veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

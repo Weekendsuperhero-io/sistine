@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: borderless adaptive glass. */
@@ -35,13 +35,11 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ className, children, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, children, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-background",
@@ -51,7 +49,11 @@ const DrawerContent = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

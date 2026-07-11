@@ -3,7 +3,7 @@
 import { Switch as SwitchPrimitives } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -13,19 +13,21 @@ const ROLE = {
 
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> & {
-    variant?: "default" | "glass";
-    size?: "sm" | "default";
-    material?: Material;
-    border?: boolean;
-    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", size = "default", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+      size?: "sm" | "default";
+    }
+>(({ className, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   // The THUMB is the glass surface element; the root track styles itself.
+  /* `glow` rides the CHECKED state on the root track — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    sheen,
+    diffuse,
   });
 
   return (

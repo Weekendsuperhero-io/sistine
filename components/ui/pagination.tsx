@@ -1,6 +1,6 @@
 import { ArrowsHorizontalIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { type Button, buttonVariants } from "./button";
 
@@ -16,14 +16,11 @@ Pagination.displayName = "Pagination";
 
 const PaginationContent = React.forwardRef<
   HTMLUListElement,
-  React.ComponentProps<"ul"> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Resting glow (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentProps<"ul"> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
@@ -33,6 +30,11 @@ const PaginationContent = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -40,7 +42,7 @@ const PaginationContent = React.forwardRef<
       ref={ref}
       data-slot="pagination-content"
       data-material={m?.["data-material"]}
-      className={cn(m?.className, "flex flex-row items-center gap-1", variants[variant], glow && "glass-glow", className)}
+      className={cn(m?.className, "flex flex-row items-center gap-1", variants[variant], className)}
       {...props}
     />
   );
@@ -55,19 +57,36 @@ PaginationItem.displayName = "PaginationItem";
 type PaginationLinkProps = {
   isActive?: boolean;
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a"> & {
+  React.ComponentProps<"a"> &
+  MaterialAxisProps & {
     variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
   };
 
-const PaginationLink = ({ className, isActive, size = "icon", variant = "glass", material, border, ...props }: PaginationLinkProps) => {
+const PaginationLink = ({
+  className,
+  isActive,
+  size = "icon",
+  variant = "glass",
+  material,
+  border,
+  veil,
+  gradient,
+  glow,
+  sheen,
+  diffuse,
+  ...props
+}: PaginationLinkProps) => {
   // The glass surface rides the ACTIVE page only; inactive links keep the plain outline/ghost button look.
   const m =
     variant === "glass" && isActive
       ? materialSurface(ROLE, {
           material,
           border,
+          veil,
+          gradient,
+          glow,
+          sheen,
+          diffuse,
         })
       : null;
 

@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -62,13 +62,10 @@ const ChartContainer = React.forwardRef<
   React.ComponentProps<"div"> & {
     config: ChartConfig;
     children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
-  } & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ id, className, children, config, variant = "glass", material, border, glow, ...props }, ref) => {
+  } & MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -81,7 +78,11 @@ const ChartContainer = React.forwardRef<
   const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (
@@ -162,12 +163,9 @@ type TooltipPayloadItem = NonNullable<TooltipProps["payload"]>[number];
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   Omit<TooltipProps, "label" | "labelFormatter" | "formatter"> &
-    React.ComponentProps<"div"> & {
+    React.ComponentProps<"div"> &
+    MaterialAxisProps & {
       variant?: "default" | "glass";
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
       indicator?: "dot" | "line" | "dashed";
       hideLabel?: boolean;
       hideIndicator?: boolean;
@@ -196,7 +194,10 @@ const ChartTooltipContent = React.forwardRef<
       material,
       border,
       veil,
+      gradient,
       glow,
+      sheen,
+      diffuse,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -221,7 +222,10 @@ const ChartTooltipContent = React.forwardRef<
       material,
       border,
       veil,
+      gradient,
       glow,
+      sheen,
+      diffuse,
     });
 
     const tooltipLabel = React.useMemo(() => {
@@ -360,64 +364,91 @@ type LegendProps = {
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &
-    LegendProps & {
+    LegendProps &
+    MaterialAxisProps & {
       variant?: "default" | "glass";
-      material?: Material;
-      border?: boolean;
-      glow?: boolean | "lg";
       hideIcon?: boolean;
       nameKey?: string;
     }
->(({ className, payload, verticalAlign = "bottom", variant = "glass", material, border, glow, hideIcon = false, nameKey }, ref) => {
-  const { config } = useChart();
+>(
+  (
+    {
+      className,
+      payload,
+      verticalAlign = "bottom",
+      variant = "glass",
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      hideIcon = false,
+      nameKey,
+    },
+    ref,
+  ) => {
+    const { config } = useChart();
 
-  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-  const variants = {
-    default: "",
-    glass: "rounded-lg px-2 py-1",
-  };
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+    const variants = {
+      default: "",
+      glass: "rounded-lg px-2 py-1",
+    };
 
-  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
-    material,
-    border,
-    glow,
-  });
+    const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+    });
 
-  if (!payload?.length) {
-    return null;
-  }
+    if (!payload?.length) {
+      return null;
+    }
 
-  return (
-    <div
-      ref={ref}
-      data-material={m?.["data-material"]}
-      className={cn(m?.className, "flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}
-    >
-      {payload
-        .filter((item) => item.type !== "none")
-        .map((item, index) => {
-          const key = `${nameKey || item.dataKey || item.value || "value"}`;
-          const configItem = getPayloadConfigFromPayload(config, item, key);
+    return (
+      <div
+        ref={ref}
+        data-material={m?.["data-material"]}
+        className={cn(
+          m?.className,
+          "flex items-center justify-center gap-4",
+          verticalAlign === "top" ? "pb-2" : "pt-2",
+          variants[variant],
+          className,
+        )}
+      >
+        {payload
+          .filter((item) => item.type !== "none")
+          .map((item, index) => {
+            const key = `${nameKey || item.dataKey || item.value || "value"}`;
+            const configItem = getPayloadConfigFromPayload(config, item, key);
 
-          return (
-            <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
-              {configItem?.icon && !hideIcon ? (
-                <configItem.icon />
-              ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
-              )}
-              {configItem?.label}
-            </div>
-          );
-        })}
-    </div>
-  );
-});
+            return (
+              <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
+                {configItem?.icon && !hideIcon ? (
+                  <configItem.icon />
+                ) : (
+                  <div
+                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    style={{
+                      backgroundColor: item.color,
+                    }}
+                  />
+                )}
+                {configItem?.label}
+              </div>
+            );
+          })}
+      </div>
+    );
+  },
+);
 ChartLegendContent.displayName = "ChartLegend";
 
 // Helper to extract item config from a payload.

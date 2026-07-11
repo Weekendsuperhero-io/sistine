@@ -4,16 +4,14 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
 
-interface InputGroupProps extends React.ComponentProps<"div"> {
+interface InputGroupProps extends React.ComponentProps<"div">, MaterialAxisProps {
   variant?: "default" | "glass";
-  material?: Material;
-  border?: boolean;
   /** Hover effect (folded from the glass wrapper). */
   effect?: HoverEffect;
 }
@@ -23,13 +21,18 @@ const ROLE = {
   border: true,
 };
 
-function InputGroup({ className, variant = "glass", material, border, effect, ...props }: InputGroupProps) {
+function InputGroup({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }: InputGroupProps) {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
 
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
+    veil,
+    gradient,
+    glow,
+    sheen,
+    diffuse,
   });
 
   return (

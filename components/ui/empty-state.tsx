@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -20,18 +20,12 @@ const emptyStateVariants = cva("", {
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof emptyStateVariants> {
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
-  sheen?: boolean;
+export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof emptyStateVariants>, MaterialAxisProps {
   effect?: HoverEffect;
 }
 
 const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, children, ...props }, ref) => {
     const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
@@ -39,6 +33,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       gradient,
       glow,
       sheen,
+      diffuse,
     });
 
     return (

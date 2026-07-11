@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from materialSurface.
@@ -49,18 +49,20 @@ const SURFACE_ROLE: Record<string, MaterialProps | null> = {
 const Alert = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> &
-    VariantProps<typeof alertVariants> & {
-      material?: Material;
-      border?: boolean;
-      glow?: boolean | "lg";
+    VariantProps<typeof alertVariants> &
+    MaterialAxisProps & {
       effect?: HoverEffect;
     }
->(({ className, variant, material, border, glow, effect, ...props }, ref) => {
+>(({ className, variant, material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }, ref) => {
   const isStatus = variant !== null && variant !== undefined && (STATUS_VARIANTS as readonly string[]).includes(variant);
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,
     border,
+    veil,
+    gradient,
     glow,
+    sheen,
+    diffuse,
   });
 
   return (

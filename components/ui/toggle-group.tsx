@@ -3,7 +3,7 @@
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 type ToggleGroupVariant = "default" | "glass";
@@ -25,56 +25,57 @@ const ROLE = {
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
-    variant?: ToggleGroupVariant;
-    size?: "default" | "sm" | "lg";
-    spacing?: number;
-    material?: Material;
-    border?: boolean;
-    /** Resting glow (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", size = "default", spacing = 0, material, border, glow, children, ...props }, ref) => {
-  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-  const variants = {
-    default: "",
-    glass: "rounded-md p-1",
-  };
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
+    MaterialAxisProps & {
+      variant?: ToggleGroupVariant;
+      size?: "default" | "sm" | "lg";
+      spacing?: number;
+    }
+>(
+  (
+    { className, variant = "glass", size = "default", spacing = 0, material, border, veil, gradient, glow, sheen, diffuse, children, ...props },
+    ref,
+  ) => {
+    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+    const variants = {
+      default: "",
+      glass: "rounded-md p-1",
+    };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-  });
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+    });
 
-  return (
-    <ToggleGroupPrimitive.Root
-      ref={ref}
-      data-slot="toggle-group"
-      data-variant={variant}
-      data-size={size}
-      data-spacing={spacing}
-      data-material={m?.["data-material"]}
-      className={cn(
-        m?.className,
-        "group/toggle-group inline-flex items-center justify-center rounded-md",
-        variants[variant],
-        glow && "glass-glow",
-        className,
-      )}
-      {...props}
-    >
-      <ToggleGroupContext.Provider
-        value={{
-          variant,
-          size,
-          spacing,
-        }}
+    return (
+      <ToggleGroupPrimitive.Root
+        ref={ref}
+        data-slot="toggle-group"
+        data-variant={variant}
+        data-size={size}
+        data-spacing={spacing}
+        data-material={m?.["data-material"]}
+        className={cn(m?.className, "group/toggle-group inline-flex items-center justify-center rounded-md", variants[variant], className)}
+        {...props}
       >
-        {children}
-      </ToggleGroupContext.Provider>
-    </ToggleGroupPrimitive.Root>
-  );
-});
+        <ToggleGroupContext.Provider
+          value={{
+            variant,
+            size,
+            spacing,
+          }}
+        >
+          {children}
+        </ToggleGroupContext.Provider>
+      </ToggleGroupPrimitive.Root>
+    );
+  },
+);
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName;
 
