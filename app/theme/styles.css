@@ -27,7 +27,8 @@
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
      as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
      floor's channel. */
-  --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
+  --srf-blur-base: var(--blur-frosted);
+  --srf-filter: blur(var(--srf-blur-eff)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -42,7 +43,8 @@
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
+  --srf-blur-base: var(--blur-crystal);
+  --srf-filter: blur(var(--srf-blur-eff));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
 }
