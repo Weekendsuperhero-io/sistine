@@ -683,13 +683,12 @@
   border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--srf-border-color, var(--glass-border));
 }
 /* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
-   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 4px,
-   frame = 8px. */
+   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 2px,   frame = 4px. */
 @utility glass-border-rim {
-  --brd-w: 4px;
+  --brd-w: 2px;
 }
 @utility glass-border-frame {
-  --brd-w: 8px;
+  --brd-w: 4px;
 }
 
 /* Diffuse axis — a READABILITY BLUR FLOOR (not a blur value): every translucent material computes

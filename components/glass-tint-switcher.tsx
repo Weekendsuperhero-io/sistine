@@ -20,8 +20,8 @@ const ACCENT_KEY = "sistine-accent";
  * Same ladder as the border axis (glass-border-rim/-frame); an element-level rim/frame beats this. */
 const OUTLINE_WEIGHTS = {
   hairline: null,
-  rim: "4px",
-  frame: "8px",
+  rim: "2px",
+  frame: "4px",
 } as const;
 type OutlineWeight = keyof typeof OUTLINE_WEIGHTS;
 
