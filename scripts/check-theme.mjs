@@ -174,6 +174,21 @@ const canvasUtils = readFileSync(join(root, "lib/canvas-background-utils.ts"), "
 const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
+// 6d. [blur-coupling] surface blur must route through --srf-filter (the token system), never raw
+//     backdrop-blur utilities in component class strings — a raw blur keeps paying GPU (and blurring
+//     nothing) when the opaque material/page short-circuits the filter. The ONLY sanctioned raw use
+//     is a modal overlay SCRIM (a 'fixed inset-0' line blurring the page behind a dialog).
+{
+  const uiDir = join(root, 'components/ui');
+  for (const f of readdirSync(uiDir).filter((x) => x.endsWith('.tsx'))) {
+    const src = readFileSync(join(uiDir, f), 'utf8');
+    for (const line of src.split("\n")) {
+      if (line.includes('backdrop-blur') && !line.includes('fixed inset-0'))
+        fail(`[blur-coupling] ${f}: raw backdrop-blur outside an overlay scrim — route it through the material system (--srf-blur / glass-sm/-lg / glass-diffuse).`);
+    }
+  }
+}
+
 // 5b. [bone-sync] bone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
 //     fg snapshots can't carry them) — the JS constants must equal presets.css, or bone-night text
 //     bands against the wrong surface model again (the exact bug the mirror fixes).

@@ -92,7 +92,6 @@ const AlertDialogContent = React.forwardRef<
           alertDialogContentVariants({
             variant,
           }),
-          animated && "backdrop-blur-[var(--blur-lg)]",
           className,
         )}
         {...props}

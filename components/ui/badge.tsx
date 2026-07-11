@@ -15,7 +15,7 @@ const badgeVariants = cva(
         default: "border-transparent bg-primary text-primary-foreground shadow [a&]:hover:bg-primary/80",
         glass: "text-foreground",
         secondary: "text-muted-foreground",
-        destructive: "backdrop-blur-[var(--blur-sm)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow-sm)]",
+        destructive: "border border-destructive/50 text-destructive",
         outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "border-transparent [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "border-transparent text-primary underline-offset-4 [a&]:hover:underline",
@@ -36,7 +36,9 @@ const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   secondary: {
     border: true,
   },
-  destructive: {},
+  destructive: {
+    size: "sm",
+  },
   default: null,
   outline: null,
   ghost: null,

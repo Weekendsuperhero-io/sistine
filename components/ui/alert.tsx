@@ -14,13 +14,12 @@ const alertVariants = cva(
       variant: {
         default: "bg-background text-foreground",
         glass: "text-foreground",
-        info: "backdrop-blur-[var(--blur)] border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
+        info: "border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
         success:
-          "backdrop-blur-[var(--blur)] border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
+          "border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
         warning:
-          "backdrop-blur-[var(--blur)] border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
-        destructive:
-          "backdrop-blur-[var(--blur)] border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
+          "border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
+        destructive: "border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
       },
     },
     defaultVariants: {

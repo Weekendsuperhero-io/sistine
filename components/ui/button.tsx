@@ -19,7 +19,7 @@ const buttonVariants = cva(
         destructive:
           "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
-          "backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
+          "text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         ghost:
           "border border-border hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
@@ -49,7 +49,9 @@ const buttonVariants = cva(
 const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   glass: {},
   destructive: {},
-  outline: {},
+  outline: {
+    size: "sm",
+  },
   secondary: {
     border: true,
   },

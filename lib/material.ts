@@ -30,6 +30,9 @@ export interface MaterialProps {
   /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
    *  ("size" universally means a component's dimensions; the material tier must never shadow that). */
   size?: "sm" | "lg";
+  /** Readability blur FLOOR (>= --glass-diffuse, default 12px) for text-dense translucent surfaces.
+   *  Composes with any material; inert under opaque (nothing to blur through). */
+  diffuse?: boolean;
   /** Brand-gradient accent layered over the material. */
   gradient?: boolean;
   /** Resting glow, or the intensified "lg" halo. */
@@ -50,7 +53,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, veil, size, gradient, glow, sheen } = props;
+  const { material, border, veil, size, diffuse, gradient, glow, sheen } = props;
   if (material === "none") {
     return {
       className: "",
@@ -66,6 +69,7 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       veil && "glass-veil",
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
+      diffuse && "glass-diffuse",
       gradient && "glass-gradient",
       glow === "lg" ? "glass-glow-lg" : glow ? "glass-glow" : false,
       sheen && "glass-sheen",
@@ -91,6 +95,7 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
     border: props.border ?? role.border,
     veil: props.veil ?? role.veil,
     size: props.size ?? role.size,
+    diffuse: props.diffuse ?? role.diffuse,
     gradient: props.gradient ?? role.gradient,
     glow: props.glow ?? role.glow,
     sheen: props.sheen ?? role.sheen,

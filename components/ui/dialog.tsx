@@ -86,7 +86,6 @@ const DialogContent = React.forwardRef<
           dialogContentVariants({
             variant,
           }),
-          animated && "backdrop-blur-[var(--blur-lg)]",
           className,
         )}
         {...props}

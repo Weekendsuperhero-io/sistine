@@ -78,6 +78,7 @@
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
   /* Crystal gloss defaults (mode-shared; the demo's Light/Tint sliders override inline). AutoForeground's
      crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
+  --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
   --glass-gloss-tint: 4.25; /* gloss chroma multiplier over the tint ("Tint") */
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
