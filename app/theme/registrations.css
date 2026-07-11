@@ -28,7 +28,9 @@
 @property --srf-blur-eff {
   syntax: "<length>";
   inherits: true;
-  initial-value: 0px;
+  /* 0.001px, NOT 0px: the minifier strips 0px -> unitless 0, which is an INVALID <length>
+     initial-value and silently voids the whole registration (the diffuse axis dies with it). */
+  initial-value: 0.001px;
 }
 @property --gradient-text-contrast {
   syntax: "*";
