@@ -300,6 +300,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   // the normal surface above — so bone/neutral opaque-card text tints toward the accent.
                   hue: huelessAccent ? accentH : tintH,
                   chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
+                  // Accent path ONLY: keep the accent VISIBLE on floors whose max contrast sits below the
+                  // band (bone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
+                  // pins to L≈0, the gamut collapses chroma, and accent text renders BLACK. Every other
+                  // theme passes 0 → behavior unchanged.
+                  minChroma: huelessAccent ? 0.08 : 0,
                 })
               : pickInBand(ramp, surface, band),
           );

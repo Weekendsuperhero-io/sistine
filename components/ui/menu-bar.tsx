@@ -3,7 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -23,51 +23,37 @@ const menuBarVariants = cva("", {
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants> {
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
-  sheen?: boolean;
+export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof menuBarVariants>, MaterialAxisProps {
   effect?: HoverEffect;
 }
 
-const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
-  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, children, ...props }, ref) => {
-    const m = materialSurface(variant === "default" ? null : ROLE, {
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-    });
+const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(({ className, variant = "glass", effect, children, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
-    return (
-      <div
-        ref={ref}
-        role="menubar"
-        data-material={m?.["data-material"]}
-        className={cn(
-          m?.className,
-          "inline-flex items-center gap-1 rounded-md p-1",
-          menuBarVariants({
-            variant,
+  return (
+    <div
+      ref={ref}
+      role="menubar"
+      data-material={m?.["data-material"]}
+      className={cn(
+        m?.className,
+        "inline-flex items-center gap-1 rounded-md p-1",
+        menuBarVariants({
+          variant,
+        }),
+        effect &&
+          hoverEffects({
+            hover: effect,
           }),
-          effect &&
-            hoverEffects({
-              hover: effect,
-            }),
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    );
-  },
-);
+        className,
+      )}
+      {...rest}
+    >
+      {children}
+    </div>
+  );
+});
 MenuBar.displayName = "MenuBar";
 
 export interface MenuBarItemProps extends React.ComponentProps<typeof Button> {

@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -62,13 +62,11 @@ const ChartContainer = React.forwardRef<
   React.ComponentProps<"div"> & {
     config: ChartConfig;
     children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
-  } & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    glow?: boolean | "lg";
-  }
->(({ id, className, children, config, variant = "glass", material, border, glow, ...props }, ref) => {
+  } & MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ id, className, children, config, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -78,11 +76,7 @@ const ChartContainer = React.forwardRef<
     glass: "rounded-lg p-4",
   };
 
-  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
-    material,
-    border,
-    glow,
-  });
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, axes);
 
   return (
     <ChartContext.Provider
@@ -100,7 +94,7 @@ const ChartContainer = React.forwardRef<
           variants[variant],
           className,
         )}
-        {...props}
+        {...rest}
       >
         <ChartStyle id={chartId} config={config} />
         <RechartsPrimitive.ResponsiveContainer minHeight={150}>{children}</RechartsPrimitive.ResponsiveContainer>
@@ -162,12 +156,9 @@ type TooltipPayloadItem = NonNullable<TooltipProps["payload"]>[number];
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   Omit<TooltipProps, "label" | "labelFormatter" | "formatter"> &
-    React.ComponentProps<"div"> & {
+    React.ComponentProps<"div"> &
+    MaterialAxisProps & {
       variant?: "default" | "glass";
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      glow?: boolean | "lg";
       indicator?: "dot" | "line" | "dashed";
       hideLabel?: boolean;
       hideIndicator?: boolean;
@@ -193,10 +184,6 @@ const ChartTooltipContent = React.forwardRef<
       className,
       indicator = "dot",
       variant = "glass",
-      material,
-      border,
-      veil,
-      glow,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -206,9 +193,12 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
+      ...props
     },
     ref,
   ) => {
+    /* This component never forwards unknown props to the DOM — only the axes are consumed. */
+    const [axes] = splitAxisProps(props);
     const { config } = useChart();
 
     /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -217,12 +207,7 @@ const ChartTooltipContent = React.forwardRef<
       glass: "text-foreground",
     };
 
-    const m = materialSurface(variant === "default" ? null : TOOLTIP_ROLE, {
-      material,
-      border,
-      veil,
-      glow,
-    });
+    const m = materialSurface(variant === "default" ? null : TOOLTIP_ROLE, axes);
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
@@ -360,15 +345,15 @@ type LegendProps = {
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &
-    LegendProps & {
+    LegendProps &
+    MaterialAxisProps & {
       variant?: "default" | "glass";
-      material?: Material;
-      border?: boolean;
-      glow?: boolean | "lg";
       hideIcon?: boolean;
       nameKey?: string;
     }
->(({ className, payload, verticalAlign = "bottom", variant = "glass", material, border, glow, hideIcon = false, nameKey }, ref) => {
+>(({ className, payload, verticalAlign = "bottom", variant = "glass", hideIcon = false, nameKey, ...props }, ref) => {
+  /* This component never forwards unknown props to the DOM — only the axes are consumed. */
+  const [axes] = splitAxisProps(props);
   const { config } = useChart();
 
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -377,11 +362,7 @@ const ChartLegendContent = React.forwardRef<
     glass: "rounded-lg px-2 py-1",
   };
 
-  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
-    material,
-    border,
-    glow,
-  });
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, axes);
 
   if (!payload?.length) {
     return null;

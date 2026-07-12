@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -59,18 +59,13 @@ const SelectValue = SelectPrimitive.Value;
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> &
-    VariantProps<typeof selectTriggerVariants> & {
+    VariantProps<typeof selectTriggerVariants> &
+    MaterialAxisProps & {
       size?: "sm" | "default";
-      material?: Material;
-      border?: boolean;
-      /** Resting glow (folded from the glass wrapper). */
-      glow?: boolean;
     }
->(({ className, children, variant = "glass", size = "default", material, border, glow, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : TRIGGER_ROLE, {
-    material,
-    border,
-  });
+>(({ className, children, variant = "glass", size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : TRIGGER_ROLE, axes);
 
   return (
     <SelectPrimitive.Trigger
@@ -83,10 +78,9 @@ const SelectTrigger = React.forwardRef<
         selectTriggerVariants({
           variant,
         }),
-        glow && "glass-glow transition duration-200",
         className,
       )}
-      {...props}
+      {...rest}
     >
       {children}
       <SelectPrimitive.Icon asChild>
@@ -129,20 +123,10 @@ SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayNam
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> &
-    VariantProps<typeof selectContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      /** Resting glow (folded from the glass wrapper). */
-      glow?: boolean;
-    }
->(({ className, children, position = "popper", align = "center", variant = "glass", material, border, veil, glow, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : CONTENT_ROLE, {
-    material,
-    border,
-    veil,
-  });
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & VariantProps<typeof selectContentVariants> & MaterialAxisProps
+>(({ className, children, position = "popper", align = "center", variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : CONTENT_ROLE, axes);
 
   return (
     <SelectPrimitive.Portal>
@@ -157,12 +141,11 @@ const SelectContent = React.forwardRef<
           }),
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          glow && "glass-glow",
           className,
         )}
         position={position}
         align={align}
-        {...props}
+        {...rest}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport

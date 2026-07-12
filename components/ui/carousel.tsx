@@ -4,7 +4,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -24,23 +24,15 @@ const carouselVariants = cva("", {
 /* Role: borderless adaptive glass. */
 const ROLE = {};
 
-export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants> {
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
-  sheen?: boolean;
+export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof carouselVariants>, MaterialAxisProps {
   effect?: HoverEffect;
   autoPlay?: boolean;
   interval?: number;
 }
 
 const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
-  (
-    { className, variant = "glass", material, border, veil, gradient, glow, sheen, effect, autoPlay = false, interval = 3000, children, ...props },
-    ref,
-  ) => {
+  ({ className, variant = "glass", effect, autoPlay = false, interval = 3000, children, ...props }, ref) => {
+    const [axes, rest] = splitAxisProps(props);
     const [currentIndex, setCurrentIndex] = React.useState(0);
     const items = React.Children.toArray(children);
     const totalItems = items.length;
@@ -71,14 +63,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       setCurrentIndex((prev) => (prev + 1) % totalItems);
     };
 
-    const m = materialSurface(variant === "default" ? null : ROLE, {
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-    });
+    const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
     if (totalItems === 0) return null;
 
@@ -98,7 +83,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
             }),
           className,
         )}
-        {...props}
+        {...rest}
       >
         <div
           className="flex transition-transform duration-500 ease-in-out"

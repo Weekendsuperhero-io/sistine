@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -26,24 +26,19 @@ function Input({
   className,
   type,
   variant = "glass",
-  material,
-  border,
   icon,
   error,
   ...props
 }: React.ComponentProps<"input"> &
-  VariantProps<typeof inputVariants> & {
-    material?: Material;
-    border?: boolean;
+  VariantProps<typeof inputVariants> &
+  MaterialAxisProps & {
     /** Leading icon (folded from the glass wrapper). */
     icon?: React.ReactNode;
     /** Destructive border + focus ring (folded from the glass wrapper). */
     error?: boolean;
   }) {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   const input = (
     <input
@@ -63,7 +58,7 @@ function Input({
         error && "border-destructive focus-visible:ring-destructive",
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 

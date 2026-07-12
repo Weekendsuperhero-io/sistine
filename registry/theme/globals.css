@@ -156,6 +156,7 @@
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
   /* Crystal gloss defaults (mode-shared; the demo's Light/Tint sliders override inline). AutoForeground's
      crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
+  --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
   --glass-gloss-tint: 4.25; /* gloss chroma multiplier over the tint ("Tint") */
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
@@ -505,9 +506,10 @@
      glass utility, at the element. Composing it here would bake :root's --glass-opacity into the value
      and silently ignore a per-element glass={{opacity}} — the var-composition gotcha again.) */
   /* Blur values — Apple-standard moderate blur; per-variant sizes (mode-invariant). */
-  --blur: 10px;
-  --blur-sm: 4px;
-  --blur-lg: 20px;
+  --blur: 2px;
+  --blur-sm: 1px;
+  --blur-lg: 8px;
+  --blur-xl: 12px;
   --blur-frosted: 25px;
   /* Crystal edge — identical in both modes, so it lives here with the anchors (the crystal floor +
      shadows are mode-varying: --glass-crystal-bg in the surfaces block below, shadows on :root/.dark). */
@@ -522,8 +524,9 @@
        hue   → iridescent: the highlight sweeps hues shifted ± --glass-gloss-hue-span around the tint hue
      White/tonal share the gradient SHAPES below (only --glass-gloss-ink, the L C H triple, differs); hue
      redefines the three gradients to interpolate across hue. Each layer applies its own alpha. */
-  --glass-gloss-l: 94; /* highlight lightness (plain number → % below); LOWER = bolder, more saturated */
-  --glass-gloss-tint: 2; /* tonal: multiplier on the theme chroma (0 = pure white gloss, higher = more color) */
+  /* --glass-gloss-l / --glass-gloss-tint live in tokens.css (66 / 4.25) — do NOT re-declare here:
+     engine.css imports AFTER tokens.css, so a duplicate at equal :root specificity silently wins and
+     pure-CSS consumers get a stale gloss. */
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
   --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
@@ -551,6 +554,12 @@
      (switch "on", slider range). The --accent-h/-c knob overrides apply in BOTH modes (the old dark
      twin dropped them — that was a bug). */
   --glass-accent: oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)));
+  /* Stained-glass — grayscale collapses the backdrop to pure LUMINANCE (akin to alpha: only lighter/
+     darker survives), and the glass's OWN tint stack supplies the color — OKLCH-true to the theme, no
+     hue-rotate approximation. --glass-stain-amount (0..1) sets how completely the backdrop's color is
+     stripped; --glass-stain-invert (0..1, default 1) flips the surviving luminance so bright backdrop
+     patches stop fighting dark tinted glass (set 0 to disable). The glass-stained utility and the switcher's Stained toggle both reference THIS token. */
+  --glass-stain: grayscale(var(--glass-stain-amount, 1)) invert(var(--glass-stain-invert, 0));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
   /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral
@@ -671,8 +680,10 @@
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
-  backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
-  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
+     the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
+     The max() composes the diffuse FLOOR for adaptive surfaces. */
+  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
@@ -682,19 +693,34 @@
   border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--srf-border-color, var(--glass-border));
 }
 /* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
-   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 4px,
-   frame = 8px. */
+   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 2px,   frame = 4px. */
 @utility glass-border-rim {
-  --brd-w: 4px;
+  --brd-w: 2px;
 }
 @utility glass-border-frame {
-  --brd-w: 8px;
+  --brd-w: 4px;
+}
+
+/* Diffuse axis — a READABILITY BLUR FLOOR (not a blur value): every translucent material computes
+   blur(max(<its own blur>, --dif)), so crystal stays crystal until a text-dense surface opts in.
+   Token-setter (order-safe); OPAQUE never reads the slot (--srf-filter: none), so the short-circuit
+   is inherited — no GPU spend on solid floors. Tune the floor via --glass-diffuse. */
+@utility glass-diffuse {
+  --dif: var(--glass-diffuse, 12px);
 }
 
 /* Veil axis — the legibility floor for read-through overlays (menus, tooltips, toasts).
    Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
    The veil rides the background-COLOR channel, under the material's image stack, and — being
    element-declared — beats any inherited --srf-bg-color remap. */
+/* Stained axis — REAL stained-glass optics: grayscale collapses the backdrop to pure luminance
+   (lighter/darker only, akin to alpha), so the glass's OWN tint supplies every drop of color and
+   whatever sits behind renders as tonal shades of the theme. One color-matrix op — free next to the
+   blur. --glass-stain-amount (0..1) dials how completely the backdrop's color is stripped. */
+@utility glass-stained {
+  --srf-stain: var(--glass-stain);
+}
+
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
 }
@@ -708,6 +734,10 @@
 }
 @utility glass-lg {
   --srf-blur: var(--blur-lg);
+  --srf-elev: var(--glass-shadow-lg);
+}
+@utility glass-xl {
+  --srf-blur: var(--blur-xl);
   --srf-elev: var(--glass-shadow-lg);
 }
 
@@ -776,7 +806,7 @@
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
      setter/reader is safe — the composition gotcha only bites pre-composed inherited values). */
-  --srf-filter: blur(var(--srf-blur, var(--blur))) saturate(180%);
+  --srf-filter: blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%);
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
@@ -787,7 +817,7 @@
 [data-material="frosted"] {
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
-  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
+  --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -800,7 +830,7 @@
 [data-material="crystal"] {
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-filter: blur(var(--blur-crystal));
+  --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
@@ -928,7 +958,7 @@
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
      as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
      floor's channel. */
-  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
+  --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -943,7 +973,7 @@
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-filter: blur(var(--blur-crystal));
+  --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
 }
@@ -977,6 +1007,11 @@
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  /* Paint the border HERE, not just the tokens: borderless roles (Card default) never render
+     glass-border, so without this only bordered roles showed the outline — "some cards get it,
+     some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
+     resolve the same vars, so nothing double-draws. */
+  border: var(--srf-border-w) solid var(--srf-border-color);
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);
@@ -1234,7 +1269,6 @@
      Lower the popover % to make toasts more see-through, raise it to make them more solid. */
   background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
   backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent) !important;
   color: var(--foreground) !important;
@@ -1261,7 +1295,6 @@
 [data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]) {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(var(--blur-sm)) !important;
-  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
   border: 1px solid var(--glass-border) !important;
   color: var(--foreground) !important;
   transition: opacity 0.2s ease !important;

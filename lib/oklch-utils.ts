@@ -824,6 +824,12 @@ export interface ReadableForegroundOptions {
   hue?: number;
   /** Chroma to keep, gamut-clamped at the chosen lightness. 0 = neutral gray. */
   chroma?: number;
+  /** Opt-in chroma floor (capped at `chroma`). When the band pins the pick to the lightness EXTREME
+   * (target/floor beyond the surface's reach), the gamut annihilates the requested chroma there and
+   * tinted text reads pure black/white; this backs the aim off to the most contrast available at a
+   * lightness that still HOLDS this much chroma — never below an ACHIEVABLE band floor. Reachable
+   * bands are unaffected. 0 (default) = off. */
+  minChroma?: number;
   gamut?: "srgb" | "p3";
 }
 
@@ -840,7 +846,7 @@ export function readableForeground(bg: OklchColor | string, opts: ReadableForegr
   const target = opts.target ?? band.target;
   const ceiling = opts.ceiling ?? band.ceiling;
   const floor = opts.floor ?? band.floor;
-  const { chroma = 0, gamut = "srgb" } = opts;
+  const { chroma = 0, minChroma = 0, gamut = "srgb" } = opts;
 
   const b = toColor(bg);
   const h = opts.hue ?? b.h;
@@ -860,7 +866,38 @@ export function readableForeground(bg: OklchColor | string, opts: ReadableForegr
   const extreme = lcAt(0) >= lcAt(100) ? 0 : 100; // the lightness direction with headroom
   const reach = lcAt(extreme); // the most contrast this background can give
   // Aim for the target, never past the ceiling; if we can't even clear the floor, take the max.
-  const want = reach < floor ? reach : Math.min(target, ceiling, reach);
+  let want = reach < floor ? reach : Math.min(target, ceiling, reach);
+
+  // Chroma preservation (opt-in, minChroma > 0): want === reach means the band sits beyond what this
+  // surface can give, so the search below would pin to the lightness EXTREME — where the gamut
+  // annihilates the requested chroma and tinted text reads pure black/white (bone-dark cream: reach
+  // ≈ 68 < body floor 75 → L≈0 → a chosen accent renders BLACK). Trade the few unreachable Lc points
+  // for color: aim instead at the most contrast available at a lightness that still HOLDS the kept
+  // chroma — never below the band floor when the floor is achievable. In-reach bands never get here.
+  const keep = Math.min(minChroma, chroma);
+  if (keep > 0 && want >= reach) {
+    // Strict in-gamut test at the kept chroma (÷0.97 so the margined cAt still returns ≥ keep). The
+    // shared eps-tolerant gamut test reports PHANTOM chroma at L≈0 — cubed near-zero channels sit
+    // inside its 1e-4 tolerance (up to ~0.11 at red/pink hues) — which would converge this search
+    // right back to the extreme; eps 1e-6 rejects it.
+    const holdsKeep = (l: number) => {
+      const [r, g, b3] = gamut === "p3" ? oklchToLinearP3(l, keep / 0.97, h) : oklchToLinearSrgb(l, keep / 0.97, h);
+      const eps = 1e-6;
+      return r >= -eps && r <= 1 + eps && g >= -eps && g <= 1 + eps && b3 >= -eps && b3 <= 1 + eps;
+    };
+    // Max chroma is ~unimodal in lightness and 0 at both extremes: holdsKeep is false at the extreme
+    // and (guarded) true at bg.l, so bisect for the holding lightness NEAREST the extreme.
+    if (holdsKeep(b.l)) {
+      let kLo = extreme;
+      let kHi = b.l;
+      for (let i = 0; i < 24; i++) {
+        const mid = (kLo + kHi) / 2;
+        if (holdsKeep(mid)) kHi = mid;
+        else kLo = mid;
+      }
+      want = Math.min(want, Math.max(lcAt(kHi), reach >= floor ? floor : 0));
+    }
+  }
 
   // |Lc| rises monotonically from bg.l → the extreme, so binary-search the nearest L meeting `want`.
   let lo = b.l;

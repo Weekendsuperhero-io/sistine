@@ -5,13 +5,13 @@ A modern, glassmorphic component library inspired by Apple's design language, bu
 ![Sistine](https://img.shields.io/badge/Sistine-v0.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black)
 ![React](https://img.shields.io/badge/React-19.1-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)
 
 ## ✨ Features
 
 - **50+ Glass Components** - Comprehensive collection of beautiful, glassy UI components
 - **Apple-Inspired Design** - Glassmorphism effects following Apple's design standards
-- **OKLCH tint system** - Recolor every glass surface from three variables (hue / chroma / wash) or a built-in preset
+- **OKLCH tint system** - Recolor every glass surface from a hue + chroma pair or a built-in preset
 - **Theme Support** - Built-in light/dark mode with automatic theme switching
 - **Enhanced Effects** - Glow, shimmer, ripple, and gradient animations
 - **Fully Customizable** - Per-component glass effect customization
@@ -118,8 +118,8 @@ Visit `http://localhost:6006` after starting Storybook.
 
 Every component lives in a single tree — `components/ui/[name].tsx` (published under `registry/ui/`) — and draws its surface from the **material system** in `lib/material.ts`:
 
-- **Four materials** — `glass` (adaptive, the default), `frosted`, `crystal`, `opaque` — via the `material` prop.
-- **Orthogonal axes** — `border`, `veil`, `gradient`, `glow`, `sheen` — composable booleans layered on top of any material.
+- **Four materials** — `glass`, `frosted`, `crystal`, `opaque` — via the `material` prop. Leave it off and the surface is **adaptive**: it follows the page's `data-glass` style; an explicit material pins the element under any page style.
+- **Orthogonal axes** — `border`, `veil`, `diffuse`, `gradient`, `glow`, `sheen` — layered on top of any material. Booleans with typed refinements: `border="rim" | "frame"` (2px / 4px), `diffuse="stained"` (dyed glass), `glow="lg"`.
 - **Hover effects** — `effect="glow | shimmer | ripple | lift | scale"` from `lib/hover-effects.ts`.
 - Accessibility from Radix UI primitives, fully typed, and themed through CSS tokens.
 
@@ -129,17 +129,16 @@ Components call `materialSurface()` from `lib/material.ts` instead of hardcoding
 
 ### Retint all glass
 
-Every color is authored in **oklch** in `app/globals.css` (full reference: [`docs/color-tokens.md`](./docs/color-tokens.md)). The whole glass system is driven by three tint variables — change them, or set a preset on `<html data-glass-tint="…">`, to recolor every surface, border, and accent at once:
+Every color is authored in **oklch** in `app/theme/` (aggregated by `app/globals.css`; full reference: [`docs/color-tokens.md`](./docs/color-tokens.md)). The whole glass system is driven by the tint variables — change them, or set a preset on `<html data-glass-tint="…">`, to recolor every surface, border, and accent at once:
 
 ```css
 :root {
   --glass-tint-h: 250; /* hue 0–360 */
-  --glass-tint-c: 0.05; /* chroma (saturation) */
-  --glass-tint-a: 0.16; /* wash alpha */
+  --glass-tint-c: 0.018; /* chroma — the "how colorful" master (0 = neutral) */
 }
 ```
 
-Built-in presets — Neutral, Sistine, Muse, Manila, and jewel tones — ship as `[data-glass-tint]` blocks. Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` prop (Button defaults to `effect="glow"`) — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
+Built-in presets ship as `[data-glass-tint]` blocks: **jewels** (single hue — neutral, rose, carnelian, amber, bone, peridot, emerald, turquoise, aquamarine, sapphire, amethyst, tourmaline) and **frescoes** (multi-hue — sistine, muse, aurora, gloaming). Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` axis prop — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
 **Presets are turnkey, pure CSS.** Set the attribute and toggle `.dark` (e.g. next-themes) — every preset and fresco carries its own day + night values, the scene backgrounds flip with the mode, and static text baselines keep all four materials legible with no JavaScript. Optionally install and mount `<AutoForeground />` (once, in your root layout) to upgrade those baselines to exact APCA-solved foregrounds that re-band live as the tint, mode, or surface knobs change — it refines, it is never required.
 

@@ -49,13 +49,14 @@ export function GradientBackground({
         background: gradient,
       }}
     >
-      {/* Subtle organic highlight/shadow for depth on top of the flat ramp. */}
+      {/* Subtle organic highlight/shadow for depth — plain alpha layers, NO mix-blend-mode: a
+          blend-mode element on the page can disable backdrop-filter RENDERING in Chromium, killing
+          every glass blur above it (computed styles stay correct, paint silently fails). */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 20% 25%, oklch(var(--shadow-highlight) / 0.12) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(var(--shadow-ink) / 0.12) 0%, transparent 45%)",
-          mixBlendMode: "overlay",
+            "radial-gradient(circle at 20% 25%, oklch(var(--shadow-highlight) / 0.1) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(var(--shadow-ink) / 0.1) 0%, transparent 45%)",
         }}
       />
     </div>

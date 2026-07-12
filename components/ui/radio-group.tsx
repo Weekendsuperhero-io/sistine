@@ -4,7 +4,7 @@ import { Circle } from "@phosphor-icons/react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const RadioGroup = React.forwardRef<
@@ -22,17 +22,16 @@ const ROLE = {
 
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Glow rides the CHECKED state on toggles (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  /* `glow` rides the CHECKED state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
+    ...axes,
+    glow: undefined,
   });
 
   return (
@@ -44,10 +43,10 @@ const RadioGroupItem = React.forwardRef<
         m?.className,
         "aspect-square h-4 w-4 shrink-0 rounded-full border shadow transition-[color,box-shadow] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
         m === null && "border-primary",
-        glow && "data-[state=checked]:glass-glow transition duration-200",
+        axes.glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
-      {...props}
+      {...rest}
     >
       <RadioGroupPrimitive.Indicator data-slot="radio-group-indicator" className="flex items-center justify-center">
         <Circle className="h-2.5 w-2.5 fill-primary text-primary" />

@@ -11,6 +11,27 @@ import { cn } from "@/lib/utils";
 const ROOT_KEY = "sistine-glass-tint";
 const CUSTOM_KEY = "sistine-glass-tint-custom";
 const OPACITY_KEY = "sistine-glass-opacity";
+const DIFFUSE_KEY = "sistine-glass-diffuse";
+const STAINED_KEY = "sistine-glass-stained";
+
+/** Material identity blur radii (engine.css defaults). The site-wide Diffuse slider raises each token
+ * to max(identity, floor) — the max() is done HERE in JS because no engine reliably evaluates math
+ * inside filter chains; the pins keep reading the tokens through plain var() (renders everywhere). */
+const BLUR_TOKENS: Record<string, number> = {
+  "--blur": 10,
+  "--blur-sm": 4,
+  "--blur-lg": 20,
+  "--blur-frosted": 25,
+  "--blur-crystal": 2,
+};
+
+function applyDiffuse(floor: number) {
+  const root = document.documentElement;
+  for (const [token, identity] of Object.entries(BLUR_TOKENS)) {
+    if (floor > identity) root.style.setProperty(token, `${floor}px`);
+    else root.style.removeProperty(token);
+  }
+}
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
 const OUTLINE_W_KEY = "sistine-glass-opaque-outline-w";
@@ -20,8 +41,8 @@ const ACCENT_KEY = "sistine-accent";
  * Same ladder as the border axis (glass-border-rim/-frame); an element-level rim/frame beats this. */
 const OUTLINE_WEIGHTS = {
   hairline: null,
-  rim: "4px",
-  frame: "8px",
+  rim: "2px",
+  frame: "4px",
 } as const;
 type OutlineWeight = keyof typeof OUTLINE_WEIGHTS;
 
@@ -327,6 +348,8 @@ export function GlassTintSwitcher() {
   const [c, setC] = React.useState(0);
   const [a, setA] = React.useState(0);
   const [opacity, setOpacity] = React.useState(0);
+  const [diffuse, setDiffuse] = React.useState(0);
+  const [stainedOn, setStainedOn] = React.useState(false);
   const [lightness, setLightness] = React.useState(90);
   const [outline, setOutline] = React.useState(false);
   const [outlineW, setOutlineW] = React.useState<OutlineWeight>("hairline");
@@ -361,6 +384,14 @@ export function GlassTintSwitcher() {
     const o = Number.isFinite(no) ? no : 0;
     setOpacity(o);
     document.documentElement.style.setProperty("--glass-opacity", String(o));
+    if (localStorage.getItem(STAINED_KEY) === "1") {
+      setStainedOn(true);
+      document.documentElement.style.setProperty("--srf-stain", "var(--glass-stain)");
+    }
+    const nd = Number.parseFloat(localStorage.getItem(DIFFUSE_KEY) ?? "0");
+    const df = Number.isFinite(nd) ? nd : 0;
+    setDiffuse(df);
+    if (df > 0) applyDiffuse(df);
     const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
     setOutline(storedOutline);
     if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
@@ -471,6 +502,31 @@ export function GlassTintSwitcher() {
 
   // Global glass solidity — writes --glass-opacity inline on <html> (the floor the glass utilities read),
   // orthogonal to the tint. Composes with every variant + data-glass material.
+  // Site-wide stained-glass dye — every translucent surface re-dyes its backdrop to the theme hue
+  // (references the engine's --glass-stain token; opaque stays inert). For A/B judging the optic.
+  const changeStained = (on: boolean) => {
+    setStainedOn(on);
+    const root = document.documentElement;
+    if (on) root.style.setProperty("--srf-stain", "var(--glass-stain)");
+    else root.style.removeProperty("--srf-stain");
+    try {
+      localStorage.setItem(STAINED_KEY, on ? "1" : "0");
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  // Site-wide diffuse floor — raises every material's blur token to at least this many px.
+  const changeDiffuse = (f: number) => {
+    setDiffuse(f);
+    applyDiffuse(f);
+    try {
+      localStorage.setItem(DIFFUSE_KEY, String(f));
+    } catch {
+      // ignore storage failures
+    }
+  };
+
   const changeOpacity = (o: number) => {
     setOpacity(o);
     document.documentElement.style.setProperty("--glass-opacity", String(o));
@@ -659,6 +715,30 @@ export function GlassTintSwitcher() {
             max={1}
             step={0.05}
             onValueChange={(v) => changeOpacity(v[0] ?? opacity)}
+          />
+        </SliderRow>
+        <div className="flex items-center justify-between text-muted-foreground text-xs">
+          <span>Stained</span>
+          <button
+            type="button"
+            onClick={() => changeStained(!stainedOn)}
+            className={cn(
+              "rounded-md border px-2 py-0.5 font-medium transition-colors",
+              stainedOn ? "border-foreground/40 bg-foreground/10 text-foreground" : "border-foreground/15 hover:text-foreground",
+            )}
+          >
+            {stainedOn ? "dyed" : "off"}
+          </button>
+        </div>
+        <SliderRow label="Diffuse" value={diffuse > 0 ? `${diffuse}px` : "off"}>
+          <Slider
+            value={[
+              diffuse,
+            ]}
+            min={0}
+            max={32}
+            step={1}
+            onValueChange={(v) => changeDiffuse(v[0] ?? diffuse)}
           />
         </SliderRow>
         <div className="flex items-center justify-between text-muted-foreground text-xs">

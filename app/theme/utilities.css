@@ -36,8 +36,10 @@
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
-  backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
-  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
+     the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
+     The max() composes the diffuse FLOOR for adaptive surfaces. */
+  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
@@ -47,19 +49,34 @@
   border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--srf-border-color, var(--glass-border));
 }
 /* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
-   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 4px,
-   frame = 8px. */
+   glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 2px,   frame = 4px. */
 @utility glass-border-rim {
-  --brd-w: 4px;
+  --brd-w: 2px;
 }
 @utility glass-border-frame {
-  --brd-w: 8px;
+  --brd-w: 4px;
+}
+
+/* Diffuse axis — a READABILITY BLUR FLOOR (not a blur value): every translucent material computes
+   blur(max(<its own blur>, --dif)), so crystal stays crystal until a text-dense surface opts in.
+   Token-setter (order-safe); OPAQUE never reads the slot (--srf-filter: none), so the short-circuit
+   is inherited — no GPU spend on solid floors. Tune the floor via --glass-diffuse. */
+@utility glass-diffuse {
+  --dif: var(--glass-diffuse, 12px);
 }
 
 /* Veil axis — the legibility floor for read-through overlays (menus, tooltips, toasts).
    Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
    The veil rides the background-COLOR channel, under the material's image stack, and — being
    element-declared — beats any inherited --srf-bg-color remap. */
+/* Stained axis — REAL stained-glass optics: grayscale collapses the backdrop to pure luminance
+   (lighter/darker only, akin to alpha), so the glass's OWN tint supplies every drop of color and
+   whatever sits behind renders as tonal shades of the theme. One color-matrix op — free next to the
+   blur. --glass-stain-amount (0..1) dials how completely the backdrop's color is stripped. */
+@utility glass-stained {
+  --srf-stain: var(--glass-stain);
+}
+
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
 }
@@ -73,6 +90,10 @@
 }
 @utility glass-lg {
   --srf-blur: var(--blur-lg);
+  --srf-elev: var(--glass-shadow-lg);
+}
+@utility glass-xl {
+  --srf-blur: var(--blur-xl);
   --srf-elev: var(--glass-shadow-lg);
 }
 

@@ -3,7 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui";
 import * as React from "react";
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
 
@@ -60,24 +60,15 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> &
-    VariantProps<typeof alertDialogContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      gradient?: boolean;
-      glow?: boolean | "lg";
+    VariantProps<typeof alertDialogContentVariants> &
+    MaterialAxisProps & {
       /** Elevated backdrop blur (folded from the glass wrapper). */
       animated?: boolean;
       size?: "default" | "sm";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, animated = true, size = "default", ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-  });
+>(({ className, variant = "glass", animated = true, size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <AlertDialogPortal>
@@ -92,10 +83,9 @@ const AlertDialogContent = React.forwardRef<
           alertDialogContentVariants({
             variant,
           }),
-          animated && "backdrop-blur-[var(--blur-lg)]",
           className,
         )}
-        {...props}
+        {...rest}
       />
     </AlertDialogPortal>
   );

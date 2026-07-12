@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Toggle as TogglePrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -41,17 +41,13 @@ const SURFACE_ROLE: Record<string, MaterialProps | null> = {
 
 const Toggle = React.forwardRef<
   React.ElementRef<typeof TogglePrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> &
-    VariantProps<typeof toggleVariants> & {
-      material?: Material;
-      border?: boolean;
-      /** Glow rides the ON state on toggles (folded from the glass wrapper). */
-      glow?: boolean;
-    }
->(({ className, variant = "glass", size, material, border, glow, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> & VariantProps<typeof toggleVariants> & MaterialAxisProps
+>(({ className, variant = "glass", size, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  /* `glow` rides the ON state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
+    ...axes,
+    glow: undefined,
   });
 
   return (
@@ -65,10 +61,10 @@ const Toggle = React.forwardRef<
           variant,
           size,
         }),
-        glow && "data-[state=on]:glass-glow transition duration-200",
+        axes.glow && "data-[state=on]:glass-glow transition duration-200",
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 });

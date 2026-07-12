@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass at the elevated blur tier. */
@@ -56,28 +56,21 @@ const sheetVariants = cva(
   },
 );
 
-interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, VariantProps<typeof sheetVariants> {
+interface SheetContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
+    VariantProps<typeof sheetVariants>,
+    MaterialAxisProps {
   variant?: "default" | "glass";
-  material?: Material;
-  border?: boolean;
-  veil?: boolean;
-  gradient?: boolean;
-  glow?: boolean | "lg";
   showCloseButton?: boolean;
 }
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", variant = "glass", material, border, veil, gradient, glow, className, children, showCloseButton = true, ...props }, ref) => {
+  ({ side = "right", variant = "glass", className, children, showCloseButton = true, ...props }, ref) => {
+    const [axes, rest] = splitAxisProps(props);
     /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
     const getVariantClass = () => (variant === "default" ? "bg-background border" : "text-foreground");
 
-    const m = materialSurface(variant === "default" ? null : ROLE, {
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-    });
+    const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
     return (
       <SheetPortal>
@@ -94,7 +87,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
             getVariantClass(),
             className,
           )}
-          {...props}
+          {...rest}
         >
           {children}
           {showCloseButton && (

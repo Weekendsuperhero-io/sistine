@@ -3,7 +3,7 @@
 import { Slider as SliderPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -13,19 +13,14 @@ const ROLE = {
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
-    variant?: "default" | "glass";
-    material?: Material;
-    border?: boolean;
-    /** Glow on the thumb (folded from the glass wrapper). */
-    glow?: boolean;
-  }
->(({ className, variant = "glass", material, border, glow, defaultValue, value, min = 0, max = 100, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> &
+    MaterialAxisProps & {
+      variant?: "default" | "glass";
+    }
+>(({ className, variant = "glass", defaultValue, value, min = 0, max = 100, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   // The THUMB is the glass surface element: a small glass knob, or a plain neutral dot when m === null.
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   const _values = React.useMemo(
     () =>
@@ -57,7 +52,7 @@ const Slider = React.forwardRef<
         "relative flex w-full touch-none select-none items-center data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
         className,
       )}
-      {...props}
+      {...rest}
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
@@ -81,7 +76,6 @@ const Slider = React.forwardRef<
               m?.className,
               "block size-4 shrink-0 rounded-full shadow-[var(--glass-shadow-sm)] transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
               m === null && "border border-foreground/30 bg-foreground",
-              glow && "glass-glow",
             )}
           />
         ),

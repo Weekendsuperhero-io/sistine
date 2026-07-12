@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type Material, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -23,35 +23,18 @@ const ROLE = {};
 function Card({
   className,
   variant = "glass",
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
   effect,
   animated,
   ...props
 }: React.ComponentProps<"div"> &
-  VariantProps<typeof cardVariants> & {
-    material?: Material;
-    border?: boolean;
-    veil?: boolean;
-    gradient?: boolean;
-    glow?: boolean | "lg";
-    sheen?: boolean;
+  VariantProps<typeof cardVariants> &
+  MaterialAxisProps & {
     effect?: HoverEffect;
     /** Scale + deepen shadow on hover (folded from the glass wrapper). */
     animated?: boolean;
   }) {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <div
@@ -69,7 +52,7 @@ function Card({
           }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }

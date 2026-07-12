@@ -196,47 +196,42 @@ export function Example() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-md font-semibold text-foreground mb-2">Light Mode Variables</h4>
+                  <h4 className="text-md font-semibold text-foreground mb-2">Shared knobs (both modes)</h4>
                   <CodeBlock
-                    code={`/* In your globals.css or main CSS file */
+                    code={`/* In your globals.css, after the Sistine theme import — defaults shown */
 :root {
-  /* Glass background transparency (0-1) */
-  --glass-bg: oklch(100% 0 0 / 0.25);
+  /* Tint: hue + chroma (the "how colorful" master; 0 = neutral).
+     Or set a preset: <html data-glass-tint="sapphire">. */
+  --glass-tint-h: 250;
+  --glass-tint-c: 0.018;
 
-  /* Glass border color and opacity */
-  --glass-border: oklch(100% 0 0 / 0.18);
+  /* Blur ladder (glass material; frosted/crystal pin their own) */
+  --blur: 2px;          /* base glass */
+  --blur-sm: 1px;       /* small controls */
+  --blur-lg: 8px;       /* overlays */
+  --blur-xl: 12px;      /* heaviest glass tier */
+  --blur-frosted: 25px; /* the frosted material */
 
-  /* Blur amount - Apple standard is 30px */
-  --blur: 30px;
-  --blur-sm: 15px;  /* Small blur for subtle effects */
-  --blur-lg: 50px;  /* Large blur for strong effects */
-
-  /* Glass shadows */
-  --glass-shadow: 0 8px 32px oklch(0% 0 0 / 0.1), 0 2px 8px oklch(0% 0 0 / 0.06);
-  --glass-shadow-lg: 0 12px 48px oklch(0% 0 0 / 0.15), 0 4px 16px oklch(0% 0 0 / 0.1);
-  --glass-shadow-sm: 0 4px 16px oklch(0% 0 0 / 0.08), 0 1px 4px oklch(0% 0 0 / 0.04);
+  /* Veil floor solidity — menus / tooltips / toasts (0–1) */
+  --glass-solid-a: 0.65;
 }`}
                   />
                 </div>
 
                 <div>
-                  <h4 className="text-md font-semibold text-foreground mb-2">Dark Mode Variables</h4>
+                  <h4 className="text-md font-semibold text-foreground mb-2">Mode knobs (light values on :root, dark twins on .dark)</h4>
                   <CodeBlock
-                    code={`/* Dark mode overrides */
+                    code={`/* Single-number dials the engine composes per mode — defaults shown */
+:root {
+  --glass-sheet-a: 0.11;  /* glass sheet alpha (how much body) */
+  --glass-border-a: 0.16; /* edge alpha */
+  --glass-opaque-l: 90;   /* opaque floor lightness */
+}
+
 .dark {
-  /* More transparent for dark backgrounds */
-  --glass-bg: oklch(100% 0 0 / 0.1);
-  --glass-border: oklch(100% 0 0 / 0.2);
-
-  /* Same blur values work for both modes */
-  --blur: 30px;
-  --blur-sm: 15px;
-  --blur-lg: 50px;
-
-  /* Deeper shadows for dark mode */
-  --glass-shadow: 0 8px 32px oklch(0% 0 0 / 0.4), 0 2px 8px oklch(0% 0 0 / 0.2);
-  --glass-shadow-lg: 0 12px 48px oklch(0% 0 0 / 0.5), 0 4px 16px oklch(0% 0 0 / 0.3);
-  --glass-shadow-sm: 0 4px 16px oklch(0% 0 0 / 0.3), 0 1px 4px oklch(0% 0 0 / 0.15);
+  --glass-sheet-a: 0.05;
+  --glass-border-a: 0.15;
+  --glass-opaque-l: 32;
 }`}
                   />
                 </div>
@@ -245,54 +240,43 @@ export function Example() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Example: Custom Transparency & Blur</h3>
-              <p className="text-muted-foreground mb-4">
-                Here&apos;s an example of customizing the glass effect to be more or less transparent with different blur amounts:
-              </p>
+              <p className="text-muted-foreground mb-4">Heavier, milkier glass — or sheerer, barely-there glass — in a few dials:</p>
               <CodeBlock
-                code={`/* More transparent, stronger blur */
+                code={`/* Heavier, milkier glass */
 :root {
-  --glass-bg: oklch(100% 0 0 / 0.15);  /* 15% opacity - more transparent */
-  --blur: 40px;                          /* Stronger blur */
+  --blur: 6px;           /* base glass blur (default 2px) */
+  --glass-sheet-a: 0.18; /* more body (default 0.11 / 0.05 dark) */
 }
 
-.dark {
-  --glass-bg: oklch(100% 0 0 / 0.08);  /* 8% opacity for dark mode */
-  --blur: 40px;
-}
-
-/* Less transparent, subtle blur */
+/* Sheerer, barely-there glass */
 :root {
-  --glass-bg: oklch(100% 0 0 / 0.4);   /* 40% opacity - less transparent */
-  --blur: 20px;                          /* Subtle blur */
-}
-
-.dark {
-  --glass-bg: oklch(100% 0 0 / 0.15);  /* 15% opacity for dark mode */
-  --blur: 20px;
+  --blur: 1px;
+  --glass-sheet-a: 0.06;
 }`}
               />
             </div>
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">How It Works</h3>
-              <p className="text-muted-foreground mb-2">All Sistine components with glass variants automatically use these CSS variables:</p>
+              <p className="text-muted-foreground mb-2">Every glass surface is composed from these tokens:</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                 <li>
-                  Components read <code className="bg-muted px-1 rounded">--glass-bg</code> for background color
+                  The tint vars (<code className="bg-muted px-1 rounded">--glass-tint-h</code> / <code className="bg-muted px-1 rounded">-c</code>)
+                  compose the surface sheet (<code className="bg-muted px-1 rounded">--glass-bg</code>, a gradient), the border color (
+                  <code className="bg-muted px-1 rounded">--glass-border</code>), and the accents — one hue + chroma recolors everything
                 </li>
                 <li>
-                  Components use <code className="bg-muted px-1 rounded">backdrop-blur-[var(--blur)]</code> for blur effect
+                  The material&apos;s <code className="bg-muted px-1 rounded">backdrop-filter</code> blurs at its ladder value (
+                  <code className="bg-muted px-1 rounded">--blur</code> for base glass), raised to the{" "}
+                  <code className="bg-muted px-1 rounded">diffuse</code> floor when a surface opts in
                 </li>
                 <li>
-                  Borders use <code className="bg-muted px-1 rounded">--glass-border</code> for color
-                </li>
-                <li>
-                  Shadows use <code className="bg-muted px-1 rounded">--glass-shadow</code> variables
+                  Shadows come from the <code className="bg-muted px-1 rounded">--glass-shadow</code> twins (mode-aware)
                 </li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                When you change these variables, all components with glass effects will automatically update without needing to modify individual
-                component code.
+                Because components only reference tokens, changing a variable restyles everything at once — globally on{" "}
+                <code className="bg-muted px-1 rounded">:root</code>, or scoped on any wrapper.
               </p>
             </div>
 
@@ -328,16 +312,20 @@ export function CustomGlassCard() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Apple Standards</h3>
-              <p className="text-muted-foreground mb-2">Sistine uses Apple&apos;s glassmorphism standards by default:</p>
+              <p className="text-muted-foreground mb-2">Sistine&apos;s defaults follow Apple&apos;s subtle, refined glassmorphism:</p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                 <li>
-                  <strong>Light Mode:</strong> 25% opacity, 30px blur
+                  <strong>Blur ladder:</strong> base glass 2px (sm 1px · lg 8px · xl 12px), frosted 25px, crystal 2px, opaque none
                 </li>
                 <li>
-                  <strong>Dark Mode:</strong> 10% opacity, 30px blur
+                  <strong>Sheet alpha:</strong> 0.11 light / 0.05 dark (<code className="bg-muted px-1 rounded">--glass-sheet-a</code>)
                 </li>
                 <li>Subtle borders and shadows for depth</li>
-                <li>Consistent blur values across all components</li>
+                <li>
+                  Only the standard <code className="bg-muted px-1 rounded">backdrop-filter</code> is authored (no{" "}
+                  <code className="bg-muted px-1 rounded">-webkit-</code> twins) and no <code className="bg-muted px-1 rounded">mix-blend-mode</code>{" "}
+                  anywhere — the veil floor is free; blur cost scales with area × radius × motion
+                </li>
               </ul>
               <p className="text-muted-foreground mt-4">
                 You can adjust these values to match your design needs while maintaining the glass aesthetic.

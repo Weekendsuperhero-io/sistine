@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
@@ -19,7 +19,7 @@ const buttonVariants = cva(
         destructive:
           "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
-          "backdrop-blur-[var(--blur-sm)] text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
+          "text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         ghost:
           "border border-border hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
@@ -49,7 +49,9 @@ const buttonVariants = cva(
 const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   glass: {},
   destructive: {},
-  outline: {},
+  outline: {
+    size: "sm",
+  },
   secondary: {
     border: true,
   },
@@ -63,12 +65,6 @@ function Button({
   variant = "glass",
   size = "default",
   asChild = false,
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
   effect,
   ...props
 }: React.ComponentProps<"button"> &
@@ -79,14 +75,8 @@ function Button({
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : "button";
 
-  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
 
   return (
     <Comp
@@ -107,7 +97,7 @@ function Button({
           }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }

@@ -4,7 +4,6 @@
      Lower the popover % to make toasts more see-through, raise it to make them more solid. */
   background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
   backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent) !important;
   color: var(--foreground) !important;
@@ -31,7 +30,6 @@
 [data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]) {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(var(--blur-sm)) !important;
-  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
   border: 1px solid var(--glass-border) !important;
   color: var(--foreground) !important;
   transition: opacity 0.2s ease !important;

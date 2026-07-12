@@ -23,13 +23,17 @@ export interface MaterialProps {
   /** undefined = adaptive (follows the page style); "none" = the component's plain fallback. */
   material?: Material;
   /** Material border. Three weights: `true`/"hairline" = the material's edge (1px; 0.5px under
-   *  frosted), "rim" = 4px, "frame" = 8px (thick frames pair best with larger radii). */
+   *  frosted), "rim" = 2px, "frame" = 4px. */
   border?: boolean | "hairline" | "rim" | "frame";
   /** Element-composed legibility floor for read-through overlays (menus, tooltips, toasts). */
   veil?: boolean;
   /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
    *  ("size" universally means a component's dimensions; the material tier must never shadow that). */
-  size?: "sm" | "lg";
+  size?: "sm" | "lg" | "xl";
+  /** Readability blur FLOOR (>= --glass-diffuse, default 12px) for text-dense translucent surfaces;
+   *  inert under opaque. "stained" = the dyed mode: same floor, plus true stained-glass optics — the
+   *  backdrop renders as TONAL SHADES of the theme hue (grayscale luminance collapse — the tint supplies the color). */
+  diffuse?: boolean | "stained";
   /** Brand-gradient accent layered over the material. */
   gradient?: boolean;
   /** Resting glow, or the intensified "lg" halo. */
@@ -42,6 +46,37 @@ export interface MaterialProps {
  *  blur tier is a role-internal detail — a component's own `size` prop owns that name). */
 export type MaterialAxisProps = Omit<MaterialProps, "size">;
 
+/** The `rest` side of splitAxisProps. Distributes over union props (DayPicker's mode union, Radix
+ *  ToggleGroup's single/multiple) so a discriminated union survives the split instead of collapsing
+ *  under a bare Omit. */
+export type SplitAxisRest<P> = P extends unknown ? Omit<P, keyof MaterialAxisProps> : never;
+
+/** Split the material axis props off a component's props in ONE place — components never enumerate
+ *  axis keys, so a NEW axis is zero-touch: extend MaterialProps + this destructure, done. `size` is
+ *  role-internal (not in MaterialAxisProps) and stays in `rest` for the component's own cva. */
+export function splitAxisProps<P extends MaterialAxisProps>(
+  props: P,
+): [
+  MaterialAxisProps,
+  SplitAxisRest<P>,
+] {
+  const { material, border, veil, diffuse, gradient, glow, sheen, ...rest } = props;
+  return [
+    {
+      material,
+      border,
+      veil,
+      diffuse,
+      gradient,
+      glow,
+      sheen,
+    },
+    /* The conditional (distributive) rest type can't be proven for an unresolved P — safe by
+     * construction: rest is exactly P minus the axis keys. */
+    rest as SplitAxisRest<P>,
+  ];
+}
+
 export interface MaterialAttrs {
   /** Spread-ready: undefined for adaptive and "none". */
   "data-material"?: Exclude<Material, "none">;
@@ -50,7 +85,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, veil, size, gradient, glow, sheen } = props;
+  const { material, border, veil, size, diffuse, gradient, glow, sheen } = props;
   if (material === "none") {
     return {
       className: "",
@@ -66,6 +101,9 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       veil && "glass-veil",
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
+      size === "xl" && "glass-xl",
+      diffuse && "glass-diffuse",
+      diffuse === "stained" && "glass-stained",
       gradient && "glass-gradient",
       glow === "lg" ? "glass-glow-lg" : glow ? "glass-glow" : false,
       sheen && "glass-sheen",
@@ -91,6 +129,7 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
     border: props.border ?? role.border,
     veil: props.veil ?? role.veil,
     size: props.size ?? role.size,
+    diffuse: props.diffuse ?? role.diffuse,
     gradient: props.gradient ?? role.gradient,
     glow: props.glow ?? role.glow,
     sheen: props.sheen ?? role.sheen,

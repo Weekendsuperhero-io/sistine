@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only (text, hover, destructive chrome); the SURFACE comes from
@@ -15,7 +15,7 @@ const badgeVariants = cva(
         default: "border-transparent bg-primary text-primary-foreground shadow [a&]:hover:bg-primary/80",
         glass: "text-foreground",
         secondary: "text-muted-foreground",
-        destructive: "backdrop-blur-[var(--blur-sm)] border border-destructive/50 text-destructive shadow-[var(--glass-shadow-sm)]",
+        destructive: "border border-destructive/50 text-destructive",
         outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "border-transparent [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         link: "border-transparent text-primary underline-offset-4 [a&]:hover:underline",
@@ -36,26 +36,24 @@ const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   secondary: {
     border: true,
   },
-  destructive: {},
+  destructive: {
+    size: "sm",
+  },
   default: null,
   outline: null,
   ghost: null,
   link: null,
 };
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants>, MaterialAxisProps {
   asChild?: boolean;
-  material?: Material;
-  border?: boolean;
 }
 
-function Badge({ className, variant, asChild = false, material, border, ...props }: BadgeProps) {
+function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
   const Comp = asChild ? SlotPrimitive.Slot : "span";
 
-  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
 
   return (
     <Comp
@@ -70,7 +68,7 @@ function Badge({ className, variant, asChild = false, material, border, ...props
         }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }

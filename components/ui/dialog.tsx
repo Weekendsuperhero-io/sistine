@@ -4,7 +4,7 @@ import { X } from "@phosphor-icons/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import * as React from "react";
-import { type Material, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -54,24 +54,15 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> &
-    VariantProps<typeof dialogContentVariants> & {
-      material?: Material;
-      border?: boolean;
-      veil?: boolean;
-      gradient?: boolean;
-      glow?: boolean | "lg";
+    VariantProps<typeof dialogContentVariants> &
+    MaterialAxisProps & {
       /** Elevated backdrop blur (folded from the glass wrapper). */
       animated?: boolean;
       showCloseButton?: boolean;
     }
->(({ className, variant = "glass", children, material, border, veil, gradient, glow, animated = true, showCloseButton = true, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-  });
+>(({ className, variant = "glass", children, animated = true, showCloseButton = true, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -86,10 +77,9 @@ const DialogContent = React.forwardRef<
           dialogContentVariants({
             variant,
           }),
-          animated && "backdrop-blur-[var(--blur-lg)]",
           className,
         )}
-        {...props}
+        {...rest}
       >
         {children}
         {showCloseButton && (
