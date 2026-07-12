@@ -29,7 +29,7 @@ export interface MaterialProps {
   veil?: boolean;
   /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
    *  ("size" universally means a component's dimensions; the material tier must never shadow that). */
-  size?: "sm" | "lg";
+  size?: "sm" | "lg" | "xl";
   /** Readability blur FLOOR (>= --glass-diffuse, default 12px) for text-dense translucent surfaces;
    *  inert under opaque. "stained" = the dyed mode: same floor, plus true stained-glass optics — the
    *  backdrop renders as TONAL SHADES of the theme hue (grayscale -> re-dye; free color-matrix ops). */
@@ -70,6 +70,7 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       veil && "glass-veil",
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
+      size === "xl" && "glass-xl",
       diffuse && "glass-diffuse",
       diffuse === "stained" && "glass-stained",
       gradient && "glass-gradient",

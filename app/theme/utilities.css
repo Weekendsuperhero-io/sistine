@@ -93,6 +93,10 @@
   --srf-blur: var(--blur-lg);
   --srf-elev: var(--glass-shadow-lg);
 }
+@utility glass-xl {
+  --srf-blur: var(--blur-xl);
+  --srf-elev: var(--glass-shadow-lg);
+}
 
 /* ── Gradient ACCENT — a brand wash ON a material, not a material. Fills the no-op --acc-gradient
    slot at the top of every `glass` background, so it composes over glass, frosted, crystal, and

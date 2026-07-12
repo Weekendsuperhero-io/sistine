@@ -507,8 +507,9 @@
      and silently ignore a per-element glass={{opacity}} — the var-composition gotcha again.) */
   /* Blur values — Apple-standard moderate blur; per-variant sizes (mode-invariant). */
   --blur: 2px;
-  --blur-sm: 4px;
-  --blur-lg: 20px;
+  --blur-sm: 1px;
+  --blur-lg: 8px;
+  --blur-xl: 12px;
   --blur-frosted: 25px;
   /* Crystal edge — identical in both modes, so it lives here with the anchors (the crystal floor +
      shadows are mode-varying: --glass-crystal-bg in the surfaces block below, shadows on :root/.dark). */
@@ -727,6 +728,10 @@
 }
 @utility glass-lg {
   --srf-blur: var(--blur-lg);
+  --srf-elev: var(--glass-shadow-lg);
+}
+@utility glass-xl {
+  --srf-blur: var(--blur-xl);
   --srf-elev: var(--glass-shadow-lg);
 }
 
