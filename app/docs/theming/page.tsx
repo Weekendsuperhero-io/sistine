@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { DiffuseComparisonDemo } from "@/components/diffuse-comparison-demo";
 import { ForegroundTester } from "@/components/foreground-tester";
+import { StainedComparisonDemo } from "@/components/stained-comparison-demo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VeilComparisonDemo } from "@/components/veil-comparison-demo";
 
@@ -769,6 +770,12 @@ const onAccent = useReadableForeground(accent, "large");
               identity unless a surface opts in; opaque ignores the floor entirely. Drag the floor and compare.
             </p>
             <DiffuseComparisonDemo />
+            <p className="mt-6 text-muted-foreground">
+              And the third optic: <IC>stained</IC> — true stained-glass. The backdrop is collapsed to luminance and re-dyed as tonal shades of the
+              theme hue, so tinted glass earns its keep instead of letting the backdrop push its own colors through. Flip the tint and watch the dye
+              follow.
+            </p>
+            <StainedComparisonDemo />
           </CardContent>
         </Card>
 
