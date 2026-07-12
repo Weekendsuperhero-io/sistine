@@ -14,7 +14,7 @@
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
      setter/reader is safe — the composition gotcha only bites pre-composed inherited values). */
-  --srf-filter: blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%) var(--srf-stain,);
+  --srf-filter: blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%);
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
@@ -25,7 +25,7 @@
 [data-material="frosted"] {
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
-  --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%) var(--srf-stain,);
+  --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -38,7 +38,7 @@
 [data-material="crystal"] {
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px))) var(--srf-stain,);
+  --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
