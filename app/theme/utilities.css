@@ -69,11 +69,11 @@
    Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
    The veil rides the background-COLOR channel, under the material's image stack, and — being
    element-declared — beats any inherited --srf-bg-color remap. */
-/* Stained axis — REAL stained-glass optics: the backdrop is collapsed to luminance (grayscale) and
-   re-dyed toward the theme hue (sepia -> hue-rotate -> saturate), so whatever sits behind renders as
-   TONAL SHADES of the tint instead of pushing its own colors through. All color-matrix ops — free
-   next to the blur. hue-rotate spins sepia's ~45deg base tone to the tint hue (sRGB rotation vs OKLCH
-   hue is approximate; --glass-stain-shift tunes the offset, --glass-stain-sat the dye depth). */
+/* Stained axis — REAL stained-glass optics: sepia(1) collapses the backdrop to a warm monotone and
+   hue-rotate -> saturate re-dye it toward the theme hue, so whatever sits behind renders as TONAL
+   SHADES of the tint instead of pushing its own colors through. All color-matrix ops — free next to
+   the blur. hue-rotate spins sepia's ~45deg base tone to the tint hue (sRGB rotation vs OKLCH hue is
+   approximate; --glass-stain-shift tunes the offset, --glass-stain-sat the dye depth). */
 @utility glass-stained {
   --srf-stain: var(--glass-stain);
 }

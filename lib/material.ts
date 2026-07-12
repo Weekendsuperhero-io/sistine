@@ -32,7 +32,7 @@ export interface MaterialProps {
   size?: "sm" | "lg" | "xl";
   /** Readability blur FLOOR (>= --glass-diffuse, default 12px) for text-dense translucent surfaces;
    *  inert under opaque. "stained" = the dyed mode: same floor, plus true stained-glass optics — the
-   *  backdrop renders as TONAL SHADES of the theme hue (grayscale -> re-dye; free color-matrix ops). */
+   *  backdrop renders as TONAL SHADES of the theme hue (sepia re-dye; free color-matrix ops). */
   diffuse?: boolean | "stained";
   /** Brand-gradient accent layered over the material. */
   gradient?: boolean;

@@ -8,7 +8,7 @@ const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still le
 
 /**
  * Side-by-side proof of the diffuse axis\u2019 DYED mode (`diffuse="stained"`) — real stained-glass optics. Both cards are CRYSTAL over
- * the same BUSY multicolor backdrop: the stained card collapses the backdrop to luminance and re-dyes
+ * the same BUSY multicolor backdrop: the stained card sepia-collapses the backdrop and re-dyes
  * it toward the live theme hue (tonal shades of the tint), while the plain card lets the backdrop's
  * own colors push through. The slider drives --glass-stain-sat (dye depth); flip the tint up top and
  * the dye follows.
