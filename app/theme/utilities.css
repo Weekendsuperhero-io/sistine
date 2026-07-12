@@ -36,8 +36,13 @@
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
-  backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
-  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  /* The fallback chain lives in a CUSTOM property (custom props resolve nested-var fallbacks in
+     every engine — proven by computed --srf-filter always being correct), and backdrop-filter gets a
+     BARE var(): Chromium forks reject a var() FALLBACK inside filter properties (computing 'none'
+     site-wide) while a fallback-free var() provably renders. */
+  --srf-filter-resolved: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  backdrop-filter: var(--srf-filter-resolved);
+  -webkit-backdrop-filter: var(--srf-filter-resolved);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
