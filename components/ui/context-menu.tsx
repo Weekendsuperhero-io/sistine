@@ -110,6 +110,7 @@ const ContextMenuSubContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -142,6 +143,7 @@ const ContextMenuContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

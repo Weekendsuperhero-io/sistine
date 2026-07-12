@@ -32,6 +32,7 @@ const ScrollArea = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

@@ -31,6 +31,7 @@ const Slider = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     const _values = React.useMemo(

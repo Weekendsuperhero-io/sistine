@@ -28,6 +28,7 @@ const Switch = React.forwardRef<
     gradient,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

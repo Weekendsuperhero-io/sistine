@@ -45,6 +45,7 @@ const HoverCardContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

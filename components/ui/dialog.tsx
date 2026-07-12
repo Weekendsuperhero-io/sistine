@@ -73,6 +73,7 @@ const DialogContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
       animated = true,
       showCloseButton = true,
       ...props
@@ -87,6 +88,7 @@ const DialogContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

@@ -76,6 +76,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
       glow,
       sheen,
       diffuse,
+      stained,
       className,
       children,
       showCloseButton = true,
@@ -94,6 +95,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

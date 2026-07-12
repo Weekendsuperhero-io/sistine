@@ -35,6 +35,7 @@ const PaginationContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -74,6 +75,7 @@ const PaginationLink = ({
   glow,
   sheen,
   diffuse,
+  stained,
   ...props
 }: PaginationLinkProps) => {
   // The glass surface rides the ACTIVE page only; inactive links keep the plain outline/ghost button look.
@@ -87,6 +89,7 @@ const PaginationLink = ({
           glow,
           sheen,
           diffuse,
+          stained,
         })
       : null;
 

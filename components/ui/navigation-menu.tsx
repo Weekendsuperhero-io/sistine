@@ -56,6 +56,7 @@ const NavigationMenuList = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -129,6 +130,7 @@ const NavigationMenuContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -182,6 +184,7 @@ const NavigationMenuViewport = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

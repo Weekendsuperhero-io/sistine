@@ -60,6 +60,7 @@ function Badge({ className, variant, asChild = false, material, border, veil, gr
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

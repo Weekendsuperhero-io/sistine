@@ -32,6 +32,7 @@ export function Cropper({
   glow,
   sheen,
   diffuse,
+  stained,
   className,
 }: CropperProps) {
   const [crop, setCrop] = React.useState<Point>({
@@ -60,6 +61,7 @@ export function Cropper({
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

@@ -72,6 +72,7 @@ function Button({
   glow,
   sheen,
   diffuse,
+  stained,
   effect,
   ...props
 }: React.ComponentProps<"button"> &
@@ -90,6 +91,7 @@ function Button({
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

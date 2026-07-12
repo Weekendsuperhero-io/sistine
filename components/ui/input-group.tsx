@@ -33,6 +33,7 @@ function InputGroup({ className, variant = "glass", material, border, veil, grad
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

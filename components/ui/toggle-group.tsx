@@ -50,6 +50,7 @@ const ToggleGroup = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

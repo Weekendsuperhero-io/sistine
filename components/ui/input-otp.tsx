@@ -37,6 +37,7 @@ const InputOTP = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   const defaultRender = ({ slots }: { slots: SlotProps[] }) => (
@@ -96,6 +97,7 @@ const InputOTPSlot = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
       className,
       char,
       isActive,
@@ -121,6 +123,7 @@ const InputOTPSlot = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

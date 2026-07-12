@@ -110,6 +110,7 @@ const DropdownMenuSubContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -142,6 +143,7 @@ const DropdownMenuContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

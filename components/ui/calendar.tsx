@@ -30,6 +30,7 @@ function Calendar({
   glow,
   sheen,
   diffuse,
+  stained,
   locale,
   formatters,
   components,
@@ -51,6 +52,7 @@ function Calendar({
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

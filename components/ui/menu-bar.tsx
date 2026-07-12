@@ -37,6 +37,7 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

@@ -27,6 +27,7 @@ const Checkbox = React.forwardRef<
     gradient,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

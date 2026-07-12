@@ -30,6 +30,7 @@ function Card({
   glow,
   sheen,
   diffuse,
+  stained,
   effect,
   animated,
   ...props
@@ -48,6 +49,7 @@ function Card({
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

@@ -75,6 +75,7 @@ const AlertDialogContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

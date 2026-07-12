@@ -43,6 +43,7 @@ const TooltipContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

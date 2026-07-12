@@ -56,6 +56,7 @@ const TabsList = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

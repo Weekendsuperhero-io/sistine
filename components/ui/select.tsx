@@ -72,6 +72,7 @@ const SelectTrigger = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -146,6 +147,7 @@ const SelectContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
       ...props
     },
     ref,
@@ -158,6 +160,7 @@ const SelectContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

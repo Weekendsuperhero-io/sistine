@@ -40,6 +40,7 @@ const Command = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (

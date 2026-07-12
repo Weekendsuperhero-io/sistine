@@ -83,6 +83,7 @@ const ChartContainer = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
@@ -198,6 +199,7 @@ const ChartTooltipContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -226,6 +228,7 @@ const ChartTooltipContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     const tooltipLabel = React.useMemo(() => {
@@ -384,6 +387,7 @@ const ChartLegendContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
       hideIcon = false,
       nameKey,
     },
@@ -405,6 +409,7 @@ const ChartLegendContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     if (!payload?.length) {

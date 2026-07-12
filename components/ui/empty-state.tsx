@@ -34,6 +34,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       glow,
       sheen,
       diffuse,
+      stained,
     });
 
     return (

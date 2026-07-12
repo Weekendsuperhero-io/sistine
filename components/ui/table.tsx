@@ -39,6 +39,7 @@ const Table = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   const stripedClass = striped

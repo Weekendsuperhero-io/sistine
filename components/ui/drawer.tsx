@@ -54,6 +54,7 @@ const DrawerContent = React.forwardRef<
     glow,
     sheen,
     diffuse,
+    stained,
   });
 
   return (
