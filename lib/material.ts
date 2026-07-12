@@ -33,6 +33,9 @@ export interface MaterialProps {
   /** Readability blur FLOOR (>= --glass-diffuse, default 12px) for text-dense translucent surfaces.
    *  Composes with any material; inert under opaque (nothing to blur through). */
   diffuse?: boolean;
+  /** Stained-glass optics: the backdrop renders as TONAL SHADES of the theme hue (grayscale ->
+   *  re-dye) instead of pushing its own colors through. Free next to the blur (color-matrix ops). */
+  stained?: boolean;
   /** Brand-gradient accent layered over the material. */
   gradient?: boolean;
   /** Resting glow, or the intensified "lg" halo. */
@@ -53,7 +56,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, veil, size, diffuse, gradient, glow, sheen } = props;
+  const { material, border, veil, size, diffuse, stained, gradient, glow, sheen } = props;
   if (material === "none") {
     return {
       className: "",
@@ -70,6 +73,7 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
       diffuse && "glass-diffuse",
+      stained && "glass-stained",
       gradient && "glass-gradient",
       glow === "lg" ? "glass-glow-lg" : glow ? "glass-glow" : false,
       sheen && "glass-sheen",
@@ -96,6 +100,7 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
     veil: props.veil ?? role.veil,
     size: props.size ?? role.size,
     diffuse: props.diffuse ?? role.diffuse,
+    stained: props.stained ?? role.stained,
     gradient: props.gradient ?? role.gradient,
     glow: props.glow ?? role.glow,
     sheen: props.sheen ?? role.sheen,

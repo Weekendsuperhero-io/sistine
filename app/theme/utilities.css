@@ -39,7 +39,7 @@
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
      The max() composes the diffuse FLOOR for adaptive surfaces. */
-  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%));
+  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
@@ -69,6 +69,15 @@
    Composed AT THE ELEMENT so a scoped --glass-solid-a resolves here (check-theme invariant 2b).
    The veil rides the background-COLOR channel, under the material's image stack, and — being
    element-declared — beats any inherited --srf-bg-color remap. */
+/* Stained axis — REAL stained-glass optics: the backdrop is collapsed to luminance (grayscale) and
+   re-dyed toward the theme hue (sepia -> hue-rotate -> saturate), so whatever sits behind renders as
+   TONAL SHADES of the tint instead of pushing its own colors through. All color-matrix ops — free
+   next to the blur. hue-rotate spins sepia's ~45deg base tone to the tint hue (sRGB rotation vs OKLCH
+   hue is approximate; --glass-stain-shift tunes the offset, --glass-stain-sat the dye depth). */
+@utility glass-stained {
+  --srf-stain: grayscale(1) sepia(1) hue-rotate(calc((var(--glass-tint-h) - var(--glass-stain-shift, 45)) * 1deg)) saturate(var(--glass-stain-sat, 3));
+}
+
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
 }
