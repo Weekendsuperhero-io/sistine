@@ -28,7 +28,7 @@ const TooltipContent = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, sideOffset = 4, children, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, sideOffset = 4, children, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-primary text-primary-foreground",

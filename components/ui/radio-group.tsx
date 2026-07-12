@@ -26,7 +26,7 @@ const RadioGroupItem = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
   /* `glow` rides the CHECKED state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,

@@ -66,38 +66,43 @@ const AlertDialogContent = React.forwardRef<
       animated?: boolean;
       size?: "default" | "sm";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, animated = true, size = "default", ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-    stained,
-  });
+>(
+  (
+    { className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, animated = true, size = "default", ...props },
+    ref,
+  ) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      stained,
+    });
 
-  return (
-    <AlertDialogPortal>
-      <AlertDialogOverlay />
-      <AlertDialogPrimitive.Content
-        ref={ref}
-        data-slot="alert-dialog-content"
-        data-size={size}
-        data-material={m?.["data-material"]}
-        className={cn(
-          m?.className,
-          alertDialogContentVariants({
-            variant,
-          }),
-          className,
-        )}
-        {...props}
-      />
-    </AlertDialogPortal>
-  );
-});
+    return (
+      <AlertDialogPortal>
+        <AlertDialogOverlay />
+        <AlertDialogPrimitive.Content
+          ref={ref}
+          data-slot="alert-dialog-content"
+          data-size={size}
+          data-material={m?.["data-material"]}
+          className={cn(
+            m?.className,
+            alertDialogContentVariants({
+              variant,
+            }),
+            className,
+          )}
+          {...props}
+        />
+      </AlertDialogPortal>
+    );
+  },
+);
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

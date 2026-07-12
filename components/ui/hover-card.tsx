@@ -36,38 +36,43 @@ const HoverCardTrigger = HoverCardPrimitive.Trigger;
 const HoverCardContent = React.forwardRef<
   React.ElementRef<typeof HoverCardPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content> & VariantProps<typeof hoverCardContentVariants> & MaterialAxisProps
->(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-    stained,
-  });
+>(
+  (
+    { className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props },
+    ref,
+  ) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      stained,
+    });
 
-  return (
-    <HoverCardPrimitive.Portal data-slot="hover-card-portal">
-      <HoverCardPrimitive.Content
-        ref={ref}
-        data-slot="hover-card-content"
-        data-material={m?.["data-material"]}
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          m?.className,
-          hoverCardContentVariants({
-            variant,
-          }),
-          className,
-        )}
-        {...props}
-      />
-    </HoverCardPrimitive.Portal>
-  );
-});
+    return (
+      <HoverCardPrimitive.Portal data-slot="hover-card-portal">
+        <HoverCardPrimitive.Content
+          ref={ref}
+          data-slot="hover-card-content"
+          data-material={m?.["data-material"]}
+          align={align}
+          sideOffset={sideOffset}
+          className={cn(
+            m?.className,
+            hoverCardContentVariants({
+              variant,
+            }),
+            className,
+          )}
+          {...props}
+        />
+      </HoverCardPrimitive.Portal>
+    );
+  },
+);
 HoverCardContent.displayName = HoverCardPrimitive.Content.displayName;
 
 export { HoverCard, HoverCardContent, HoverCardTrigger };

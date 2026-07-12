@@ -49,7 +49,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, Varia
   asChild?: boolean;
 }
 
-function Badge({ className, variant, asChild = false, material, border, veil, gradient, glow, sheen, diffuse, ...props }: BadgeProps) {
+function Badge({ className, variant, asChild = false, material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }: BadgeProps) {
   const Comp = asChild ? SlotPrimitive.Slot : "span";
 
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {

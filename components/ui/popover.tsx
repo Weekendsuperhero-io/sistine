@@ -38,38 +38,43 @@ const PopoverAnchor = PopoverPrimitive.Anchor;
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & VariantProps<typeof popoverContentVariants> & MaterialAxisProps
->(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-    stained,
-  });
+>(
+  (
+    { className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props },
+    ref,
+  ) => {
+    const m = materialSurface(variant === "default" ? null : ROLE, {
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      stained,
+    });
 
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        ref={ref}
-        data-slot="popover-content"
-        data-material={m?.["data-material"]}
-        align={align}
-        sideOffset={sideOffset}
-        className={cn(
-          m?.className,
-          popoverContentVariants({
-            variant,
-          }),
-          className,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Portal>
-  );
-});
+    return (
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          ref={ref}
+          data-slot="popover-content"
+          data-material={m?.["data-material"]}
+          align={align}
+          sideOffset={sideOffset}
+          className={cn(
+            m?.className,
+            popoverContentVariants({
+              variant,
+            }),
+            className,
+          )}
+          {...props}
+        />
+      </PopoverPrimitive.Portal>
+    );
+  },
+);
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 const PopoverHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

@@ -17,7 +17,7 @@ const ScrollArea = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, children, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, children, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "relative overflow-hidden",

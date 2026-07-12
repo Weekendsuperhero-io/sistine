@@ -47,7 +47,7 @@ const TabsList = React.forwardRef<
     MaterialAxisProps & {
       effect?: HoverEffect;
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, effect, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,

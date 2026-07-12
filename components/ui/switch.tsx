@@ -18,7 +18,7 @@ const Switch = React.forwardRef<
       variant?: "default" | "glass";
       size?: "sm" | "default";
     }
->(({ className, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
   // The THUMB is the glass surface element; the root track styles itself.
   /* `glow` rides the CHECKED state on the root track — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {

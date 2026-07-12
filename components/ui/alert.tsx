@@ -53,7 +53,7 @@ const Alert = React.forwardRef<
     MaterialAxisProps & {
       effect?: HoverEffect;
     }
->(({ className, variant, material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }, ref) => {
+>(({ className, variant, material, border, veil, gradient, glow, sheen, diffuse, stained, effect, ...props }, ref) => {
   const isStatus = variant !== null && variant !== undefined && (STATUS_VARIANTS as readonly string[]).includes(variant);
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,

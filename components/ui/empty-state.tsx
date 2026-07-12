@@ -25,7 +25,7 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement>, V
 }
 
 const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
-  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, children, ...props }, ref) => {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, effect, children, ...props }, ref) => {
     const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,

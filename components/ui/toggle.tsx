@@ -42,7 +42,7 @@ const SURFACE_ROLE: Record<string, MaterialProps | null> = {
 const Toggle = React.forwardRef<
   React.ElementRef<typeof TogglePrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root> & VariantProps<typeof toggleVariants> & MaterialAxisProps
->(({ className, variant = "glass", size, material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", size, material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
   /* `glow` rides the ON state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,

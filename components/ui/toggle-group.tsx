@@ -33,7 +33,22 @@ const ToggleGroup = React.forwardRef<
     }
 >(
   (
-    { className, variant = "glass", size = "default", spacing = 0, material, border, veil, gradient, glow, sheen, diffuse, children, ...props },
+    {
+      className,
+      variant = "glass",
+      size = "default",
+      spacing = 0,
+      material,
+      border,
+      veil,
+      gradient,
+      glow,
+      sheen,
+      diffuse,
+      stained,
+      children,
+      ...props
+    },
     ref,
   ) => {
     /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */

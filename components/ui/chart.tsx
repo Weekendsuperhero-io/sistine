@@ -65,7 +65,7 @@ const ChartContainer = React.forwardRef<
   } & MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
