@@ -536,7 +536,7 @@
     transparent 50%
   );
   --glass-gloss-glow: radial-gradient(circle at 50% 120%, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.2), transparent 70%);
-  --blur-crystal: 2px;
+  --blur-crystal: 8px;
 }
 
 /* B. MODE-DERIVED SURFACES — see the engine header above. Each tint-composing token is declared ONCE,
