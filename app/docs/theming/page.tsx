@@ -47,8 +47,8 @@ export default function ThemingPage() {
               </li>
               <li>
                 <strong>Axes</strong> (orthogonal — compose freely on any material): <IC>border</IC>, <IC>veil</IC> (a legible floor for menus /
-                overlays), <IC>gradient</IC> (brand wash), <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a boolean prop on a component, or a{" "}
-                <IC>glass-*</IC> class on a bare element.
+                overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash), <IC>glow</IC>, <IC>sheen</IC> (hover shimmer).
+                Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
             <p className="text-muted-foreground">The four materials — pin one with the prop, or on a raw element with the attribute:</p>
@@ -130,15 +130,21 @@ export default function ThemingPage() {
                   {[
                     [
                       "border",
-                      "border",
-                      "glass-border",
-                      "1px material edge (0.5px under frosted)",
+                      'border / "rim" / "frame"',
+                      "glass-border / -rim / -frame",
+                      "material edge: hairline 1px (0.5px under frosted) · rim 2px · frame 4px",
                     ],
                     [
                       "veil",
                       "veil",
                       "glass-veil",
-                      "legibility floor for read-through overlays (menus, tooltips, toasts)",
+                      "alpha floor for read-through overlays — the default readability contract on menus, tooltips, toasts",
+                    ],
+                    [
+                      "diffuse",
+                      'diffuse / "stained"',
+                      "glass-diffuse / -stained",
+                      "blur floor (≥ 12px) for text-dense translucency; stained dyes the backdrop in the theme hue",
                     ],
                     [
                       "gradient",
@@ -174,24 +180,9 @@ export default function ThemingPage() {
               </table>
             </div>
             <p className="text-muted-foreground">
-              Leaving <IC>material</IC> off makes a surface <strong>adaptive</strong> — it inherits the page&apos;s <IC>data-glass</IC> style, so one
-              attribute on <IC>&lt;html&gt;</IC> re-skins everything. An explicit material <strong>pins</strong> that element under any page style,
-              and also re-skins the adaptive glass nested inside it (a <IC>frosted</IC> dialog re-skins its own controls). <IC>opaque</IC> is the
-              fully-solid endpoint — no see-through, regardless of page style.
+              An explicit material <strong>pins</strong> that element under any page style — and, because materials inherit, it also re-skins the
+              adaptive glass nested inside it (a <IC>frosted</IC> dialog re-skins its own controls; pin a child back with its own material).
             </p>
-            <p className="text-muted-foreground">To build any surface, answer three questions:</p>
-            <ol className="list-decimal space-y-1 pl-5 text-muted-foreground">
-              <li>
-                <strong>Which material?</strong> → the <IC>material</IC> prop (or leave it off for adaptive glass)
-              </li>
-              <li>
-                <strong>Which axes?</strong> → <IC>border</IC> / <IC>veil</IC> / <IC>gradient</IC> / <IC>glow</IC> / <IC>sheen</IC> props (or the{" "}
-                <IC>glass-*</IC> classes)
-              </li>
-              <li>
-                <strong>What color?</strong> → <IC>data-glass-tint</IC> (+ <IC>--glass-solid-a</IC> to dial the veil floor)
-              </li>
-            </ol>
           </CardContent>
         </Card>
 
@@ -233,7 +224,7 @@ export default function ThemingPage() {
               <p className="mb-2 text-muted-foreground">
                 For an arbitrary color, set the tint vars directly instead of a preset. The model is straight OKLCH: <strong>hue</strong> +{" "}
                 <strong>chroma</strong> (the single &ldquo;how colorful&rdquo; dial — chroma <IC>0</IC> = neutral) + <strong>lightness</strong> (lower
-                = deeper). There is no separate &ldquo;wash&rdquo; knob — the tint alpha is a fixed film per preset.
+                = deeper).
               </p>
               <Code>{`<div
   style={{
@@ -345,12 +336,12 @@ export default function ThemingPage() {
                   {[
                     [
                       "--glass-gloss-l",
-                      "94",
+                      "66",
                       "highlight lightness (→ %); lower = bolder",
                     ],
                     [
                       "--glass-gloss-tint",
-                      "2",
+                      "4.25",
                       "tonal: × the theme chroma (0 = white)",
                     ],
                     [
@@ -746,12 +737,19 @@ const onAccent = useReadableForeground(accent, "large");
                 <IC>--glass-solid-a</IC> — how solid the <IC>glass-veil</IC> floor is (≈0.25–0.75; default 0.65).
               </li>
               <li>
-                <IC>--glass-opaque-outline</IC> — optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
-                (e.g. <IC>var(--glass-accent)</IC>) on any ancestor to give every opaque component a colored edge.
+                <IC>--glass-diffuse</IC> — the <IC>diffuse</IC> axis&apos; blur <strong>floor</strong> (default <IC>12px</IC>).
               </li>
               <li>
-                <IC>--glass-tint-a</IC> — the tint <strong>film</strong> alpha (per preset). The former &ldquo;Wash&rdquo; slider is retired — chroma
-                is the colorfulness dial now.
+                <IC>--glass-stain-amount</IC> — how completely <IC>stained</IC> strips the backdrop&apos;s color (0–1; default <IC>1</IC>).
+              </li>
+              <li>
+                <IC>--glass-opaque-outline</IC> — optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
+                (e.g. <IC>var(--glass-accent)</IC>) on any ancestor to give every opaque component a colored edge. <IC>--glass-opaque-outline-w</IC>{" "}
+                sets its weight (the switcher&apos;s hairline / rim / frame = 1 / 2 / 4px); an element-level <IC>border=&quot;rim&quot;</IC> /{" "}
+                <IC>&quot;frame&quot;</IC> still wins.
+              </li>
+              <li>
+                <IC>--glass-tint-a</IC> — the tint <strong>film</strong> alpha (per preset).
               </li>
             </ul>
             <p className="text-muted-foreground">
@@ -760,21 +758,28 @@ const onAccent = useReadableForeground(accent, "large");
             <Code>{`<aside style={{ "--glass-solid-a": 0.8 }}>
   <div className="glass glass-veil …">extra-solid here only</div>
 </aside>`}</Code>
-            <p className="mt-4 text-muted-foreground">
-              Live: drag the floor opacity and watch the <IC>veil</IC> card&apos;s legibility hold while the plain-glass card rides the backdrop. Same
-              text in both.
+          </CardContent>
+        </Card>
+
+        <Card id="optics" className="scroll-mt-24 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Readability optics</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Three ways a translucent surface stays legible: <IC>veil</IC>, <IC>diffuse</IC>, <IC>stained</IC>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              <IC>veil</IC> is the default readability contract — an alpha floor under the text, free of any blur cost, and how menus, tooltips, and
+              toasts ship. <IC>diffuse</IC> is the opt-in blur floor (≥ <IC>--glass-diffuse</IC>, 12px) for text-dense surfaces that must stay
+              translucent — crystal keeps its 2px identity until a surface opts in, and opaque ignores it. <IC>diffuse=&quot;stained&quot;</IC> is the
+              dyed mode: the backdrop collapses to pure luminance, and the glass&apos;s own tint supplies all the color.
             </p>
+            <p className="text-muted-foreground">Drag the floor — the veiled card holds while plain glass rides the backdrop:</p>
             <VeilComparisonDemo />
-            <p className="mt-6 text-muted-foreground">
-              The veil's opt-in sibling: <IC>diffuse</IC> — a readability blur FLOOR for surfaces that must stay translucent. Crystal keeps its 2px
-              identity unless a surface opts in; opaque ignores the floor entirely. Drag the floor and compare.
-            </p>
+            <p className="text-muted-foreground">Raise the blur floor — crystal stays crystal until the text needs it:</p>
             <DiffuseComparisonDemo />
-            <p className="mt-6 text-muted-foreground">
-              And the third optic: <IC>stained</IC> — true stained-glass. The backdrop is stripped to pure luminance, so the glass’s own tint renders
-              it as tonal shades of the theme hue, so tinted glass earns its keep instead of letting the backdrop push its own colors through. Flip
-              the tint and watch the dye follow.
-            </p>
+            <p className="text-muted-foreground">Stain the glass — the backdrop re-renders as tonal shades of the theme:</p>
             <StainedComparisonDemo />
           </CardContent>
         </Card>

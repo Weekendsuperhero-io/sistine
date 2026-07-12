@@ -88,8 +88,9 @@
        hue   → iridescent: the highlight sweeps hues shifted ± --glass-gloss-hue-span around the tint hue
      White/tonal share the gradient SHAPES below (only --glass-gloss-ink, the L C H triple, differs); hue
      redefines the three gradients to interpolate across hue. Each layer applies its own alpha. */
-  --glass-gloss-l: 94; /* highlight lightness (plain number → % below); LOWER = bolder, more saturated */
-  --glass-gloss-tint: 2; /* tonal: multiplier on the theme chroma (0 = pure white gloss, higher = more color) */
+  /* --glass-gloss-l / --glass-gloss-tint live in tokens.css (66 / 4.25) — do NOT re-declare here:
+     engine.css imports AFTER tokens.css, so a duplicate at equal :root specificity silently wins and
+     pure-CSS consumers get a stale gloss. */
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
   --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
