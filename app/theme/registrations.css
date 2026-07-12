@@ -22,16 +22,6 @@
   syntax: "*";
   inherits: true;
 }
-/* Effective surface blur — REGISTERED as <length> so the max(material, --dif) math is EVALUATED at
-   computed-value time; blur(var(--srf-blur-eff)) then receives a resolved px (engines reject raw
-   max() inside filter functions — the diffuse axis depends on this registration). */
-@property --srf-blur-eff {
-  syntax: "<length>";
-  inherits: true;
-  /* 0.001px, NOT 0px: the minifier strips 0px -> unitless 0, which is an INVALID <length>
-     initial-value and silently voids the whole registration (the diffuse axis dies with it). */
-  initial-value: 0.001px;
-}
 @property --gradient-text-contrast {
   syntax: "*";
   inherits: true;

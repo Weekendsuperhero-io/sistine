@@ -27,8 +27,7 @@
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
      as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
      floor's channel. */
-  --srf-blur-base: var(--blur-frosted);
-  --srf-filter: blur(var(--srf-blur-px)) saturate(200%);
+  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -43,11 +42,24 @@
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-blur-base: var(--blur-crystal);
-  --srf-filter: blur(var(--srf-blur-px));
+  --srf-filter: blur(var(--blur-crystal));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
 }
+/* Page-style diffuse legs: the glass-diffuse utility declares --srf-filter ON the element, which
+   would beat every INHERITED page remap — re-assert each page's intent for adaptive+diffuse:
+   crystal drops the saturate, frosted stays at its own 25px (≥ any floor), opaque keeps the
+   short-circuit. */
+[data-glass="crystal"] :where(.glass.glass-diffuse):not([data-material]) {
+  --srf-filter: blur(var(--dif));
+}
+[data-glass="frosted"] :where(.glass.glass-diffuse):not([data-material]) {
+  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
+}
+[data-glass="opaque"] :where(.glass.glass-diffuse):not([data-material]) {
+  --srf-filter: none;
+}
+
 /* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
    as the material remap in materials.css — the baked gloss lightens title zones there too. */
 [data-glass="crystal"] :where(.glass):not([data-material]):not(.glass-veil) {

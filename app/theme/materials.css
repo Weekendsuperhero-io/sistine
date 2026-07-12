@@ -14,8 +14,7 @@
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
      setter/reader is safe — the composition gotcha only bites pre-composed inherited values). */
-  --srf-blur-eff: max(var(--srf-blur, var(--blur)), var(--dif, 0px));
-  --srf-filter: blur(var(--srf-blur-px)) saturate(180%);
+  --srf-filter: blur(var(--srf-blur, var(--blur))) saturate(180%);
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
@@ -26,8 +25,7 @@
 [data-material="frosted"] {
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
-  --srf-blur-eff: max(var(--blur-frosted), var(--dif, 0px));
-  --srf-filter: blur(var(--srf-blur-px)) saturate(200%);
+  --srf-filter: blur(var(--blur-frosted)) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
@@ -40,8 +38,7 @@
 [data-material="crystal"] {
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
-  --srf-blur-eff: max(var(--blur-crystal), var(--dif, 0px));
-  --srf-filter: blur(var(--srf-blur-px));
+  --srf-filter: blur(var(--blur-crystal));
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
@@ -82,6 +79,16 @@
   --foreground-strong: var(--foreground-strong-opaque);
   --foreground-ui: var(--foreground-ui-opaque);
   --muted-foreground: var(--muted-foreground-opaque);
+}
+
+/* Diffuse floor per material — compound beats the pin by source order (equal specificity). Frosted
+   (25px) already exceeds any sensible floor and opaque short-circuits: their PINS beat the diffuse
+   utility, so both are correct no-ops with no extra rules. */
+[data-material="glass"].glass-diffuse {
+  --srf-filter: blur(var(--dif)) saturate(180%);
+}
+[data-material="crystal"].glass-diffuse {
+  --srf-filter: blur(var(--dif));
 }
 
 /* ── Gloss flavors ────────────────────────────────────────────────────────────
