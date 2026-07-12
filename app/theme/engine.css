@@ -117,11 +117,11 @@
      (switch "on", slider range). The --accent-h/-c knob overrides apply in BOTH modes (the old dark
      twin dropped them — that was a bug). */
   --glass-accent: oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)));
-  /* Stained-glass dye chain — sepia(1) collapses the backdrop to a warm monotone (its matrix is
-     luminance-weighted, so a separate grayscale pass is redundant), hue-rotate swings that tone to
-     the tint, saturate sets depth (knobs: --glass-stain-shift, --glass-stain-sat). The glass-stained
-     utility and the switcher's site-wide Stained toggle both reference THIS token. */
-  --glass-stain: sepia(1) hue-rotate(calc((var(--glass-tint-h) - var(--glass-stain-shift, 45)) * 1deg)) saturate(var(--glass-stain-sat, 3));
+  /* Stained-glass — grayscale collapses the backdrop to pure LUMINANCE (akin to alpha: only lighter/
+     darker survives), and the glass's OWN tint stack supplies the color — OKLCH-true to the theme, no
+     hue-rotate approximation. --glass-stain-amount (0..1) sets how completely the backdrop's color is
+     stripped. The glass-stained utility and the switcher's Stained toggle both reference THIS token. */
+  --glass-stain: grayscale(var(--glass-stain-amount, 1));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
   /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral

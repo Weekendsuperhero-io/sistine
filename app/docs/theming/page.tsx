@@ -771,8 +771,9 @@ const onAccent = useReadableForeground(accent, "large");
             </p>
             <DiffuseComparisonDemo />
             <p className="mt-6 text-muted-foreground">
-              And the third optic: <IC>stained</IC> — true stained-glass. The backdrop is sepia-collapsed and re-dyed as tonal shades of the theme
-              hue, so tinted glass earns its keep instead of letting the backdrop push its own colors through. Flip the tint and watch the dye follow.
+              And the third optic: <IC>stained</IC> — true stained-glass. The backdrop is stripped to pure luminance, so the glass’s own tint renders
+              it as tonal shades of the theme hue, so tinted glass earns its keep instead of letting the backdrop push its own colors through. Flip
+              the tint and watch the dye follow.
             </p>
             <StainedComparisonDemo />
           </CardContent>

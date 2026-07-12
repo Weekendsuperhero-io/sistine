@@ -8,20 +8,20 @@ const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still le
 
 /**
  * Side-by-side proof of the diffuse axis\u2019 DYED mode (`diffuse="stained"`) — real stained-glass optics. Both cards are CRYSTAL over
- * the same BUSY multicolor backdrop: the stained card sepia-collapses the backdrop and re-dyes
+ * the same BUSY multicolor backdrop: the stained card collapses the backdrop to pure luminance so the glass’s own tint supplies the color
  * it toward the live theme hue (tonal shades of the tint), while the plain card lets the backdrop's
- * own colors push through. The slider drives --glass-stain-sat (dye depth); flip the tint up top and
- * the dye follows.
+ * own colors push through. The slider drives --glass-stain-amount (how completely color is stripped);
+ * flip the tint up top and the glass recolors while the backdrop stays mono.
  */
 export function StainedComparisonDemo() {
-  const [sat, setSat] = React.useState(3);
+  const [amt, setAmt] = React.useState(1);
 
   return (
     <div
       className="flex flex-col gap-4"
       style={
         {
-          "--glass-stain-sat": sat,
+          "--glass-stain-amount": amt,
         } as React.CSSProperties
       }
     >
@@ -37,7 +37,7 @@ export function StainedComparisonDemo() {
           <Card material="crystal" border diffuse="stained">
             <CardHeader>
               <CardTitle className="text-base">
-                <code className="text-xs">stained</code> — backdrop re-dyed to the theme hue
+                <code className="text-xs">stained</code> — backdrop stripped to luminance
               </CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
@@ -54,19 +54,19 @@ export function StainedComparisonDemo() {
 
       <div className="flex items-center gap-3">
         <span className="whitespace-nowrap text-muted-foreground text-xs">
-          <code className="text-xs">--glass-stain-sat</code>
+          <code className="text-xs">--glass-stain-amount</code>
         </span>
         <Slider
           value={[
-            sat,
+            amt,
           ]}
           min={0}
-          max={6}
-          step={0.25}
-          onValueChange={(v) => setSat(v[0] ?? 3)}
-          aria-label="stain dye depth"
+          max={1}
+          step={0.05}
+          onValueChange={(v) => setAmt(v[0] ?? 1)}
+          aria-label="stain amount"
         />
-        <span className="w-9 text-right text-muted-foreground text-xs tabular-nums">{sat.toFixed(2)}</span>
+        <span className="w-9 text-right text-muted-foreground text-xs tabular-nums">{amt.toFixed(2)}</span>
       </div>
     </div>
   );
