@@ -7,10 +7,10 @@ import { Slider } from "@/components/ui/slider";
 const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still legible?";
 
 /**
- * Side-by-side proof of the `diffuse` axis. Both cards are CRYSTAL (identity blur: 8px) over a
+ * Side-by-side proof of the `diffuse` axis. Both cards are CRYSTAL (identity blur: 2px) over a
  * deliberately BUSY backdrop; the slider drives --glass-diffuse (the readability blur FLOOR) on the
- * wrapper. The diffuse card's backdrop blur rises to the floor — blur(max(8px, floor)) — calming the
- * noise behind text, while the plain card keeps crystal's 8px identity so you can see exactly what the
+ * wrapper. The diffuse card's backdrop blur rises to the floor — blur(max(2px, floor)) — calming the
+ * noise behind text, while the plain card keeps crystal's razor 2px so you can see exactly what the
  * axis buys. Drag to 0 and the two converge.
  */
 export function DiffuseComparisonDemo() {
@@ -46,7 +46,7 @@ export function DiffuseComparisonDemo() {
 
           <Card material="crystal" border>
             <CardHeader>
-              <CardTitle className="text-base">plain crystal — its own 8px blur</CardTitle>
+              <CardTitle className="text-base">plain crystal — its own 2px blur</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
           </Card>

@@ -70,7 +70,7 @@
      glass utility, at the element. Composing it here would bake :root's --glass-opacity into the value
      and silently ignore a per-element glass={{opacity}} — the var-composition gotcha again.) */
   /* Blur values — Apple-standard moderate blur; per-variant sizes (mode-invariant). */
-  --blur: 10px;
+  --blur: 2px;
   --blur-sm: 4px;
   --blur-lg: 20px;
   --blur-frosted: 25px;
@@ -100,7 +100,7 @@
     transparent 50%
   );
   --glass-gloss-glow: radial-gradient(circle at 50% 120%, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.2), transparent 70%);
-  --blur-crystal: 8px;
+  --blur-crystal: 2px;
 }
 
 /* B. MODE-DERIVED SURFACES — see the engine header above. Each tint-composing token is declared ONCE,
