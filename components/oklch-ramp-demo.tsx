@@ -346,7 +346,7 @@ function Ramp({ title, colors, mid }: { title: string; colors: string[]; mid: nu
           >
             <span className="sr-only">{css}</span>
             {copied === i && (
-              <span className="absolute inset-x-0 bottom-1 text-center text-[10px] font-medium text-foreground mix-blend-difference">copied</span>
+              <span className="absolute inset-x-0 bottom-1 rounded bg-black/60 px-1 text-center font-medium text-[10px] text-white">copied</span>
             )}
           </button>
         ))}
