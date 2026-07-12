@@ -37,8 +37,13 @@
   background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   --srf-blur-eff: max(var(--srf-blur-base, var(--srf-blur, var(--blur))), var(--dif, 0px));
-  backdrop-filter: var(--srf-filter, blur(var(--srf-blur-eff)) saturate(180%));
-  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur-eff)) saturate(180%));
+  /* BRIDGE: Chromium refuses to substitute a REGISTERED property through filter text into
+     backdrop-filter (WebKit is fine). An unregistered copy resolves the registered value to plain
+     px text at the element, and the filters reference the copy — the exact var shape every engine
+     already handles. */
+  --srf-blur-px: var(--srf-blur-eff);
+  backdrop-filter: var(--srf-filter, blur(var(--srf-blur-px)) saturate(180%));
+  -webkit-backdrop-filter: var(--srf-filter, blur(var(--srf-blur-px)) saturate(180%));
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
