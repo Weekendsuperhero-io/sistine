@@ -201,6 +201,11 @@ const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((
   }
 }
 
+// 6f. [no-webkit-twin] never hand-author -webkit-backdrop-filter: Lightning CSS dedupes the pair
+//     keeping the PREFIXED one — which Chromium never aliased — so glass renders in WebKit and
+//     computes none in Chrome/Edge. Author the standard property; the minifier auto-prefixes.
+if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -webkit-backdrop-filter found in the theme — remove it (Lightning auto-prefixes; the twin makes it DROP the standard property).');
+
 // 5b. [bone-sync] bone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
 //     fg snapshots can't carry them) — the JS constants must equal presets.css, or bone-night text
 //     bands against the wrong surface model again (the exact bug the mirror fixes).

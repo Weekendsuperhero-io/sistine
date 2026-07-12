@@ -41,8 +41,10 @@
      BARE var(): Chromium forks reject a var() FALLBACK inside filter properties (computing 'none'
      site-wide) while a fallback-free var() provably renders. */
   --srf-filter-resolved: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  /* Author ONLY the standard property: hand-writing the -webkit- twin makes Lightning CSS dedupe
+     the pair and KEEP THE PREFIXED ONE - which Chromium never aliased. Result: glass blurred in
+     WebKit and computed none in Chrome/Edge/Helium. Lightning auto-prefixes per targets. */
   backdrop-filter: var(--srf-filter-resolved);
-  -webkit-backdrop-filter: var(--srf-filter-resolved);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 

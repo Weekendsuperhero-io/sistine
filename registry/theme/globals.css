@@ -677,8 +677,10 @@
      BARE var(): Chromium forks reject a var() FALLBACK inside filter properties (computing 'none'
      site-wide) while a fallback-free var() provably renders. */
   --srf-filter-resolved: var(--srf-filter, blur(var(--srf-blur, var(--blur))) saturate(180%));
+  /* Author ONLY the standard property: hand-writing the -webkit- twin makes Lightning CSS dedupe
+     the pair and KEEP THE PREFIXED ONE - which Chromium never aliased. Result: glass blurred in
+     WebKit and computed none in Chrome/Edge/Helium. Lightning auto-prefixes per targets. */
   backdrop-filter: var(--srf-filter-resolved);
-  -webkit-backdrop-filter: var(--srf-filter-resolved);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
@@ -1282,7 +1284,6 @@
      Lower the popover % to make toasts more see-through, raise it to make them more solid. */
   background: var(--glass-bg), color-mix(in oklch, var(--popover) 78%, transparent) !important;
   backdrop-filter: blur(var(--blur)) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
   border: 1px solid var(--glass-border) !important;
   box-shadow: var(--glass-shadow-lg), var(--glow-layer, 0 0 0 0 transparent) !important;
   color: var(--foreground) !important;
@@ -1309,7 +1310,6 @@
 [data-sonner-toast] :is([data-button], [data-cancel], [data-close-button]) {
   background: var(--glass-bg) !important;
   backdrop-filter: blur(var(--blur-sm)) !important;
-  -webkit-backdrop-filter: blur(var(--blur-sm)) !important;
   border: 1px solid var(--glass-border) !important;
   color: var(--foreground) !important;
   transition: opacity 0.2s ease !important;
