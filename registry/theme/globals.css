@@ -557,8 +557,9 @@
   /* Stained-glass — grayscale collapses the backdrop to pure LUMINANCE (akin to alpha: only lighter/
      darker survives), and the glass's OWN tint stack supplies the color — OKLCH-true to the theme, no
      hue-rotate approximation. --glass-stain-amount (0..1) sets how completely the backdrop's color is
-     stripped. The glass-stained utility and the switcher's Stained toggle both reference THIS token. */
-  --glass-stain: grayscale(var(--glass-stain-amount, 1));
+     stripped; --glass-stain-invert (0..1, default 1) flips the surviving luminance so bright backdrop
+     patches stop fighting dark tinted glass (set 0 to disable). The glass-stained utility and the switcher's Stained toggle both reference THIS token. */
+  --glass-stain: grayscale(var(--glass-stain-amount, 1)) invert(var(--glass-stain-invert, 1));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
   /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral
