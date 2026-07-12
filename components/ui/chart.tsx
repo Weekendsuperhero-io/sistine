@@ -3,7 +3,7 @@
 import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -65,7 +65,8 @@ const ChartContainer = React.forwardRef<
   } & MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ id, className, children, config, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -75,15 +76,7 @@ const ChartContainer = React.forwardRef<
     glass: "rounded-lg p-4",
   };
 
-  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, axes);
 
   return (
     <ChartContext.Provider
@@ -101,7 +94,7 @@ const ChartContainer = React.forwardRef<
           variants[variant],
           className,
         )}
-        {...props}
+        {...rest}
       >
         <ChartStyle id={chartId} config={config} />
         <RechartsPrimitive.ResponsiveContainer minHeight={150}>{children}</RechartsPrimitive.ResponsiveContainer>
@@ -191,13 +184,6 @@ const ChartTooltipContent = React.forwardRef<
       className,
       indicator = "dot",
       variant = "glass",
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      diffuse,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -207,9 +193,12 @@ const ChartTooltipContent = React.forwardRef<
       color,
       nameKey,
       labelKey,
+      ...props
     },
     ref,
   ) => {
+    /* This component never forwards unknown props to the DOM — only the axes are consumed. */
+    const [axes] = splitAxisProps(props);
     const { config } = useChart();
 
     /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -218,15 +207,7 @@ const ChartTooltipContent = React.forwardRef<
       glass: "text-foreground",
     };
 
-    const m = materialSurface(variant === "default" ? null : TOOLTIP_ROLE, {
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      diffuse,
-    });
+    const m = materialSurface(variant === "default" ? null : TOOLTIP_ROLE, axes);
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
@@ -370,85 +351,54 @@ const ChartLegendContent = React.forwardRef<
       hideIcon?: boolean;
       nameKey?: string;
     }
->(
-  (
-    {
-      className,
-      payload,
-      verticalAlign = "bottom",
-      variant = "glass",
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      diffuse,
-      hideIcon = false,
-      nameKey,
-    },
-    ref,
-  ) => {
-    const { config } = useChart();
+>(({ className, payload, verticalAlign = "bottom", variant = "glass", hideIcon = false, nameKey, ...props }, ref) => {
+  /* This component never forwards unknown props to the DOM — only the axes are consumed. */
+  const [axes] = splitAxisProps(props);
+  const { config } = useChart();
 
-    /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-    const variants = {
-      default: "",
-      glass: "rounded-lg px-2 py-1",
-    };
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+  const variants = {
+    default: "",
+    glass: "rounded-lg px-2 py-1",
+  };
 
-    const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, {
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      diffuse,
-    });
+  const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, axes);
 
-    if (!payload?.length) {
-      return null;
-    }
+  if (!payload?.length) {
+    return null;
+  }
 
-    return (
-      <div
-        ref={ref}
-        data-material={m?.["data-material"]}
-        className={cn(
-          m?.className,
-          "flex items-center justify-center gap-4",
-          verticalAlign === "top" ? "pb-2" : "pt-2",
-          variants[variant],
-          className,
-        )}
-      >
-        {payload
-          .filter((item) => item.type !== "none")
-          .map((item, index) => {
-            const key = `${nameKey || item.dataKey || item.value || "value"}`;
-            const configItem = getPayloadConfigFromPayload(config, item, key);
+  return (
+    <div
+      ref={ref}
+      data-material={m?.["data-material"]}
+      className={cn(m?.className, "flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-2" : "pt-2", variants[variant], className)}
+    >
+      {payload
+        .filter((item) => item.type !== "none")
+        .map((item, index) => {
+          const key = `${nameKey || item.dataKey || item.value || "value"}`;
+          const configItem = getPayloadConfigFromPayload(config, item, key);
 
-            return (
-              <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
-                {configItem?.icon && !hideIcon ? (
-                  <configItem.icon />
-                ) : (
-                  <div
-                    className="h-2 w-2 shrink-0 rounded-[2px]"
-                    style={{
-                      backgroundColor: item.color,
-                    }}
-                  />
-                )}
-                {configItem?.label}
-              </div>
-            );
-          })}
-      </div>
-    );
-  },
-);
+          return (
+            <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
+              {configItem?.icon && !hideIcon ? (
+                <configItem.icon />
+              ) : (
+                <div
+                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  style={{
+                    backgroundColor: item.color,
+                  }}
+                />
+              )}
+              {configItem?.label}
+            </div>
+          );
+        })}
+    </div>
+  );
+});
 ChartLegendContent.displayName = "ChartLegend";
 
 // Helper to extract item config from a payload.

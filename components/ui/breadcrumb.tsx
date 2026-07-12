@@ -2,7 +2,7 @@ import { ArrowsHorizontalIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 const Breadcrumb = React.forwardRef<
@@ -26,22 +26,15 @@ const BreadcrumbList = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg px-4 py-2",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <ol
@@ -54,7 +47,7 @@ const BreadcrumbList = React.forwardRef<
         variants[variant],
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 });

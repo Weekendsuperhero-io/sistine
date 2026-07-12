@@ -1,6 +1,6 @@
 import { ArrowsHorizontalIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { type Button, buttonVariants } from "./button";
 
@@ -20,22 +20,15 @@ const PaginationContent = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-lg px-2 py-1",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <ul
@@ -43,7 +36,7 @@ const PaginationContent = React.forwardRef<
       data-slot="pagination-content"
       data-material={m?.["data-material"]}
       className={cn(m?.className, "flex flex-row items-center gap-1", variants[variant], className)}
-      {...props}
+      {...rest}
     />
   );
 });
@@ -62,33 +55,10 @@ type PaginationLinkProps = {
     variant?: "default" | "glass";
   };
 
-const PaginationLink = ({
-  className,
-  isActive,
-  size = "icon",
-  variant = "glass",
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
-  diffuse,
-  ...props
-}: PaginationLinkProps) => {
+const PaginationLink = ({ className, isActive, size = "icon", variant = "glass", ...props }: PaginationLinkProps) => {
+  const [axes, rest] = splitAxisProps(props);
   // The glass surface rides the ACTIVE page only; inactive links keep the plain outline/ghost button look.
-  const m =
-    variant === "glass" && isActive
-      ? materialSurface(ROLE, {
-          material,
-          border,
-          veil,
-          gradient,
-          glow,
-          sheen,
-          diffuse,
-        })
-      : null;
+  const m = variant === "glass" && isActive ? materialSurface(ROLE, axes) : null;
 
   return (
     <a
@@ -105,7 +75,7 @@ const PaginationLink = ({
         variant === "default" && isActive && "bg-background text-foreground",
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 };

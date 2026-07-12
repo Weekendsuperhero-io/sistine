@@ -3,7 +3,7 @@
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
 import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from "react-day-picker";
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./button";
 
@@ -23,18 +23,12 @@ function Calendar({
   variant = "glass",
   captionLayout = "label",
   buttonVariant = "ghost",
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
-  diffuse,
   locale,
   formatters,
   components,
   ...props
 }: CalendarProps) {
+  const [axes, rest] = splitAxisProps(props);
   const defaultClassNames = getDefaultClassNames();
 
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -43,15 +37,7 @@ function Calendar({
     glass: "rounded-lg p-4",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DayPicker
@@ -114,7 +100,7 @@ function Calendar({
         week_number: cn("text-[0.8rem] text-muted-foreground select-none", defaultClassNames.week_number),
         day: cn(
           "group/day relative aspect-square h-full w-full rounded-(--cell-radius) p-0 text-center select-none [&:last-child[data-selected=true]_button]:rounded-r-(--cell-radius)",
-          props.showWeekNumber
+          rest.showWeekNumber
             ? "[&:nth-child(2)[data-selected=true]_button]:rounded-l-(--cell-radius)"
             : "[&:first-child[data-selected=true]_button]:rounded-l-(--cell-radius)",
           defaultClassNames.day,
@@ -154,7 +140,7 @@ function Calendar({
         },
         ...components,
       }}
-      {...props}
+      {...rest}
     />
   );
 }

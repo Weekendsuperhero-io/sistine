@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from materialSurface.
@@ -53,17 +53,10 @@ const Alert = React.forwardRef<
     MaterialAxisProps & {
       effect?: HoverEffect;
     }
->(({ className, variant, material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }, ref) => {
+>(({ className, variant, effect, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   const isStatus = variant !== null && variant !== undefined && (STATUS_VARIANTS as readonly string[]).includes(variant);
-  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
 
   return (
     <div
@@ -84,7 +77,7 @@ const Alert = React.forwardRef<
           }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 });

@@ -3,7 +3,7 @@
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered + veiled adaptive glass. */
@@ -28,22 +28,15 @@ const TooltipContent = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, sideOffset = 4, children, ...props }, ref) => {
+>(({ className, variant = "glass", sideOffset = 4, children, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-primary text-primary-foreground",
     glass: "text-foreground",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <TooltipPrimitive.Portal>
@@ -58,7 +51,7 @@ const TooltipContent = React.forwardRef<
           variants[variant],
           className,
         )}
-        {...props}
+        {...rest}
       >
         {children}
         <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] glass border-[var(--glass-border)]" />

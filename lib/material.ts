@@ -46,6 +46,37 @@ export interface MaterialProps {
  *  blur tier is a role-internal detail — a component's own `size` prop owns that name). */
 export type MaterialAxisProps = Omit<MaterialProps, "size">;
 
+/** The `rest` side of splitAxisProps. Distributes over union props (DayPicker's mode union, Radix
+ *  ToggleGroup's single/multiple) so a discriminated union survives the split instead of collapsing
+ *  under a bare Omit. */
+export type SplitAxisRest<P> = P extends unknown ? Omit<P, keyof MaterialAxisProps> : never;
+
+/** Split the material axis props off a component's props in ONE place — components never enumerate
+ *  axis keys, so a NEW axis is zero-touch: extend MaterialProps + this destructure, done. `size` is
+ *  role-internal (not in MaterialAxisProps) and stays in `rest` for the component's own cva. */
+export function splitAxisProps<P extends MaterialAxisProps>(
+  props: P,
+): [
+  MaterialAxisProps,
+  SplitAxisRest<P>,
+] {
+  const { material, border, veil, diffuse, gradient, glow, sheen, ...rest } = props;
+  return [
+    {
+      material,
+      border,
+      veil,
+      diffuse,
+      gradient,
+      glow,
+      sheen,
+    },
+    /* The conditional (distributive) rest type can't be proven for an unresolved P — safe by
+     * construction: rest is exactly P minus the axis keys. */
+    rest as SplitAxisRest<P>,
+  ];
+}
+
 export interface MaterialAttrs {
   /** Spread-ready: undefined for adaptive and "none". */
   "data-material"?: Exclude<Material, "none">;

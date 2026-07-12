@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { HoverCard as HoverCardPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -36,16 +36,9 @@ const HoverCardTrigger = HoverCardPrimitive.Trigger;
 const HoverCardContent = React.forwardRef<
   React.ElementRef<typeof HoverCardPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof HoverCardPrimitive.Content> & VariantProps<typeof hoverCardContentVariants> & MaterialAxisProps
->(({ className, align = "center", sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+>(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <HoverCardPrimitive.Portal data-slot="hover-card-portal">
@@ -62,7 +55,7 @@ const HoverCardContent = React.forwardRef<
           }),
           className,
         )}
-        {...props}
+        {...rest}
       />
     </HoverCardPrimitive.Portal>
   );

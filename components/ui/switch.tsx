@@ -3,7 +3,7 @@
 import { Switch as SwitchPrimitives } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -18,16 +18,13 @@ const Switch = React.forwardRef<
       variant?: "default" | "glass";
       size?: "sm" | "default";
     }
->(({ className, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   // The THUMB is the glass surface element; the root track styles itself.
   /* `glow` rides the CHECKED state on the root track — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    sheen,
-    diffuse,
+    ...axes,
+    glow: undefined,
   });
 
   return (
@@ -36,10 +33,10 @@ const Switch = React.forwardRef<
       data-size={size}
       className={cn(
         "peer group/switch inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-5 data-[size=default]:w-9 data-[size=sm]:h-3.5 data-[size=sm]:w-6 data-[state=checked]:bg-[var(--glass-accent)] data-[state=unchecked]:bg-foreground/15",
-        glow && "data-[state=checked]:glass-glow transition duration-200",
+        axes.glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
-      {...props}
+      {...rest}
       ref={ref}
     >
       <SwitchPrimitives.Thumb

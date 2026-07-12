@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
@@ -65,13 +65,6 @@ function Button({
   variant = "glass",
   size = "default",
   asChild = false,
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
-  diffuse,
   effect,
   ...props
 }: React.ComponentProps<"button"> &
@@ -82,15 +75,8 @@ function Button({
   }) {
   const Comp = asChild ? SlotPrimitive.Slot : "button";
 
-  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
 
   return (
     <Comp
@@ -111,7 +97,7 @@ function Button({
           }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }

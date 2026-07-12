@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -101,16 +101,9 @@ DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayNam
 const DropdownMenuSubContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent> & VariantProps<typeof dropdownMenuSubContentVariants> & MaterialAxisProps
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+>(({ className, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DropdownMenuPrimitive.SubContent
@@ -124,7 +117,7 @@ const DropdownMenuSubContent = React.forwardRef<
         }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 });
@@ -133,16 +126,9 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content> & VariantProps<typeof dropdownMenuContentVariants> & MaterialAxisProps
->(({ className, sideOffset = 4, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+>(({ className, sideOffset = 4, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DropdownMenuPrimitive.Portal>
@@ -158,7 +144,7 @@ const DropdownMenuContent = React.forwardRef<
           }),
           className,
         )}
-        {...props}
+        {...rest}
       />
     </DropdownMenuPrimitive.Portal>
   );

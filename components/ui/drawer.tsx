@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: borderless adaptive glass. */
@@ -39,22 +39,15 @@ const DrawerContent = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, children, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, children, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-background",
     glass: "text-foreground",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DrawerPortal data-slot="drawer-portal">
@@ -73,7 +66,7 @@ const DrawerContent = React.forwardRef<
           variants[variant],
           className,
         )}
-        {...props}
+        {...rest}
       >
         <div className="mx-auto mt-4 hidden h-2 w-[100px] shrink-0 rounded-full bg-muted group-data-[vaul-drawer-direction=bottom]/drawer-content:block" />
         {children}

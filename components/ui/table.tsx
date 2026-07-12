@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -30,16 +30,9 @@ const Table = React.forwardRef<
       /** When true, rows alternate in brightness and the per-row dividers are removed. */
       striped?: boolean;
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, striped = false, ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+>(({ className, variant = "glass", striped = false, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   const stripedClass = striped
     ? "[&_tbody_tr]:border-0 [&_tbody_tr:nth-child(even)]:bg-black/[0.07] dark:[&_tbody_tr:nth-child(even)]:bg-black/[0.22] [&_tbody_tr:nth-child(even):hover]:bg-muted/50"
@@ -60,7 +53,7 @@ const Table = React.forwardRef<
           stripedClass,
           className,
         )}
-        {...props}
+        {...rest}
       />
     </div>
   );

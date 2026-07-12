@@ -175,14 +175,17 @@ const huesStart = canvasUtils.indexOf("export const FRESCO_HUES");
 const huesBlock = huesStart >= 0 ? canvasUtils.slice(huesStart, canvasUtils.indexOf("};", huesStart)) : "";
 const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((m) => m[1]));
 // 6e. [axis-props] any component that calls materialSurface must type its per-instance axes via the
-//     canonical MaterialAxisProps (lib/material) — a hand-listed subset goes stale whenever an axis is
-//     added (diffuse) or widened (border weights), so the new knob silently fails to type.
+//     canonical MaterialAxisProps (lib/material) AND route them through splitAxisProps — a hand-listed
+//     subset (in the type or the destructure) goes stale whenever an axis is added (diffuse) or widened
+//     (border weights), so the new knob silently fails to type or forward.
 {
   const uiDir = join(root, 'components/ui');
   for (const f of readdirSync(uiDir).filter((x) => x.endsWith('.tsx'))) {
     const src = readFileSync(join(uiDir, f), 'utf8');
     if (src.includes('materialSurface(') && !src.includes('MaterialAxisProps'))
       fail(`[axis-props] ${f}: calls materialSurface but hand-lists axis props — spread MaterialAxisProps so new axes (diffuse, border weights) type everywhere.`);
+    if (src.includes('materialSurface(') && !src.includes('splitAxisProps('))
+      fail(`[axis-props] ${f}: calls materialSurface but destructures axis props by hand — route axis props through splitAxisProps so new axes are zero-touch.`);
   }
 }
 

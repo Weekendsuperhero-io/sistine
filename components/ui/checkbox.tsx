@@ -4,7 +4,7 @@ import { Check } from "@phosphor-icons/react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -18,15 +18,12 @@ const Checkbox = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
+>(({ className, variant = "glass", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* `glow` rides the CHECKED state on toggles — kept out of the materialSurface forward below. */
   const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    sheen,
-    diffuse,
+    ...axes,
+    glow: undefined,
   });
 
   return (
@@ -39,10 +36,10 @@ const Checkbox = React.forwardRef<
         "peer h-4 w-4 shrink-0 rounded-sm border shadow transition-shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
         m === null && "border-primary",
         m !== null && "data-[state=checked]:glass data-[state=checked]:border-[var(--glass-border)]",
-        glow && "data-[state=checked]:glass-glow transition duration-200",
+        axes.glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
-      {...props}
+      {...rest}
     >
       <CheckboxPrimitive.Indicator data-slot="checkbox-indicator" className={cn("flex items-center justify-center text-current")}>
         <Check className="h-4 w-4" />

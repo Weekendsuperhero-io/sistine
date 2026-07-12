@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -21,19 +21,12 @@ const ROLE = {
   border: true,
 };
 
-function InputGroup({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }: InputGroupProps) {
+function InputGroup({ className, variant = "glass", effect, ...props }: InputGroupProps) {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <div
@@ -60,7 +53,7 @@ function InputGroup({ className, variant = "glass", material, border, veil, grad
           }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }

@@ -3,7 +3,7 @@
 import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
 import * as React from "react";
 
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered adaptive glass. */
@@ -17,22 +17,15 @@ const ScrollArea = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, children, ...props }, ref) => {
+>(({ className, variant = "glass", children, ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "relative overflow-hidden",
     glass: "relative overflow-hidden rounded-lg",
   };
 
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <ScrollAreaPrimitive.Root
@@ -40,7 +33,7 @@ const ScrollArea = React.forwardRef<
       data-slot="scroll-area"
       data-material={m?.["data-material"]}
       className={cn(m?.className, variants[variant], className)}
-      {...props}
+      {...rest}
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"

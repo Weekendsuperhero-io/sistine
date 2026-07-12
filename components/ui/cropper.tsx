@@ -3,7 +3,7 @@
 import * as React from "react";
 import type { Area, Point } from "react-easy-crop";
 import CropperLib from "react-easy-crop";
-import { type MaterialAxisProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Slider } from "./slider";
 
@@ -20,20 +20,9 @@ const ROLE = {
   border: true,
 };
 
-export function Cropper({
-  image,
-  onCropComplete,
-  aspect = 1,
-  variant = "glass",
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
-  diffuse,
-  className,
-}: CropperProps) {
+export function Cropper({ image, onCropComplete, aspect = 1, variant = "glass", className, ...props }: CropperProps) {
+  /* This component never forwards unknown props to the DOM — only the axes are consumed. */
+  const [axes] = splitAxisProps(props);
   const [crop, setCrop] = React.useState<Point>({
     x: 0,
     y: 0,
@@ -52,15 +41,7 @@ export function Cropper({
   );
 
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <div

@@ -3,7 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { AlertDialog as AlertDialogPrimitive } from "radix-ui";
 import * as React from "react";
-import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
 
@@ -66,16 +66,9 @@ const AlertDialogContent = React.forwardRef<
       animated?: boolean;
       size?: "default" | "sm";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, animated = true, size = "default", ...props }, ref) => {
-  const m = materialSurface(variant === "default" ? null : ROLE, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+>(({ className, variant = "glass", animated = true, size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <AlertDialogPortal>
@@ -92,7 +85,7 @@ const AlertDialogContent = React.forwardRef<
           }),
           className,
         )}
-        {...props}
+        {...rest}
       />
     </AlertDialogPortal>
   );

@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { Slot as SlotPrimitive } from "radix-ui";
 import type * as React from "react";
 
-import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material";
+import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only (text, hover, destructive chrome); the SURFACE comes from
@@ -49,18 +49,11 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, Varia
   asChild?: boolean;
 }
 
-function Badge({ className, variant, asChild = false, material, border, veil, gradient, glow, sheen, diffuse, ...props }: BadgeProps) {
+function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
   const Comp = asChild ? SlotPrimitive.Slot : "span";
 
-  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
-    material,
-    border,
-    veil,
-    gradient,
-    glow,
-    sheen,
-    diffuse,
-  });
+  const [axes, rest] = splitAxisProps(props);
+  const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
 
   return (
     <Comp
@@ -75,7 +68,7 @@ function Badge({ className, variant, asChild = false, material, border, veil, gr
         }),
         className,
       )}
-      {...props}
+      {...rest}
     />
   );
 }
