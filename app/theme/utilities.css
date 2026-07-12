@@ -75,7 +75,7 @@
    next to the blur. hue-rotate spins sepia's ~45deg base tone to the tint hue (sRGB rotation vs OKLCH
    hue is approximate; --glass-stain-shift tunes the offset, --glass-stain-sat the dye depth). */
 @utility glass-stained {
-  --srf-stain: grayscale(1) sepia(1) hue-rotate(calc((var(--glass-tint-h) - var(--glass-stain-shift, 45)) * 1deg)) saturate(var(--glass-stain-sat, 3));
+  --srf-stain: var(--glass-stain);
 }
 
 @utility glass-veil {
