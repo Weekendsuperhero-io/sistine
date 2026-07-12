@@ -28,7 +28,7 @@ export interface MenuBarProps extends React.HTMLAttributes<HTMLDivElement>, Vari
 }
 
 const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
-  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, effect, children, ...props }, ref) => {
+  ({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, children, ...props }, ref) => {
     const m = materialSurface(variant === "default" ? null : ROLE, {
       material,
       border,
@@ -37,7 +37,6 @@ const MenuBar = React.forwardRef<HTMLDivElement, MenuBarProps>(
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     return (

@@ -30,7 +30,7 @@ const Table = React.forwardRef<
       /** When true, rows alternate in brightness and the per-row dividers are removed. */
       striped?: boolean;
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, striped = false, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, striped = false, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
@@ -39,7 +39,6 @@ const Table = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   const stripedClass = striped

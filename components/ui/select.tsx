@@ -63,7 +63,7 @@ const SelectTrigger = React.forwardRef<
     MaterialAxisProps & {
       size?: "sm" | "default";
     }
->(({ className, children, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
+>(({ className, children, variant = "glass", size = "default", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : TRIGGER_ROLE, {
     material,
     border,
@@ -72,7 +72,6 @@ const SelectTrigger = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (
@@ -147,7 +146,6 @@ const SelectContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
       ...props
     },
     ref,
@@ -160,7 +158,6 @@ const SelectContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     return (

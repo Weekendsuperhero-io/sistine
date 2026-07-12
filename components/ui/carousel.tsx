@@ -42,7 +42,6 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       glow,
       sheen,
       diffuse,
-      stained,
       effect,
       autoPlay = false,
       interval = 3000,
@@ -89,7 +88,6 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     if (totalItems === 0) return null;

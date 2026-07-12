@@ -16,7 +16,6 @@ function Skeleton({
   glow,
   sheen,
   diffuse,
-  stained,
   shimmer = true,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> &
@@ -39,7 +38,6 @@ function Skeleton({
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (

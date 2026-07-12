@@ -19,23 +19,7 @@ const Slider = React.forwardRef<
     }
 >(
   (
-    {
-      className,
-      variant = "glass",
-      material,
-      border,
-      veil,
-      gradient,
-      glow,
-      sheen,
-      diffuse,
-      stained,
-      defaultValue,
-      value,
-      min = 0,
-      max = 100,
-      ...props
-    },
+    { className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, defaultValue, value, min = 0, max = 100, ...props },
     ref,
   ) => {
     // The THUMB is the glass surface element: a small glass knob, or a plain neutral dot when m === null.
@@ -47,7 +31,6 @@ const Slider = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     const _values = React.useMemo(

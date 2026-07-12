@@ -44,7 +44,6 @@ function ButtonGroup({
   glow,
   sheen,
   diffuse,
-  stained,
   effect,
   ...props
 }: ButtonGroupProps) {
@@ -59,7 +58,6 @@ function ButtonGroup({
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (

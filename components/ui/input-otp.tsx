@@ -22,7 +22,7 @@ const InputOTP = React.forwardRef<
       variant?: "default" | "glass";
       render?: (props: RenderProps) => React.ReactNode;
     }
->(({ className, variant = "glass", render, material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
+>(({ className, variant = "glass", render, material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
@@ -37,7 +37,6 @@ const InputOTP = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   const defaultRender = ({ slots }: { slots: SlotProps[] }) => (
@@ -97,7 +96,6 @@ const InputOTPSlot = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
       className,
       char,
       isActive,
@@ -123,7 +121,6 @@ const InputOTPSlot = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     return (

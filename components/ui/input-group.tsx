@@ -21,20 +21,7 @@ const ROLE = {
   border: true,
 };
 
-function InputGroup({
-  className,
-  variant = "glass",
-  material,
-  border,
-  veil,
-  gradient,
-  glow,
-  sheen,
-  diffuse,
-  stained,
-  effect,
-  ...props
-}: InputGroupProps) {
+function InputGroup({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, effect, ...props }: InputGroupProps) {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
 
@@ -46,7 +33,6 @@ function InputGroup({
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (

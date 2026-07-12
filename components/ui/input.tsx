@@ -33,7 +33,6 @@ function Input({
   glow,
   sheen,
   diffuse,
-  stained,
   icon,
   error,
   ...props
@@ -53,7 +52,6 @@ function Input({
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   const input = (

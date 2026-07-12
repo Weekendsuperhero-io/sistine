@@ -65,7 +65,7 @@ const ChartContainer = React.forwardRef<
   } & MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
+>(({ id, className, children, config, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -83,7 +83,6 @@ const ChartContainer = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (
@@ -199,7 +198,6 @@ const ChartTooltipContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
       hideLabel = false,
       hideIndicator = false,
       label,
@@ -228,7 +226,6 @@ const ChartTooltipContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     const tooltipLabel = React.useMemo(() => {
@@ -387,7 +384,6 @@ const ChartLegendContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
       hideIcon = false,
       nameKey,
     },
@@ -409,7 +405,6 @@ const ChartLegendContent = React.forwardRef<
       glow,
       sheen,
       diffuse,
-      stained,
     });
 
     if (!payload?.length) {

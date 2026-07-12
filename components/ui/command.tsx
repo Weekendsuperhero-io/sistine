@@ -31,7 +31,7 @@ const ROLE = {
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive> & VariantProps<typeof commandVariants> & MaterialAxisProps
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   const m = materialSurface(variant === "default" ? null : ROLE, {
     material,
     border,
@@ -40,7 +40,6 @@ const Command = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (

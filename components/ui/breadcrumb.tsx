@@ -26,7 +26,7 @@ const BreadcrumbList = React.forwardRef<
     MaterialAxisProps & {
       variant?: "default" | "glass";
     }
->(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, stained, ...props }, ref) => {
+>(({ className, variant = "glass", material, border, veil, gradient, glow, sheen, diffuse, ...props }, ref) => {
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
@@ -41,7 +41,6 @@ const BreadcrumbList = React.forwardRef<
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   return (

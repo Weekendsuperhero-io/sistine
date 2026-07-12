@@ -32,7 +32,6 @@ function Textarea({
   glow,
   sheen,
   diffuse,
-  stained,
   icon,
   error,
   ...props
@@ -52,7 +51,6 @@ function Textarea({
     glow,
     sheen,
     diffuse,
-    stained,
   });
 
   const textarea = (
