@@ -9,7 +9,7 @@
 import { render } from "@testing-library/react";
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { composeRefs, useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { composeRefs, snapTransform, useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 
 /** Mirrors Radix: a positioned wrapper with the content inside it. */
 function Popper({ initial, onWrapper }: { initial: string; onWrapper?: (el: HTMLElement) => void }) {
@@ -172,5 +172,35 @@ describe("useComposedRefs — REV-3-1", () => {
     rerender(<Surface memoized tick={1} />);
     const wrapper = container.querySelector<HTMLElement>("[data-radix-popper-content-wrapper]");
     expect(wrapper?.style.transform).toBe("translate(2px, 2px)");
+  });
+});
+
+describe("snapTransform — the pure rounding", () => {
+  /* Radix writes a fractional translate onto the popper wrapper; a fractional offset on a
+     backdrop-filter layer rasterizes glyphs off the pixel grid and the text goes soft. */
+  it("rounds a fractional translate", () => {
+    expect(snapTransform("translate(188.5px, 42.25px)")).toBe("translate(189px, 42px)");
+  });
+
+  it("returns null when already integral", () => {
+    /* THE re-entrancy guard: our own write retriggers the MutationObserver that called us, so an
+       already-snapped value must produce no write or the loop never terminates. */
+    expect(snapTransform("translate(189px, 42px)")).toBeNull();
+  });
+
+  it("handles translate3d", () => {
+    expect(snapTransform("translate3d(10.6px, -3.2px, 0px)")).toBe("translate(11px, -3px)");
+  });
+
+  it("rounds negatives, normalising -0 to 0", () => {
+    /* Math.round(-0.5) is -0 in JS, which stringifies to "0" — so the output is 0px, not -0px. Same
+       pixel either way; pinned because the sign is easy to reintroduce by "fixing" the rounding. */
+    expect(snapTransform("translate(-0.5px, -12.7px)")).toBe("translate(0px, -13px)");
+  });
+
+  it.each(["scale(1.02)", ""])("ignores a transform it cannot parse: %j", (input) => {
+    /* Radix hasn't positioned yet, or wrote a shape we don't recognise — inventing a translate here
+       would yank the surface to the origin. */
+    expect(snapTransform(input)).toBeNull();
   });
 });
