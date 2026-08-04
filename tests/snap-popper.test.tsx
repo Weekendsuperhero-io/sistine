@@ -9,7 +9,7 @@
 import { render } from "@testing-library/react";
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { composeRefs, useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 
 /** Mirrors Radix: a positioned wrapper with the content inside it. */
 function Popper({ initial, onWrapper }: { initial: string; onWrapper?: (el: HTMLElement) => void }) {
@@ -116,5 +116,61 @@ describe("composeRefs", () => {
     }
     const { getByTestId } = render(<WithGap />);
     expect(objectRef.current).toBe(getByTestId("gap"));
+  });
+});
+
+describe("useComposedRefs — REV-3-1", () => {
+  /* A ref callback written inline gets a new identity every render, so React detaches the old one
+     (calls it with null) and attaches the new one. That detach runs useSnappedPopper's cleanup, which
+     disconnects the MutationObserver — so an inline composeRefs rebuilt the observer on EVERY render
+     of every popper surface. These two tests are the before/after of that. */
+
+  function Surface({ memoized, tick }: { memoized: boolean; tick: number }) {
+    const snapRef = useSnappedPopper<HTMLDivElement>();
+    const composed = useComposedRefs<HTMLDivElement>(snapRef);
+    return (
+      <div data-radix-popper-content-wrapper="" style={{ transform: "translate(1.5px, 1.5px)" }}>
+        <div ref={memoized ? composed : composeRefs<HTMLDivElement>(snapRef)} data-tick={tick} />
+      </div>
+    );
+  }
+
+  it("keeps one observer across re-renders when memoized", () => {
+    /* Spy the PROTOTYPE, not the constructor — replacing the constructor hands back a mock with no
+       .observe and the hook throws. */
+    const observe = vi.spyOn(MutationObserver.prototype, "observe");
+    const disconnect = vi.spyOn(MutationObserver.prototype, "disconnect");
+    const { rerender } = render(<Surface memoized tick={0} />);
+    const afterMount = observe.mock.calls.length;
+
+    for (let tick = 1; tick <= 5; tick++) rerender(<Surface memoized tick={tick} />);
+
+    expect(observe.mock.calls.length).toBe(afterMount);
+    expect(disconnect).not.toHaveBeenCalled();
+    observe.mockRestore();
+    disconnect.mockRestore();
+  });
+
+  it("demonstrates the unmemoized case rebuilds one per render", () => {
+    /* Pinned as the counter-example: if this ever stops growing, the memoization above has stopped
+       being the thing under test and the guard is worthless. */
+    const observe = vi.spyOn(MutationObserver.prototype, "observe");
+    const disconnect = vi.spyOn(MutationObserver.prototype, "disconnect");
+    const { rerender } = render(<Surface memoized={false} tick={0} />);
+    const afterMount = observe.mock.calls.length;
+
+    for (let tick = 1; tick <= 5; tick++) rerender(<Surface memoized={false} tick={tick} />);
+
+    expect(observe.mock.calls.length).toBeGreaterThan(afterMount);
+    expect(disconnect).toHaveBeenCalled();
+    observe.mockRestore();
+    disconnect.mockRestore();
+  });
+
+  it("still snaps after a re-render", () => {
+    const { container, rerender } = render(<Surface memoized tick={0} />);
+    rerender(<Surface memoized tick={1} />);
+    const wrapper = container.querySelector<HTMLElement>("[data-radix-popper-content-wrapper]");
+    expect(wrapper?.style.transform).toBe("translate(2px, 2px)");
   });
 });

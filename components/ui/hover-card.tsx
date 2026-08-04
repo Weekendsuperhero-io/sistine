@@ -5,7 +5,7 @@ import { HoverCard as HoverCardPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
-import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -40,12 +40,13 @@ const HoverCardContent = React.forwardRef<
 >(({ className, align = "center", sideOffset = 4, variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <HoverCardPrimitive.Portal data-slot="hover-card-portal">
       <HoverCardPrimitive.Content
-        ref={composeRefs(ref, snapRef)}
+        ref={composedRef}
         data-slot="hover-card-content"
         data-material={m?.["data-material"]}
         align={align}

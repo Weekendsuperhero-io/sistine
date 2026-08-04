@@ -4,7 +4,7 @@ import { Tooltip as TooltipPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
-import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Role: bordered + veiled adaptive glass. */
@@ -32,6 +32,7 @@ const TooltipContent = React.forwardRef<
 >(({ className, variant = "glass", sideOffset = 4, children, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "bg-primary text-primary-foreground",
@@ -43,7 +44,7 @@ const TooltipContent = React.forwardRef<
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Content
-        ref={composeRefs(ref, snapRef)}
+        ref={composedRef}
         data-slot="tooltip-content"
         data-material={m?.["data-material"]}
         sideOffset={sideOffset}

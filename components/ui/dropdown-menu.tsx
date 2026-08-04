@@ -6,7 +6,7 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
-import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -105,11 +105,12 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DropdownMenuPrimitive.SubContent
-      ref={composeRefs(ref, snapRef)}
+      ref={composedRef}
       data-slot="dropdown-menu-sub-content"
       data-material={m?.["data-material"]}
       className={cn(
@@ -131,12 +132,13 @@ const DropdownMenuContent = React.forwardRef<
 >(({ className, sideOffset = 4, variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
-        ref={composeRefs(ref, snapRef)}
+        ref={composedRef}
         data-slot="dropdown-menu-content"
         data-material={m?.["data-material"]}
         sideOffset={sideOffset}

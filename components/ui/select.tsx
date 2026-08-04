@@ -6,7 +6,7 @@ import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
-import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
+import { useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -128,12 +128,13 @@ const SelectContent = React.forwardRef<
 >(({ className, children, position = "popper", align = "center", variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : CONTENT_ROLE, axes);
 
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
-        ref={composeRefs(ref, snapRef)}
+        ref={composedRef}
         data-slot="select-content"
         data-material={m?.["data-material"]}
         className={cn(

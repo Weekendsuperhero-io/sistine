@@ -71,7 +71,26 @@ export function useSnappedPopper<T extends HTMLElement>(): React.RefCallback<T> 
   }, []);
 }
 
-/** Merge the forwarded ref with the snapping ref — both need the same node. */
+/**
+ * Merge the forwarded ref with the snapping ref, MEMOIZED — use this, not `composeRefs`, in JSX.
+ *
+ * A ref callback written inline gets a fresh identity on every render, and React responds by detaching
+ * the old one (calling it with `null`) and attaching the new one. For a plain ref that is merely
+ * wasteful; here the detach runs `useSnappedPopper`'s cleanup, so the MutationObserver watching the
+ * popper wrapper is torn down and rebuilt on every single render of the surface.
+ *
+ * Same shape as Radix's own `useComposedRefs` — `useCallback` over the composed callback, with the
+ * refs themselves as the dependency array, so the identity holds as long as the individual refs do.
+ * Kept local rather than importing @radix-ui/react-compose-refs: these components ship through the
+ * registry, and a direct dependency would have to be declared on all six of them.
+ */
+export function useComposedRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  /* The spread refs ARE the dependency list — the identity holds while each individual ref does. */
+  return React.useCallback(composeRefs(...refs), refs);
+}
+
+/** Merge the forwarded ref with the snapping ref — both need the same node. Prefer the memoized
+ *  {@link useComposedRefs} anywhere the result is handed to JSX. */
 export function composeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
   return (node: T | null) => {
     for (const ref of refs) {

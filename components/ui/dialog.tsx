@@ -58,9 +58,13 @@ const DialogContent = React.forwardRef<
     MaterialAxisProps & {
       /** Elevated backdrop blur (folded from the glass wrapper). */
       animated?: boolean;
+      /** Styles the inner scrolling wrapper around `children`. `className` targets the OUTER surface,
+       *  so without this a consumer has no way to change the body's layout — swap the grid for flex,
+       *  drop the gap, or take the scrolling over entirely. */
+      bodyClassName?: string;
       showCloseButton?: boolean;
     }
->(({ className, variant = "glass", children, animated = true, showCloseButton = true, ...props }, ref) => {
+>(({ className, variant = "glass", children, animated = true, bodyClassName, showCloseButton = true, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
@@ -101,7 +105,7 @@ const DialogContent = React.forwardRef<
       >
         {/* min-h-0 is load-bearing: a grid item defaults to min-height:auto, which refuses to shrink
             below its content, so without it this never scrolls and the dialog just clips again. */}
-        <div className="grid min-h-0 gap-4 overflow-y-auto">{children}</div>
+        <div className={cn("grid min-h-0 gap-4 overflow-y-auto", bodyClassName)}>{children}</div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"

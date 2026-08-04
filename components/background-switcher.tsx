@@ -397,8 +397,11 @@ export function BackgroundSwitcher() {
               defaultValue={baseColor ?? undefined}
               /* type="color" only accepts hex, so the themed default has to be converted rather than
                  handed over as the oklch() the swatch uses. Refreshed on open instead of held in
-                 state so it tracks the live tint — the hue changes whenever the preset does. */
-              onPointerDown={(e) => {
+                 state so it tracks the live tint — the hue changes whenever the preset does.
+                 onFocus, not onPointerDown: focus precedes activation on BOTH paths, where pointerdown
+                 never fires for a keyboard user tabbing in and pressing Space/Enter — they would have
+                 opened the picker on a stale value. */
+              onFocus={(e) => {
                 if (!baseColor) e.currentTarget.value = themedBaseHex();
               }}
               onChange={(e) => setBaseColor(e.target.value)}
