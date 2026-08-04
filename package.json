@@ -10,9 +10,11 @@
     "start": "next start",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && pnpm test:gamut && pnpm test:apca",
+    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && pnpm test:gamut && pnpm test:units && pnpm test:dom && pnpm test:apca",
     "test:apca": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/apca-oracle.mjs",
     "test:gamut": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-gamut.mjs",
+    "test:units": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-units.mjs",
+    "test:dom": "vitest run",
     "registry:build": "node scripts/build-theme.mjs && shadcn build",
     "registry:check": "node scripts/build-theme.mjs && node scripts/fix-registry.mjs && shadcn build && node scripts/smoke-registry.mjs",
     "storybook": "storybook dev -p 6006",
@@ -60,13 +62,19 @@
     "@storybook/addon-vitest": "^10.5.6",
     "@storybook/nextjs": "^10.5.6",
     "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "apca-w3": "^0.1.9",
+    "jsdom": "^30.0.1",
     "storybook": "^10.5.6",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   },
   "pnpm": {
     "ignoredBuiltDependencies": [

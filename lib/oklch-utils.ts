@@ -567,6 +567,39 @@ export function fitToBand(
   }));
 }
 
+/* Frescoes are authored as fixed multi-hue stops at one lightness, so they skip the ramp entirely —
+   which also means they skip its banding and its conic loop-close. Apply both here. */
+export function bandedFrescoStops(
+  colors: string[],
+  band:
+    | {
+        lMin: number;
+        lMax: number;
+      }
+    | undefined,
+  shape: GradientShape,
+): string {
+  let out = colors;
+  if (band) {
+    out = out.map((css) => {
+      const parsed = parseOklch(css);
+      if (!parsed) return css;
+      return formatOklch({
+        ...parsed,
+        l: Math.min(band.lMax, Math.max(band.lMin, parsed.l)),
+      });
+    });
+  }
+  if (shape === "conic" && out.length > 1) {
+    const loop = [
+      ...out,
+      out[0],
+    ];
+    return loop.map((css, i) => `${css} ${((i / (loop.length - 1)) * 100).toFixed(1)}%`).join(", ");
+  }
+  return out.join(", ");
+}
+
 export function rampGradient(
   axis: RampGradientAxis,
   seed: OklchColor,

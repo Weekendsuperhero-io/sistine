@@ -21,6 +21,24 @@ import * as React from "react";
  * after each write. The observer is re-entrant — our own write retriggers it — so the write is skipped
  * when the value is already integral, which terminates the loop on the first pass.
  */
+/**
+ * The whole snap, as a pure string transform: given the wrapper's SPECIFIED inline `transform`, return
+ * what it should be rewritten to, or `null` to leave it alone.
+ *
+ * Returning null is load-bearing in two cases and both are re-entrancy guards, since our own write
+ * retriggers the MutationObserver that called us:
+ *   - the value is already integral, so there is nothing to do and the loop terminates on pass one;
+ *   - the value isn't a translate we recognise (Radix hasn't positioned yet), so we must not invent one.
+ *
+ * Split out of the hook so it can be checked without a DOM — see scripts/check-units.mjs.
+ */
+export function snapTransform(specified: string): string | null {
+  const parts = /^translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/.exec(specified);
+  if (!parts) return null;
+  const next = `translate(${Math.round(Number(parts[1]))}px, ${Math.round(Number(parts[2]))}px)`;
+  return specified === next ? null : next;
+}
+
 export function useSnappedPopper<T extends HTMLElement>(): React.RefCallback<T> {
   const cleanupRef = React.useRef<(() => void) | null>(null);
 
@@ -35,14 +53,10 @@ export function useSnappedPopper<T extends HTMLElement>(): React.RefCallback<T> 
     const snap = () => {
       // Read and write the SPECIFIED value, never the computed one. Under browser `zoom` the computed
       // transform is in a scaled space, so rounding it and writing the result back as authored px
-      // never converges — the guard below would never hold and the observer would re-enter forever.
-      const specified = wrapper.style.transform;
-      const parts = /^translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/.exec(specified);
-      if (!parts) return; // Radix hasn't positioned it yet, or wrote a shape we don't recognise
-      const next = `translate(${Math.round(Number(parts[1]))}px, ${Math.round(Number(parts[2]))}px)`;
-      // Already snapped: bail, so our own write doesn't retrigger the observer indefinitely.
-      if (specified === next) return;
-      wrapper.style.transform = next;
+      // never converges — snapTransform's equality guard would never hold and the observer would
+      // re-enter forever.
+      const next = snapTransform(wrapper.style.transform);
+      if (next !== null) wrapper.style.transform = next;
     };
 
     snap();
