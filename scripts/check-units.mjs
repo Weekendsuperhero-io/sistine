@@ -161,6 +161,35 @@ check("bandedFrescoStops leaves an unparseable stop alone", () =>
     return out.startsWith("var(--something)") ? null : `dropped the passthrough stop: ${out}`;
   })(),
 );
+check("bandedFrescoStops treats radial like linear — no loop", () => {
+  /* Only conic wraps. A radial that closed its loop would repeat the first color at the outer edge. */
+  const radial = bandedFrescoStops(FRESCO, BAND, "radial");
+  const n = radial.split(",").length;
+  return n === FRESCO.length ? null : `expected ${FRESCO.length} stops, got ${n}`;
+});
+check("bandedFrescoStops preserves alpha through the clamp", () => {
+  /* formatOklch takes alpha as a separate arg and only falls back to color.alpha — so the spread in
+     bandedFrescoStops is the ONLY thing carrying it. Change that signature and every fresco stop
+     silently loses its transparency, with no type error. */
+  const out = bandedFrescoStops(["oklch(72% 0.15 20 / 0.4)"], BAND, "linear");
+  return /\/ 0\.4\)/.test(out) ? null : `alpha dropped: ${out}`;
+});
+check("bandedFrescoStops does not invent an alpha on opaque stops", () => {
+  const out = bandedFrescoStops(["oklch(72% 0.15 20)"], BAND, "linear");
+  return out.includes("/") ? `spurious alpha: ${out}` : null;
+});
+check("bandedFrescoStops leaves in-band lightness where it is", () => {
+  /* The clamp must be a clamp, not a remap — a stop already inside the band should not move. */
+  const ls = [...bandedFrescoStops(FRESCO, { lMin: 60, lMax: 90 }, "linear").matchAll(/oklch\(([\d.]+)%/g)].map((m) => +m[1]);
+  return ls.every((l) => Math.abs(l - 72) < 0.05) ? null : `expected all 72, got ${ls.join(", ")}`;
+});
+check("bandedFrescoStops handles an empty stop list", () => {
+  for (const shape of ["linear", "radial", "conic"]) {
+    const out = bandedFrescoStops([], BAND, shape);
+    if (out !== "") return `${shape} produced ${JSON.stringify(out)}`;
+  }
+  return null;
+});
 check("bandedFrescoStops does not loop a single stop", () => {
   const out = bandedFrescoStops(["oklch(72% 0.15 20)"], BAND, "conic");
   return out.includes(",") ? `single stop got looped: ${out}` : null;
