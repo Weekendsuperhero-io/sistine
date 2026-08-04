@@ -5,13 +5,19 @@ import {
   type Column,
   type ColumnDef,
   type ColumnFiltersState,
+  columnFilteringFeature,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
+  rowPaginationFeature,
+  rowSortingFeature,
   type SortingState,
-  useReactTable,
+  sortFn_alphanumeric,
+  sortFn_basic,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -128,13 +134,44 @@ const data: Member[] = [
   },
 ];
 
+/* v9 registers features explicitly instead of bundling them all. Order matters: each feature must be
+   declared BEFORE the row-model slot that depends on it. The core row model is implicit now — there is
+   no getCoreRowModel() to pass. Only the three features this table actually uses are registered, so the
+   rest tree-shake away.
+   The sort/filter functions are registered by name and then referenced explicitly per column (see
+   `columns`), rather than leaning on v8's auto-detection: auto-resolution can name a function that
+   isn't in these registries, which fails at runtime instead of at build time. */
+const features = tableFeatures({
+  columnFilteringFeature,
+  rowSortingFeature,
+  rowPaginationFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  filterFns: {
+    includesString: filterFn_includesString,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    basic: sortFn_basic,
+  },
+});
+
 const statusStyles: Record<Member["status"], string> = {
   active: "border-green-500/40 text-green-600 dark:text-green-400",
   pending: "border-yellow-500/40 text-yellow-600 dark:text-yellow-400",
   inactive: "border-[var(--glass-border)] text-muted-foreground",
 };
 
-function SortHeader({ column, children, className }: { column: Column<Member, unknown>; children: React.ReactNode; className?: string }) {
+function SortHeader({
+  column,
+  children,
+  className,
+}: {
+  column: Column<typeof features, Member, unknown>;
+  children: React.ReactNode;
+  className?: string;
+}) {
   const sorted = column.getIsSorted();
   return (
     <button
@@ -154,9 +191,11 @@ function SortHeader({ column, children, className }: { column: Column<Member, un
   );
 }
 
-const columns: ColumnDef<Member>[] = [
+const columns: ColumnDef<typeof features, Member>[] = [
   {
     accessorKey: "name",
+    sortFn: "alphanumeric",
+    filterFn: "includesString",
     header: ({ column }) => <SortHeader column={column}>Name</SortHeader>,
     cell: ({ row }) => <span className="font-medium text-foreground">{row.getValue("name")}</span>,
   },
@@ -179,6 +218,7 @@ const columns: ColumnDef<Member>[] = [
   },
   {
     accessorKey: "contributions",
+    sortFn: "basic",
     header: ({ column }) => (
       <SortHeader column={column} className="ml-auto">
         Contributions
@@ -192,7 +232,8 @@ export function DataTableBlock() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features,
     data,
     columns,
     state: {
@@ -201,12 +242,9 @@ export function DataTableBlock() {
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
+        pageIndex: 0,
         pageSize: 6,
       },
     },
@@ -243,7 +281,7 @@ export function DataTableBlock() {
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
+                {row.getAllCells().map((cell) => (
                   <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                 ))}
               </TableRow>
@@ -260,7 +298,7 @@ export function DataTableBlock() {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} · {table.getFilteredRowModel().rows.length} members
+          Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()} · {table.getFilteredRowModel().rows.length} members
         </p>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>

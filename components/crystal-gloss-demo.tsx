@@ -49,11 +49,11 @@ const DIRS: {
   },
 ];
 
-// A spread of hues so the flavor reads across the wheel at once. Neutral (chroma 0) stays white in white/tonal
+// A spread of hues so the flavor reads across the wheel at once. Selenite (chroma 0) stays white in white/tonal
 // (its own reference); in Hue mode it still sweeps, since the sweep uses the tint HUE, not its chroma.
 const SWATCHES = [
   {
-    label: "Neutral",
+    label: "Selenite",
     h: 250,
     c: 0,
     a: 0,
@@ -71,7 +71,7 @@ const SWATCHES = [
     a: 0.15,
   },
   {
-    label: "Emerald",
+    label: "Aventurine",
     h: 158,
     c: 0.1,
     a: 0.15,

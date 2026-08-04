@@ -45,7 +45,7 @@ function Card({
         cardVariants({
           variant,
         }),
-        animated && "transition duration-300 hover:scale-[1.02] hover:shadow-[var(--glass-shadow-lg)]",
+        animated && "transition-[transform,box-shadow] duration-150 hover:scale-[1.02] hover:shadow-[var(--glass-shadow-lg)]",
         effect &&
           hoverEffects({
             hover: effect,
@@ -70,8 +70,12 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/* leading-tight, not upstream's leading-none: a title that fits on one line looks identical either way,
+   but line-height:1 sets a WRAPPING title's lines almost touching — visible on narrow cards and on
+   mobile, where longer titles routinely wrap. text-balance already evens the line lengths; this gives
+   those lines somewhere to breathe. */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-title" className={cn("leading-none font-semibold text-balance", className)} {...props} />;
+  return <div data-slot="card-title" className={cn("font-semibold text-balance leading-tight", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {

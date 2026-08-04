@@ -146,3 +146,31 @@
     transform: translateX(100%);
   }
 }
+
+/* ── Reduced motion ───────────────────────────────────────────────────────────
+   CONTRIBUTING says "Respect prefers-reduced-motion"; the pattern scenes did and nothing else did.
+   This closes that, but NOT with the blunt global `*, ::before, ::after { animation: none !important }`
+   reset — that would also flatten the pattern scenes' own carefully scoped rules and every enter/exit
+   transition in the library.
+
+   The treatment differs by what the animation actually IS, because the preference is about MOTION, not
+   about animation in general:
+     - shimmer  → translation across a surface. Real motion, purely decorative: stopped. The skeleton
+                  still reads as a skeleton from its base fill.
+     - spin     → rotation. Real motion, but it is the ONLY signal that a loader is alive, so freezing
+                  it reads as "hung" rather than "calm". Slowed hard instead of stopped.
+     - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
+                  Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
+   Unlayered on purpose: Tailwind's generated utilities sit inside @layer utilities, and an unlayered
+   rule outranks any layered one regardless of order, so this needs neither !important nor a specificity
+   hack. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[shimmer_2s_infinite\],
+  .before\:animate-\[shimmer_2s_infinite\]::before {
+    animation: none;
+  }
+
+  .animate-spin {
+    animation-duration: 3s;
+  }
+}

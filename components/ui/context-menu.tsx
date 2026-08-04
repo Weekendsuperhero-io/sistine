@@ -6,6 +6,7 @@ import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
+import { useComposedRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -103,11 +104,13 @@ const ContextMenuSubContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.SubContent> & VariantProps<typeof contextMenuSubContentVariants> & MaterialAxisProps
 >(({ className, variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
+  const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <ContextMenuPrimitive.SubContent
-      ref={ref}
+      ref={composedRef}
       data-slot="context-menu-sub-content"
       data-material={m?.["data-material"]}
       className={cn(
@@ -128,12 +131,14 @@ const ContextMenuContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextMenuPrimitive.Content> & VariantProps<typeof contextMenuContentVariants> & MaterialAxisProps
 >(({ className, variant = "glass", style, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
+  const snapRef = useSnappedPopper();
+  const composedRef = useComposedRefs(ref, snapRef);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
   return (
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
-        ref={ref}
+        ref={composedRef}
         data-slot="context-menu-content"
         data-material={m?.["data-material"]}
         className={cn(

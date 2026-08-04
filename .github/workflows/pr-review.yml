@@ -1,0 +1,46 @@
+name: PR Review (Muse)
+
+# Label-gated three-agent review loop: add the `muse:review` label to a PR
+# to run a round (code review · security · test coverage). Logic lives in
+# platform-tools' reusable-pr-review.yml; the loop, labels, delta rounds,
+# and failure modes are documented in platform-tools' docs/muse-workflows.md.
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+jobs:
+  review:
+    # Exact-match guard: the labels the loop writes itself (muse:reviewing,
+    # review:approved, …) must NOT re-enter the concurrency group below — a
+    # startsWith('muse:') guard would let our own label writes cancel the
+    # in-flight round.
+    if: >-
+      github.event.action == 'synchronize'
+      || github.event.label.name == 'muse:review'
+      || github.event.label.name == 'muse:force'
+    # Job-level (not workflow-level) so guard-skipped runs never claim the
+    # group; a new press or a push cancels a stale in-flight round.
+    concurrency:
+      group: pr-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    # Pinned to an immutable SHA, not @main: a reusable workflow runs with THIS repo's token and
+    # secrets, so a mutable ref means any push to platform-tools' default branch executes here with no
+    # review. Bump deliberately (the tag comment is the human-readable half of the pin).
+    uses: weekendsuperhero-io/platform-tools/.github/workflows/reusable-pr-review.yml@72bbd124823a11bc4cd1d517af08b608346b09cc # main @ 2026-07-21
+    with:
+      runs-on: ubuntu-latest
+      # House rules appended to each agent's prompt, per lens.
+    # NOT `secrets: inherit`. This job triggers on `synchronize`, so it re-runs on every push to a PR
+    # branch; inherit would hand the full secret set to that run. Pass only what the review agents
+    # need, explicitly, so adding a secret to the repo cannot silently widen this workflow's blast
+    # radius. If the reusable workflow declares another required secret it will fail loudly here
+    # rather than quietly receiving everything.
+    secrets:
+      JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+      JULES_PR_CLIENT_ID: ${{ secrets.JULES_PR_CLIENT_ID }}
+      JULES_PR_PRIVATE_KEY: ${{ secrets.JULES_PR_PRIVATE_KEY }}

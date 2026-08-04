@@ -90,7 +90,7 @@
 }
 [data-gloss="tonal"] {
   /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
 }
 [data-gloss="hue"] {
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the

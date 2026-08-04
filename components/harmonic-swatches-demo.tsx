@@ -2,7 +2,7 @@
  * Demos the harmonic color tokens minted in globals.css — pure CSS custom properties derived from the
  * harmony anchor hue (--harmony-h), no JS. Every swatch is `oklch(… var(--hue-*))` / `var(--color-*)`, so it
  * FOLLOWS THE ACTIVE THEME automatically: switch the tint from the header switcher and the whole set rotates
- * in context (the inline vars re-resolve via the cascade — no re-render). Neutral + bone anchor the wheel at
+ * in context (the inline vars re-resolve via the cascade — no re-render). Selenite + moonstone anchor the wheel at
  * 0°, so their accents stay a colorful red-based harmony. One labeled ROW per harmony STYLE (complement /
  * analogous / split / triad / tetrad / square / monochromatic) so each relationship reads left-to-right from
  * its base hue. Sibling of gradient-schemes-demo (JS generator); this one proves the same relationships work
@@ -113,7 +113,8 @@ export function HarmonicSwatchesDemo() {
       <p className="mb-6 text-muted-foreground text-sm">
         CSS custom properties derived from the harmony anchor hue (<code className="text-xs">--harmony-h</code>) — no JS. Each is{" "}
         <code className="text-xs">calc(var(--harmony-h) + N°)</code>, and they <strong>follow the active theme</strong> — switch it from the header
-        (◇) to see the harmony in context. Neutral + bone anchor the wheel at <strong>0°</strong>, so their accents stay a colorful red-based set.
+        (◇) to see the harmony in context. Selenite + moonstone anchor the wheel at <strong>0°</strong>, so their accents stay a colorful red-based
+        set.
       </p>
 
       <h3 className="mb-2 font-medium text-foreground text-sm">
@@ -142,7 +143,7 @@ export function HarmonicSwatchesDemo() {
       </div>
 
       <h3 className="mb-2 font-medium text-foreground text-sm">
-        <code className="text-xs">--color-*</code> — ready tokens at a fixed vivid chroma (colorful in every theme, incl. neutral/bone)
+        <code className="text-xs">--color-*</code> — ready tokens at a fixed vivid chroma (colorful in every theme, incl. selenite/moonstone)
       </h3>
       <div className="mb-6 grid grid-cols-4 gap-3 sm:grid-cols-7">
         {COLORS.map((c) => (

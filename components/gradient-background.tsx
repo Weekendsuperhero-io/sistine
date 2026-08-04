@@ -1,7 +1,15 @@
 "use client";
 
 import { backdropPalette, useBackdropTint } from "@/lib/canvas-background-utils";
-import { type GradientGeometry, type GradientShape, type RampGradientAxis, rampGradient, wrapGradient } from "@/lib/oklch-utils";
+import {
+  bandedFrescoStops,
+  type GradientGeometry,
+  type GradientShape,
+  type RampGradientAxis,
+  rampGradient,
+  readableLightnessBand,
+  wrapGradient,
+} from "@/lib/oklch-utils";
 
 /**
  * A ramp-driven gradient wallpaper. The gradient is one of our oklch ramps (hue / lightness / tonal
@@ -26,8 +34,13 @@ export function GradientBackground({
   const tint = useBackdropTint();
   // Shared with CanvasBackground: theme-tracking base + fresco palette (the `hue` prop overrides both).
   const { base, frescoColors } = backdropPalette(tint, hue);
+  /* The ramps span their FULL range by design — as a wallpaper that put pure black at one edge of the
+     viewport and pure white at the other, so a single solved foreground could only be readable at one
+     end. Fit the ramp into the band where text over it clears APCA 60 instead. Falls back to the whole
+     range if the foreground has not resolved yet (first paint, before AutoForeground runs). */
+  const band = tint.fg ? readableLightnessBand(tint.fg, base) : undefined;
   const gradient = frescoColors
-    ? wrapGradient(shape, frescoColors.join(", "), {
+    ? wrapGradient(shape, bandedFrescoStops(frescoColors, band, shape), {
         angle,
         position,
         radialShape,
@@ -35,6 +48,7 @@ export function GradientBackground({
       })
     : rampGradient(axis, base, 5, {
         angle,
+        band,
         gamut: tint.p3 ? "p3" : "srgb",
         shape,
         position,

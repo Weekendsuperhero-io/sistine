@@ -516,6 +516,11 @@
           "target": "lib/hover-effects.ts"
         },
         {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
+        },
+        {
           "path": "components/ui/tooltip.tsx",
           "type": "registry:component",
           "target": "components/ui/tooltip.tsx"
@@ -551,6 +556,11 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
         },
         {
           "path": "components/ui/popover.tsx",
@@ -591,6 +601,11 @@
           "target": "lib/hover-effects.ts"
         },
         {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
+        },
+        {
           "path": "components/ui/dropdown-menu.tsx",
           "type": "registry:component",
           "target": "components/ui/dropdown-menu.tsx"
@@ -627,6 +642,11 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
         },
         {
           "path": "components/ui/select.tsx",
@@ -1080,6 +1100,11 @@
           "path": "lib/hover-effects.ts",
           "type": "registry:lib",
           "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
         },
         {
           "path": "components/ui/hover-card.tsx",
@@ -1806,6 +1831,11 @@
           "target": "lib/hover-effects.ts"
         },
         {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
+        },
+        {
           "path": "components/ui/context-menu.tsx",
           "type": "registry:component",
           "target": "components/ui/context-menu.tsx"
@@ -2203,6 +2233,7 @@
       "description": "Full-screen animated canvas background that recolors with the live glass tint — gradient, lava, or circle styles driven by the OKLCH ramps.",
       "registryDependencies": [
         "@sistine/canvas-background-utils",
+        "@sistine/oklch-utils",
         "@sistine/theme"
       ],
       "files": [
@@ -2237,7 +2268,7 @@
       "name": "background-controller",
       "type": "registry:block",
       "title": "Background Controller",
-      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise horizons, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
+      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise/clouds/dune horizons with a placeable sun or moon, dancing aurora borealis, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
       "registryDependencies": [
         "@sistine/canvas-background-utils",
         "@sistine/oklch-utils",

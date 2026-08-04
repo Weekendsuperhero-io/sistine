@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { backdropPalette, type CanvasRamp, type CanvasStyle, createCanvas, useBackdropTint } from "@/lib/canvas-background-utils";
+import { readableLightnessBand } from "@/lib/oklch-utils";
 
 interface CanvasBackgroundProps {
   /** Canvas style: gradient | lava | circle. */
@@ -87,6 +88,8 @@ export function CanvasBackground({
       style: canvasStyle,
       ramp,
       steps,
+      // Same readable band the CSS gradient backdrop uses, so switching backgrounds keeps text legible.
+      band: tint.fg ? readableLightnessBand(tint.fg, base) : undefined,
       angle,
       speed,
       p3: tint.p3,

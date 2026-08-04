@@ -81,6 +81,22 @@
    .dark must come after :root (same-element ties resolve by source order on html.dark). */
 
 @theme inline {
+  /* Easing. Tailwind's built-ins are deliberately gentle; these are the stronger variants UI motion
+     wants, exposed as `ease-out` / `ease-in-out` / `ease-drawer` utilities.
+       out    — anything ENTERING or EXITING. Starts fast, so the first frame (the one the user is
+                actually watching) already moves.
+       in-out — things MOVING on screen that neither enter nor leave: carousels, sliders.
+       drawer — the iOS/Ionic sheet curve, for panels that slide from an edge.
+     There is deliberately no `ease-in` token: it delays the first frame, which is the one moment the
+     interface most needs to feel responsive. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Anything with a bare `transition` and no `ease-*` inherits this. Tailwind ships
+     cubic-bezier(0.4, 0, 0.2, 1) — symmetric, so it eases IN as well, and the first frame barely
+     moves. Same curve as --ease-out, written literally because @theme inline doesn't emit the vars
+     it inlines. */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-foreground-soft: var(--foreground-soft);
@@ -158,9 +174,14 @@
      crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
   --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
-  --glass-gloss-tint: 4.25; /* gloss chroma multiplier over the tint ("Tint") */
+  /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
+     0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
+     clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
+     and far less at L=66, so beyond that the browser, not the theme, is picking the color. Jewels
+     (0.07 × 4.25 = 0.298) sit under the clamp and are unaffected; only the status tints hit it. */
+  --glass-gloss-tint: 4.25;
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
-  --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (bone night quiets it to 2) */
+  --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (moonstone night quiets it to 2) */
   --glass-accent-l: 0.6; /* accent envelope — lifted in dark so the hue pops */
   --glass-accent-c: 0.15;
   --glass-glow-lc: 0.62 0.2; /* glow L+C pair */
@@ -346,7 +367,7 @@
   --foreground-strong: oklch(0.96 0.035 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
   --foreground-ui: oklch(0.75 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
   /* Static OPAQUE + CRYSTAL tier baselines, dark twins — the standard dark opaque floor (L32) and
-     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (bone
+     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (moonstone
      cream) override the -opaque set in their own block; AutoForeground refines when mounted. */
   --foreground-opaque: oklch(0.92 0.04 var(--glass-fg-h));
   --foreground-soft-opaque: oklch(0.78 0.04 var(--glass-fg-h));
@@ -434,6 +455,39 @@
     background-color: color-mix(in oklch, var(--foreground) 38%, transparent);
   }
 }
+
+/* ── Below the floor ──────────────────────────────────────────────────────────
+   package.json's browserslist is the supported floor (Safari 17.5 / Chrome 120 / Firefox 128 / Edge
+   120). It is set by what this theme actually uses, not by preference — the binding constraints are
+   text-wrap:balance (Safari 17.5), bare-`&` CSS nesting and unprefixed mask-composite (Chrome 120),
+   and @property (Firefox 128). Tailwind v4's own baseline sits just under it.
+
+   Every colour in this theme is oklch(), fed through custom properties. On an engine without oklch the
+   custom property still PARSES (custom props accept anything) and only fails when substituted — so
+   `background-color: var(--color-background)` resolves to an invalid value and computes to `unset`,
+   i.e. transparent, rather than to a fallback. Surfaces disappear; text usually survives on the UA
+   default. This is not a polyfill and does not try to reproduce the palette — it guarantees a legible
+   page instead of transparent panels on stacked backgrounds.
+
+   UNVERIFIED IN A REAL ENGINE: no browser in the test matrix lacks oklch, so this branch has only been
+   confirmed to compile, not to render. Treat it as a floor, not a tested path. */
+@supports not (color: oklch(0% 0 0)) {
+  :root {
+    color-scheme: light;
+    background-color: #f7f7fb;
+    color: #17161c;
+  }
+  body {
+    background-color: #f7f7fb;
+    color: #17161c;
+  }
+  .glass,
+  [data-material] {
+    background-color: #ffffffe6;
+    border: 1px solid #17161c26;
+    backdrop-filter: none;
+  }
+}
 /* ── Glass engine ─────────────────────────────────────────────────────────────
    TWO grouped blocks, split by what must re-resolve where (the var-composition-resolves-at-declaration
    gotcha — see scripts/check-theme.mjs):
@@ -463,6 +517,18 @@
   --glass-tint-h: 250;
   --glass-tint-c: 0.018;
   --glass-tint-a: 0;
+  /* The same chroma, capped for NEAR-WHITE surfaces. The sheet stops, the borders and the crystal
+     floor sit at L 95–100%, where sRGB's chroma ceiling collapses AND becomes strongly hue-dependent:
+     at L=97% it is ~0.071 for peridot (h128) but ~0.014 for lapis (h268). Feeding those the raw
+     --glass-tint-c means each preset lands on whatever fraction of its declared value its hue happens
+     to permit — lapis was delivering 9% of its 0.15 where peridot delivered 98% of its 0.07 — and the
+     shortfall is then resolved by the browser's gamut mapping rather than by us. That is the same
+     class of bug the 3% margin in lib/oklch-utils guards against on the computed path ("foregrounds
+     went grey in Safari while staying tinted in Chrome"); this is its CSS-side counterpart.
+     Capping the BASE (rather than lowering any preset) keeps chroma where it has headroom — a jewel's
+     depth lives at mid lightness, in --primary and --glass-tint-wash, which are untouched by this.
+     Guarded by scripts/check-gamut.mjs. */
+  --glass-tint-c-hi: min(var(--glass-tint-c), 0.025);
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
@@ -478,7 +544,7 @@
      land at the sRGB edge at some hues and get browser-gamut-mapped — prefer the hue tokens + a conservative
      chroma when that matters. */
   /* Harmonic anchor hue — the wheel origin the harmonies rotate from. Normally the content hue, but the two
-     "hue-less" themes (neutral + bone) anchor at 0° instead — set by the tint switcher (neutral) + bone's
+     "hue-less" themes (selenite + moonstone) anchor at 0° instead — set by the tint switcher (selenite) + moonstone's
      block below — so their accents come out a colorful red-based harmony, not a warp of a near-grey hue. */
   --harmony-h: var(--glass-fg-h);
   --hue-base: var(--harmony-h);
@@ -495,8 +561,8 @@
   --hue-square-1: calc(var(--harmony-h) + 90); /* square: base, +90, +180, +270 */
   --hue-square-2: calc(var(--harmony-h) + 180);
   --hue-square-3: calc(var(--harmony-h) + 270);
-  /* Harmonic chroma — a fixed vivid accent chroma so the palette stays colorful in EVERY theme (neutral +
-     bone included; they get their color from the hue-0 anchor above, not from chroma). --mono-chroma is
+  /* Harmonic chroma — a fixed vivid accent chroma so the palette stays colorful in EVERY theme (selenite +
+     moonstone included; they get their color from the hue-0 anchor above, not from chroma). --mono-chroma is
      quieter (0.6×) for the subtle mono ramp. */
   --color-chroma: 0.15;
   --mono-chroma: calc(var(--color-chroma) * 0.6);
@@ -513,7 +579,7 @@
   --blur-frosted: 25px;
   /* Crystal edge — identical in both modes, so it lives here with the anchors (the crystal floor +
      shadows are mode-varying: --glass-crystal-bg in the surfaces block below, shadows on :root/.dark). */
-  --glass-crystal-border: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / 0.3);
+  --glass-crystal-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / 0.3);
   /* Crystal gloss — the 3-part light effect (top highlight + diagonal streak + bottom glow) baked into
      --crystal-stack-bg (the crystal material + the [data-glass="crystal"] page style) and layered by
      glass-sheen. Each is a full gradient, so it composes in a background-image list AND in pseudo layers.
@@ -530,7 +596,7 @@
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
   --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
   --glass-gloss-top: linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%);
   --glass-gloss-streak: linear-gradient(
     calc(135deg * var(--glass-gloss-hue-dir, 1)),
@@ -562,8 +628,8 @@
   --glass-stain: grayscale(var(--glass-stain-amount, 1)) invert(var(--glass-stain-invert, 0));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
-  /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): neutral
-     stays grey, bone whispers warm, jewels read clearly tinted. Lightness is the --primary-l mode knob
+  /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): selenite
+     stays grey, moonstone whispers warm, jewels read clearly tinted. Lightness is the --primary-l mode knob
      (0.42 light / 0.78 dark); the static --primary-foreground keeps ≥ Lc 62 at the worst hue. */
   --primary: oklch(var(--primary-l) calc(var(--glass-tint-c) * 1.2) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
@@ -588,22 +654,22 @@
      frosted = the same sheet lifted by --glass-frost-boost. */
   --glass-bg: linear-gradient(
     135deg,
-    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-sheet-a1))) 0%,
-    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.01)) 25%,
-    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.02)) 50%,
-    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / var(--glass-sheet-a)) 75%,
-    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.01)) 100%
+    oklch(100% calc(var(--glass-tint-c-hi) * 0.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-sheet-a1))) 0%,
+    oklch(99% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.01)) 25%,
+    oklch(97% calc(var(--glass-tint-c-hi) * 1) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.02)) 50%,
+    oklch(99% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-sheet-a)) 75%,
+    oklch(95% calc(var(--glass-tint-c-hi) * 1.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + 0.01)) 100%
   );
   --glass-frosted-bg: linear-gradient(
     135deg,
-    oklch(100% calc(var(--glass-tint-c) * 0.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.04)) 0%,
-    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.01)) 25%,
-    oklch(97% calc(var(--glass-tint-c) * 1) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.02)) 50%,
-    oklch(99% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost))) 75%,
-    oklch(95% calc(var(--glass-tint-c) * 1.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.01)) 100%
+    oklch(100% calc(var(--glass-tint-c-hi) * 0.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.04)) 0%,
+    oklch(99% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.01)) 25%,
+    oklch(97% calc(var(--glass-tint-c-hi) * 1) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.02)) 50%,
+    oklch(99% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost))) 75%,
+    oklch(95% calc(var(--glass-tint-c-hi) * 1.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.01)) 100%
   );
   /* Very subtle white border - Apple standard (alpha is the mode dial) */
-  --glass-border: oklch(100% calc(var(--glass-tint-c) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
+  --glass-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
   /* Theme-aware brand gradient — follows --glass-fg-h, from the hue 3 ramp-steps out
      (8/side → step 360/17 ≈ 63.53°) to the base hue, at the mode envelope --gradient-l/-c + 0.5 alpha.
      (Axis/direction variants are computed in JS from lib/oklch-utils.ts — see the /components demo.) */
@@ -626,7 +692,7 @@
     oklch(var(--gradient-contrast-l) var(--gradient-contrast-c) var(--glass-fg-h)) 100%
   );
   /* Crystal floor — clear glass; the alpha is the mode dial (--glass-crystal-bg-a). */
-  --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
+  --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
   /* Precomposed background STACKS — the background-image compositions, single-sourced. The surface
      utilities consume them via --srf-* fallbacks (sheer utilities append the element-composed solidify
      layer underneath), and the [data-glass] style remaps below swap them wholesale. Live here so they
@@ -790,6 +856,34 @@
     transform: translateX(100%);
   }
 }
+
+/* ── Reduced motion ───────────────────────────────────────────────────────────
+   CONTRIBUTING says "Respect prefers-reduced-motion"; the pattern scenes did and nothing else did.
+   This closes that, but NOT with the blunt global `*, ::before, ::after { animation: none !important }`
+   reset — that would also flatten the pattern scenes' own carefully scoped rules and every enter/exit
+   transition in the library.
+
+   The treatment differs by what the animation actually IS, because the preference is about MOTION, not
+   about animation in general:
+     - shimmer  → translation across a surface. Real motion, purely decorative: stopped. The skeleton
+                  still reads as a skeleton from its base fill.
+     - spin     → rotation. Real motion, but it is the ONLY signal that a loader is alive, so freezing
+                  it reads as "hung" rather than "calm". Slowed hard instead of stopped.
+     - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
+                  Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
+   Unlayered on purpose: Tailwind's generated utilities sit inside @layer utilities, and an unlayered
+   rule outranks any layered one regardless of order, so this needs neither !important nor a specificity
+   hack. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[shimmer_2s_infinite\],
+  .before\:animate-\[shimmer_2s_infinite\]::before {
+    animation: none;
+  }
+
+  .animate-spin {
+    animation-duration: 3s;
+  }
+}
 /* ── Materials — [data-material] token sets + gloss flavors ───────────────────
    Four materials, one attribute. Each block declares the FULL --srf-* pin set ON the element, so an
    explicit material always beats an inherited [data-glass] page remap (element-declared custom props
@@ -882,7 +976,7 @@
 }
 [data-gloss="tonal"] {
   /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
 }
 [data-gloss="hue"] {
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
@@ -1028,7 +1122,7 @@
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.15;
 }
-[data-glass-tint="emerald"] {
+[data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.15;
@@ -1073,33 +1167,59 @@
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.15;
 }
-[data-glass-tint="bone"] {
-  /* Bone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
+[data-glass-tint="lapis"] {
+  /* Lapis runs far hotter than the other jewels (c 0.15 vs 0.07) on purpose — lapis lazuli IS the
+     deep saturated ultramarine; at jewel chroma it reads as just another blue next to sapphire.
+     h268 has the least chroma headroom of any jewel hue, so this asks well past the sRGB ceiling on
+     the near-white surfaces and is gamut-mapped there. That is deliberate and it is NOT wasted: the
+     surfaces that carry color deliver 1.32× sapphire's wash chroma and 2.13× its --primary chroma
+     (measured). Lowering the ask to "stay in gamut" was tried and collapses the difference — at 0.09
+     lapis renders slightly FLATTER than sapphire. The near-white sheet cannot separate two blues at
+     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else. */
+  --glass-tint-h: 268;
+  --glass-tint-c: 0.15;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="goldstone"] {
+  --glass-tint-h: 22;
+  --glass-tint-c: 0.07;
+  --glass-tint-a: 0.15;
+}
+[data-glass-tint="moonstone"] {
+  /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
      tint: texture-preserving and light-text in both modes, just a desaturated warm hue. Anchors its harmony
-     wheel at 0° (like neutral) so accents come out a colorful set, not a warp of the near-neutral hue. */
+     wheel at 0° (like selenite) so accents come out a colorful set, not a warp of the near-neutral hue. */
   --glass-tint-h: 75;
   --glass-tint-c: 0.047;
   --glass-tint-a: 0.18;
   --harmony-h: 0;
-  --glass-opaque-l: 94; /* bone daytime body lightness */
+  --glass-opaque-l: 94; /* moonstone daytime body lightness */
   /* NO pinned --glass-opaque-bg: the floor must stay DERIVED from --glass-opaque-l (engine), because the
      lightness slider / stored per-mode L land as an INLINE --glass-opaque-l that shadows this block — a
      literal pin would freeze the paint while AutoForeground keeps banding text against the token (light
-     text on cream). c-scale 1 makes the derived color exactly the old bone cream in both modes. */
+     text on cream). c-scale 1 makes the derived color exactly the original cream in both modes. */
   --glass-opaque-c-scale: 1;
 }
-.dark[data-glass-tint="bone"] {
-  /* Bone night — a WARM cream night, not a bright one. The wash sits a few points above the standard
-     58% (warmth without glare; h75 carries more real luminance per OKLCH point than the cool tints,
-     so pale-warm washes read brighter than their numbers), and the opaque floor keeps its cream
-     identity at a deeper L80 (vs the old 86.2 glare; other themes sit at 32). AutoForeground reads
-     BOTH knobs live (+ the [bone-sync] mirrored fallback), so page text and per-card dark-cream text
-     re-band automatically. */
+.dark[data-glass-tint="moonstone"] {
+  /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
+     carries more real luminance per OKLCH point than the cool tints, so pale-warm washes read brighter
+     than their numbers). AutoForeground reads BOTH wash knobs live (+ the [moonstone-sync] mirrored
+     fallback), so page text and per-card dark-cream text re-band automatically.
+
+     The FLOOR is what you actually see: at the default opacity every surface — cards, inputs, the nav
+     pill — paints --glass-opaque-bg, and the wash only tints what shows through. It used to derive
+     oklch(0.8 0.047 75), which is a sand/tobacco tan, so moonstone night read as brown rather than as
+     the pale silvery stone it is named for. Lightness alone does not fix that: h75 is warm, so every
+     lightness along it lands somewhere in the tan family. Cutting the CHROMA is what moves it off that
+     family, and the lift to L84 is the "slightly lighter" half. Now derives oklch(0.84 0.021 75) — pale
+     stone with a whisper of warmth. Light mode is untouched (it keeps c-scale 1 at L94, where the same
+     hue reads as cream, not tan). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 80;
-  /* Static -opaque tier baselines for bone's LIGHT night floor — the global dark baselines assume a
-     dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep bone's
+  --glass-opaque-l: 84;
+  --glass-opaque-c-scale: 0.45;
+  /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
+     dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
      opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */
   --foreground-opaque: oklch(0.24 0.04 75);
   --foreground-soft-opaque: oklch(0.38 0.05 75);
@@ -1188,7 +1308,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 
-/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
+/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
    averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {

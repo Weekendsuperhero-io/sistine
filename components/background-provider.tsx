@@ -104,7 +104,7 @@ export const CANVAS_SPEEDS = [
 ] as const;
 
 /** Animated-pattern pace: loop/scroll duration in SECONDS (2s fastest … 16s slowest); 0 = static.
- * Shared by every animated pattern (ghost, synthwave, moonrise, chase) via the --pat-dur CSS var. */
+ * Shared by every animated pattern (synthwave, moonrise, clouds, dune, aurora, chase) via the --pat-dur CSS var. */
 export const PATTERN_SPEEDS = [
   2,
   4,
@@ -114,12 +114,20 @@ export const PATTERN_SPEEDS = [
   0,
 ] as const;
 
-/** Sun/moon horizontal placement for the horizon scenes (synthwave / moonrise) — off-center clears the
- * page's centered content. */
+/** Sun/moon horizontal placement for the horizon scenes (synthwave / moonrise / clouds / dune) — off-center
+ * clears the page's centered content. */
 export const PATTERN_DISCS = [
   "right",
   "center",
   "left",
+] as const;
+
+/** Blowing-sand intensity for the dune scene — "still" is a calm desert (no airborne sand at all),
+ * distinct from the speed control's "static", which only pauses the motion that is already there. */
+export const PATTERN_SANDS = [
+  "breeze",
+  "storm",
+  "still",
 ] as const;
 
 function persistBackground(next: BackgroundType) {
@@ -238,6 +246,10 @@ interface BackgroundContextValue {
   patternDisc: (typeof PATTERN_DISCS)[number];
   /** Advance to the next sun/moon placement. */
   cyclePatternDisc: () => void;
+  /** Blowing-sand intensity for the dune scene (breeze | storm | still). */
+  patternSand: (typeof PATTERN_SANDS)[number];
+  /** Advance to the next blowing-sand level. */
+  cyclePatternSand: () => void;
   // ── Base color (the "none" backdrop) ──
   /** Base color for the "none" backdrop; null = follow the theme (tint-tinted, light/dark aware). */
   baseColor: string | null;
@@ -273,6 +285,7 @@ interface RenderArgs {
   patternDensity: PatternDensity;
   patternSpeed: number;
   patternDisc: (typeof PATTERN_DISCS)[number];
+  patternSand: (typeof PATTERN_SANDS)[number];
   baseColor: string | null;
 }
 
@@ -293,7 +306,15 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
         />
       );
     case "pattern":
-      return <PatternBackground style={args.patternStyle} density={args.patternDensity} speed={args.patternSpeed} disc={args.patternDisc} />;
+      return (
+        <PatternBackground
+          style={args.patternStyle}
+          density={args.patternDensity}
+          speed={args.patternSpeed}
+          disc={args.patternDisc}
+          sand={args.patternSand}
+        />
+      );
     case "none":
       // Forgo the decorative backdrop — a clean solid that honors the theme (tint hue, light/dark) by
       // default, overridable by the user's chosen base color.
@@ -352,6 +373,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [patternSpeed, cyclePatternSpeedState] = useCycle<number>(PATTERN_SPEEDS, 8);
   const [baseColor, setBaseColor] = React.useState<string | null>(null);
   const [patternDisc, cyclePatternDiscState] = useCycle(PATTERN_DISCS, "right");
+  const [patternSand, cyclePatternSandState] = useCycle(PATTERN_SANDS, "breeze");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -413,6 +435,8 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     cyclePatternSpeed: withType("pattern", cyclePatternSpeedState),
     patternDisc,
     cyclePatternDisc: withType("pattern", cyclePatternDiscState),
+    patternSand,
+    cyclePatternSand: withType("pattern", cyclePatternSandState),
     baseColor,
     setBaseColor,
   };
@@ -437,6 +461,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
         patternDensity,
         patternSpeed,
         patternDisc,
+        patternSand,
         baseColor,
       })}
       {children}

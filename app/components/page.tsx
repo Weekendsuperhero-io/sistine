@@ -92,7 +92,7 @@ const GRADIENT_AXES = [
 const glowTints = [
   "sapphire",
   "sistine",
-  "emerald",
+  "aventurine",
   "rose",
 ] as const;
 
@@ -193,147 +193,174 @@ export default function ComponentsPage() {
           </div>
         </div>
 
-        <div className="mb-12">
-          <h2 className="mb-1 font-semibold text-foreground text-xl">Button variants</h2>
-          <p className="mb-4 text-muted-foreground text-sm">
-            Semantic <code className="text-xs">variant</code>s on <code className="text-xs">Button</code> — behavior styles, each riding its default
-            surface.
-          </p>
-          <div className="mb-8 flex flex-wrap items-center gap-3">
-            {buttonVariantNames.map((v) => (
-              <Button key={v} variant={v}>
-                {v}
-              </Button>
-            ))}
-          </div>
-          <h2 className="mb-1 font-semibold text-foreground text-xl">Button materials</h2>
-          <p className="mb-4 text-muted-foreground text-sm">
-            The four materials via the <code className="text-xs">material</code> prop — plus the <code className="text-xs">gradient</code> axis
-            layering the theme-aware brand gradient over the material.
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            {buttonMaterialNames.map((v) => (
-              <Button key={v} material={v}>
-                {v}
-              </Button>
-            ))}
-            <Button gradient>gradient</Button>
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="mb-1 font-semibold text-foreground text-xl">gradient intensity, over each glass type</h2>
-          <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue — the tint hue unless a fresco decouples it)
-            overlaid on each surface at three strengths. <strong>Medium</strong> is the winner — it's the{" "}
-            <code className="text-xs">glass-gradient</code> accent class, which the <code className="text-xs">gradient</code> prop layers over any
-            material. Note how <strong>Bold</strong> hides the surface (all types converge) while <strong>Subtle</strong> keeps each glass texture.
-          </p>
-          <div className="grid max-w-2xl grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-3">
-            <span />
-            {solidIntensities.map((s) => (
-              <span key={s.label} className="text-center font-medium text-muted-foreground text-xs">
-                {s.label}
-              </span>
-            ))}
-            {glassTypes.map((type) => (
-              <React.Fragment key={type}>
-                <span className="pr-3 font-mono text-muted-foreground text-xs">{type}</span>
-                {solidIntensities.map((s) => (
-                  <Button key={s.label} material={type} border size="sm" className="relative w-full overflow-hidden">
-                    <span
-                      aria-hidden
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: s.bg,
-                      }}
-                    />
-                    <span className={cn("relative", s.text)}>{type}</span>
-                  </Button>
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="mb-1 font-semibold text-foreground text-xl">Gradient axes + direction</h2>
-          <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The brand gradient re-aimed along each ramp axis — the real <code className="text-xs">hue / chroma / lightness / tonal</code> ramps from{" "}
-            <code className="text-xs">lib/oklch-utils</code>, forward and reversed. All follow the current tint hue; flip the tint up top to watch
-            them shift.
-          </p>
-          <div className="grid max-w-md grid-cols-[auto_1fr_1fr] items-center gap-3">
-            <span />
-            <span className="text-center font-medium text-muted-foreground text-xs">forward</span>
-            <span className="text-center font-medium text-muted-foreground text-xs">reverse</span>
-            {axisGradients.map((axis) => (
-              <React.Fragment key={axis.key}>
-                <span className="pr-2 font-mono text-muted-foreground text-xs">{axis.key}</span>
-                <div
-                  className="h-10 rounded-lg border border-(--glass-border)"
-                  style={{
-                    backgroundImage: axis.fwd,
-                  }}
-                />
-                <div
-                  className="h-10 rounded-lg border border-(--glass-border)"
-                  style={{
-                    backgroundImage: axis.rev,
-                  }}
-                />
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-12">
-          <h2 className="mb-1 font-semibold text-foreground text-xl">Glow</h2>
-          <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            The Button's <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
-            avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint — so it recolors
-            per theme. <strong>Off</strong> on the left, <strong>on</strong> across four tints. Hover any to watch it intensify.
-          </p>
-          <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-            <div className="flex flex-col items-center gap-2">
-              <Button effect="none" size="lg">
-                Off
-              </Button>
-              <span className="font-mono text-muted-foreground text-xs">none</span>
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Button variants</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Semantic <code className="text-xs">variant</code>s on <code className="text-xs">Button</code> — behavior styles, each riding its default
+              surface.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              {buttonVariantNames.map((v) => (
+                <Button key={v} variant={v}>
+                  {v}
+                </Button>
+              ))}
             </div>
-            {glowTints.map((tint) => (
-              <div key={tint} data-glass-tint={tint} className="flex flex-col items-center gap-2">
-                <Button effect="glow" size="lg">
-                  Glow
-                </Button>
-                <span className="font-mono text-muted-foreground text-xs">{tint}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="mb-12">
-          <h2 className="mb-1 font-semibold text-foreground text-xl">Hover effects</h2>
-          <p className="mb-4 max-w-2xl text-muted-foreground text-sm">
-            Every glass component takes an <code className="text-xs">effect</code> (or <code className="text-xs">hover</code>) prop backed by the
-            shared <code className="text-xs">hoverEffects</code> variants. Hover each to see it.
-          </p>
-          <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
-            {effectShowcase.map((effect) => (
-              <div key={effect} className="flex flex-col items-center gap-2">
-                <Button effect={effect} size="lg">
-                  {effect.charAt(0).toUpperCase() + effect.slice(1)}
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Button materials</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              The four materials via the <code className="text-xs">material</code> prop — plus the <code className="text-xs">gradient</code> axis
+              layering the theme-aware brand gradient over the material.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              {buttonMaterialNames.map((v) => (
+                <Button key={v} material={v}>
+                  {v}
                 </Button>
-                <span className="font-mono text-muted-foreground text-xs">{effect}</span>
+              ))}
+              <Button gradient>gradient</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Gradient intensity, over each glass type</CardTitle>
+            <CardDescription className="max-w-2xl text-muted-foreground">
+              The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue — the tint hue unless a fresco decouples it)
+              overlaid on each surface at three strengths. <strong>Medium</strong> is the winner — it's the{" "}
+              <code className="text-xs">glass-gradient</code> accent class, which the <code className="text-xs">gradient</code> prop layers over any
+              material. Note how <strong>Bold</strong> hides the surface (all types converge) while <strong>Subtle</strong> keeps each glass texture.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid max-w-2xl grid-cols-[auto_repeat(3,minmax(0,1fr))] items-center gap-3">
+              <span />
+              {solidIntensities.map((s) => (
+                <span key={s.label} className="text-center font-medium text-muted-foreground text-xs">
+                  {s.label}
+                </span>
+              ))}
+              {glassTypes.map((type) => (
+                <React.Fragment key={type}>
+                  <span className="pr-3 font-mono text-muted-foreground text-xs">{type}</span>
+                  {solidIntensities.map((s) => (
+                    <Button key={s.label} material={type} border size="sm" className="relative w-full overflow-hidden">
+                      <span
+                        aria-hidden
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: s.bg,
+                        }}
+                      />
+                      <span className={cn("relative", s.text)}>{type}</span>
+                    </Button>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Gradient axes + direction</CardTitle>
+            <CardDescription className="max-w-2xl text-muted-foreground">
+              The brand gradient re-aimed along each ramp axis — the real <code className="text-xs">hue / chroma / lightness / tonal</code> ramps from{" "}
+              <code className="text-xs">lib/oklch-utils</code>, forward and reversed. All follow the current tint hue; flip the tint up top to watch
+              them shift.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid max-w-md grid-cols-[auto_1fr_1fr] items-center gap-3">
+              <span />
+              <span className="text-center font-medium text-muted-foreground text-xs">forward</span>
+              <span className="text-center font-medium text-muted-foreground text-xs">reverse</span>
+              {axisGradients.map((axis) => (
+                <React.Fragment key={axis.key}>
+                  <span className="pr-2 font-mono text-muted-foreground text-xs">{axis.key}</span>
+                  <div
+                    className="h-10 rounded-lg border border-(--glass-border)"
+                    style={{
+                      backgroundImage: axis.fwd,
+                    }}
+                  />
+                  <div
+                    className="h-10 rounded-lg border border-(--glass-border)"
+                    style={{
+                      backgroundImage: axis.rev,
+                    }}
+                  />
+                </React.Fragment>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Glow</CardTitle>
+            <CardDescription className="max-w-2xl text-muted-foreground">
+              The Button's <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
+              avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint — so it recolors
+              per theme. <strong>Off</strong> on the left, <strong>on</strong> across four tints. Hover any to watch it intensify.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+              <div className="flex flex-col items-center gap-2">
+                <Button effect="none" size="lg">
+                  Off
+                </Button>
+                <span className="font-mono text-muted-foreground text-xs">none</span>
               </div>
-            ))}
-          </div>
-        </div>
+              {glowTints.map((tint) => (
+                <div key={tint} data-glass-tint={tint} className="flex flex-col items-center gap-2">
+                  <Button effect="glow" size="lg">
+                    Glow
+                  </Button>
+                  <span className="font-mono text-muted-foreground text-xs">{tint}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-12 text-foreground">
+          <CardHeader>
+            <CardTitle className="text-foreground">Hover effects</CardTitle>
+            <CardDescription className="max-w-2xl text-muted-foreground">
+              Every glass component takes an <code className="text-xs">effect</code> (or <code className="text-xs">hover</code>) prop backed by the
+              shared <code className="text-xs">hoverEffects</code> variants. Hover each to see it.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
+              {effectShowcase.map((effect) => (
+                <div key={effect} className="flex flex-col items-center gap-2">
+                  <Button effect={effect} size="lg">
+                    {effect.charAt(0).toUpperCase() + effect.slice(1)}
+                  </Button>
+                  <span className="font-mono text-muted-foreground text-xs">{effect}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredComponents.map((component) => (
             <Link key={component.name} href={`/docs/components/${component.name}`} className="group">
-              <Card className="h-full transition-opacity hover:opacity-90">
+              <Card className="flex h-full flex-col transition-opacity hover:opacity-90">
                 <CardHeader>
                   <div className="flex items-center justify-between mb-1">
                     <CardTitle className="text-foreground">{component.title || component.name}</CardTitle>
@@ -345,7 +372,7 @@ export default function ComponentsPage() {
                   </div>
                   <CardDescription className="text-muted-foreground">{component.description || "No description available"}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="mt-auto">
                   <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">View &rarr;</span>
                 </CardContent>
               </Card>

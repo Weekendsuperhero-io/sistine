@@ -7,9 +7,17 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface.
+   Centered WITHOUT a transform — see the matching note in dialog.tsx: `left-1/2 top-1/2 -translate-1/2`
+   puts any odd-pixel-sized dialog on a half pixel and blurs every glyph on the composited glass
+   surface, so this centers through layout (`inset-0 m-auto h-fit`) and the slide-* utilities that only
+   existed to offset that translate are gone. Fade + zoom end at identity. */
 const alertDialogContentVariants = cva(
-  "group/alert-dialog-content fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg p-6 shadow-lg duration-200 data-[size=sm]:max-w-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+  // Capped like dialog.tsx so over-tall content can't run off the bottom unreachable. This one scrolls
+  // the whole surface rather than an inner wrapper — AlertDialogContent hands children straight to
+  // Radix, so there is nothing to wrap. Its actions scroll with the content; acceptable, because an
+  // alert dialog that tall is already a design smell.
+  "group/alert-dialog-content @container/alert-dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] w-full max-w-lg gap-4 overflow-y-auto rounded-lg p-6 shadow-lg duration-200 data-[size=sm]:max-w-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
   {
     variants: {
       variant: {
@@ -96,7 +104,7 @@ const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDiv
   <div
     data-slot="alert-dialog-header"
     className={cn(
-      "grid grid-rows-[auto_1fr] place-items-center gap-1.5 text-center has-data-[slot=alert-dialog-media]:grid-rows-[auto_auto_1fr] has-data-[slot=alert-dialog-media]:gap-x-6 sm:group-data-[size=default]/alert-dialog-content:place-items-start sm:group-data-[size=default]/alert-dialog-content:text-left sm:group-data-[size=default]/alert-dialog-content:has-data-[slot=alert-dialog-media]:grid-rows-[auto_1fr]",
+      "grid grid-rows-[auto_1fr] place-items-center gap-1.5 text-center has-data-[slot=alert-dialog-media]:grid-rows-[auto_auto_1fr] has-data-[slot=alert-dialog-media]:gap-x-6 @sm/alert-dialog-content:place-items-start @sm/alert-dialog-content:text-left @sm/alert-dialog-content:has-data-[slot=alert-dialog-media]:grid-rows-[auto_1fr]",
       className,
     )}
     {...props}
@@ -108,7 +116,7 @@ const AlertDialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDiv
   <div
     data-slot="alert-dialog-footer"
     className={cn(
-      "flex flex-col-reverse gap-2 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 sm:flex-row sm:justify-end",
+      "flex flex-col-reverse gap-2 group-data-[size=sm]/alert-dialog-content:grid group-data-[size=sm]/alert-dialog-content:grid-cols-2 @sm/alert-dialog-content:flex-row @sm/alert-dialog-content:justify-end",
       className,
     )}
     {...props}
@@ -124,7 +132,7 @@ const AlertDialogTitle = React.forwardRef<
     ref={ref}
     data-slot="alert-dialog-title"
     className={cn(
-      "text-lg font-semibold sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
+      "text-lg font-semibold @sm/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2",
       className,
     )}
     {...props}
@@ -149,7 +157,7 @@ const AlertDialogMedia = ({ className, ...props }: React.HTMLAttributes<HTMLDivE
   <div
     data-slot="alert-dialog-media"
     className={cn(
-      "mb-2 inline-flex size-16 items-center justify-center rounded-md bg-muted sm:group-data-[size=default]/alert-dialog-content:row-span-2 *:[svg:not([class*='size-'])]:size-8",
+      "mb-2 inline-flex size-16 items-center justify-center rounded-md bg-muted @sm/alert-dialog-content:row-span-2 *:[svg:not([class*='size-'])]:size-8",
       className,
     )}
     {...props}

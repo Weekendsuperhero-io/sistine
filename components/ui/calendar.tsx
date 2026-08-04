@@ -61,6 +61,11 @@ function Calendar({
       }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
+        // Deliberately still VIEWPORT-bound. Converting this to a container query needs a container
+        // on the root, and the root is `w-fit` — `container-type: inline-size` applies inline-axis size
+        // containment, so a fit-content element inside one measures 0 (verified). Every other surface in
+        // the dialog family has an explicit width, which is why they converted and this cannot without
+        // restructuring. See docs/container-queries.md.
         months: cn("relative flex flex-col gap-4 sm:flex-row", defaultClassNames.months),
         month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
         nav: cn("absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1", defaultClassNames.nav),

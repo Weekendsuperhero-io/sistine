@@ -163,7 +163,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         c: num("--glass-tint-c", 0),
         a: num("--glass-tint-a", 0),
         dark: root.classList.contains("dark"),
-        // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for neutral/bone), so the chip hues here
+        // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for selenite/moonstone), so the chip hues here
         // land on the same angle as the --hue-* swatches. Falls back to the content hue when unset (jewels).
         harmonyH: num("--harmony-h", num("--glass-fg-h", num("--glass-tint-h", r.h))),
         // ramp base follows the theme color: hue = tint, chroma = the config's (raw; gated per-palette in render)

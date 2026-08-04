@@ -50,7 +50,7 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 
-/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → emerald,
+/* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
    averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
 [data-glass-tint="sistine"] {

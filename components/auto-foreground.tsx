@@ -204,14 +204,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // feeds the glass-solid SURFACE color below, but no longer decides "is this theme colored?".)
       const tintC = num("--glass-tint-c", 0);
       // Harmony anchor — the wheel origin the icon/foreground harmonics rotate from. Mirrors the CSS
-      // --harmony-h (content hue, or 0 for the hue-less neutral/bone themes set inline by the tint switcher);
+      // --harmony-h (content hue, or 0 for the hue-less selenite/moonstone themes set inline by the tint switcher);
       // falls back to the content hue when unset (jewels), so JS harmonics land on the SAME angle as the
       // --hue-* swatches. harmonicHue(fgHarmonyH, name) below matches calc(var(--harmony-h) + N) exactly.
       const harmonyH = num("--harmony-h", tintH);
       const cfgC = rc ?? storedRamp.c;
-      // User accent: on the hue-LESS themes only (neutral + bone anchor --harmony-h at 0), a chosen accent
+      // User accent: on the hue-LESS themes only (selenite + moonstone anchor --harmony-h at 0), a chosen accent
       // colors ALL text tiers — its hue + vividness drive the ramp base, so foregrounds tint toward the accent
-      // instead of gray (neutral) / warm-bone. Frescoes (--harmony-h != 0) are untouched. Band-picking below
+      // instead of gray (selenite) / warm-moonstone. Frescoes (--harmony-h != 0) are untouched. Band-picking below
       // still hits each tier's ARC-Bronze APCA target, so accent-tinted text stays legible.
       const accentH = num("--accent-h", Number.NaN);
       const accentC = num("--accent-c", 0.15);
@@ -223,16 +223,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
       const LC_MARGIN = 12;
       const solidA = num("--glass-solid-a", 0.65);
-      // Wash knobs — bone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
+      // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
       // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
-      // every bone-night surface banded ~3 L too dark (bright page, faint text). num() reads the
-      // truth on the computed path; snapshots can't carry these, so the FALLBACK is bone-aware via
+      // every moonstone-night surface banded ~3 L too dark (bright page, faint text). num() reads the
+      // truth on the computed path; snapshots can't carry these, so the FALLBACK is moonstone-aware via
       // the data-glass-tint attribute (cheap, race-free on both paths). Every other theme resolves
-      // to the standard mode values either way — this is a bone-only correction by construction.
-      // check-theme [bone-sync] keeps these mirrored constants equal to presets.css.
-      const bone = root.dataset.glassTint === "bone";
-      const washL = num("--glass-wash-l", bone && dark ? 64 : dark ? 58 : 72);
-      const washCMult = num("--glass-wash-c-mult", bone && dark ? 2 : 2.5);
+      // to the standard mode values either way — this is a moonstone-only correction by construction.
+      // check-theme [moonstone-sync] keeps these mirrored constants equal to presets.css.
+      const moonstone = root.dataset.glassTint === "moonstone";
+      const washL = num("--glass-wash-l", moonstone && dark ? 64 : dark ? 58 : 72);
+      const washCMult = num("--glass-wash-c-mult", moonstone && dark ? 2 : 2.5);
       const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA), 0), 1);
       const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
@@ -265,7 +265,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Set the full foreground tier set against a given SURFACE, under a var suffix. Run twice: "" for the
       // normal glass-SOLID surface (page + translucent/solid cards), and "-opaque" for the solid
       // --glass-opaque-bg floor. The opaque re-skin in globals.css remaps --foreground* → the -opaque vars
-      // inside opaque cards, so a LIGHT opaque floor (e.g. dark-mode bone cream) gets DARK card text while
+      // inside opaque cards, so a LIGHT opaque floor (e.g. dark-mode moonstone cream) gets DARK card text while
       // the dark page keeps light text — one global foreground can't do both, so opaque cards get their own.
       const applyTiers = (
         surface: {
@@ -287,7 +287,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
-        // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (bone cream).
+        // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (moonstone cream).
         const tier = (rawBand: { floor: number; target: number; ceiling: number }) => {
           const band = boost(rawBand);
           return formatOklch(
@@ -296,12 +296,12 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   floor: band.floor,
                   target: band.target,
                   ceiling: band.ceiling,
-                  // Opaque cards on the hue-less themes (neutral + bone) follow the chosen accent too — same as
-                  // the normal surface above — so bone/neutral opaque-card text tints toward the accent.
+                  // Opaque cards on the hue-less themes (selenite + moonstone) follow the chosen accent too — same as
+                  // the normal surface above — so moonstone/selenite opaque-card text tints toward the accent.
                   hue: huelessAccent ? accentH : tintH,
                   chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
                   // Accent path ONLY: keep the accent VISIBLE on floors whose max contrast sits below the
-                  // band (bone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
+                  // band (moonstone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
                   // pins to L≈0, the gamut collapses chroma, and accent text renders BLACK. Every other
                   // theme passes 0 → behavior unchanged.
                   minChroma: huelessAccent ? 0.08 : 0,
@@ -314,7 +314,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           `--muted-foreground${suffix}`,
           tier({
             // Raised from 45/60/75 → muted lands darker (≈L30 on a light opaque floor) — a firmer secondary,
-            // not a faint one. Global + computed per-hue (bone, sistine, every jewel), both surfaces + opaque.
+            // not a faint one. Global + computed per-hue (moonstone, sistine, every jewel), both surfaces + opaque.
             floor: 60,
             target: 72,
             ceiling: 84,
@@ -371,7 +371,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       );
       // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it (its lightness
       // is exposed as the numeric --glass-opaque-l token; chroma/hue from the tint). `adaptive` so a LIGHT
-      // floor (bone cream) gets DARK text — the theme ramp only spans the readable half and can't.
+      // floor (moonstone cream) gets DARK text — the theme ramp only spans the readable half and can't.
       applyTiers(
         {
           l: num("--glass-opaque-l", dark ? 32 : 90),
