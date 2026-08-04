@@ -1201,15 +1201,23 @@
   --glass-opaque-c-scale: 1;
 }
 .dark[data-glass-tint="moonstone"] {
-  /* Moonstone night — a WARM cream night, not a bright one. The wash sits a few points above the standard
-     58% (warmth without glare; h75 carries more real luminance per OKLCH point than the cool tints,
-     so pale-warm washes read brighter than their numbers), and the opaque floor keeps its cream
-     identity at a deeper L80 (vs the old 86.2 glare; other themes sit at 32). AutoForeground reads
-     BOTH knobs live (+ the [moonstone-sync] mirrored fallback), so page text and per-card dark-cream text
-     re-band automatically. */
+  /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
+     carries more real luminance per OKLCH point than the cool tints, so pale-warm washes read brighter
+     than their numbers). AutoForeground reads BOTH wash knobs live (+ the [moonstone-sync] mirrored
+     fallback), so page text and per-card dark-cream text re-band automatically.
+
+     The FLOOR is what you actually see: at the default opacity every surface — cards, inputs, the nav
+     pill — paints --glass-opaque-bg, and the wash only tints what shows through. It used to derive
+     oklch(0.8 0.047 75), which is a sand/tobacco tan, so moonstone night read as brown rather than as
+     the pale silvery stone it is named for. Lightness alone does not fix that: h75 is warm, so every
+     lightness along it lands somewhere in the tan family. Cutting the CHROMA is what moves it off that
+     family, and the lift to L84 is the "slightly lighter" half. Now derives oklch(0.84 0.021 75) — pale
+     stone with a whisper of warmth. Light mode is untouched (it keeps c-scale 1 at L94, where the same
+     hue reads as cream, not tan). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 80;
+  --glass-opaque-l: 84;
+  --glass-opaque-c-scale: 0.45;
   /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
      dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
      opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */
