@@ -15,7 +15,7 @@
  */
 
 import * as React from "react";
-import { formatOklch, type OklchColor, parseOklch, type RampGradientAxis, rampAxisColors } from "./oklch-utils";
+import { fitToBand, formatOklch, type OklchColor, parseOklch, type RampGradientAxis, rampAxisColors } from "./oklch-utils";
 
 export type CanvasStyle = "gradient" | "lava" | "circle";
 /** Ramp axis the canvas colors follow. `lightness` is the "linear" ramp. */
@@ -59,11 +59,13 @@ export function useBackdropTint() {
     dark: boolean;
     p3: boolean;
     preset: string | undefined;
+    fg: string | undefined;
   }>({
     hue: 250,
     dark: true,
     p3: false,
     preset: undefined,
+    fg: undefined,
   });
   React.useEffect(() => {
     const root = document.documentElement;
@@ -77,8 +79,13 @@ export function useBackdropTint() {
         dark: root.classList.contains("dark"),
         p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
         preset: root.dataset.glassTint,
+        /* The live solved foreground — backdrops band their lightness against it so text stays
+           readable wherever it lands. Re-read by the same observer, so it tracks AutoForeground. */
+        fg: cs.getPropertyValue("--foreground").trim() || undefined,
       };
-      setState((prev) => (prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 && prev.preset === next.preset ? prev : next));
+      setState((prev) =>
+        prev.hue === next.hue && prev.dark === next.dark && prev.p3 === next.p3 && prev.preset === next.preset && prev.fg === next.fg ? prev : next,
+      );
     };
     read();
     const observer = new MutationObserver(read);
@@ -131,6 +138,13 @@ export interface CanvasConfig {
   ramp?: CanvasRamp;
   /** Steps PER SIDE (4–12); the ramp yields 2·steps+1 colors. Default 6. */
   steps?: number;
+  /** Constrain the ramp's lightness to a readable range — see `readableLightnessBand`. The ramps span
+   *  their whole range by design, which as a full-bleed backdrop puts black at one edge and white at
+   *  the other; without this the canvas has the same readability problem the CSS gradient had. */
+  band?: {
+    lMin: number;
+    lMax: number;
+  };
   /** Linear-gradient angle in degrees (gradient style; 90 = left → right). Default 90. */
   angle?: number;
   /** Animation pace (0 = static, 1 = default). Default 1. */
@@ -164,10 +178,20 @@ function clampSteps(steps: number): number {
  * Colors for the chosen ramp axis as oklch strings (2·count+1 entries). Chroma is capped to the
  * gamut-displayable max (sRGB, or P3 when `p3`) so it reaches the visible edge, not a flat 0.37.
  */
-function rampColors(base: OklchColor, ramp: CanvasRamp, count: number, p3: boolean): string[] {
+function rampColors(
+  base: OklchColor,
+  ramp: CanvasRamp,
+  count: number,
+  p3: boolean,
+  band?: {
+    lMin: number;
+    lMax: number;
+  },
+): string[] {
   // Delegates to THE shared axis mapping (oklch-utils), so canvas axes — tonal included — render the
-  // same color math as the pure-CSS gradient background.
-  return rampAxisColors(ramp, base, count, p3 ? "p3" : "srgb").map((c) => formatOklch(c));
+  // same color math as the pure-CSS gradient background, banding included.
+  const colors = rampAxisColors(ramp, base, count, p3 ? "p3" : "srgb");
+  return (band ? fitToBand(colors, band) : colors).map((c) => formatOklch(c));
 }
 
 /** Add (or replace) the alpha on an oklch() string. */
@@ -373,8 +397,23 @@ export function createCanvas(config: CanvasConfig = {}): {
   const dpr = config.dpr ?? 1;
   const random = config.seed ? seededRandom(config.seed) : () => Math.random();
 
-  // Explicit stops (a fresco palette) win; otherwise generate the single-base ramp.
-  const colors = config.colors && config.colors.length > 1 ? config.colors : rampColors(base, ramp, count, p3);
+  // Explicit stops (a fresco palette) win; otherwise generate the single-base ramp. Frescoes skip the
+  // ramp, so they need the band clamped onto them directly or they ignore it.
+  const band = config.band;
+  const colors =
+    config.colors && config.colors.length > 1
+      ? band
+        ? config.colors.map((css) => {
+            const parsed = parseOklch(css);
+            return parsed
+              ? formatOklch({
+                  ...parsed,
+                  l: Math.min(band.lMax, Math.max(band.lMin, parsed.l)),
+                })
+              : css;
+          })
+        : config.colors
+      : rampColors(base, ramp, count, p3, band);
 
   switch (style) {
     case "lava":

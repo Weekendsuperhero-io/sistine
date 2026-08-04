@@ -17,7 +17,7 @@
  *   6a.[materials] each [data-material="…"] block pins the full --srf-* set (+ opaque fg / crystal hover).
  *   6b.[recipes-dead] no retired recipe utility (glass-bg/-surface/-solid/…) is defined or class-used.
  *   6c.[material-union] lib/material.ts's Material type == the four CSS materials + "none".
- *   3. [preset] Every GlassTintSwitcher preset (except neutral) has a [data-glass-tint="x"] block.
+ *   3. [preset] Every GlassTintSwitcher preset (except selenite) has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
  *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
@@ -142,10 +142,10 @@ for (const r of rules) {
   }
 }
 
-// 3. [preset] every switcher preset (except neutral) has a [data-glass-tint="x"] block
+// 3. [preset] every switcher preset (except selenite) has a [data-glass-tint="x"] block
 const switcher = readFileSync(join(root, "components/glass-tint-switcher.tsx"), "utf8");
 const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter(
-  (v) => v !== "neutral" && v !== "custom",
+  (v) => v !== "selenite" && v !== "custom",
 );
 for (const v of presets) {
   if (!css.includes(`[data-glass-tint="${v}"]`)) {
@@ -209,21 +209,21 @@ const frescoHues = new Set([...huesBlock.matchAll(/^\s+([a-z]+):\s*\[/gm)].map((
 //     computes none in Chrome/Edge. Author the standard property; the minifier auto-prefixes.
 if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -webkit-backdrop-filter found in the theme — remove it (Lightning auto-prefixes; the twin makes it DROP the standard property).');
 
-// 5b. [bone-sync] bone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
-//     fg snapshots can't carry them) — the JS constants must equal presets.css, or bone-night text
+// 5b. [moonstone-sync] moonstone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
+//     fg snapshots can't carry them) — the JS constants must equal presets.css, or moonstone-night text
 //     bands against the wrong surface model again (the exact bug the mirror fixes).
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
-  const boneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="bone"]');
-  if (boneDark) {
-    const washL = boneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
-    const cMult = boneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
-    if (washL && !autoFg.includes(`bone && dark ? ${washL} :`))
-      fail(`[bone-sync] presets.css bone night --glass-wash-l is ${washL}% but auto-foreground's mirrored fallback differs.`);
-    if (cMult && !autoFg.includes(`bone && dark ? ${cMult} :`))
-      fail(`[bone-sync] presets.css bone night --glass-wash-c-mult is ${cMult} but auto-foreground's mirrored fallback differs.`);
+  const moonstoneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="moonstone"]');
+  if (moonstoneDark) {
+    const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
+    const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
+    if (washL && !autoFg.includes(`moonstone && dark ? ${washL} :`))
+      fail(`[moonstone-sync] presets.css moonstone night --glass-wash-l is ${washL}% but auto-foreground's mirrored fallback differs.`);
+    if (cMult && !autoFg.includes(`moonstone && dark ? ${cMult} :`))
+      fail(`[moonstone-sync] presets.css moonstone night --glass-wash-c-mult is ${cMult} but auto-foreground's mirrored fallback differs.`);
   } else {
-    fail('[bone-sync] could not locate the .dark[data-glass-tint="bone"] block in the theme rules.');
+    fail('[moonstone-sync] could not locate the .dark[data-glass-tint="moonstone"] block in the theme rules.');
   }
 }
 
@@ -322,7 +322,7 @@ const presetTint = new Map(
 );
 for (const [value, tint] of presetTint) {
   const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
-  if (blocks.length === 0) continue; // neutral has no block — invariant 3 already flags missing blocks
+  if (blocks.length === 0) continue; // selenite has no block — invariant 3 already flags missing blocks
   for (const b of blocks) {
     for (const d of decls(b.body)) {
       if (!(d.name in tint)) continue;

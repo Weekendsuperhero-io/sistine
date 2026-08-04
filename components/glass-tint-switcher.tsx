@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 
-// Persistence shared with earlier versions: ROOT_KEY = the chosen base ("neutral" | preset | "custom"),
+// Persistence shared with earlier versions: ROOT_KEY = the chosen base ("selenite" | preset | "custom"),
 // CUSTOM_KEY = the live {h,c,a} so a tweaked tint restores exactly.
 const ROOT_KEY = "sistine-glass-tint";
 const CUSTOM_KEY = "sistine-glass-tint-custom";
@@ -86,7 +86,7 @@ type Harmony = keyof typeof HARMONIES;
 
 /**
  * Each preset is just a starting point — hue + chroma (OKLCH) — that the sliders below can then adjust.
- * "Bone" is a warm, very-low-chroma off-white you can nudge further with the Chroma slider. "Sistine" is
+ * "Moonstone" is a warm, very-low-chroma off-white you can nudge further with the Chroma slider. "Sistine" is
  * bespoke: it sets data-glass-tint so its four-jewel --glass-bg applies; its border / accent still respond
  * to the sliders via the inline tint vars.
  *
@@ -97,8 +97,8 @@ type Harmony = keyof typeof HARMONIES;
  */
 const PRESETS = [
   {
-    value: "neutral",
-    label: "Neutral",
+    value: "selenite",
+    label: "Selenite",
     h: 250,
     c: 0,
     a: 0,
@@ -141,8 +141,8 @@ const PRESETS = [
     swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
   },
   {
-    value: "bone",
-    label: "Bone",
+    value: "moonstone",
+    label: "Moonstone",
     h: 75,
     c: 0.047,
     a: 0.18,
@@ -165,6 +165,14 @@ const PRESETS = [
     swatch: "oklch(82% 0.12 8)",
   },
   {
+    value: "goldstone",
+    label: "Goldstone",
+    h: 22,
+    c: 0.07,
+    a: 0.15,
+    swatch: "oklch(68% 0.15 22)",
+  },
+  {
     value: "amethyst",
     label: "Amethyst",
     h: 300,
@@ -181,8 +189,16 @@ const PRESETS = [
     swatch: "oklch(78% 0.13 255)",
   },
   {
-    value: "emerald",
-    label: "Emerald",
+    value: "lapis",
+    label: "Lapis",
+    h: 268,
+    c: 0.15,
+    a: 0.15,
+    swatch: "oklch(56% 0.21 268)",
+  },
+  {
+    value: "aventurine",
+    label: "Aventurine",
     h: 158,
     c: 0.07,
     a: 0.15,
@@ -232,15 +248,23 @@ const PRESETS = [
 
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 
+// Chakra-stone renames (emerald→aventurine, bone→moonstone, neutral→selenite): map a stored legacy
+// name to its new preset so returning visitors keep their tint instead of falling back to the default.
+const LEGACY_TINTS: Record<string, PresetValue> = {
+  emerald: "aventurine",
+  bone: "moonstone",
+  neutral: "selenite",
+};
+
 // Presets that own a bespoke [data-glass-tint] block in globals.css (own --glass-bg / dark overrides) rather
 // than just driving the tint vars — so they need the data-glass-tint ATTRIBUTE set to hook those rules: the
-// frescoes (Sistine / Muse / Aurora / Gloaming) + bone (dark-mode wash/opaque override → pale "dark bone").
+// frescoes (Sistine / Muse / Aurora / Gloaming) + moonstone (dark-mode wash/opaque override → pale "dark moonstone").
 const BESPOKE = new Set<string>([
   "sistine",
   "muse",
   "aurora",
   "gloaming",
-  "bone",
+  "moonstone",
 ]);
 
 function applyTint(h: number, c: number, a: number, tint: string | null) {
@@ -253,12 +277,12 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
   root.style.setProperty("--glass-tint-h", String(h));
   root.style.setProperty("--glass-tint-c", String(c));
   root.style.setProperty("--glass-tint-a", String(a));
-  // Harmonic anchor: the two hue-less themes — neutral (chroma 0) and bone — anchor the color wheel at 0°
+  // Harmonic anchor: the two hue-less themes — selenite (chroma 0) and moonstone — anchor the color wheel at 0°
   // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Set here
   // (not via a CSS :root:not rule) because jewels apply as inline vars WITHOUT a data-glass-tint attr, so an
-  // attribute-based selector can't tell them apart from neutral. Keyed on CHROMA — the single colorfulness
+  // attribute-based selector can't tell them apart from selenite. Keyed on CHROMA — the single colorfulness
   // master (surfaces + text + harmonics) — not the retired wash alpha, so chroma 0 is the one neutral signal.
-  if (c === 0 || tint === "bone") {
+  if (c === 0 || tint === "moonstone") {
     root.style.setProperty("--harmony-h", "0");
   } else {
     root.style.removeProperty("--harmony-h");
@@ -268,7 +292,7 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
 }
 
 /** Optional user accent (hue + vividness). When on, pins --accent-h/--accent-c on <html> so --glass-accent
- *  and AutoForeground's hue-less text (neutral + bone) follow the chosen color; off clears them. Fires the
+ *  and AutoForeground's hue-less text (selenite + moonstone) follow the chosen color; off clears them. Fires the
  *  fg event so AutoForeground re-bands (APCA-safe) on change. */
 function applyAccent(on: boolean, ah: number, ac: number) {
   const root = document.documentElement;
@@ -298,7 +322,7 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
         "--glass-tint-h": v.h,
         "--glass-tint-c": v.c,
         "--glass-tint-a": v.a,
-        "--harmony-h": v.c === 0 || v.base === "bone" ? 0 : v.h,
+        "--harmony-h": v.c === 0 || v.base === "moonstone" ? 0 : v.h,
         "--glass-opaque-l": v.l,
         "--accent-h": v.accOn ? v.accH : Number.NaN,
         "--accent-c": v.accC,
@@ -360,7 +384,16 @@ export function GlassTintSwitcher() {
   const [harmony, setHarmony] = React.useState<Harmony>("complement");
 
   React.useEffect(() => {
-    const storedBase = (localStorage.getItem(ROOT_KEY) as PresetValue | null) ?? "amethyst";
+    const storedRaw = localStorage.getItem(ROOT_KEY);
+    const legacy = storedRaw ? LEGACY_TINTS[storedRaw] : undefined;
+    if (legacy) {
+      try {
+        localStorage.setItem(ROOT_KEY, legacy);
+      } catch {
+        // ignore storage failures
+      }
+    }
+    const storedBase = ((legacy ?? storedRaw) as PresetValue | null) ?? "amethyst";
     const preset = PRESETS.find((p) => p.value === storedBase);
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;
@@ -469,7 +502,7 @@ export function GlassTintSwitcher() {
     setA(p.a);
     applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
     persist(p.value, p.h, p.c, p.a);
-    // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: bone 94/86.2) and, for
+    // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94/80) and, for
     // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
     // (one reflow on a click is fine) so the tint is accurate and the NEXT drag's snapshot starts from truth.
     const el = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-opaque-l"));
@@ -567,7 +600,7 @@ export function GlassTintSwitcher() {
   };
 
   // User accent (hue + vividness): persists {on,h,c} + applies via applyAccent — drives --glass-accent and, on
-  // neutral + bone, the text foreground (AutoForeground re-bands on the sistine-fg event, APCA-safe).
+  // selenite + moonstone, the text foreground (AutoForeground re-bands on the sistine-fg event, APCA-safe).
   const changeAccent = (on: boolean, ah: number, ac: number) => {
     setAccentOn(on);
     setAccentH(ah);
@@ -624,9 +657,9 @@ export function GlassTintSwitcher() {
     });
   };
 
-  // Harmony origin for the accent swatches — same hue-less rule as applyTint/emitFg: neutral (chroma 0) and
-  // bone anchor the wheel at 0°; every other tint harmonizes from the current tint hue.
-  const harmonyOrigin = c === 0 || base === "bone" ? 0 : h;
+  // Harmony origin for the accent swatches — same hue-less rule as applyTint/emitFg: selenite (chroma 0) and
+  // moonstone anchor the wheel at 0°; every other tint harmonizes from the current tint hue.
+  const harmonyOrigin = c === 0 || base === "moonstone" ? 0 : h;
 
   const triggerSwatch =
     base === "sistine" || base === "muse"
@@ -651,7 +684,7 @@ export function GlassTintSwitcher() {
         <div className="font-medium text-sm">Glass color</div>
 
         <div className="grid grid-cols-4 gap-2">
-          {/* Four per row, the 4 frescoes on the top row, then neutral/bone + the jewels. */}
+          {/* Four per row, the 4 frescoes on the top row, then selenite/moonstone + the jewels. */}
           {[
             ...PRESETS.filter((p) => FRESCOES.has(p.value)),
             ...PRESETS.filter((p) => !FRESCOES.has(p.value)),

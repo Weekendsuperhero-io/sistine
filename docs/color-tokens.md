@@ -110,7 +110,7 @@ The crystal shine has three flavors — set `data-gloss` on any ancestor (defaul
 
 ## Harmonic color
 
-Color-wheel relationships off `--harmony-h` (the content hue, or `0` for the hue-less neutral / bone themes). Pure CSS, so they rotate with the theme.
+Color-wheel relationships off `--harmony-h` (the content hue, or `0` for the hue-less selenite / moonstone themes). Pure CSS, so they rotate with the theme.
 
 | Family | What |
 |---|---|
@@ -146,7 +146,7 @@ The dials the engine composes — leaf values (never composing tint vars) on bar
 | `--glass-sheet-a` / `--glass-sheet-a1` | `0.11` / `0.04` | `0.05` / `0.03` | Sheer sheet base alpha + its top-stop offset (`--glass-bg`, `--glass-frosted-bg`) |
 | `--glass-frost-boost` | `0.1` | `0.06` | Frosted = the sheet lifted by this much |
 | `--glass-border-a` | `0.12` | `0.15` | Glass edge alpha |
-| `--glass-wash-l` / `--glass-wash-c-mult` | `72%` / `2.5` | `58%` / `2.5` | Tint wash lightness / chroma (bone night: `72%` / `2`) |
+| `--glass-wash-l` / `--glass-wash-c-mult` | `72%` / `2.5` | `58%` / `2.5` | Tint wash lightness / chroma (moonstone night: `72%` / `2`) |
 | `--glass-accent-l` / `--glass-accent-c` | `0.6` / `0.15` | `0.68` / `0.14` | Accent envelope |
 | `--glass-glow-lc` / `--glass-glow-a` | `0.62 0.2` / `0.45` | `0.7 0.18` / `0.5` | Glow color envelope |
 | `--harmonic-l` | `0.6` | `0.68` | `--color-*` ready-color lightness |

@@ -125,6 +125,24 @@ Every component lives in a single tree — `components/ui/[name].tsx` (published
 
 Components call `materialSurface()` from `lib/material.ts` instead of hardcoding recipe class strings, so the material → markup mapping lives in one place.
 
+## 🌐 Browser support
+
+**Safari 17.5+ · Chrome 120+ · Edge 120+ · Firefox 128+** — declared as `browserslist` in `package.json`.
+
+This floor is derived from what the theme actually uses, not chosen. The binding constraints are:
+
+| Feature | Needs | Used for |
+|---|---|---|
+| `text-wrap: balance` | Safari 17.5 | `CardTitle`, `CardDescription` |
+| CSS nesting (bare `&`) | Chrome 120 | `app/theme/utilities.css` |
+| `mask-composite` (unprefixed) | Chrome 120 | pattern scenes, glass masks |
+| `@property` | Firefox 128 | Tailwind v4's own output |
+| `oklch()` / `color-mix()` | Safari 16.2 · Chrome 111 | every colour in the theme |
+
+Tailwind v4's own baseline (Safari 16.4 / Chrome 111 / Firefox 128) sits just under this, so the floor is set by Sistine's CSS rather than by Tailwind.
+
+Below the floor there is **one safety net, not a polyfill**: `app/theme/tokens.css` ends with an `@supports not (color: oklch(…))` block that restores a legible background, foreground and panel fill. Because every colour is an oklch value passed through a custom property, an engine without oklch resolves those properties to invalid at substitution time and computes them to `unset` — surfaces go transparent rather than falling back. The block prevents that; it does not reproduce the palette.
+
 ## 🎨 Customization
 
 ### Retint all glass
@@ -138,7 +156,9 @@ Every color is authored in **oklch** in `app/theme/` (aggregated by `app/globals
 }
 ```
 
-Built-in presets ship as `[data-glass-tint]` blocks: **jewels** (single hue — neutral, rose, carnelian, amber, bone, peridot, emerald, turquoise, aquamarine, sapphire, amethyst, tourmaline) and **frescoes** (multi-hue — sistine, muse, aurora, gloaming). Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` axis prop — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
+Raise `--glass-tint-c` freely: the surfaces with lightness headroom (`--primary`, `--glass-tint-wash`, the opaque body) scale with it, while the near-white sheet and borders read a capped `--glass-tint-c-hi` instead — at L 95–100% sRGB holds almost no chroma and how much survives depends on the hue, so uncapped they would drift per preset and per engine. `pnpm test:gamut` scores every preset against the sRGB ceiling and fails if a new one reaches further out than those shipping today.
+
+Built-in presets ship as `[data-glass-tint]` blocks: **jewels** (single hue — selenite, rose, goldstone, carnelian, amber, moonstone, peridot, aventurine, turquoise, aquamarine, sapphire, lapis, amethyst, tourmaline) and **frescoes** (multi-hue — sistine, muse, aurora, gloaming). Switch the surface treatment with `data-glass` on `<html>`: `glass` (default), `frosted`, `crystal`, `opaque`. Components also take a `glow` axis prop — a tint-tracking colored halo, documented in [`docs/glow.md`](./docs/glow.md).
 
 **Presets are turnkey, pure CSS.** Set the attribute and toggle `.dark` (e.g. next-themes) — every preset and fresco carries its own day + night values, the scene backgrounds flip with the mode, and static text baselines keep all four materials legible with no JavaScript. Optionally install and mount `<AutoForeground />` (once, in your root layout) to upgrade those baselines to exact APCA-solved foregrounds that re-band live as the tint, mode, or surface knobs change — it refines, it is never required.
 

@@ -2,9 +2,30 @@
 
 import { PaletteIcon, PauseIcon, PlayIcon, ProhibitIcon, ShuffleIcon, SparkleIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle } from "@/components/pattern-background";
-import type { RampGradientAxis } from "@/lib/oklch-utils";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle, SAND_PATTERNS } from "@/components/pattern-background";
+import { oklchToSrgb, type RampGradientAxis } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
+
+/* The themed default shown when no base color has been picked. The visible swatch renders it as
+   oklch() so it re-resolves with the tint; the hidden <input type="color"> needs the same color as
+   hex, so both read these three numbers. */
+const BASE_SWATCH = {
+  l: 85,
+  c: 0.03,
+} as const;
+
+/** The themed default as `#rrggbb`, resolved against whatever tint hue is live right now. */
+function themedBaseHex(): string {
+  const h = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-tint-h")) || 0;
+  const hex = oklchToSrgb(BASE_SWATCH.l, BASE_SWATCH.c, h)
+    .map((v) =>
+      Math.round(v * 255)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("");
+  return `#${hex}`;
+}
 
 const options: {
   value: BackgroundType;
@@ -125,6 +146,8 @@ export function BackgroundSwitcher() {
     cyclePatternSpeed,
     patternDisc,
     cyclePatternDisc,
+    patternSand,
+    cyclePatternSand,
     baseColor,
     setBaseColor,
   } = useBackground();
@@ -341,6 +364,17 @@ export function BackgroundSwitcher() {
               {patternDisc[0]}
             </button>
           )}
+          {SAND_PATTERNS.has(patternStyle) && (
+            <button
+              type="button"
+              title={`Blowing sand: ${patternSand} — click to change`}
+              aria-label={`Blowing sand ${patternSand}, click to change`}
+              onClick={cyclePatternSand}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", patternSand === "still" ? active : idle)}
+            >
+              {patternSand}
+            </button>
+          )}
         </div>
       )}
 
@@ -355,12 +389,18 @@ export function BackgroundSwitcher() {
               aria-hidden="true"
               className="h-4 w-4 rounded-full border border-[var(--glass-border)]"
               style={{
-                background: baseColor ?? "oklch(0.85 0.03 var(--glass-tint-h))",
+                background: baseColor ?? `oklch(${BASE_SWATCH.l}% ${BASE_SWATCH.c} var(--glass-tint-h))`,
               }}
             />
             <input
               type="color"
-              value={baseColor ?? "#101014"}
+              defaultValue={baseColor ?? undefined}
+              /* type="color" only accepts hex, so the themed default has to be converted rather than
+                 handed over as the oklch() the swatch uses. Refreshed on open instead of held in
+                 state so it tracks the live tint — the hue changes whenever the preset does. */
+              onPointerDown={(e) => {
+                if (!baseColor) e.currentTarget.value = themedBaseHex();
+              }}
               onChange={(e) => setBaseColor(e.target.value)}
               className="absolute inset-0 cursor-pointer opacity-0"
             />

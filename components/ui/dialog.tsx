@@ -73,7 +73,25 @@ const DialogContent = React.forwardRef<
         data-material={m?.["data-material"]}
         className={cn(
           m?.className,
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-hidden rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+          // Centered WITHOUT a transform. The usual `left-1/2 top-1/2 -translate-1/2` lands any
+          // odd-pixel-sized dialog on a half pixel, and on a composited glass surface every glyph then
+          // rasterizes off the pixel grid — visibly blurry text. `inset-0 m-auto h-fit` centers through
+          // layout instead, which snaps to whole pixels. (This is why the inset-positioned sheet was
+          // always crisp and dialogs were not.) The slide-* utilities are gone with it: they existed
+          // only to offset that base translate, and here they would drag the dialog off-centre. Fade +
+          // zoom both END AT IDENTITY, so nothing is left on a fractional transform once open.
+          // NOTE the underscores in the max-h arbitrary value: Tailwind turns them into spaces, and
+          // `calc(100dvh-2rem)` without them is invalid CSS (calc needs whitespace around - and +), so the
+          // whole declaration is silently dropped and the cap does nothing.
+          // max-h + an inner scroll area: without a cap, content taller than the viewport simply ran off
+          // the bottom with no way to reach it. The DIALOG keeps overflow-hidden (it clips the rounded
+          // corners and keeps the absolutely-positioned close button pinned); the scrolling happens in
+          // the wrapper around {children} below, so the close button never scrolls out of reach.
+          // grid-rows-[minmax(0,1fr)] is the other half of it: an IMPLICIT auto row sizes to its content
+          // and happily overflows a max-height, so the wrapper never became scrollable and the dialog
+          // just clipped. minmax(0,1fr) lets the row shrink, which is what hands the overflow to the
+          // wrapper's overflow-y-auto.
+          "@container/dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] grid-rows-[minmax(0,1fr)] w-full max-w-lg gap-4 overflow-hidden rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           dialogContentVariants({
             variant,
           }),
@@ -81,7 +99,9 @@ const DialogContent = React.forwardRef<
         )}
         {...rest}
       >
-        {children}
+        {/* min-h-0 is load-bearing: a grid item defaults to min-height:auto, which refuses to shrink
+            below its content, so without it this never scrolls and the dialog just clips again. */}
+        <div className="grid min-h-0 gap-4 overflow-y-auto">{children}</div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
@@ -98,7 +118,7 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div data-slot="dialog-header" className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div data-slot="dialog-header" className={cn("flex flex-col space-y-1.5 text-center @sm/dialog-content:text-left", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
@@ -110,7 +130,11 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement> & {
   showCloseButton?: boolean;
 }) => (
-  <div data-slot="dialog-footer" className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props}>
+  <div
+    data-slot="dialog-footer"
+    className={cn("flex flex-col-reverse @sm/dialog-content:flex-row @sm/dialog-content:justify-end @sm/dialog-content:space-x-2", className)}
+    {...props}
+  >
     {children}
     {showCloseButton && (
       <DialogPrimitive.Close asChild>

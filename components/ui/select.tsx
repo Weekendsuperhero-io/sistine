@@ -6,6 +6,7 @@ import { Select as SelectPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
+import { composeRefs, useSnappedPopper } from "@/lib/snap-popper";
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
@@ -25,7 +26,7 @@ const selectTriggerVariants = cva(
 );
 
 const selectContentVariants = cva(
-  "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+  "relative z-50 max-h-96 min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-hidden rounded-xl shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
   {
     variants: {
       variant: {
@@ -126,12 +127,13 @@ const SelectContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & VariantProps<typeof selectContentVariants> & MaterialAxisProps
 >(({ className, children, position = "popper", align = "center", variant = "glass", ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
+  const snapRef = useSnappedPopper();
   const m = materialSurface(variant === "default" ? null : CONTENT_ROLE, axes);
 
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
-        ref={ref}
+        ref={composeRefs(ref, snapRef)}
         data-slot="select-content"
         data-material={m?.["data-material"]}
         className={cn(

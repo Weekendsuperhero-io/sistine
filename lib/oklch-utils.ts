@@ -213,7 +213,7 @@ export const HARMONIC_NAMES = Object.keys(HARMONIC_OFFSETS) as HarmonicName[];
 
 /**
  * Rotate an anchor hue by a named color-wheel relationship, wrapped to [0, 360). The anchor is normally
- * the harmony hue (--harmony-h: the content hue, or 0 for the hue-less neutral/bone themes). Feed the
+ * the harmony hue (--harmony-h: the content hue, or 0 for the hue-less selenite/moonstone themes). Feed the
  * result to `readableForeground({ hue })` to keep the contrast solve while landing on the harmonic angle.
  */
 export function harmonicHue(anchorH: number, name: HarmonicName): number {
@@ -475,6 +475,98 @@ export function rampAxisColors(axis: RampGradientAxis, seed: OklchColor, count: 
   }
 }
 
+/**
+ * The lightness range a full-bleed BACKDROP may use while text over it stays readable.
+ *
+ * The ramps below deliberately cover their whole range — that is what makes them useful as swatches.
+ * As a wallpaper it is the opposite of what you want: a lightness ramp runs L 0 → 100, so a single
+ * solved foreground is legible at one end of the viewport and invisible at the other. This returns
+ * the sub-range on the far side of `fg` where |Lc| stays at or above `targetLc`, measured with the
+ * same APCA implementation the rest of the theme uses.
+ *
+ * Default target is 60 — APCA's non-body level. Body copy sits on veiled glass ABOVE the backdrop and
+ * clears 75 comfortably from there; 60 is for the headings that sit directly on it. Asking 75 of the
+ * raw backdrop would squeeze light mode into L 87–100 and leave nothing to make a gradient out of.
+ *
+ * |Lc| is monotonic in backdrop lightness on either side of a foreground, so this binary-searches the
+ * boundary rather than sweeping.
+ */
+export function readableLightnessBand(
+  fg: OklchColor | string,
+  seed: OklchColor,
+  targetLc = 60,
+  headroom = 7,
+): {
+  lMin: number;
+  lMax: number;
+} {
+  const text = toColor(fg);
+  const passes = (l: number) =>
+    Math.abs(
+      apcaContrast(text, {
+        ...seed,
+        l,
+      }),
+    ) >= targetLc;
+  /* A dark foreground pushes the backdrop light, and vice versa. */
+  const backdropGoesLight = text.l < 50;
+  let lo = backdropGoesLight ? 0 : 100;
+  let hi = backdropGoesLight ? 100 : 0;
+  if (!passes(hi)) {
+    /* Nothing on this side clears the target (a mid-lightness foreground). Give back the whole
+       range rather than an empty one — banding is a readability aid, not a hard gate. */
+    return {
+      lMin: 0,
+      lMax: 100,
+    };
+  }
+  for (let i = 0; i < 12; i++) {
+    const mid = (lo + hi) / 2;
+    if (passes(mid)) hi = mid;
+    else lo = mid;
+  }
+  /* Stop `headroom` short of the absolute extreme. That end is the HIGH-contrast one, so backing off
+     it costs no readability — but L 0 and L 100 are the two lightnesses that hold no chroma at all, so
+     running to them washes the tint out of one edge of the wallpaper. Never let it cross the boundary. */
+  const edge = Math.ceil(hi);
+  return backdropGoesLight
+    ? {
+        lMin: edge,
+        lMax: Math.max(edge + 1, 100 - headroom),
+      }
+    : {
+        lMin: Math.min(Math.floor(hi) - 1, headroom),
+        lMax: Math.floor(hi),
+      };
+}
+
+/** Remap a ramp's lightnesses into `band`, preserving the ramp's shape. A ramp whose lightness is
+ *  constant (the hue and chroma axes) is clamped into the band instead of stretched across it.
+ *  Exported so the canvas backdrop bands the same ramps the CSS gradient does. */
+export function fitToBand(
+  colors: OklchColor[],
+  band: {
+    lMin: number;
+    lMax: number;
+  },
+): OklchColor[] {
+  const ls = colors.map((c) => c.l);
+  const lo = Math.min(...ls);
+  const hi = Math.max(...ls);
+  const span = hi - lo;
+  if (span < 0.001) {
+    const l = Math.min(band.lMax, Math.max(band.lMin, lo));
+    return colors.map((c) => ({
+      ...c,
+      l,
+    }));
+  }
+  return colors.map((c) => ({
+    ...c,
+    l: band.lMin + ((c.l - lo) / span) * (band.lMax - band.lMin),
+  }));
+}
+
 export function rampGradient(
   axis: RampGradientAxis,
   seed: OklchColor,
@@ -482,10 +574,43 @@ export function rampGradient(
   options: {
     gamut?: "srgb" | "p3";
     shape?: GradientShape;
+    /** Constrain the ramp's lightness to a readable range — see {@link readableLightnessBand}. */
+    band?: {
+      lMin: number;
+      lMax: number;
+    };
   } & GradientGeometry = {},
 ): string {
-  const { gamut = "srgb", shape = "linear", angle, position, radialShape, radialSize } = options;
-  const colors = rampAxisColors(axis, seed, count, gamut);
+  const { gamut = "srgb", shape = "linear", band, angle, position, radialShape, radialSize } = options;
+  const ramped = rampAxisColors(axis, seed, count, gamut);
+  const colors = band ? fitToBand(ramped, band) : ramped;
+
+  /* A conic gradient wraps: whatever sits at 360° butts straight into 0°. An open ramp therefore
+     meets its own opposite end at the twelve-o'clock line and draws a hard seam right through the
+     wallpaper — at full range that is white against black. Close the loop instead, and drop the
+     center plateau, which reads as a lopsided wedge once the ramp is bent into a circle.
+       hue   — already cyclic, so repeating the first color at 360° spaces evenly and joins invisibly.
+       other — mirror out and back, giving a symmetric sweep that also ends where it started. */
+  if (shape === "conic") {
+    const loop =
+      axis === "hue"
+        ? [
+            ...colors,
+            colors[0],
+          ]
+        : [
+            ...colors,
+            ...colors.slice(0, -1).reverse(),
+          ];
+    const stops = loop.map((color, i) => `${formatOklch(color)} ${((i / (loop.length - 1)) * 100).toFixed(1)}%`);
+    return wrapGradient(shape, stops.join(", "), {
+      angle,
+      position,
+      radialShape,
+      radialSize,
+    });
+  }
+
   const mid = Math.floor(colors.length / 2);
   const plateau = 7; // half-width (%) of the centered theme-color band
   const leftEnd = 50 - plateau;
@@ -655,7 +780,7 @@ export function glassSolidSurface(
   },
   solidA: number,
   // Wash knobs — pass the LIVE --glass-wash-l / --glass-wash-c-mult when a theme overrides them
-  // (bone night: 72 / 2), else the defaults mirror the CSS mode values exactly.
+  // (moonstone night: 72 / 2), else the defaults mirror the CSS mode values exactly.
   washL: number = dark ? 58 : 72,
   washCMult = 2.5,
 ): OklchColor {
@@ -870,7 +995,7 @@ export function readableForeground(bg: OklchColor | string, opts: ReadableForegr
 
   // Chroma preservation (opt-in, minChroma > 0): want === reach means the band sits beyond what this
   // surface can give, so the search below would pin to the lightness EXTREME — where the gamut
-  // annihilates the requested chroma and tinted text reads pure black/white (bone-dark cream: reach
+  // annihilates the requested chroma and tinted text reads pure black/white (moonstone-dark cream: reach
   // ≈ 68 < body floor 75 → L≈0 → a chosen accent renders BLACK). Trade the few unreachable Lc points
   // for color: aim instead at the most contrast available at a lightness that still HOLDS the kept
   // chroma — never below the band floor when the floor is achievable. In-reach bands never get here.

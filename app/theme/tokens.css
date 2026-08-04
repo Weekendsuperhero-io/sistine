@@ -3,6 +3,22 @@
    .dark must come after :root (same-element ties resolve by source order on html.dark). */
 
 @theme inline {
+  /* Easing. Tailwind's built-ins are deliberately gentle; these are the stronger variants UI motion
+     wants, exposed as `ease-out` / `ease-in-out` / `ease-drawer` utilities.
+       out    — anything ENTERING or EXITING. Starts fast, so the first frame (the one the user is
+                actually watching) already moves.
+       in-out — things MOVING on screen that neither enter nor leave: carousels, sliders.
+       drawer — the iOS/Ionic sheet curve, for panels that slide from an edge.
+     There is deliberately no `ease-in` token: it delays the first frame, which is the one moment the
+     interface most needs to feel responsive. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Anything with a bare `transition` and no `ease-*` inherits this. Tailwind ships
+     cubic-bezier(0.4, 0, 0.2, 1) — symmetric, so it eases IN as well, and the first frame barely
+     moves. Same curve as --ease-out, written literally because @theme inline doesn't emit the vars
+     it inlines. */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-foreground-soft: var(--foreground-soft);
@@ -80,9 +96,14 @@
      crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
   --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
-  --glass-gloss-tint: 4.25; /* gloss chroma multiplier over the tint ("Tint") */
+  /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
+     0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
+     clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
+     and far less at L=66, so beyond that the browser, not the theme, is picking the color. Jewels
+     (0.07 × 4.25 = 0.298) sit under the clamp and are unaffected; only the status tints hit it. */
+  --glass-gloss-tint: 4.25;
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
-  --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (bone night quiets it to 2) */
+  --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (moonstone night quiets it to 2) */
   --glass-accent-l: 0.6; /* accent envelope — lifted in dark so the hue pops */
   --glass-accent-c: 0.15;
   --glass-glow-lc: 0.62 0.2; /* glow L+C pair */
@@ -268,7 +289,7 @@
   --foreground-strong: oklch(0.96 0.035 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
   --foreground-ui: oklch(0.75 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
   /* Static OPAQUE + CRYSTAL tier baselines, dark twins — the standard dark opaque floor (L32) and
-     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (bone
+     crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (moonstone
      cream) override the -opaque set in their own block; AutoForeground refines when mounted. */
   --foreground-opaque: oklch(0.92 0.04 var(--glass-fg-h));
   --foreground-soft-opaque: oklch(0.78 0.04 var(--glass-fg-h));
@@ -354,5 +375,38 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background-color: color-mix(in oklch, var(--foreground) 38%, transparent);
+  }
+}
+
+/* ── Below the floor ──────────────────────────────────────────────────────────
+   package.json's browserslist is the supported floor (Safari 17.5 / Chrome 120 / Firefox 128 / Edge
+   120). It is set by what this theme actually uses, not by preference — the binding constraints are
+   text-wrap:balance (Safari 17.5), bare-`&` CSS nesting and unprefixed mask-composite (Chrome 120),
+   and @property (Firefox 128). Tailwind v4's own baseline sits just under it.
+
+   Every colour in this theme is oklch(), fed through custom properties. On an engine without oklch the
+   custom property still PARSES (custom props accept anything) and only fails when substituted — so
+   `background-color: var(--color-background)` resolves to an invalid value and computes to `unset`,
+   i.e. transparent, rather than to a fallback. Surfaces disappear; text usually survives on the UA
+   default. This is not a polyfill and does not try to reproduce the palette — it guarantees a legible
+   page instead of transparent panels on stacked backgrounds.
+
+   UNVERIFIED IN A REAL ENGINE: no browser in the test matrix lacks oklch, so this branch has only been
+   confirmed to compile, not to render. Treat it as a floor, not a tested path. */
+@supports not (color: oklch(0% 0 0)) {
+  :root {
+    color-scheme: light;
+    background-color: #f7f7fb;
+    color: #17161c;
+  }
+  body {
+    background-color: #f7f7fb;
+    color: #17161c;
+  }
+  .glass,
+  [data-material] {
+    background-color: #ffffffe6;
+    border: 1px solid #17161c26;
+    backdrop-filter: none;
   }
 }

@@ -208,8 +208,8 @@ export default function ThemingPage() {
             <div>
               <h3 className="mb-2 font-semibold">Presets</h3>
               <p className="mb-2 text-muted-foreground">
-                <strong>Jewels</strong> (single hue): neutral, rose, carnelian, amber, bone, peridot, emerald, turquoise, aquamarine, sapphire,
-                amethyst, tourmaline.
+                <strong>Jewels</strong> (single hue): selenite, rose, goldstone, carnelian, amber, moonstone, peridot, aventurine, turquoise,
+                aquamarine, sapphire, lapis, amethyst, tourmaline.
               </p>
               <p className="mb-2 text-muted-foreground">
                 <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
@@ -647,8 +647,8 @@ const onAccent = useReadableForeground(accent, "large");
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Every relationship off the harmony anchor (<IC>--harmony-h</IC> — the content hue, or <IC>0</IC> for the hue-less neutral / bone themes)
-              ships as a token, so they rotate with the tint automatically. The hue tokens are angles — use anywhere as{" "}
+              Every relationship off the harmony anchor (<IC>--harmony-h</IC> — the content hue, or <IC>0</IC> for the hue-less selenite / moonstone
+              themes) ships as a token, so they rotate with the tint automatically. The hue tokens are angles — use anywhere as{" "}
               <IC>oklch(L C var(--hue-*))</IC>:
             </p>
             <div className="overflow-x-auto">
