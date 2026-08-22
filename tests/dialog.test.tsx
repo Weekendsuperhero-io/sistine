@@ -50,6 +50,18 @@ describe("DialogContent: bodyClassName", () => {
     expect(open()).toHaveClass("grid", "min-h-0", "gap-4", "overflow-y-auto");
   });
 
+  it("cancels the dialog's padding so the scroll container stops clipping child shadows", () => {
+    /* `overflow-y: auto` is not one-axis: a non-visible axis forces the other from visible to auto,
+       so this wrapper is a scroll container horizontally too and clips at its padding box. Left at
+       the dialog's CONTENT box that box-shadow shear was visible as a hard cut down the side of the
+       last footer button and under the footer row. The negative margin has to match the dialog's own
+       p-6 exactly, or content re-offsets by the difference. */
+    const wrapper = open();
+    expect(wrapper).toHaveClass("-m-6", "p-6");
+    const surface = wrapper.closest("[data-slot=dialog-content]");
+    expect(surface).toHaveClass("p-6");
+  });
+
   it("does not leak onto the outer surface", () => {
     /* className and bodyClassName address different elements; crossing them would be worse than
        having no prop at all. */

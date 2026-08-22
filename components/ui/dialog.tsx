@@ -60,7 +60,9 @@ const DialogContent = React.forwardRef<
       animated?: boolean;
       /** Styles the inner scrolling wrapper around `children`. `className` targets the OUTER surface,
        *  so without this a consumer has no way to change the body's layout — swap the grid for flex,
-       *  drop the gap, or take the scrolling over entirely. */
+       *  drop the gap, or take the scrolling over entirely.
+       *  Its `-m-6 p-6` is a matched pair that cancels the dialog's padding so the scroll container
+       *  stops clipping child shadows; override one and you must override the other. */
       bodyClassName?: string;
       showCloseButton?: boolean;
     }
@@ -104,8 +106,18 @@ const DialogContent = React.forwardRef<
         {...rest}
       >
         {/* min-h-0 is load-bearing: a grid item defaults to min-height:auto, which refuses to shrink
-            below its content, so without it this never scrolls and the dialog just clips again. */}
-        <div className={cn("grid min-h-0 gap-4 overflow-y-auto", bodyClassName)}>{children}</div>
+            below its content, so without it this never scrolls and the dialog just clips again.
+            -m-6 p-6 cancels the dialog's own p-6 so this box's edges land ON the dialog's padding box
+            instead of its content box. That matters because `overflow-y: auto` is not one-axis: when
+            either axis is non-visible the other computes visible -> auto, so this is a scroll
+            container HORIZONTALLY too, and a scroll container clips at its padding box. Sitting at the
+            content box it sheared every child's box-shadow flat 24px inside the dialog edge — a hard
+            vertical cut down the side of the last footer button and a hard horizontal one under the
+            footer row. Cancelling the padding moves that clip out to where the dialog's own
+            overflow-hidden already clips, which does the same job and follows the rounded corners.
+            The two utilities are a pair: overriding padding alone via bodyClassName re-offsets the
+            body by the leftover negative margin. */}
+        <div className={cn("-m-6 grid min-h-0 gap-4 overflow-y-auto p-6", bodyClassName)}>{children}</div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
