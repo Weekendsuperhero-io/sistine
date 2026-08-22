@@ -16,10 +16,10 @@
     "test:dom": "vitest run",
     "registry:build": "node scripts/build-theme.mjs && shadcn build",
     "registry:check": "node scripts/build-theme.mjs && node scripts/fix-registry.mjs && shadcn build && node scripts/smoke-registry.mjs",
+    "registry:smoke": "node scripts/smoke-registry.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static",
-    "export-storybook": "node scripts/export-storybook.js",
-    "registry:smoke": "node scripts/smoke-registry.mjs"
+    "storybook:build": "storybook build -o storybook-static",
+    "storybook:export": "node scripts/export-storybook.js",
   },
   "browserslist": [
     "Safari >= 17.5",
