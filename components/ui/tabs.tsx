@@ -83,12 +83,11 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
         "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
-        // Active state - lighter, more opaque background with shadow
-        // Light mode: white/opaque background
-        "data-[state=active]:bg-white/80 data-[state=active]:text-foreground",
+        // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (the old
+        // hardcoded bg-white/80 read as flat white in light mode: at 80% only 20% of the tinted surface
+        // survived, so the theme hue never came through).
+        "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-foreground",
         "data-[state=active]:shadow-[var(--active-shadow)]",
-        // Dark mode: lighter background + contrast (the active shadow itself is mode-aware via --active-shadow)
-        "dark:data-[state=active]:bg-white/20 dark:data-[state=active]:text-foreground",
         className,
       )}
       {...props}

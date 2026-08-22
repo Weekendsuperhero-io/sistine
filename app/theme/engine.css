@@ -19,7 +19,7 @@
 :root,
 [data-glass-tint],
 [data-sonner-toast][data-type] {
-  /* Apple-standard glassmorphism - Very subtle and refined */
+  /* Deliberately restrained glassmorphism — enough to read as glass, never enough to fog what is behind it. */
   /* Glass tint — recolor ALL glass by changing these; presets set them via [data-glass-tint].
      -h = hue, -c = chroma (gradient), -a = wash alpha. The gradient alone is too sheer
      (~6–12% opacity) to show a hue, so -a paints a solid colored floor (--glass-tint-wash)
@@ -81,12 +81,15 @@
   /* (The solidify floor — the --glass-opacity "component opacity" dial — is composed INSIDE each sheer
      glass utility, at the element. Composing it here would bake :root's --glass-opacity into the value
      and silently ignore a per-element glass={{opacity}} — the var-composition gotcha again.) */
-  /* Blur values — Apple-standard moderate blur; per-variant sizes (mode-invariant). */
+  /* Blur values — moderate by design; per-variant sizes (mode-invariant). */
   --blur: 2px;
   --blur-sm: 1px;
   --blur-lg: 8px;
   --blur-xl: 12px;
   --blur-frosted: 25px;
+  /* Chakra reads as a THICK stone, so it diffuses more than crystal's near-clear 2px even though its
+     body is more solid — the two axes are independent (how much light passes vs how scattered it is). */
+  --blur-chakra: 6px;
   /* Crystal edge — identical in both modes, so it lives here with the anchors (the crystal floor +
      shadows are mode-varying: --glass-crystal-bg in the surfaces block below, shadows on :root/.dark). */
   --glass-crystal-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / 0.3);
@@ -138,10 +141,18 @@
   --glass-stain: grayscale(var(--glass-stain-amount, 1)) invert(var(--glass-stain-invert, 0));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
+  /* Selected-control FILL (active tab, pressed toggle) — the surface twin of --active-shadow. Composed
+     here, not on :root, because it reads the tint: a scoped data-glass-tint must re-resolve it, and it
+     is why the chip tracks whichever theme the subtree carries. Mode knobs in tokens.css carry the two
+     routes to the same look (light tints the fill, dark lets the surface show through a white lift). */
+  --active-bg: oklch(var(--active-l) min(var(--glass-tint-c), var(--active-c-max)) var(--glass-tint-h) / var(--active-a));
   /* Solid PRIMARY ink (default Button, link text) — themed at the tint's OWN chroma (×1.2): selenite
      stays grey, moonstone whispers warm, jewels read clearly tinted. Lightness is the --primary-l mode knob
-     (0.42 light / 0.78 dark); the static --primary-foreground keeps ≥ Lc 62 at the worst hue. */
-  --primary: oklch(var(--primary-l) calc(var(--glass-tint-c) * 1.2) var(--glass-fg-h));
+     (0.42 light / 0.78 dark). Chroma is min(tint × 1.2, --primary-c-max): the ×1.2 is intent — primary
+     should read more saturated than the base tint — but uncapped it asked past the sRGB edge at five
+     presets in light and two in dark, where the browser, not the theme, picked the delivered colour.
+     Measured after capping: --primary-foreground holds Lc 88.1 light / 62.9 dark at the worst hue. */
+  --primary: oklch(var(--primary-l) min(calc(var(--glass-tint-c) * 1.2), var(--primary-c-max)) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
   --color-complement: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-complement));
   --color-analogous-1: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-analogous-1));
@@ -178,8 +189,38 @@
     oklch(99% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost))) 75%,
     oklch(95% calc(var(--glass-tint-c-hi) * 1.3) var(--glass-tint-h) / calc(var(--glass-sheet-a) + var(--glass-frost-boost) + 0.01)) 100%
   );
-  /* Very subtle white border - Apple standard (alpha is the mode dial) */
+  /* Very subtle white border — the lit edge of a cut sheet (alpha is the mode dial) */
   --glass-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
+  /* Opaque CHROME edge — the shadcn --border/--input role tokens (dividers, ghost/input outlines, any
+     bare `border-border`). Previously flat neutral (oklch(0.88 0 0) / oklch(0.3 0 0)), which made them
+     the ONLY chrome in the theme that did not move with the tint: a ghost Button kept a grey edge under
+     lapis while its `outline` sibling (border-foreground/20) tracked the theme. Lightness moves only in
+     LIGHT mode (0.88 → --border-l 0.85) to buy chroma headroom; see the knob comment in tokens.css.
+     Chroma is min(tint chroma, --border-c-max) — a CAP, deliberately not --glass-tint-c-hi and not a
+     multiplier. --glass-tint-c-hi (0.025) is the NEAR-WHITE cap, sized for the L 95–100% sheet stops
+     and crystal floor; borrowing it here spent only 66% of the ceiling on amethyst and 17% on peridot,
+     which is why the edge still read grey. A flat multiplier fails the other way: lapis declares
+     c 0.15, so any factor small enough to keep it in gamut pushes the 0.07 jewels below where they
+     started. min() gives every preset its full declared chroma up to the ceiling floor and clamps only
+     the ones that overreach — and leaves c 0 at exactly 0, so selenite stays the neutral theme it is.
+     Declaring them HERE (rather than on :root) also puts them under scripts/check-gamut.mjs, which
+     scrapes engine.css for both the calc() and min() chroma shapes — the suite went 20 → 24 surface/mode
+     pairs when these landed, so a later retune of the caps is measured, not asserted.
+     SURFACE hue (--glass-tint-h), not --glass-fg-h: an edge belongs to the surface it bounds, matching
+     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse night: surface 222,
+     text 310) the border follows the panel, not the type. */
+  --border: oklch(var(--border-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
+  --input: oklch(var(--input-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
+  /* The remaining shadcn SURFACE tokens — the last chroma-0 values in the theme. Same shape as --border
+     for the same reason: a toggle's on-state, a hover wash and a sidebar panel all take their fill from
+     these, so while they were flat neutrals those surfaces read near-white in light and near-black in
+     dark in every preset. Each carries its OWN cap because the sRGB ceiling is a function of lightness
+     and these sit from L 18 to L 98 — a shared cap would have to be the smallest of them (0.009, at the
+     near-white sidebar) and would tint nothing. See the knobs in tokens.css. */
+  --accent: oklch(var(--accent-bg-l) min(var(--glass-tint-c), var(--accent-bg-c-max)) var(--glass-tint-h));
+  --secondary: oklch(var(--secondary-l) min(var(--glass-tint-c), var(--secondary-c-max)) var(--glass-tint-h));
+  --muted: oklch(var(--muted-l) min(var(--glass-tint-c), var(--muted-c-max)) var(--glass-tint-h));
+  --sidebar: oklch(var(--sidebar-l) min(var(--glass-tint-c), var(--sidebar-c-max)) var(--glass-tint-h));
   /* Theme-aware brand gradient — follows --glass-fg-h, from the hue 3 ramp-steps out
      (8/side → step 360/17 ≈ 63.53°) to the base hue, at the mode envelope --gradient-l/-c + 0.5 alpha.
      (Axis/direction variants are computed in JS from lib/oklch-utils.ts — see the /components demo.) */
@@ -203,6 +244,51 @@
   );
   /* Crystal floor — clear glass; the alpha is the mode dial (--glass-crystal-bg-a). */
   --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
+  /* ── Chakra — the step-cut gem surface ────────────────────────────────────────────────────────
+     BODY: the stone itself. The one tint-composing token here, so it is the only one with a gamut
+     budget — min() against --glass-chakra-c-max (not a multiplier) for the same reason --border uses
+     one: lapis declares c 0.15 and would be gamut-mapped, while any multiplier small enough to hold it
+     drags the 0.07 jewels below where they should sit. Caps are measured per mode against the tightest
+     ceiling across all 17 presets, so every preset delivers 100% of its declared chroma. */
+  --glass-chakra-bg: oklch(
+    calc(var(--glass-chakra-l) * 1%) min(var(--glass-tint-c), var(--glass-chakra-c-max)) var(--glass-tint-h) /
+    var(--glass-chakra-a)
+  );
+  /* SURFACE STACK: the same gloss triple crystal bakes, so `data-gloss` white / tonal / hue reskin
+     chakra exactly as they reskin crystal (those blocks remap --glass-gloss-*, which these read), over
+     a fresco slot and the tint wash. Nothing here is inset, so nothing here has a corner of its own —
+     the element's border-radius clips the whole stack, which is the point (see the facet bands below). */
+  --glass-chakra-stack-bg:
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
+    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+  /* THE CUT — four sides, two steps, as INSET SHADOWS rather than inset background layers.
+     A background layer is always a RECTANGLE: background-size shrinks it but gives it no radius of its
+     own, so an inset gradient paints square corners over a rounded surface — a card with hard-cornered
+     rectangles stacked on it. box-shadow has no such problem; an inset shadow is the border box's own
+     rounded rect, offset, so every band follows --radius at whatever value the element carries, for
+     free and at any size.
+     Each side is a pair. The step-1 band (offset --glass-chakra-step) paints OVER the step-2 band
+     (offset twice that), so the visible result is two concentric bands per side: 0→N shows step 1
+     composited on step 2, N→2N shows step 2 alone. That is the step cut, and because step 2 is
+     literally the same colour at half alpha it cannot drift out of sync with step 1.
+     Order matters — box-shadow paints first-listed on top, so every step-1 band precedes its step-2
+     twin. Corners: adjacent bands overlap and composite rather than mitering to a hard 45° line, which
+     is the trade for following the radius. On a gem that reads as the corner facet catching both
+     neighbours, and it is what the existing --glass-shadow bevel already does at top and bottom. */
+  --glass-chakra-facets:
+    inset 0 var(--glass-chakra-step) 0 oklch(var(--shadow-highlight) / var(--glass-chakra-facet-t-a)),
+    inset var(--glass-chakra-step) 0 0 oklch(var(--shadow-highlight) / var(--glass-chakra-facet-l-a)),
+    inset calc(var(--glass-chakra-step) * -1) 0 0 oklch(var(--shadow-ink) / var(--glass-chakra-facet-r-a)),
+    inset 0 calc(var(--glass-chakra-step) * -1) 0 oklch(var(--shadow-ink) / var(--glass-chakra-facet-b-a)),
+    inset 0 calc(var(--glass-chakra-step) * 2) 0 oklch(var(--shadow-highlight) / calc(var(--glass-chakra-facet-t-a) * 0.5)),
+    inset calc(var(--glass-chakra-step) * 2) 0 0 oklch(var(--shadow-highlight) / calc(var(--glass-chakra-facet-l-a) * 0.5)),
+    inset calc(var(--glass-chakra-step) * -2) 0 0 oklch(var(--shadow-ink) / calc(var(--glass-chakra-facet-r-a) * 0.5)),
+    inset 0 calc(var(--glass-chakra-step) * -2) 0 oklch(var(--shadow-ink) / calc(var(--glass-chakra-facet-b-a) * 0.5));
+  /* Edge + depth: the standard drop plus the cut. --glass-shadow's own top/bottom bevel is left out —
+     the facet bands ARE the bevel, and doubling them would flatten the step read. */
+  --glass-chakra-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
+  --glass-chakra-shadow: var(--glass-shadow), var(--glass-chakra-facets);
+  --glass-chakra-shadow-hover: var(--glass-shadow-lg), var(--glass-chakra-facets);
   /* Precomposed background STACKS — the background-image compositions, single-sourced. The surface
      utilities consume them via --srf-* fallbacks (sheer utilities append the element-composed solidify
      layer underneath), and the [data-glass] style remaps below swap them wholesale. Live here so they

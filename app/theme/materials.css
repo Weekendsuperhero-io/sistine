@@ -58,6 +58,39 @@
   --muted-foreground: var(--muted-foreground-crystal);
 }
 
+/* Chakra — the step-cut gem: a translucent tinted body with a two-step facet frame on all four edges,
+   sitting between crystal (near-clear) and opaque (solid). Like crystal it bakes everything into the
+   background stack and the shadow — no pseudo-elements, so it is safe on sticky/fixed surfaces, and it
+   carries the same gloss triple, so `data-gloss` white / tonal / hue reskin it too.
+   The cut lives entirely in --srf-shadow (see --glass-chakra-facets in engine.css). Nothing here is an
+   inset BACKGROUND layer, deliberately: background layers are rectangles with no radius of their own,
+   so an inset gradient stacks square corners on a rounded surface. Inset shadows follow --radius.
+   Because the stack is plain full-bleed layers, the sheer-glass axes work untouched — glass-diffuse
+   raises --dif into the blur below, and the --glass-opacity solidify floor composes under the stack
+   exactly as it does for crystal. */
+[data-material="chakra"] {
+  --srf-bg-image: var(--glass-chakra-stack-bg);
+  --srf-bg-color: var(--glass-chakra-bg);
+  --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
+  --srf-border-color: var(--glass-chakra-border);
+  --srf-border-w: var(--brd-w, 1px);
+  --srf-shadow: var(--glass-chakra-shadow);
+  transition: box-shadow 0.3s ease;
+}
+[data-material="chakra"]:hover {
+  --srf-shadow: var(--glass-chakra-shadow-hover);
+}
+/* Chakra text tiers — content sits on the body, whose lightness (--glass-chakra-l) is its own dial and
+   can sit well away from the page's. Same reasoning as opaque/crystal; veiled chakra is excluded
+   because the veil floor is exactly what the NORMAL tiers are banded for. */
+[data-material="chakra"]:not(.glass-veil) {
+  --foreground: var(--foreground-chakra);
+  --foreground-soft: var(--foreground-soft-chakra);
+  --foreground-strong: var(--foreground-strong-chakra);
+  --foreground-ui: var(--foreground-ui-chakra);
+  --muted-foreground: var(--muted-foreground-chakra);
+}
+
 /* Opaque — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
    ancestor: it's composed HERE, on the element, so it resolves where it's read. The floor can be
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
@@ -93,6 +126,16 @@
   --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
 }
 [data-gloss="hue"] {
+  /* Hue OWNS its lightness rather than sharing the tonal twin. The two flavors want opposite things
+     from the same number: tonal wants the brightest value the surface allows (97 in light) so it reads
+     as a specular, while hue needs chroma headroom — its stops ask --glass-gloss-c 0.16, and the sRGB
+     ceiling at L 97 is 0.0136, so the iridescent sweep would deliver 8% of its colour and wash out to
+     near-white exactly where it is supposed to be most vivid.
+     74 is mode-invariant on purpose: it holds 81% of that chroma, and it lands on the right side of
+     both surfaces anyway (+18.4 L over the dark floor, −9.0 over the light one — for an iridescent
+     sweep, being SEEN matters more than which direction it moves). The demo's flavor switcher already
+     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too. */
+  --glass-gloss-l: 74;
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
      arc passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. */
   --glass-gloss-top: linear-gradient(

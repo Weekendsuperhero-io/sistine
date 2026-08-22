@@ -50,6 +50,18 @@ export const FRESCO_HUES: Record<string, number[]> = {
   ],
 };
 
+/**
+ * The canvas's own hue, used when the theme has no meaningful one of its own.
+ *
+ * Selenite and moonstone are the HUE-LESS stones: selenite declares chroma 0 outright, moonstone a
+ * near-neutral 0.047 cream. Their `--glass-tint-h` is a placeholder (250 and 75), not a colour — which
+ * is exactly why the rest of the system anchors their harmony wheel at 0° rather than warping that
+ * near-neutral hue. The canvas never got that rule: it hardcodes chroma 0.15 and took the placeholder
+ * hue straight, so moonstone painted #da950b — pixel-identical to the amber JEWEL — and selenite
+ * painted a saturated blue despite being the grey theme.
+ */
+const NEUTRAL_CANVAS_HUE = 250;
+
 /** Live theme-tint snapshot for the JS-painted backdrops (GradientBackground + CanvasBackground):
  * accent hue when the accent knob is on (else the tint hue), dark mode, the bespoke fresco preset,
  * and P3 support — kept fresh by ONE MutationObserver on <html> (class + data-glass-tint + style). */
@@ -61,7 +73,7 @@ export function useBackdropTint() {
     preset: string | undefined;
     fg: string | undefined;
   }>({
-    hue: 250,
+    hue: NEUTRAL_CANVAS_HUE,
     dark: true,
     p3: false,
     preset: undefined,
@@ -72,10 +84,20 @@ export function useBackdropTint() {
     const read = () => {
       const cs = getComputedStyle(root);
       const acc = Number.parseFloat(cs.getPropertyValue("--accent-h"));
-      // Honor the accent hue when the accent knob is on, else the live tint hue.
-      const v = Number.isFinite(acc) ? acc : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
+      /* Two independent signals, because the hue-less stones can arrive by either route: the switcher
+         pins --harmony-h to 0 for both (it keys on chroma, plus moonstone by name), while a static
+         consumer setting data-glass-tint="moonstone" gets --harmony-h: 0 from the CSS block instead.
+         Chroma 0 catches a hand-rolled neutral that has neither. --harmony-h === 0 is unambiguous: no
+         preset uses hue 0 (the nearest are rose at 8 and goldstone at 22), so only the deliberate
+         hue-less anchor produces it. */
+      const tintC = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
+      const harmonyH = Number.parseFloat(cs.getPropertyValue("--harmony-h"));
+      const hueless = tintC === 0 || harmonyH === 0;
+      // Honor the accent hue when the accent knob is on — that is an explicit choice and outranks
+      // everything. Otherwise the live tint hue, unless the theme has no meaningful hue to give.
+      const v = Number.isFinite(acc) ? acc : hueless ? NEUTRAL_CANVAS_HUE : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const next = {
-        hue: Number.isFinite(v) ? v : 250,
+        hue: Number.isFinite(v) ? v : NEUTRAL_CANVAS_HUE,
         dark: root.classList.contains("dark"),
         p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
         preset: root.dataset.glassTint,
@@ -160,7 +182,7 @@ export interface CanvasConfig {
 const DEFAULT_COLOR: OklchColor = {
   l: 60,
   c: 0.15,
-  h: 250,
+  h: NEUTRAL_CANVAS_HUE,
 };
 
 function resolveColor(color: CanvasConfig["color"]): OklchColor {

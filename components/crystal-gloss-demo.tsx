@@ -95,20 +95,74 @@ const SWATCHES = [
  *   white → flat white specular (fixed, no knobs)
  *   tonal → a tonally-close single-hue tint of the theme (Tint = chroma multiplier, Light = boldness)
  *   hue   → iridescent: the highlight sweeps hues shifted ± Hue-span around the tint hue
- * All knobs write to <html>, so the preview cards AND every site-wide crystal surface follow. Light is
- * shared by tonal + hue (lower = bolder — chroma has more gamut room away from white).
+ * All knobs write to <html>, so the preview cards AND every site-wide crystal surface follow.
+ * Light is NOT one shared number any more: tonal is a day/night twin and hue pins its own value, so the
+ * slider starts in an "auto" state that reads whatever the theme resolves and only becomes an inline
+ * override once you drag it (click the Light label to hand it back). Lower is still bolder — chroma has
+ * more gamut room away from white.
  */
 export function CrystalGlossDemo() {
   const [mode, setMode] = React.useState<Mode>("tonal");
-  const [l, setL] = React.useState(66);
+  /* `l` is what the slider DISPLAYS. `lAuto` means "no inline override — the theme owns it".
+     This split exists because --glass-gloss-l is now mode- and flavor-dependent (97 light / 66 dark
+     for tonal, a pinned 74 for hue), and an inline style on <html> outranks every stylesheet rule.
+     Writing one unconditionally on mount — which is what this did — froze the value, so toggling
+     day/night moved every other token and left the gloss behind. */
+  const [l, setL] = React.useState(97);
+  const [lAuto, setLAuto] = React.useState(true);
   const [tint, setTint] = React.useState(4.25);
   const [span, setSpan] = React.useState(40);
   const [dir, setDir] = React.useState(1);
   const [dark, setDark] = React.useState(false);
 
+  /* Light is stored as a PER-MODE map, the same shape the tint switcher uses for --glass-opaque-l (the
+     only other mode-twinned token any control writes inline). A single shared override would re-freeze
+     the twin the moment you dragged the slider: a value chosen against the L-96.5 light crystal floor
+     would follow you into dark, where the floor is L 28. A legacy bare number — anything persisted
+     before this was a map — parses to no override, which is the right migration: it hands those users
+     back to the theme instead of restoring a value that was only ever correct in one mode. */
+  const readLmap = (): {
+    light?: number;
+    dark?: number;
+  } => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(L_KEY) ?? "null");
+      if (raw && typeof raw === "object")
+        return raw as {
+          light?: number;
+          dark?: number;
+        };
+    } catch {
+      // ignore storage/parse failures
+    }
+    return {};
+  };
+
+  /** Resolve --glass-gloss-l for the CURRENT scheme: an override if one exists, else hand it to CSS. */
+  const syncL = React.useCallback(() => {
+    const root = document.documentElement;
+    const scheme = root.classList.contains("dark") ? "dark" : "light";
+    const stored = readLmap()[scheme];
+    if (typeof stored === "number") {
+      root.style.setProperty("--glass-gloss-l", String(stored));
+      setL(stored);
+      setLAuto(false);
+      return;
+    }
+    root.style.removeProperty("--glass-gloss-l");
+    const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-gloss-l"));
+    setL(Number.isFinite(computed) ? computed : 97);
+    setLAuto(true);
+  }, []);
+
   React.useEffect(() => {
     const root = document.documentElement;
-    const read = () => setDark(root.classList.contains("dark"));
+    /* Re-resolving Light here is what makes the day/night twin visible: the class flip changes which
+       CSS value applies, and if an inline override is present it has to be swapped for that scheme's. */
+    const read = () => {
+      setDark(root.classList.contains("dark"));
+      syncL();
+    };
     read();
     const observer = new MutationObserver(read);
     observer.observe(root, {
@@ -118,12 +172,15 @@ export function CrystalGlossDemo() {
       ],
     });
     return () => observer.disconnect();
-  }, []);
+  }, [
+    syncL,
+  ]);
 
-  const apply = (m: Mode, nl: number, nt: number, ns: number, nd: number) => {
+  /* Everything EXCEPT Light, which syncL owns — those three are mode-shared, so a plain inline write
+     is correct for them and freezes nothing. */
+  const apply = (m: Mode, nt: number, ns: number, nd: number) => {
     const root = document.documentElement;
     root.dataset.gloss = m;
-    root.style.setProperty("--glass-gloss-l", String(nl));
     root.style.setProperty("--glass-gloss-tint", String(nt));
     root.style.setProperty("--glass-gloss-hue-span", String(ns));
     root.style.setProperty("--glass-gloss-hue-dir", String(nd));
@@ -140,60 +197,68 @@ export function CrystalGlossDemo() {
   React.useEffect(() => {
     const raw = localStorage.getItem(MODE_KEY);
     const m: Mode = raw === "white" || raw === "hue" ? raw : "tonal";
-    const nl = Number.parseFloat(localStorage.getItem(L_KEY) ?? "66");
     const nt = Number.parseFloat(localStorage.getItem(TINT_KEY) ?? "4.25");
     const ns = Number.parseFloat(localStorage.getItem(SPAN_KEY) ?? "40");
     const nd = Number.parseFloat(localStorage.getItem(DIR_KEY) ?? "1");
-    const L = Number.isFinite(nl) ? nl : 94;
     const T = Number.isFinite(nt) ? nt : 2;
     const S = Number.isFinite(ns) ? ns : 40;
     const D = nd === -1 ? -1 : 1;
     setMode(m);
-    setL(L);
     setTint(T);
     setSpan(S);
     setDir(D);
-    apply(m, L, T, S, D);
-  }, []);
+    apply(m, T, S, D);
+    syncL(); /* after dataset.gloss is set, so the hue flavor's own pinned value resolves */
+  }, [
+    syncL,
+  ]);
 
   const changeMode = (m: Mode) => {
-    // Seed a sensible Light per flavor: tonal wants a bright highlight (94); hue wants it pulled down (74) so
-    // the swept hues read as saturated color instead of near-white. White ignores Light.
-    const nl = m === "hue" ? 74 : m === "tonal" ? 94 : l;
+    /* Switching flavor hands Light back to the theme rather than seeding a number here. The theme
+       already knows the right one per flavor AND per colour scheme — tonal is a twin (97 over the
+       L-96.5 light crystal floor, 66 over the L-28 dark one, because a gloss is defined relative to
+       its surface and those are 68 L apart), hue pins 74 in both so its swept stops keep chroma
+       headroom, and white ignores Light entirely. Duplicating those numbers here is how they drift. */
     setMode(m);
-    setL(nl);
-    apply(m, nl, tint, span, dir);
+    apply(m, tint, span, dir);
     persist(MODE_KEY, m);
-    persist(L_KEY, String(nl));
+    persist(L_KEY, "{}"); /* drop every override — both schemes go back to the theme */
+    syncL();
   };
+  /** Dragging Light overrides the CURRENT scheme only, so the other keeps the theme's own value. */
   const changeL = (v: number) => {
+    const root = document.documentElement;
+    const scheme = root.classList.contains("dark") ? "dark" : "light";
+    const map = readLmap();
+    map[scheme] = v;
+    persist(L_KEY, JSON.stringify(map));
+    root.style.setProperty("--glass-gloss-l", String(v));
     setL(v);
-    apply(mode, v, tint, span, dir);
-    persist(L_KEY, String(v));
+    setLAuto(false);
   };
   const changeTint = (v: number) => {
     setTint(v);
-    apply(mode, l, v, span, dir);
+    apply(mode, v, span, dir);
     persist(TINT_KEY, String(v));
   };
   const changeSpan = (v: number) => {
     setSpan(v);
-    apply(mode, l, tint, v, dir);
+    apply(mode, tint, v, dir);
     persist(SPAN_KEY, String(v));
   };
 
   const changeDir = (nd: number) => {
     setDir(nd);
-    apply(mode, l, tint, span, nd);
+    apply(mode, tint, span, nd);
     persist(DIR_KEY, String(nd));
   };
 
   return (
     <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
-      <h2 className="mb-1 font-semibold text-foreground text-xl">Crystal flavors — white · tonal · hue</h2>
+      <h2 className="mb-1 font-semibold text-foreground text-xl">Crystal flavors: white · tonal · hue</h2>
       <p className="mb-4 text-muted-foreground text-sm">
         The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
-        <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent — the highlight sweeps hues
+        <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent: the highlight sweeps hues
         shifted up &amp; down from the tint. The knobs apply site-wide, so switching the glass style to Crystal shows the same everywhere.
       </p>
 
@@ -221,7 +286,23 @@ export function CrystalGlossDemo() {
 
       <div className="space-y-3">
         {mode !== "white" && (
-          <SliderRow label="Light" value={`${Math.round(l)}%`} hint="lower = bolder">
+          <SliderRow
+            label="Light"
+            value={`${Math.round(l)}%${lAuto ? " · auto" : ""}`}
+            hint={lAuto ? "follows the theme (day/night)" : "lower = bolder. Click Light to follow the theme again"}
+            onLabelClick={
+              lAuto
+                ? undefined
+                : () => {
+                    /* Clear only THIS scheme's override; the other one's stays as the user left it. */
+                    const scheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+                    const map = readLmap();
+                    delete map[scheme];
+                    persist(L_KEY, JSON.stringify(map));
+                    syncL();
+                  }
+            }
+          >
             <Slider
               value={[
                 l,
@@ -259,7 +340,7 @@ export function CrystalGlossDemo() {
             />
           </SliderRow>
         )}
-        {mode === "white" && <p className="text-muted-foreground text-xs">White gloss is fixed — the classic specular, no knobs.</p>}
+        {mode === "white" && <p className="text-muted-foreground text-xs">White gloss is fixed: the classic specular, no knobs.</p>}
         {mode !== "white" && (
           <div className="space-y-1.5">
             <div className="text-muted-foreground text-xs">
@@ -324,12 +405,32 @@ function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; da
   );
 }
 
-function SliderRow({ label, value, hint, children }: { label: string; value: string; hint?: string; children: React.ReactNode }) {
+function SliderRow({
+  label,
+  value,
+  hint,
+  onLabelClick,
+  children,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  /** Present when the row can be handed back to the theme — renders the label as a reset control. */
+  onLabelClick?: () => void;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-muted-foreground text-xs">
         <span>
-          {label}
+          {onLabelClick ? (
+            /* min-h keeps the hit area usable at this text size (the row is only ~16px tall). */
+            <button type="button" onClick={onLabelClick} className="min-h-10 rounded underline underline-offset-2 hover:text-foreground">
+              {label}
+            </button>
+          ) : (
+            label
+          )}
           {hint ? <span className="ml-1.5 text-muted-foreground/70">· {hint}</span> : null}
         </span>
         <span className="font-mono tabular-nums">{value}</span>

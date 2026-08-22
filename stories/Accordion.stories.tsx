@@ -67,7 +67,7 @@ export const FAQ: Story = {
       <AccordionItem value="getting-started">
         <AccordionTrigger>How do I get started?</AccordionTrigger>
         <AccordionContent>
-          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @weekendsuperhero.ioponent-name</code>
+          Install components using the shadcn CLI: <code className="text-sm">bunx shadcn@latest add @sistine/accordion</code>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="customization">

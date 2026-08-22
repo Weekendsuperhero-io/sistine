@@ -119,7 +119,7 @@ describe("composeRefs", () => {
   });
 });
 
-describe("useComposedRefs — REV-3-1", () => {
+describe("useComposedRefs: REV-3-1", () => {
   /* A ref callback written inline gets a new identity every render, so React detaches the old one
      (calls it with null) and attaches the new one. That detach runs useSnappedPopper's cleanup, which
      disconnects the MutationObserver — so an inline composeRefs rebuilt the observer on EVERY render
@@ -175,7 +175,7 @@ describe("useComposedRefs — REV-3-1", () => {
   });
 });
 
-describe("snapTransform — the pure rounding", () => {
+describe("snapTransform: the pure rounding", () => {
   /* Radix writes a fractional translate onto the popper wrapper; a fractional offset on a
      backdrop-filter layer rasterizes glyphs off the pixel grid and the text goes soft. */
   it("rounds a fractional translate", () => {

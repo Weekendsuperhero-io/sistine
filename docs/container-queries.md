@@ -50,11 +50,11 @@ sm:flex-row sm:justify-end
 
 Read that carefully: `sm:flex-row` fires on a 640px **viewport**, so a 320px-wide alert dialog on a
 desktop was laying its buttons out horizontally in a narrow box. The component had no way to know its
-own width, so it was being *told* — through a `size` prop and a `group-data` selector.
+own width, so it was being *told*: through a `size` prop and a `group-data` selector.
 
 (The `group-data-[size=sm]` grid itself is a deliberate two-column layout for small alert dialogs, not a
 workaround, and it stayed. What went was the `sm:group-data-[size=default]/…` chains on the header,
-title and media — literally "the viewport is wide AND someone told me I'm the wide variant." A container
+title and media: literally "the viewport is wide AND someone told me I'm the wide variant." A container
 query replaces both halves of that with a measurement.)
 
 ### 2. The same viewport-bound switch, repeated
@@ -66,10 +66,10 @@ query replaces both halves of that with a measurement.)
 | `components/ui/alert-dialog.tsx` | 119 | `sm:flex-row sm:justify-end` |
 | `components/ui/calendar.tsx` | 64 | `sm:flex-row` |
 
-Every one is "stack when narrow, go horizontal when wide" — a question about the element's own box,
+Every one is "stack when narrow, go horizontal when wide": a question about the element's own box,
 answered with the viewport's.
 
-### 3. `card.tsx` already has a container — and it should stay
+### 3. `card.tsx` already has a container, and it should stay
 
 `components/ui/card.tsx:65` declares `@container/card-header`, and nothing in this repo responds to it
 (zero `@*/card-header:` variants).
@@ -91,17 +91,17 @@ conversion below extends an existing pattern rather than introducing a new one.
 
 ## Proposed first step
 
-Deliberately small — prove the pattern on one component family before touching 55.
+Deliberately small: prove the pattern on one component family before touching 55.
 
-1. ~~**Convert the dialog family footer/header**~~ — **done.** Each content surface is now a named
+1. ~~**Convert the dialog family footer/header**~~, **done.** Each content surface is now a named
    container (`@container/dialog-content`, `/alert-dialog-content`, `/sheet-content`) and the header and
    footer respond to it instead of the window.
-2. **`drawer`** — converted the same way. `@xs` (320) here because the container is the content
+2. **`drawer`**: converted the same way. `@xs` (320) here because the container is the content
    element itself, which carries no padding of its own (the `p-4` is on the header, inside it), so the
    queried box is the full drawer width: 384px for a desktop right drawer, 292px on mobile.
-3. **`calendar` — cannot be converted, and this is the interesting one.** Its root is `w-fit`, and
+3. **`calendar`: cannot be converted, and this is the interesting one.** Its root is `w-fit`, and
    `container-type: inline-size` applies inline-axis size containment: a `fit-content` element that
-   becomes a container measures **0**. Verified directly — `w-fit` alone renders 280px, `w-fit
+   becomes a container measures **0**. Verified directly: `w-fit` alone renders 280px, `w-fit
    @container` renders 0px. Every surface that converted cleanly has an explicit width
    (`max-w-lg`, `w-3/4`, `inset-x-0`); calendar is sized by its contents, so it would need
    restructuring, not a class swap. Left viewport-bound with a note at the call site.
@@ -122,14 +122,14 @@ Thresholds have to be picked against content width:
 | `alert-dialog` | 320 (`size="sm"`) – 512 | 272–464 | `@sm` (384) |
 | `sheet` | 292 (75vw mobile) – 384 (`max-w-sm`) | 244–336 | `@xs` (320) |
 
-`sheet` needs the lower threshold precisely because a right/left sheet caps at `max-w-sm` (384px) — at
+`sheet` needs the lower threshold precisely because a right/left sheet caps at `max-w-sm` (384px), at
 `@sm` its footer would have stacked on desktop, a regression.
 
 **The `size="sm"` grid is NOT a workaround and was left alone.** An earlier read of this file claimed the
 `group-data-[size=sm]/alert-dialog-content:grid grid-cols-2` rules existed only to undo `sm:flex-row`.
-They don't — they implement a deliberate two-column button layout for small alert dialogs. They stay.
+They don't: they implement a deliberate two-column button layout for small alert dialogs. They stay.
 What the container query *did* remove is the `sm:group-data-[size=default]/…` chains, which really were
-"the viewport is wide AND someone told me I'm the wide variant" — the exact thing a container query
+"the viewport is wide AND someone told me I'm the wide variant": the exact thing a container query
 answers by measuring.
 
 Measured after conversion, on a 1400px viewport:
@@ -146,7 +146,7 @@ The last row is the whole point: same viewport, narrow box, correct layout. Unde
 
 - **Size containment is the real hazard.** Any element that relies on being sized by its contents in the
   inline direction will change behaviour when it becomes a container. This is the usual reason retrofits
-  go wrong, and the reason to start with dialog surfaces — they already have an explicit `max-w-*`, so
+  go wrong, and the reason to start with dialog surfaces, they already have an explicit `max-w-*`, so
   they aren't content-sized to begin with.
 - **It's a visual change for consumers**, not just an internal refactor: a component in a narrow column
   that used to go horizontal will now stack. That is the *point*, but it belongs in a minor version with
@@ -164,14 +164,14 @@ construction, so it's a real before/after rather than a no-op check.
 
 ## Also deferred (recorded, not proposed)
 
-Turned up in the same audit and explicitly deprioritized — listed so they aren't rediscovered as new:
+Turned up in the same audit and explicitly deprioritized, listed so they aren't rediscovered as new:
 
-- **Enter/exit motion under `prefers-reduced-motion`** — the looping animations are guarded; the
+- **Enter/exit motion under `prefers-reduced-motion`**: the looping animations are guarded; the
   triggered ones aren't (~20 `animate-in`/`animate-out`, 26 `zoom-*`, 48 `slide-*`).
-- **`forced-colors` / Windows High Contrast** — zero handling. A library built on `backdrop-filter` and
+- **`forced-colors` / Windows High Contrast**: zero handling. A library built on `backdrop-filter` and
   low-alpha borders is the case HCM most often flattens.
-- **RTL** — effectively LTR-only (2 `rtl:` uses, 3 logical properties).
-- **Print styles, explicit ≥44px touch targets** — zero of each.
+- **RTL**: effectively LTR-only (2 `rtl:` uses, 3 logical properties).
+- **Print styles, explicit ≥44px touch targets**: zero of each.
 
 ---
 

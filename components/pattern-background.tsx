@@ -293,7 +293,14 @@ const STAR_GRADIENTS = [
 ].map(([x, y], i) => {
   // a range of stars — occasional bright glints, most fine
   const r = i % 7 === 0 ? "2px" : i % 4 === 0 ? "1.6px" : i % 3 === 0 ? "1.3px" : "1px";
-  return `radial-gradient(${r} ${r} at ${x}% ${y}%, #fff, transparent)`;
+  /* --star-core is the fraction of the dot that stays SOLID before the falloff starts. Default 0%
+     reproduces the original `#fff, transparent` exactly (white at 0, transparent at 100% — a pure
+     linear falloff), so every scene that does not set it is untouched.
+     It exists because "full opacity" was not the same as "not faded": a linear falloff averages only
+     alpha 0.333 across the dot's area, so on a light sky the stars delivered ~+7 L rather than the
+     +22 their peak suggests. On a near-black night sky that is invisible as a problem — any white
+     reads — which is why it only ever showed up by day. */
+  return `radial-gradient(${r} ${r} at ${x}% ${y}%, #fff 0 var(--star-core, 0%), transparent)`;
 });
 
 // Easter egg: the "Muse" — the Agent mascot's head (fedora + visored helmet) traced as a sparse star
@@ -313,8 +320,9 @@ const MUSE_STYLES = `
   pointer-events: none;
   --muse-h: var(--accent-h, var(--glass-tint-h));
   filter: drop-shadow(0 0 1px oklch(0.72 0.17 var(--muse-h) / 0.5));
-  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode; DIMMED (not hidden) with
-     them in starfield's day mode. */
+  /* Rides the star gate: hidden with the stars in the Tron scenes' day mode (they set it to 0). In
+     starfield the gate is 1 in BOTH modes now, so this sits at a flat 0.9 — the constellation is an
+     easter egg and reads a touch under the field it hides in, rather than being mode-dependent. */
   opacity: calc(0.9 * var(--sw-stars-o, 1));
 }
 .star-muse circle {
@@ -1259,21 +1267,38 @@ const AURORA_STYLES = `
   --au-water-b: oklch(0.48 0.04 34);
   --au-rip-hi: oklch(1 0 0 / 0.05);
   --au-rip-lo: oklch(0.35 0.05 45 / 0.04);
-  /* Curtains carry MORE chroma and alpha by day than by night. That looks backwards written down, but
-     a dawn sky is already at L 0.6-0.85: a translucent light laid over it has almost no headroom left,
-     and at night's values the lights wash out to a pastel rainbow. */
-  --au-1: oklch(0.76 0.2 160 / 0.66);
-  --au-2: oklch(0.79 0.15 190 / 0.6);
-  --au-3: oklch(0.64 0.21 var(--accent-h, var(--glass-tint-h, 305)) / 0.6);
-  --au-4: oklch(0.69 0.18 345 / 0.56);
+  /* Curtains sit BELOW the day sky, not above it. Night works because its lights land ~38 L brighter
+     than an L-0.18 sky and glow out of it; by day the sky is already L 0.84-0.85, so the old L 0.76-0.79
+     curtains landed 3-5 L DARKER than the sky and separated from nothing — plenty of chroma (lip spread
+     114) with no lightness structure, which is exactly what reads as haze. There is no headroom above a
+     sky that bright, so the only direction left is down: these land 14-17 L below it and the bands read
+     as bands again. Chroma is ~88% of each hue's own ceiling AT ITS lightness rather than one shared
+     number — green and teal bottom out fast below L 0.6 (ceilings 0.132 / 0.101), while violet and pink
+     still have 0.28 / 0.23 to spend, so a single value would either mud the first two or clip the rest. */
+  --au-1: oklch(0.6 0.116 160 / 0.66);
+  --au-2: oklch(0.6 0.089 190 / 0.6);
+  --au-3: oklch(0.55 0.2 var(--accent-h, var(--glass-tint-h, 305)) / 0.6);
+  --au-4: oklch(0.55 0.2 345 / 0.56);
   --au-glow: oklch(0.82 0.11 var(--au-h) / 0.55); /* horizon takes the chosen colour too */
-  --au-blur-m: 1.15; /* the sky curtains sit slightly IN the haze by day (the mirror overrides this) */
-  --au-cirrus: oklch(0.96 0.05 var(--au-h) / 0.5);
+  /* Was 1.15. Day is the mode that already reads hazy, so it was the one mode adding 15% blur on top
+     of everything else; the mirror still sets its own 1.5 below. */
+  --au-blur-m: 1;
+  /* Was / 0.5. This veil is gated on --sw-sun-o, so it exists ONLY by day — at 0.85 opacity an L-0.96
+     near-white wash lifted the upper sky +4.7 L toward white, i.e. literal haze that night never had.
+     0.3 halves it to +2.8 and it reads as thin cirrus instead of a scrim. */
+  --au-cirrus: oklch(0.96 0.05 var(--au-h) / 0.3);
   /* daytime SUN — new to this scene. Aurora stays MOONLESS at night on purpose (a moonless sky is when
      the lights are most vivid), so the moon gate is off in both modes and only the sun ever shows. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
   --sun-size: 38vh;
+  /* SOLID disc — no outrun banding in this scene. .sw-sun's mask unions a solid crown with a repeating
+     band gradient, and the gaps between those bands are TRANSPARENT: in synthwave that reveals the sky,
+     but here it revealed the aurora curtains behind the disc, so the lights read straight through the
+     sun. Making the band run longer than the disc collapses the repeat into one opaque pass, so the sun
+     occludes the curtains the way a sun should. The banding is a synthwave signature anyway — this
+     scene is a golden-hour horizon, not an outrun grid. */
+  --sun-band: 100vh;
   /* Sun ramp, synthwave's structure with the ACCENT standing in for its magenta: the chosen colour sits
      at the BOTTOM of the disc — the end nearest the horizon — and mixes through to a warm yellow at the
      top. Recolouring the whole disc made a green sun when the tint was green; keeping the crown warm
@@ -1304,6 +1329,10 @@ const AURORA_STYLES = `
   --au-2: oklch(0.78 0.14 190 / 0.6);
   --au-3: oklch(0.62 0.19 var(--accent-h, var(--glass-tint-h, 305)) / 0.58); /* the chosen color, in the lights */
   --au-4: oklch(0.67 0.17 345 / 0.54);
+  /* Pinned so night keeps EXACTLY the blur it had. --au-blur-m lives in the shared base block, which
+     night inherits, so dropping it to 1 there to de-haze the day would have quietly sharpened night
+     too — and night is the mode that already reads right. */
+  --au-blur-m: 1.15;
   /* Must be LIGHTER than the curtains it washes over (L ~0.75) — a glow that sits below them in
      lightness reads as a dull band ruled across the waterline, not as light. */
   --au-glow: oklch(0.84 0.1 180 / 0.28);
@@ -1603,11 +1632,35 @@ const AURORA_STYLES = `
 // flips, via the shared --sw-stars-o gate (which the Muse constellation also rides).
 const STARFIELD_STYLES = `
 [data-pattern="starfield"] {
-  /* DAY — morning haze */
-  --sf-bg: oklch(0.82 0.05 var(--accent-h, var(--glass-tint-h)));
-  --sf-nebula-1: oklch(0.92 var(--accent-c, 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
-  --sf-nebula-2: oklch(0.88 var(--accent-c, 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
-  --sw-stars-o: 0.75;
+  /* DAY — a daylight sky: azure, nudged by the accent, with the stars still showing through.
+     The sky used to take the accent hue OUTRIGHT (L 0.82 c 0.05, whatever hue the theme supplied), so a
+     green theme gave a green sky and every theme gave a washed one — c 0.05 at L 0.82 is spread 56, and
+     with an arbitrary hue it just read as grey. Anchoring to blue and MIXING the accent in keeps it a
+     sky in every theme while still carrying the colour: across the 17 presets the mixed hue lands
+     between 194 and 276, i.e. always blue, spread 82-126 (was 56).
+     28% is the ceiling on that mix, and it is measured, not chosen: color-mix interpolates hue along the
+     shorter arc, so an amber accent (h75) pulls 240 -> 194 at 28% but -> 182 at 35%, which is teal. Past
+     28% the sky stops being blue for warm themes.
+     STARS: the dots are hardcoded #fff, so their contrast is purely the sky's lightness. L 0.78 puts
+     them +22 L clear (the old L 0.82 at 0.75 opacity gave +13.5), and the gate goes to 1 — this is the
+     one scene where the stars ARE the subject, so they should not be half-faded by day.
+     NEBULAE sit below the sky rather than above it. At the old L 0.92 the sRGB ceiling is 0.037 against
+     the 0.1 they asked, so 39% of the colour survived and the wisps rendered near-neutral — the hue had
+     nowhere to go. Below the sky it does: capped with min() at 0.10 / 0.09, which holds at EVERY accent
+     hue (worst is h200 at 0.106 / 0.099), 7-8 L clear of the sky and now reading as accent-coloured
+     wisps against the blue rather than grey smudges. */
+  --sf-bg: color-mix(
+    in oklch,
+    oklch(0.78 0.1 240),
+    oklch(0.78 0.1 var(--accent-h, var(--glass-tint-h, 240))) 28%
+  );
+  --sf-nebula-1: oklch(0.64 min(var(--accent-c, 0.1), 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
+  --sf-nebula-2: oklch(0.6 min(var(--accent-c, 0.09), 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
+  --sw-stars-o: 1;
+  /* Not faded at all by day: the layer gate is already 1, and this gives each dot a solid core so it
+     is genuinely opaque rather than a gradient that is only white at its centre pixel. Mean alpha
+     across the dot goes 0.333 -> 0.655, i.e. an effective +14.4 L over the L-0.78 sky instead of +7.3. */
+  --star-core: 60%;
 }
 .dark [data-pattern="starfield"] {
   /* NIGHT — the original deep field, verbatim */
@@ -1615,6 +1668,10 @@ const STARFIELD_STYLES = `
   --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
   --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3);
   --sw-stars-o: 1;
+  /* Pinned back to the original falloff. --star-core lives in the shared base block, which night
+     inherits, and night's stars already read fine on a near-black sky — solidifying them there would
+     have made them chunkier for no reason, in the mode that already works. */
+  --star-core: 0%;
 }
 .sf-scene {
   position: absolute;

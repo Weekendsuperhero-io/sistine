@@ -525,7 +525,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <div className="space-y-6">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Bordered rows — a subtle divider between each row (default).</p>
+            <p className="text-sm text-muted-foreground">Bordered rows: a subtle divider between each row (default).</p>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -555,7 +555,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
           </div>
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Striped rows — alternating brightness, no dividers (pass <code className="text-xs">striped</code>).
+              Striped rows: alternating brightness, no dividers (pass <code className="text-xs">striped</code>).
             </p>
             <Table striped>
               <TableHeader>

@@ -94,13 +94,34 @@
 }
 
 /* Aurora — northern lights: spring-green → teal → violet, interpolated `in oklch` so the cool sweep
-   stays vivid. Border + crystal + accent pick up the teal base via the tint vars. */
+   stays vivid. Border + crystal + accent pick up the teal base via the tint vars.
+   DAY was authored at L 90/89/84 — within ~5 L of the L-95 page it composites onto — so after the
+   alpha only 2.2 L of separation survived and the bands read as haze rather than bands. Night works
+   because its stops sit 60+ L above an L-20 page and land 13.6 L clear of it. The fix is that
+   separation, not more colour: day already delivered MORE chroma than night (spread 26/29/19 against
+   14/15/13) and still looked washed out, because colour without lightness structure reads as fog.
+   Stops now sit at L 76.3/74.7/71.8, which also buys chroma headroom, so each takes ~90% of its OWN
+   hue's sRGB ceiling rather than one shared number — h292 violet was clipped to 65% at L 84 and is
+   fully in gamut here. Composited: spread 48/40/38 (was 26/29/19), separation 8.0 L (was 2.2).
+   How far this could go is bound by TEXT, not by taste. AutoForeground models a fresco surface from
+   the tint wash (--glass-tint-c/-a), never from this gradient literal, so it does not re-band when
+   these stops move and the contrast has to hold statically. --foreground-soft (the L-40 heading tier)
+   is the weakest pair on a light surface and sets the floor: at a composite of L 84 it measures 59.5
+   and fails, so the stops are placed to land no darker than ~L 86. Worst measured here is 63.5.
+   Frosted gets its OWN alphas rather than the old ~1.37x boost over --glass-bg: with stops this much
+   darker, that multiplier drove the violet composite to L 83.4 and soft to 58.4. These land all three
+   near L 86.4 instead. The authored shape is unchanged — green, then teal, then violet darkest. */
 [data-glass-tint="aurora"] {
   --glass-tint-h: 178;
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
-  --glass-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.32) 0%, oklch(89% 0.1 196 / 0.3) 50%, oklch(84% 0.13 292 / 0.3) 100%);
-  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(90% 0.12 152 / 0.44) 0%, oklch(89% 0.1 196 / 0.42) 50%, oklch(84% 0.13 292 / 0.42) 100%);
+  --glass-bg: linear-gradient(135deg in oklch, oklch(76.3% 0.175 152 / 0.4) 0%, oklch(74.7% 0.111 196 / 0.38) 50%, oklch(71.8% 0.14 292 / 0.38) 100%);
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(76.3% 0.175 152 / 0.46) 0%,
+    oklch(74.7% 0.111 196 / 0.43) 50%,
+    oklch(71.8% 0.14 292 / 0.37) 100%
+  );
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="aurora"] {

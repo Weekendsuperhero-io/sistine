@@ -44,7 +44,7 @@ const TIERS: Tier[] = [
     mark: "Bd",
     usage: "body",
     cls: "text-base",
-    sample: "Body copy — the quick brown fox jumps over the lazy dog.",
+    sample: "Body copy: the quick brown fox jumps over the lazy dog.",
   },
   {
     key: "fine",
@@ -52,7 +52,7 @@ const TIERS: Tier[] = [
     mark: "Fn",
     usage: "small",
     cls: "text-xs",
-    sample: "Fine print — the quick brown fox jumps over the lazy dog.",
+    sample: "Fine print: the quick brown fox jumps over the lazy dog.",
   },
 ];
 
@@ -354,7 +354,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
           <div className="space-y-2">
             <span className="font-medium">
               icons · <code>readableForeground</code>(ui
-              {iconHue != null ? `, ${typeof iconHue === "string" ? iconHue : "hue"} ${Math.round(iconHueVal)}°` : ""}) — Lc {iconLc}
+              {iconHue != null ? `, ${typeof iconHue === "string" ? iconHue : "hue"} ${Math.round(iconHueVal)}°` : ""}): Lc {iconLc}
             </span>
             {/* Harmonic relationships off --harmony-h — the SAME --hue-* tokens as the swatches, but here the
                 icon color is contrast-solved (readableForeground · ui band) so it stays legible on the surface.
@@ -472,10 +472,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
 
           <p className="text-muted-foreground">
             {live ? "Picking a ramp sets the site's text foreground live. " : ""}The strip is the full <strong>{PALETTE_LABELS[palette]}</strong> ramp
-            (via <code>themeForeground</code>) — extreme → base → extreme; each tier takes the swatch in its <strong>[floor–ceiling]</strong> band
+            (via <code>themeForeground</code>): extreme → base → extreme; each tier takes the swatch in its <strong>[floor–ceiling]</strong> band
             nearest target, so fine stays <strong>≥ 90</strong> (a floor, not a cap). Lc is modeled on the solid floor. <strong>Linear</strong> holds
-            the theme&apos;s chroma; <strong>Tonal</strong> fades toward gray. Icons are separate — <code>readableForeground</code> solves lightness
-            for the ui band at your chosen <strong>harmonic angle</strong> (complement / triad / split / tetrad / square — the same{" "}
+            the theme&apos;s chroma; <strong>Tonal</strong> fades toward gray. Icons are separate: <code>readableForeground</code> solves lightness
+            for the ui band at your chosen <strong>harmonic angle</strong> (complement / triad / split / tetrad / square, the same{" "}
             <code>--hue-*</code> tokens as the swatches), so they stay legible while tracking the theme.
           </p>
         </CardContent>

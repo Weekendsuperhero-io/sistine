@@ -111,14 +111,13 @@ export function HarmonicSwatchesDemo() {
     <section className="glass glass-border w-full max-w-2xl rounded-xl p-6">
       <h2 className="mb-1 font-semibold text-foreground text-xl">Harmonic color tokens</h2>
       <p className="mb-6 text-muted-foreground text-sm">
-        CSS custom properties derived from the harmony anchor hue (<code className="text-xs">--harmony-h</code>) — no JS. Each is{" "}
-        <code className="text-xs">calc(var(--harmony-h) + N°)</code>, and they <strong>follow the active theme</strong> — switch it from the header
-        (◇) to see the harmony in context. Selenite + moonstone anchor the wheel at <strong>0°</strong>, so their accents stay a colorful red-based
-        set.
+        CSS custom properties derived from the harmony anchor hue (<code className="text-xs">--harmony-h</code>), no JS. Each is{" "}
+        <code className="text-xs">calc(var(--harmony-h) + N°)</code>, and they <strong>follow the active theme</strong>: switch it from the header (◇)
+        to see the harmony in context. Selenite + moonstone anchor the wheel at <strong>0°</strong>, so their accents stay a colorful red-based set.
       </p>
 
       <h3 className="mb-2 font-medium text-foreground text-sm">
-        One row per harmony style — <code className="text-xs">--hue-*</code> angle tokens at a fixed illustrative chroma (mono row:{" "}
+        One row per harmony style: <code className="text-xs">--hue-*</code> angle tokens at a fixed illustrative chroma (mono row:{" "}
         <code className="text-xs">--mono-1..3</code>)
       </h3>
       <div className="mb-6 space-y-3">
@@ -143,7 +142,7 @@ export function HarmonicSwatchesDemo() {
       </div>
 
       <h3 className="mb-2 font-medium text-foreground text-sm">
-        <code className="text-xs">--color-*</code> — ready tokens at a fixed vivid chroma (colorful in every theme, incl. selenite/moonstone)
+        <code className="text-xs">--color-*</code>: ready tokens at a fixed vivid chroma (colorful in every theme, incl. selenite/moonstone)
       </h3>
       <div className="mb-6 grid grid-cols-4 gap-3 sm:grid-cols-7">
         {COLORS.map((c) => (
@@ -160,7 +159,7 @@ export function HarmonicSwatchesDemo() {
       </div>
 
       <div>
-        <h3 className="mb-2 font-medium text-foreground text-sm">Alpha tiers — accent at 0.04 → 0.5</h3>
+        <h3 className="mb-2 font-medium text-foreground text-sm">Alpha tiers: accent at 0.04 → 0.5</h3>
         <div className="flex overflow-hidden rounded-lg border border-[var(--glass-border)]">
           {/* Design-guidance ramp (not theme tokens): hairline → subtle → standard → pressed → prominent → scrim. */}
           {[

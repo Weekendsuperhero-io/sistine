@@ -18,7 +18,7 @@ function renderedNames(): string[] {
   return rows.map((row) => within(row).getAllByRole("cell")[0].textContent?.trim() ?? "");
 }
 
-describe("DataTableBlock — react-table v9 features", () => {
+describe("DataTableBlock: react-table v9 features", () => {
   it("paginates: 12 members across 2 pages of 6", async () => {
     const user = userEvent.setup();
     render(<DataTableBlock />);

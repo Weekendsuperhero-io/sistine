@@ -4,7 +4,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 
-const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still legible?";
+const SAMPLE = "The quick brown fox jumps over the lazy dog. Is this still legible?";
 
 /**
  * Side-by-side proof of the diffuse axis\u2019 DYED mode (`diffuse="stained"`) — real stained-glass optics. Both cards are CRYSTAL over
@@ -37,7 +37,7 @@ export function StainedComparisonDemo() {
           <Card material="crystal" border diffuse="stained">
             <CardHeader>
               <CardTitle className="text-base">
-                <code className="text-xs">stained</code> — backdrop stripped to luminance
+                <code className="text-xs">stained</code>: backdrop stripped to luminance
               </CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
@@ -45,7 +45,7 @@ export function StainedComparisonDemo() {
 
           <Card material="crystal" border>
             <CardHeader>
-              <CardTitle className="text-base">plain crystal — backdrop keeps its colors</CardTitle>
+              <CardTitle className="text-base">plain crystal: backdrop keeps its colors</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
           </Card>

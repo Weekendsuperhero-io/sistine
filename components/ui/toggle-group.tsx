@@ -87,8 +87,8 @@ const ToggleGroupItem = React.forwardRef<
         "inline-flex items-center justify-center rounded-sm px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
-        // Active state - lighter, more opaque background with shadow (same as tabs)
-        "data-[state=on]:bg-white/80 dark:data-[state=on]:bg-white/20",
+        // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (same as tabs)
+        "data-[state=on]:bg-[var(--active-bg)]",
         "data-[state=on]:text-foreground",
         "data-[state=on]:shadow-[var(--active-shadow)]",
         "hover:bg-accent/50 hover:text-accent-foreground",

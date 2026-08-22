@@ -55,6 +55,29 @@
   --foreground-ui: var(--foreground-ui-crystal);
   --muted-foreground: var(--muted-foreground-crystal);
 }
+/* Chakra page — every adaptive surface becomes a step-cut gem. The cut rides --srf-shadow, so it
+   follows each surface's own border-radius with nothing to keep in sync. */
+:where(
+  [data-glass="chakra"],
+  [data-glass="chakra"] [data-glass-tint],
+  [data-glass="chakra"][data-glass-tint],
+  [data-glass="chakra"] [data-sonner-toast][data-type]
+) {
+  --srf-bg-image: var(--glass-chakra-stack-bg);
+  --srf-bg-color: var(--glass-chakra-bg);
+  --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
+  --srf-border-color: var(--glass-chakra-border);
+  --srf-shadow: var(--glass-chakra-shadow);
+}
+/* Chakra page: adaptive glass (no explicit material, not veiled) takes the -chakra text tiers, same
+   as the material remap in materials.css. */
+[data-glass="chakra"] :where(.glass):not([data-material]):not(.glass-veil) {
+  --foreground: var(--foreground-chakra);
+  --foreground-soft: var(--foreground-soft-chakra);
+  --foreground-strong: var(--foreground-strong-chakra);
+  --foreground-ui: var(--foreground-ui-chakra);
+  --muted-foreground: var(--muted-foreground-chakra);
+}
 /* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
 :where(

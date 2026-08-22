@@ -240,7 +240,7 @@ export function Example() {
 
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-2">Example: Custom Transparency & Blur</h3>
-              <p className="text-muted-foreground mb-4">Heavier, milkier glass — or sheerer, barely-there glass — in a few dials:</p>
+              <p className="text-muted-foreground mb-4">Heavier, milkier glass (or sheerer, barely-there glass) in a few dials:</p>
               <CodeBlock
                 code={`/* Heavier, milkier glass */
 :root {
@@ -263,7 +263,7 @@ export function Example() {
                 <li>
                   The tint vars (<code className="bg-muted px-1 rounded">--glass-tint-h</code> / <code className="bg-muted px-1 rounded">-c</code>)
                   compose the surface sheet (<code className="bg-muted px-1 rounded">--glass-bg</code>, a gradient), the border color (
-                  <code className="bg-muted px-1 rounded">--glass-border</code>), and the accents — one hue + chroma recolors everything
+                  <code className="bg-muted px-1 rounded">--glass-border</code>), and the accents: one hue + chroma recolors everything
                 </li>
                 <li>
                   The material&apos;s <code className="bg-muted px-1 rounded">backdrop-filter</code> blurs at its ladder value (
@@ -275,7 +275,7 @@ export function Example() {
                 </li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                Because components only reference tokens, changing a variable restyles everything at once — globally on{" "}
+                Because components only reference tokens, changing a variable restyles everything at once, globally on{" "}
                 <code className="bg-muted px-1 rounded">:root</code>, or scoped on any wrapper.
               </p>
             </div>
@@ -311,8 +311,10 @@ export function CustomGlassCard() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Apple Standards</h3>
-              <p className="text-muted-foreground mb-2">Sistine&apos;s defaults follow Apple&apos;s subtle, refined glassmorphism:</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Calibrated defaults</h3>
+              <p className="text-muted-foreground mb-2">
+                Tuned for restraint: enough blur and depth to read as glass, never so much that it fogs what is behind it:
+              </p>
               <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                 <li>
                   <strong>Blur ladder:</strong> base glass 2px (sm 1px · lg 8px · xl 12px), frosted 25px, crystal 2px, opaque none
@@ -324,7 +326,7 @@ export function CustomGlassCard() {
                 <li>
                   Only the standard <code className="bg-muted px-1 rounded">backdrop-filter</code> is authored (no{" "}
                   <code className="bg-muted px-1 rounded">-webkit-</code> twins) and no <code className="bg-muted px-1 rounded">mix-blend-mode</code>{" "}
-                  anywhere — the veil floor is free; blur cost scales with area × radius × motion
+                  anywhere: the veil floor is free; blur cost scales with area × radius × motion
                 </li>
               </ul>
               <p className="text-muted-foreground mt-4">

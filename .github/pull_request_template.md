@@ -20,14 +20,14 @@
 <!-- Did you touch components, blocks, hooks, lib, the theme, or registry.json? CI fails if the
      committed registry output is stale. -->
 
-- [ ] I ran `pnpm registry:check` and committed the updated `registry.json` / `public/r/**`
-- [ ] No registry items changed — N/A
+- [ ] I ran `bun run registry:check` and committed the updated `registry.json` / `public/r/**`
+- [ ] No registry items changed: N/A
 
 ## Checklist
 
 <!-- CI enforces these; running them locally first keeps the PR green. -->
 
-- [ ] `pnpm lint` passes
-- [ ] `pnpm typecheck` passes
-- [ ] `pnpm build` succeeds
+- [ ] `bun run lint` passes
+- [ ] `bun run typecheck` passes
+- [ ] `bun run build` succeeds
 - [ ] Works in both light and dark mode (for UI changes)

@@ -24,7 +24,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sistine - Component Library",
-  description: "A modern, glassmorphic component library inspired by Apple's design language",
+  description:
+    "A glassmorphic component library built on filtered light: layered translucency, cut and polished edges, and a spectrum of stone tints, every colour measured in OKLCH.",
 };
 
 export default function RootLayout({

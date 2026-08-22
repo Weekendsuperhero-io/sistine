@@ -1,7 +1,9 @@
 {
-  "installCommand": "pnpm install",
-  "buildCommand": "pnpm build-storybook && pnpm export-storybook && pnpm build",
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bun run build-storybook && bun run export-storybook && bun run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "git": { "deploymentEnabled": false }
+  "git": {
+    "deploymentEnabled": false
+  }
 }

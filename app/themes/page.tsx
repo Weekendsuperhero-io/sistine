@@ -39,7 +39,7 @@ const presetThemes = [
   },
   {
     // Cool sapphire-tinted glass — solid light/dark surfaces (works standalone), readable in both modes.
-    name: "Apple Glass",
+    name: "Sapphire Glass",
     colors: {
       ...defaultTheme,
       primary: "oklch(0.5 0.12 255)",

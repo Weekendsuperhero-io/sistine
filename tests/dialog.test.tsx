@@ -25,7 +25,7 @@ function open(props: React.ComponentProps<typeof DialogContent> = {}) {
   return wrapper;
 }
 
-describe("DialogContent — bodyClassName", () => {
+describe("DialogContent: bodyClassName", () => {
   it("applies the class to the wrapper around children", () => {
     expect(open({ bodyClassName: "custom-body" })).toHaveClass("custom-body");
   });

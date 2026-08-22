@@ -25,7 +25,7 @@ const renderProbe = () =>
     </BackgroundProvider>,
   );
 
-describe("BackgroundProvider — patternSand", () => {
+describe("BackgroundProvider: patternSand", () => {
   beforeEach(() => localStorage.clear());
 
   it("exposes a value from the declared set", () => {

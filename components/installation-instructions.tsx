@@ -16,11 +16,13 @@ export function InstallationInstructions({
 }: InstallationInstructionsProps) {
   const [copied, setCopied] = React.useState<string | null>(null);
 
+  /* Consumer-facing: these are the READER's package manager, not the project's, so every one of them
+     stays. Bun leads because it is what the docs and the hero snippet use. */
   const commands = {
+    bun: `bunx shadcn@latest add @sistine/${componentName}`,
     pnpm: `pnpm dlx shadcn@latest add @sistine/${componentName}`,
     yarn: `yarn dlx shadcn@latest add @sistine/${componentName}`,
     npm: `npx shadcn@latest add @sistine/${componentName}`,
-    bun: `bunx shadcn@latest add @sistine/${componentName}`,
   };
 
   const copyToClipboard = (command: string, key: string) => {
@@ -30,12 +32,12 @@ export function InstallationInstructions({
   };
 
   return (
-    <Tabs defaultValue="pnpm" className="w-full">
+    <Tabs defaultValue="bun" className="w-full">
       <TabsList className="mb-4 grid w-full grid-cols-4">
+        <TabsTrigger value="bun">bun</TabsTrigger>
         <TabsTrigger value="pnpm">pnpm</TabsTrigger>
         <TabsTrigger value="yarn">yarn</TabsTrigger>
         <TabsTrigger value="npm">npm</TabsTrigger>
-        <TabsTrigger value="bun">bun</TabsTrigger>
       </TabsList>
       {Object.entries(commands).map(([key, command]) => (
         <TabsContent key={key} value={key}>

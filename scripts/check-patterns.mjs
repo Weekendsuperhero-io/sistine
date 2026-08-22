@@ -10,7 +10,7 @@
  * Why: a style added to the union but omitted from the array silently vanishes from the switcher's
  * cycle, and TypeScript won't catch it (a subset still satisfies `PatternStyle[]`). This test does.
  *
- * Run: node scripts/check-patterns.mjs   (wired into `pnpm test`)
+ * Run: node scripts/check-patterns.mjs   (wired into `bun run test`)
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";

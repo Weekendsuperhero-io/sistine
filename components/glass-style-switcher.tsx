@@ -19,6 +19,10 @@ const STYLES = [
     label: "Crystal",
   },
   {
+    value: "chakra",
+    label: "Chakra",
+  },
+  {
     value: "opaque",
     label: "Opaque",
   },

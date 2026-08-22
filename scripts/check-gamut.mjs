@@ -30,7 +30,7 @@
  *   2. [spread]  At a given surface, the fraction of its declared chroma that survives varies across
  *                presets by no more than SPREAD_MAX.
  *
- * Run: pnpm test:gamut   (needs Node >= 22 to type-strip the imported .ts)
+ * Run: bun run test:gamut   (needs Node >= 22 to type-strip the imported .ts)
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -98,21 +98,60 @@ function lightnessVars() {
 function collectSurfaces(vars) {
   const surfaces = [];
   const seen = new Set();
-  /* oklch(<lightness> calc(var(--glass-tint-c) * <mult>) …) — lightness is a literal %, a bare var(),
-     or calc(var(--x) * 1%). Multiplier may itself be a var() with a numeric default. */
+  /* oklch(<lightness> <chroma> …) — lightness is a literal %, a bare var(), or calc(var(--x) * 1%).
+     THREE chroma shapes are scraped, because the engine authors all three:
+       SCALE   calc(var(--glass-tint-c[-hi]) * <mult>)                 — a multiple of the tint chroma
+       CAP     min(var(--glass-tint-c), <cap>)                         — the tint chroma clamped
+       BOTH    min(calc(var(--glass-tint-c[-hi]) * <mult>), <cap>)     — scaled, THEN clamped
+     Multiplier and cap may each be a mode-scoped token, resolved per mode below.
+     BOTH exists for --primary, where the ×1.2 is design intent (primary reads more saturated than the
+     base tint) but has to stop at the sRGB edge. Order is load-bearing and the evaluator below applies
+     it as min(c × mult, cap): capping BEFORE the multiplier gives a different answer — at c 0.07 with
+     cap 0.07, min(0.084, 0.07) = 0.07, but min(0.07, 0.07) × 1.2 = 0.084, which is back out of gamut.
+     Adding a shape here is not optional bookkeeping: an unmatched shape drops that surface from the
+     sweep SILENTLY, which is exactly how --primary sat out of gamut for seven presets unnoticed. */
   const re =
-    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\))\s*calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)/g;
+    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\))\s*(?:min\(\s*calc\(\s*var\(--glass-tint-c(?<mhi>-hi)?\)\s*\*\s*(?<mk>[\d.]+)\s*\)\s*,\s*(?:(?<mcaplit>[\d.]+)|var\(--(?<mcapvar>[a-z0-9-]+)\))\s*\)|calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)|min\(\s*var\(--glass-tint-c\)\s*,\s*(?:(?<caplit>[\d.]+)|var\(--(?<capvar>[a-z0-9-]+)\))\s*\))/g;
+  /* Split into top-level rule bodies so a block-LOCAL lightness override is honoured. A flavor block
+     may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and
+     resolving that from tokens.css instead would model a surface that never renders while missing the
+     one that does. Brace-depth, because these rules are flat. */
+  const blocks = (source) => {
+    const out = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < source.length; i++) {
+      if (source[i] === "{") {
+        if (depth === 0) start = i + 1;
+        depth++;
+      } else if (source[i] === "}") {
+        depth--;
+        if (depth === 0) out.push(source.slice(start, i));
+      }
+    }
+    return out;
+  };
   for (const [file, src] of Object.entries({ engine: css.engine, materials: css.materials })) {
-    for (const m of src.matchAll(re)) {
-      const g = m.groups;
-      const k = g.k !== undefined ? +g.k : +g.kdef;
+    for (const body of blocks(src)) {
+      /* Numeric custom props declared right here, which shadow the tokens.css values below. */
+      const local = new Map();
+      for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) local.set(k, +v);
+      for (const m of body.matchAll(re)) {
+        const g = m.groups;
+      /* mk = the BOTH shape's multiplier; k/kdef = the SCALE shape's. A pure CAP has neither and
+         falls through to mult 1 below, which makes min(c × 1, cap) the same as min(c, cap). */
+      const k = g.mk !== undefined ? +g.mk : g.k !== undefined ? +g.k : g.kdef !== undefined ? +g.kdef : 1;
       const lname = g.lvar ?? g.lcalc ?? null;
       const kname = g.kvar ?? null;
+      const capName = g.mcapvar ?? g.capvar ?? null;
+      const capLit = g.mcaplit ?? g.caplit;
+      const nearWhiteCap = !!(g.hi || g.mhi);
       for (const mode of ["light", "dark"]) {
         let l;
         if (g.lit !== undefined) l = +g.lit;
         else {
-          const v = vars[mode].get(lname) ?? vars.light.get(lname);
+          /* Block-local first: a flavor block that re-pins the lightness var owns it here. */
+          const v = local.get(lname) ?? vars[mode].get(lname) ?? vars.light.get(lname);
           if (v === undefined) continue;
           l = v <= 1 ? v * 100 : v; /* --primary-l is authored 0–1, the rest as 0–100 */
         }
@@ -123,11 +162,20 @@ function collectSurfaces(vars) {
           if (resolved === undefined) continue; /* unresolvable multiplier — counted by the sanity floor */
           mult = resolved;
         }
-        const label = `${file}:${lname ?? `L${g.lit}`} ×${mult}${g.hi ? " (capped)" : ""}`;
+        /* The ceiling is mode-scoped too (--border-c-max is 0.07 light / 0.041 dark). */
+        let hardCap;
+        if (capLit !== undefined) hardCap = +capLit;
+        else if (capName) {
+          hardCap = vars[mode].get(capName) ?? vars.light.get(capName);
+          if (hardCap === undefined) continue; /* unresolvable cap — counted by the sanity floor */
+        }
+        const shape = hardCap !== undefined ? (mult === 1 ? `≤${hardCap}` : `×${mult} ≤${hardCap}`) : `×${mult}`;
+        const label = `${file}:${lname ?? `L${g.lit}`} ${shape}${nearWhiteCap ? " (capped)" : ""}`;
         const id = `${label}|${mode}|${l}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        surfaces.push({ label, mode, l, mult, capped: !!g.hi });
+        surfaces.push({ label, mode, l, mult, capped: nearWhiteCap, hardCap });
+        }
       }
     }
   }
@@ -159,7 +207,13 @@ for (const s of surfaces) {
   const rows = presets
     .filter((p) => (s.mode === "dark" ? true : !p.dark))
     .map((p) => {
-      const want = (s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c) * s.mult;
+      /* Effective authored chroma, in the order CSS evaluates it: the near-white cap on the tint
+         chroma, then the multiplier, then the surface's own hard cap. Capping before the multiplier
+         would under-report — min(c, cap) × mult can land back outside the gamut the cap exists to
+         hold. A pure CAP surface carries mult 1, so this reduces to min(c, cap) for it. */
+      const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
+      let want = base * s.mult;
+      if (s.hardCap !== undefined) want = Math.min(want, s.hardCap);
       const ceiling = maxSrgbChroma(s.l, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
          must not vary is how much of its declared intent survives. */
@@ -174,6 +228,17 @@ for (const s of surfaces) {
   }
 
   const worst = rows.reduce((a, b) => (b.overage > a.overage ? b : a));
+  /* A surface that declares a hard cap has ASSERTED it stays inside the gamut — that is the entire
+     point of writing one. Hold it to that exactly, independently of the drift baselines below, which
+     are deliberately loose (4.6×) because the uncapped opaque body still asks 4.50×. Without this a
+     cap could sit at, say, 2.8× — in gamut for no preset, mapped by the browser everywhere — and
+     still pass, which would make the cap decorative. */
+  if (s.hardCap !== undefined && worst.overage > 1.0001) {
+    failures.push(
+      `[cap] ${label} — declares a cap of ${s.hardCap}, but ${worst.key} still asks C=${worst.want.toFixed(4)} against an sRGB ceiling of ` +
+        `${worst.ceiling.toFixed(4)} (${worst.overage.toFixed(2)}× over). A cap exists to land inside the gamut — lower it, or lower the lightness.`,
+    );
+  }
   if (worst.overage > OVERAGE_MAX) {
     failures.push(
       `[overage] ${label} — ${worst.key} asks C=${worst.want.toFixed(4)} against an sRGB ceiling of ${worst.ceiling.toFixed(4)} (${worst.overage.toFixed(2)}× over, max ${OVERAGE_MAX}×)`,

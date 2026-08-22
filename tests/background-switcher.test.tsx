@@ -40,14 +40,14 @@ async function renderWithPicker(user: ReturnType<typeof userEvent.setup>) {
   return input;
 }
 
-describe("BackgroundSwitcher — themed colour default", () => {
+describe("BackgroundSwitcher: themed colour default", () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.style.setProperty("--glass-tint-h", "250");
   });
   afterEach(() => document.documentElement.style.removeProperty("--glass-tint-h"));
 
-  it("populates the input on focus — the keyboard path", async () => {
+  it("populates the input on focus: the keyboard path", async () => {
     const user = userEvent.setup();
     const input = await renderWithPicker(user);
     expect(input.value).not.toBe(expectedHex(250));
@@ -58,7 +58,7 @@ describe("BackgroundSwitcher — themed colour default", () => {
     expect(input.value).toBe(expectedHex(250));
   });
 
-  it("populates on pointer activation too — focus precedes click", async () => {
+  it("populates on pointer activation too: focus precedes click", async () => {
     const user = userEvent.setup();
     const input = await renderWithPicker(user);
 
