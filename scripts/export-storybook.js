@@ -1,51 +1,53 @@
 #!/usr/bin/env node
 
 /**
- * Export Storybook static files to public/storybook/
- * Cross-platform alternative to rsync for Vercel deployment
+ * Copy the built Storybook into the exported site at `out/storybook/`, so the deploy serves it at
+ * /storybook alongside the docs site. Cross-platform stand-in for rsync.
+ *
+ * RUNS AFTER `next build`, not before. The old order staged Storybook through `public/storybook`, which
+ * fed a loop: `.storybook/main.ts` sets `staticDirs: ["../public"]` (stories reference /logo-dark.png
+ * and friends), so each Storybook build swallowed the PREVIOUS export back into `storybook-static/`.
+ * That cost ~35 MB of copying per build and forced this script to special-case the nested `storybook`
+ * directory on the way back out — a guard that silently had to stay correct or the fossil would ship.
+ *
+ * Writing to `out/` breaks the cycle at the source: `public/` never contains a Storybook, so
+ * `staticDirs` has nothing stale to pick up and no skip rule is needed.
  */
 
 const fs = require("fs");
 const path = require("path");
 
 const sourceDir = path.join(process.cwd(), "storybook-static");
-const targetDir = path.join(process.cwd(), "public", "storybook");
+const targetDir = path.join(process.cwd(), "out", "storybook");
 
-// Create target directory if it doesn't exist
-if (!fs.existsSync(targetDir)) {
-  fs.mkdirSync(targetDir, {
-    recursive: true,
-  });
-}
-
-// Copy files recursively
 function copyRecursiveSync(src, dest) {
-  const exists = fs.existsSync(src);
-  const stats = exists && fs.statSync(src);
-  const isDirectory = exists && stats.isDirectory();
+  const stats = fs.statSync(src);
 
-  if (isDirectory) {
-    if (!fs.existsSync(dest)) {
-      fs.mkdirSync(dest, {
-        recursive: true,
-      });
-    }
-    fs.readdirSync(src).forEach((childItemName) => {
-      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+  if (stats.isDirectory()) {
+    fs.mkdirSync(dest, {
+      recursive: true,
     });
+    for (const childItemName of fs.readdirSync(src)) {
+      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+    }
   } else {
     fs.copyFileSync(src, dest);
   }
 }
 
-// Check if source directory exists
 if (!fs.existsSync(sourceDir)) {
   console.error(`Error: Source directory "${sourceDir}" does not exist.`);
-  console.error('Please run "pnpm build-storybook" first.');
+  console.error('Please run "bun run storybook:build" first.');
   process.exit(1);
 }
 
-// Remove existing target directory if it exists
+// out/ is produced by `next build` (output: "export"). Ordering matters, so say so rather than
+// silently creating a stray directory the deploy would never look at.
+if (!fs.existsSync(path.join(process.cwd(), "out"))) {
+  console.error('Error: "out/" does not exist — run "bun run build" before exporting Storybook.');
+  process.exit(1);
+}
+
 if (fs.existsSync(targetDir)) {
   fs.rmSync(targetDir, {
     recursive: true,
@@ -53,13 +55,6 @@ if (fs.existsSync(targetDir)) {
   });
 }
 
-// Copy files — but NOT the build's own nested "storybook" dir: staticDirs ("../public") makes the build
-// swallow public/storybook (the PREVIOUS export), so copying it back would nest a stale snapshot one
-// level deeper on every build cycle (public/storybook/storybook/… kept fossilized pre-rename bundles).
 console.log(`Copying Storybook files from ${sourceDir} to ${targetDir}...`);
-fs.mkdirSync(targetDir, { recursive: true });
-for (const child of fs.readdirSync(sourceDir)) {
-  if (child === "storybook") continue;
-  copyRecursiveSync(path.join(sourceDir, child), path.join(targetDir, child));
-}
+copyRecursiveSync(sourceDir, targetDir);
 console.log("✓ Storybook files exported successfully!");

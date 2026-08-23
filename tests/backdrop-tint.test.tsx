@@ -33,13 +33,20 @@ afterEach(() => {
 
 describe("useBackdropTint hue resolution", () => {
   it("keeps a jewel's own hue", async () => {
-    setTheme({ "--glass-tint-h": "255", "--glass-tint-c": "0.07" });
+    setTheme({
+      "--glass-tint-h": "255",
+      "--glass-tint-c": "0.07",
+    });
     const { result } = renderHook(() => useBackdropTint());
     await waitFor(() => expect(result.current.hue).toBe(255));
   });
 
   it("ignores selenite's placeholder hue (chroma 0) and uses the canvas default", async () => {
-    setTheme({ "--glass-tint-h": "250", "--glass-tint-c": "0", "--harmony-h": "0" });
+    setTheme({
+      "--glass-tint-h": "250",
+      "--glass-tint-c": "0",
+      "--harmony-h": "0",
+    });
     const { result } = renderHook(() => useBackdropTint());
     await waitFor(() => expect(result.current.hue).toBe(250));
   });
@@ -47,31 +54,60 @@ describe("useBackdropTint hue resolution", () => {
   it("ignores moonstone's placeholder hue so it stops painting the amber jewel's gold", async () => {
     // The real divergence: h75 c0.047 is a cream stone, but h75 at the canvas's 0.15 chroma is gold —
     // byte-identical to the amber preset. --harmony-h: 0 is the hue-less signal, from CSS or switcher.
-    setTheme({ "--glass-tint-h": "75", "--glass-tint-c": "0.047", "--harmony-h": "0" }, "moonstone");
+    setTheme(
+      {
+        "--glass-tint-h": "75",
+        "--glass-tint-c": "0.047",
+        "--harmony-h": "0",
+      },
+      "moonstone",
+    );
     const { result } = renderHook(() => useBackdropTint());
     await waitFor(() => expect(result.current.hue).toBe(250));
   });
 
   it("resolves both hue-less stones to the SAME hue: the point of the change", async () => {
-    setTheme({ "--glass-tint-h": "250", "--glass-tint-c": "0", "--harmony-h": "0" });
+    setTheme({
+      "--glass-tint-h": "250",
+      "--glass-tint-c": "0",
+      "--harmony-h": "0",
+    });
     const selenite = renderHook(() => useBackdropTint());
     await waitFor(() => expect(selenite.result.current.hue).toBeDefined());
     const seleniteHue = selenite.result.current.hue;
 
-    setTheme({ "--glass-tint-h": "75", "--glass-tint-c": "0.047", "--harmony-h": "0" }, "moonstone");
+    setTheme(
+      {
+        "--glass-tint-h": "75",
+        "--glass-tint-c": "0.047",
+        "--harmony-h": "0",
+      },
+      "moonstone",
+    );
     const moonstone = renderHook(() => useBackdropTint());
     await waitFor(() => expect(moonstone.result.current.hue).toBe(seleniteHue));
   });
 
   it("still lets an explicit accent outrank the hue-less fallback", async () => {
     // Turning the accent knob on is a deliberate choice and must win over every default.
-    setTheme({ "--glass-tint-h": "75", "--glass-tint-c": "0.047", "--harmony-h": "0", "--accent-h": "310" }, "moonstone");
+    setTheme(
+      {
+        "--glass-tint-h": "75",
+        "--glass-tint-c": "0.047",
+        "--harmony-h": "0",
+        "--accent-h": "310",
+      },
+      "moonstone",
+    );
     const { result } = renderHook(() => useBackdropTint());
     await waitFor(() => expect(result.current.hue).toBe(310));
   });
 
   it("treats a hand-rolled chroma-0 theme as hue-less even with no --harmony-h", async () => {
-    setTheme({ "--glass-tint-h": "128", "--glass-tint-c": "0" });
+    setTheme({
+      "--glass-tint-h": "128",
+      "--glass-tint-c": "0",
+    });
     const { result } = renderHook(() => useBackdropTint());
     await waitFor(() => expect(result.current.hue).toBe(250));
   });

@@ -17,11 +17,11 @@
  * Recharts is rendered directly at a fixed size rather than through ChartContainer: ChartContainer
  * wraps children in ResponsiveContainer, which measures the DOM and yields nothing at jsdom's 0×0.
  */
-import { render } from "@testing-library/react";
+
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import * as React from "react";
+import { render } from "@testing-library/react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import { describe, expect, it } from "vitest";
 
@@ -41,8 +41,14 @@ function shippedAxisLabelSelector(): string {
 }
 
 const data = [
-  { month: "Jan", value: 40 },
-  { month: "Feb", value: 90 },
+  {
+    month: "Jan",
+    value: 40,
+  },
+  {
+    month: "Feb",
+    value: 90,
+  },
 ];
 
 function Chart() {

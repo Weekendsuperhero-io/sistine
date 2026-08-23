@@ -286,7 +286,7 @@ All PRs require review before merging. Reviewers will check:
 
 ## 📞 Getting Help
 
-- **Documentation**: [weekendsuperhero.io](https://weekendsuperhero.io)
+- **Documentation**: [sistine.weekendsuperhero.io](https://sistine.weekendsuperhero.io)
 - **Issues**: [GitHub Issues](https://github.com/Weekendsuperhero-io/sistine/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Weekendsuperhero-io/sistine/discussions)
 

@@ -39,6 +39,10 @@ import { cn } from "@/lib/utils";
 
 /** The material system's composable surfaces, sheerest → most solid — the showcase cards below swap
  *  between them: bare structural glass, + the border axis, + the veil floor, and the opaque material. */
+/* The hero's install line. Declared once because the box RENDERS it and the copy button WRITES it, and
+   those two used to be different strings — the visible one namespaced, the copied one a dead URL. */
+const INSTALL_COMMAND = "bunx shadcn@latest add @sistine/button";
+
 const SURFACES = [
   {
     value: "glass",
@@ -87,7 +91,10 @@ export default function Home() {
   ]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("npx shadcn@latest add https://weekendsuperhero.io/r/styles/glass");
+    /* Copy what the box actually SHOWS. It used to write a different command entirely —
+       `npx shadcn@latest add <site>/r/styles/glass` — pointing at a /r/styles/ path the registry has
+       never produced, so anyone using the button got a 404 instead of the namespaced install below. */
+    navigator.clipboard.writeText(INSTALL_COMMAND);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -131,7 +138,7 @@ export default function Home() {
               className="glass max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
               onClick={handleCopy}
             >
-              <code className="text-foreground/70 truncate select-all">bunx shadcn@latest add @sistine/button</code>
+              <code className="text-foreground/70 truncate select-all">{INSTALL_COMMAND}</code>
               {copied ? (
                 <Check className="h-4 w-4 text-green-500 shrink-0" />
               ) : (

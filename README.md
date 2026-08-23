@@ -85,7 +85,7 @@ export function Example() {
 
 ## 📚 Documentation
 
-Visit the [full documentation](https://weekendsuperhero.io) for:
+Visit the [full documentation](https://sistine.weekendsuperhero.io) for:
 - Complete component reference
 - Installation guides
 - Customization examples
@@ -199,7 +199,7 @@ import { glassVars } from "@/lib/material"
 - Calendar, Chart, Command
 - Slider, Toggle, Toggle Group
 
-And more! See the [full component list](https://weekendsuperhero.io/components).
+And more! See the [full component list](https://sistine.weekendsuperhero.io/components).
 
 ## 🛠️ Development
 
@@ -247,32 +247,40 @@ sistine/
 
 ## 🚀 Deployment
 
-### Deploy to Vercel
+The site is a **fully static build** (`output: "export"`), so it deploys as plain files to any static host: Cloudflare Pages, Cloudflare Workers Static Assets, Vercel, Netlify, S3. There is no server at request time.
 
-Deploy both the documentation site and Storybook to Vercel:
+Storybook is folded into the same output at `/storybook`, so one deploy covers both.
 
-**Quick Start:**
-1. Deploy main site: Import your repo at [vercel.com/new](https://vercel.com/new)
-2. Deploy Storybook: Import the same repo again with these settings:
-   - Build Command: `bun run storybook:build`
-   - Output Directory: `storybook-static`
-3. Set environment variable `NEXT_PUBLIC_STORYBOOK_URL` in main site
-4. Redeploy main site
+| Setting | Value |
+|---|---|
+| Install command | `bun install --frozen-lockfile` |
+| Build command | `bun run storybook:build && bun run build && bun run storybook:export` |
+| Output directory | `out` |
 
-> Both deploy from the same repo: the main site (default settings) and Storybook (build command `bun run storybook:build`, output `storybook-static`).
+**Order matters.** `storybook:build` produces `storybook-static/`, `build` exports the site to `out/`, and `storybook:export` copies Storybook into `out/storybook/`. Running the export before the build fails with an explicit message rather than silently shipping without Storybook.
+
+### Environment variables
+
+| Variable | Purpose | Default if unset |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | Absolute URLs in `/rss.xml`. Baked at build time, so set it per environment or previews advertise production links. | `https://sistine.weekendsuperhero.io` |
+| `NEXT_PUBLIC_STORYBOOK_URL` | Where component pages link for Storybook docs. | `https://sistine.weekendsuperhero.io/storybook` |
 
 ### Build Commands
 
 ```bash
-# Build main site
+# Full deployable build (site + Storybook at /storybook)
+bun run storybook:build && bun run build && bun run storybook:export
+
+# Site only
 bun run build
 
-# Build Storybook
+# Storybook only
 bun run storybook:build
 
-# Test builds locally
-bun run start  # Serves main site on http://localhost:3000
-npx http-server storybook-static  # Serves Storybook on http://localhost:8080
+# Serve the built site locally. `next start` does NOT work with output: export,
+# because there is no server to start.
+npx serve@latest out
 ```
 
 ## 🤝 Contributing
@@ -285,7 +293,7 @@ This project is licensed under the MIT License.
 
 ## 🔗 Links
 
-- [Documentation](https://weekendsuperhero.io)
+- [Documentation](https://sistine.weekendsuperhero.io)
 - [GitHub Repository](https://github.com/Weekendsuperhero-io/sistine)
 - [Issue Tracker](https://github.com/Weekendsuperhero-io/sistine/issues)
 

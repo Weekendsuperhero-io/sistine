@@ -11,13 +11,39 @@
 import { describe, expect, it } from "vitest";
 import { apcaContrast, bandedFrescoStops, formatOklch, type OklchColor, rampGradient, readableLightnessBand } from "@/lib/oklch-utils";
 
-const SEED: OklchColor = { l: 72, c: 0.15, h: 300 };
+const SEED: OklchColor = {
+  l: 72,
+  c: 0.15,
+  h: 300,
+};
 const MODES = [
-  { name: "light", fg: "oklch(35% 0.15 300)", seed: { l: 72, c: 0.15, h: 300 } as OklchColor },
-  { name: "dark", fg: "oklch(96% 0.01 300)", seed: { l: 52, c: 0.15, h: 300 } as OklchColor },
+  {
+    name: "light",
+    fg: "oklch(35% 0.15 300)",
+    seed: {
+      l: 72,
+      c: 0.15,
+      h: 300,
+    } as OklchColor,
+  },
+  {
+    name: "dark",
+    fg: "oklch(96% 0.01 300)",
+    seed: {
+      l: 52,
+      c: 0.15,
+      h: 300,
+    } as OklchColor,
+  },
 ];
 const stopsOf = (css: string) =>
-  [...css.matchAll(/oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)/g)].map((m) => ({ l: +m[1], c: +m[2], h: +m[3] }));
+  [
+    ...css.matchAll(/oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)/g),
+  ].map((m) => ({
+    l: +m[1],
+    c: +m[2],
+    h: +m[3],
+  }));
 /** Shortest angular distance, so 359° and 1° read as 2° apart rather than 358°. */
 const hueDelta = (a: number, b: number) => Math.abs(((((a - b) % 360) + 540) % 360) - 180);
 
@@ -27,7 +53,13 @@ describe("readableLightnessBand", () => {
      a single solved foreground could only ever be legible at one end. */
   it.each(MODES)("$name: both edges clear the APCA target", ({ fg, seed }) => {
     const band = readableLightnessBand(fg, seed);
-    const at = (l: number) => Math.abs(apcaContrast(fg, { ...seed, l }));
+    const at = (l: number) =>
+      Math.abs(
+        apcaContrast(fg, {
+          ...seed,
+          l,
+        }),
+      );
 
     expect(band.lMin).toBeLessThan(band.lMax);
     expect(at(band.lMin)).toBeGreaterThanOrEqual(60);
@@ -38,26 +70,58 @@ describe("readableLightnessBand", () => {
     /* L 0 and L 100 are the only two lightnesses that hold NO chroma, so running to them washes the
        tint out of one edge. Backing off costs no readability — that end is the high-contrast one. */
     const band = readableLightnessBand(fg, seed);
-    expect([band.lMin, band.lMax]).not.toEqual([0, 100]);
+    expect([
+      band.lMin,
+      band.lMax,
+    ]).not.toEqual([
+      0,
+      100,
+    ]);
   });
 
   it("falls back to the full range when the target is unreachable", () => {
     /* A mid-lightness foreground clears 60 against nothing. Banding is a readability aid, not a gate —
        an empty band would collapse the gradient to a single colour. */
-    expect(readableLightnessBand("oklch(55% 0.1 300)", SEED, 90)).toEqual({ lMin: 0, lMax: 100 });
+    expect(readableLightnessBand("oklch(55% 0.1 300)", SEED, 90)).toEqual({
+      lMin: 0,
+      lMax: 100,
+    });
   });
 });
 
 describe("rampGradient", () => {
-  const AXES = ["tonal", "hue", "lightness", "chroma"] as const;
-  const SHAPES = ["linear", "radial", "conic"] as const;
+  const AXES = [
+    "tonal",
+    "hue",
+    "lightness",
+    "chroma",
+  ] as const;
+  const SHAPES = [
+    "linear",
+    "radial",
+    "conic",
+  ] as const;
   const matrix = MODES.flatMap(({ name, fg, seed }) =>
-    AXES.flatMap((axis) => SHAPES.map((shape) => ({ name, fg, seed, axis, shape }))),
+    AXES.flatMap((axis) =>
+      SHAPES.map((shape) => ({
+        name,
+        fg,
+        seed,
+        axis,
+        shape,
+      })),
+    ),
   );
 
   it.each(matrix)("$name/$axis/$shape stays inside the readable band", ({ fg, seed, axis, shape }) => {
     const band = readableLightnessBand(fg, seed);
-    const stops = stopsOf(rampGradient(axis, seed, 5, { band, shape, angle: 90 }));
+    const stops = stopsOf(
+      rampGradient(axis, seed, 5, {
+        band,
+        shape,
+        angle: 90,
+      }),
+    );
 
     expect(stops.length).toBeGreaterThan(0);
     for (const s of stops) {
@@ -70,7 +134,13 @@ describe("rampGradient", () => {
     /* A conic wraps: whatever sits at 360° butts straight into 0°. An open ramp met its own opposite
        end at the twelve-o'clock line and drew a hard seam — at full range, white against black. */
     const band = readableLightnessBand(fg, seed);
-    const stops = stopsOf(rampGradient(axis, seed, 5, { band, shape: "conic", angle: 90 }));
+    const stops = stopsOf(
+      rampGradient(axis, seed, 5, {
+        band,
+        shape: "conic",
+        angle: 90,
+      }),
+    );
     const first = stops[0];
     const last = stops.at(-1) as (typeof stops)[number];
 
@@ -81,7 +151,11 @@ describe("rampGradient", () => {
 
   it("is unchanged without a band — banding is opt-in", () => {
     /* The docs swatches call the same ramps and MUST keep showing the full range. */
-    const ls = stopsOf(rampGradient("lightness", SEED, 5, { shape: "linear" })).map((s) => s.l);
+    const ls = stopsOf(
+      rampGradient("lightness", SEED, 5, {
+        shape: "linear",
+      }),
+    ).map((s) => s.l);
     expect(Math.min(...ls)).toBe(0);
     expect(Math.max(...ls)).toBe(100);
   });
@@ -90,8 +164,15 @@ describe("rampGradient", () => {
 describe("bandedFrescoStops — TST-1-4", () => {
   /* Frescoes are authored as fixed multi-hue stops at one lightness and skip the ramp entirely, so
      they skip its banding and its conic loop-close too unless this applies them. */
-  const FRESCO = ["oklch(72% 0.15 20)", "oklch(72% 0.15 200)", "oklch(72% 0.15 300)"];
-  const BAND = { lMin: 80, lMax: 90 };
+  const FRESCO = [
+    "oklch(72% 0.15 20)",
+    "oklch(72% 0.15 200)",
+    "oklch(72% 0.15 300)",
+  ];
+  const BAND = {
+    lMin: 80,
+    lMax: 90,
+  };
 
   it("clamps lightness into the band", () => {
     for (const s of stopsOf(bandedFrescoStops(FRESCO, BAND, "linear"))) {
@@ -101,20 +182,39 @@ describe("bandedFrescoStops — TST-1-4", () => {
   });
 
   it("preserves hue while clamping", () => {
-    expect(stopsOf(bandedFrescoStops(FRESCO, BAND, "linear")).map((s) => s.h)).toEqual([20, 200, 300]);
+    expect(stopsOf(bandedFrescoStops(FRESCO, BAND, "linear")).map((s) => s.h)).toEqual([
+      20,
+      200,
+      300,
+    ]);
   });
 
   it("leaves in-band lightness where it is", () => {
     /* A clamp, not a remap: a stop already inside the band must not move. */
-    for (const s of stopsOf(bandedFrescoStops(FRESCO, { lMin: 60, lMax: 90 }, "linear"))) expect(s.l).toBeCloseTo(72, 1);
+    for (const s of stopsOf(
+      bandedFrescoStops(
+        FRESCO,
+        {
+          lMin: 60,
+          lMax: 90,
+        },
+        "linear",
+      ),
+    ))
+      expect(s.l).toBeCloseTo(72, 1);
   });
 
-  it.each(["linear", "radial"] as const)("%s does not close the loop", (shape) => {
+  it.each([
+    "linear",
+    "radial",
+  ] as const)("%s does not close the loop", (shape) => {
     expect(bandedFrescoStops(FRESCO, BAND, shape).split(",")).toHaveLength(FRESCO.length);
   });
 
   it("conic closes the loop at 0–100%", () => {
-    const parsed = [...bandedFrescoStops(FRESCO, BAND, "conic").matchAll(/(oklch\([^)]*\))\s+([\d.]+)%/g)].map((m) => ({
+    const parsed = [
+      ...bandedFrescoStops(FRESCO, BAND, "conic").matchAll(/(oklch\([^)]*\))\s+([\d.]+)%/g),
+    ].map((m) => ({
       css: m[1],
       pos: +m[2],
     }));
@@ -125,7 +225,15 @@ describe("bandedFrescoStops — TST-1-4", () => {
   });
 
   it("does not loop a single stop", () => {
-    expect(bandedFrescoStops(["oklch(72% 0.15 20)"], BAND, "conic")).not.toContain(",");
+    expect(
+      bandedFrescoStops(
+        [
+          "oklch(72% 0.15 20)",
+        ],
+        BAND,
+        "conic",
+      ),
+    ).not.toContain(",");
   });
 
   it("passes colours through untouched without a band", () => {
@@ -136,19 +244,48 @@ describe("bandedFrescoStops — TST-1-4", () => {
     /* formatOklch takes alpha as a separate argument and only falls back to `color.alpha`, so the
        object spread inside bandedFrescoStops is the ONLY thing carrying it. Losing it would be silent
        and type-clean. */
-    expect(bandedFrescoStops(["oklch(72% 0.15 20 / 0.4)"], BAND, "linear")).toMatch(/\/ 0\.4\)/);
+    expect(
+      bandedFrescoStops(
+        [
+          "oklch(72% 0.15 20 / 0.4)",
+        ],
+        BAND,
+        "linear",
+      ),
+    ).toMatch(/\/ 0\.4\)/);
   });
 
   it("does not invent an alpha on opaque stops", () => {
-    expect(bandedFrescoStops(["oklch(72% 0.15 20)"], BAND, "linear")).not.toContain("/");
+    expect(
+      bandedFrescoStops(
+        [
+          "oklch(72% 0.15 20)",
+        ],
+        BAND,
+        "linear",
+      ),
+    ).not.toContain("/");
   });
 
   it("leaves an unparseable stop alone", () => {
     /* A fresco could carry a var() or a named colour; mangling it is worse than not banding it. */
-    expect(bandedFrescoStops(["var(--something)", "oklch(72% 0.15 20)"], BAND, "linear")).toMatch(/^var\(--something\)/);
+    expect(
+      bandedFrescoStops(
+        [
+          "var(--something)",
+          "oklch(72% 0.15 20)",
+        ],
+        BAND,
+        "linear",
+      ),
+    ).toMatch(/^var\(--something\)/);
   });
 
-  it.each(["linear", "radial", "conic"] as const)("handles an empty stop list (%s)", (shape) => {
+  it.each([
+    "linear",
+    "radial",
+    "conic",
+  ] as const)("handles an empty stop list (%s)", (shape) => {
     expect(bandedFrescoStops([], BAND, shape)).toBe("");
   });
 });

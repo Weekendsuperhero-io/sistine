@@ -12,6 +12,8 @@
       "components/**",
       "lib/**",
       "app/**",
+      "stories/**",
+      "tests/**",
       "!app/theme/harmonics.css",
       "!!public/",
       "!!registry/"

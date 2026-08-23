@@ -17,9 +17,17 @@ function Popper({ initial, onWrapper }: { initial: string; onWrapper?: (el: HTML
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => {
     if (wrapperRef.current) onWrapper?.(wrapperRef.current);
-  }, [onWrapper]);
+  }, [
+    onWrapper,
+  ]);
   return (
-    <div ref={wrapperRef} data-radix-popper-content-wrapper="" style={{ transform: initial }}>
+    <div
+      ref={wrapperRef}
+      data-radix-popper-content-wrapper=""
+      style={{
+        transform: initial,
+      }}
+    >
       <div ref={snapRef} data-testid="content" />
     </div>
   );
@@ -71,7 +79,15 @@ describe("useSnappedPopper", () => {
   it("is inert when there is no popper wrapper (inline/anchored render)", () => {
     function Bare() {
       const snapRef = useSnappedPopper<HTMLDivElement>();
-      return <div ref={snapRef} data-testid="bare" style={{ transform: "translate(1.5px, 1.5px)" }} />;
+      return (
+        <div
+          ref={snapRef}
+          data-testid="bare"
+          style={{
+            transform: "translate(1.5px, 1.5px)",
+          }}
+        />
+      );
     }
     const { getByTestId } = render(<Bare />);
     expect(getByTestId("bare").style.transform).toBe("translate(1.5px, 1.5px)");
@@ -95,9 +111,14 @@ describe("composeRefs", () => {
     const seen: (HTMLDivElement | null)[] = [];
     const objectRef = React.createRef<HTMLDivElement>();
     function Both() {
-      return <div ref={composeRefs<HTMLDivElement>((n) => {
+      return (
+        <div
+          ref={composeRefs<HTMLDivElement>((n) => {
             seen.push(n);
-          }, objectRef)} data-testid="both" />;
+          }, objectRef)}
+          data-testid="both"
+        />
+      );
     }
     const { getByTestId, unmount } = render(<Both />);
     const node = getByTestId("both");
@@ -129,7 +150,12 @@ describe("useComposedRefs: REV-3-1", () => {
     const snapRef = useSnappedPopper<HTMLDivElement>();
     const composed = useComposedRefs<HTMLDivElement>(snapRef);
     return (
-      <div data-radix-popper-content-wrapper="" style={{ transform: "translate(1.5px, 1.5px)" }}>
+      <div
+        data-radix-popper-content-wrapper=""
+        style={{
+          transform: "translate(1.5px, 1.5px)",
+        }}
+      >
         <div ref={memoized ? composed : composeRefs<HTMLDivElement>(snapRef)} data-tick={tick} />
       </div>
     );
@@ -198,7 +224,10 @@ describe("snapTransform: the pure rounding", () => {
     expect(snapTransform("translate(-0.5px, -12.7px)")).toBe("translate(0px, -13px)");
   });
 
-  it.each(["scale(1.02)", ""])("ignores a transform it cannot parse: %j", (input) => {
+  it.each([
+    "scale(1.02)",
+    "",
+  ])("ignores a transform it cannot parse: %j", (input) => {
     /* Radix hasn't positioned yet, or wrote a shape we don't recognise — inventing a translate here
        would yank the surface to the origin. */
     expect(snapTransform(input)).toBeNull();

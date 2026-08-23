@@ -1,0 +1,31 @@
+# Cloudflare Pages header rules. Lives in public/ so `output: "export"` copies it to out/_headers,
+# which is where Pages looks. Ordering is most-specific-first; Pages applies every matching rule.
+
+# Content-hashed build output: the filename changes whenever the bytes do, so it can never go stale.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Storybook's bundles are hashed the same way.
+/storybook/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/storybook/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# The icons are served from stable paths, so they need revalidation rather than immutability.
+/icon.svg
+  Cache-Control: public, max-age=3600, must-revalidate
+/icon.png
+  Cache-Control: public, max-age=3600, must-revalidate
+/apple-icon.png
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/rss.xml
+  Cache-Control: public, max-age=3600, must-revalidate
+  Content-Type: application/rss+xml; charset=utf-8
+
+# Everything else, HTML included. HTML paths are stable, so a cached copy would pin a visitor to an old
+# build; revalidate on every view and let the hashed assets above carry the actual caching.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

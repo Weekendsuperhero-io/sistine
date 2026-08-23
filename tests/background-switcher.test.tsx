@@ -34,7 +34,11 @@ async function renderWithPicker(user: ReturnType<typeof userEvent.setup>) {
       <BackgroundSwitcher />
     </BackgroundProvider>,
   );
-  await user.click(screen.getByRole("button", { name: "None background" }));
+  await user.click(
+    screen.getByRole("button", {
+      name: "None background",
+    }),
+  );
   const input = view.container.querySelector<HTMLInputElement>('input[type="color"]');
   if (!input) throw new Error("colour input did not render under the none background");
   return input;
@@ -91,7 +95,11 @@ describe("BackgroundSwitcher: themed colour default", () => {
     // fireEvent.change, not a raw .value assignment: React tracks the value internally, so setting it
     // directly and dispatching leaves onChange unfired and baseColor null.
     await user.click(input);
-    fireEvent.change(input, { target: { value: "#123456" } });
+    fireEvent.change(input, {
+      target: {
+        value: "#123456",
+      },
+    });
     input.blur();
     input.focus();
 

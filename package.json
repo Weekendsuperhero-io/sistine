@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "npx serve@latest out",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && bun run test:gamut && bun run test:dom && bun run test:apca",

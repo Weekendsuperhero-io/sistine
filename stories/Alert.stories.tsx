@@ -1,5 +1,5 @@
+import { CheckCircleIcon, Terminal, WarningCircleIcon, XCircle } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { WarningCircleIcon, CheckCircleIcon, Terminal, XCircle } from "@phosphor-icons/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const meta = {

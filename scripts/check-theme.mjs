@@ -289,20 +289,63 @@ if (!rules.some((r) => r.selector.includes(`[data-material="crystal"]:hover`) &&
 //     only a standalone class (space/quote-delimited) matches. `surface-sm|-lg` precede `surface` so
 //     the longer form wins.
 const RECIPE_CLASS = /(?<![-\w])glass-(?:bg|surface-sm|surface-lg|surface|solid|frosted|crystal|opaque)(?![-\w])/;
+
+/**
+ * Every region of a source file that can hold a CLASS string: the full balanced argument list of a
+ * `cn(…)` / `cva(…)` call, the value of a `className=` prop (string or `{…}` expression), and any
+ * backtick template (JSX code samples).
+ *
+ * The old check matched `(?:className=|cn\()\s*"([^"]*)"`, which captures only the FIRST argument of a
+ * cn() call — so a retired recipe in the second or fourth argument, where conditional and merge
+ * classes actually live, walked straight past it. Same blind spot [opaque-fill] was rewritten for
+ * after it failed to catch its own bug. Extending to `cva(` closes the other half: a recipe sitting in
+ * a variant VALUE was never in a cn()/className position at all.
+ *
+ * [opaque-fill]'s answer was to scan the whole file, which works there because `bg-white/80` is its own
+ * discriminator. That is NOT the answer here: `glass-solid` reads perfectly well as English, and this
+ * repo really does say "one glass-solid card on the canvas" in prose and carries
+ * `aria-label="glass-solid floor opacity"` on a control. Scanning regions keeps every argument
+ * position while leaving JSX text and non-class attributes alone.
+ */
+function classRegions(src) {
+  const out = [];
+  const balanced = (from, open, close) => {
+    let depth = 0;
+    let i = from;
+    for (; i < src.length; i++) {
+      if (src[i] === open) depth++;
+      else if (src[i] === close && --depth === 0) break;
+    }
+    return i;
+  };
+  for (const m of src.matchAll(/\b(?:cn|cva)\(/g)) {
+    out.push(src.slice(m.index, balanced(m.index + m[0].length - 1, "(", ")")));
+  }
+  for (const m of src.matchAll(/className=(?:"([^"]*)"|\{)/g)) {
+    if (m[1] !== undefined) out.push(m[1]);
+    else out.push(src.slice(m.index, balanced(m.index + m[0].length - 1, "{", "}")));
+  }
+  for (const m of src.matchAll(/`([^`]*)`/g)) out.push(m[1]);
+  return out;
+}
 if (/@utility glass-(?:bg|surface|solid|frosted|crystal|opaque)\b/.test(css)) {
   fail(`[recipes-dead] the flattened theme still defines a retired recipe @utility — use the material system.`);
 }
 for (const dir of ["components", "app"]) {
   for (const rel of readdirSync(join(root, dir), { recursive: true })) {
     if (typeof rel !== "string" || !/\.(tsx|ts)$/.test(rel)) continue;
-    // Only class-string positions (className="…" / cn("…") / class inside a JSX code-sample backtick),
-    // so aria-labels, prose, and comments don't false-fail; the token-name guards above handle the
-    // --glass-* references that live inside those same backticks.
-    const src = readFileSync(join(root, dir, rel), "utf8");
-    for (const lit of src.matchAll(/(?:className=|cn\()\s*"([^"]*)"|`([^`]*)`/g)) {
-      const hit = (lit[1] ?? lit[2] ?? "").match(RECIPE_CLASS);
-      if (hit) fail(`[recipes-dead] ${dir}/${rel} uses "${hit[0]}" — use glassMaterial / the glass + axis classes instead.`);
-    }
+    // Class-string positions only (see classRegions), so aria-labels, JSX prose, and comments don't
+    // false-fail; the token-name anchors on RECIPE_CLASS handle the --glass-* references that live
+    // inside those same regions.
+    const src = readFileSync(join(root, dir, rel), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    /* One message per file: `className={cn(…)}` yields two overlapping regions, so a single offending
+       class would otherwise be reported twice. */
+    const hit = classRegions(src)
+      .map((region) => region.match(RECIPE_CLASS))
+      .find(Boolean);
+    if (hit) fail(`[recipes-dead] ${dir}/${rel} uses "${hit[0]}" — use glassMaterial / the glass + axis classes instead.`);
   }
 }
 
