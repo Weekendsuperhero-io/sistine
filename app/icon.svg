@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sistine">
+  <title>Sistine</title>
+  <!--
+    A step-cut (emerald-cut) gem: one table surrounded by four mitered facets, the same figure the
+    `chakra` material draws. The four wedges meet on the diagonals, which is where a rectangle's miter
+    lines actually run, so the corners read as cut rather than as a drawn border.
+
+    Every colour is OKLCH hue 300 (amethyst, the site's default `data-glass-tint`), converted through
+    lib/oklch-utils and taken at a fraction of that lightness's own sRGB ceiling rather than one shared
+    chroma. Near-white holds almost no chroma, so a single value would clip the light end and mud the
+    dark end. Lightness carries the cut; chroma just keeps it amethyst.
+
+    No gradients and no strokes: at a 16px tab both turn to mush. The read comes from six flat steps.
+  -->
+  <defs>
+    <clipPath id="gem">
+      <rect x="2" y="2" width="28" height="28" rx="7.5" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#gem)">
+    <!-- Table: the flat top face, left showing through the middle of the facet ring. -->
+    <rect x="2" y="2" width="28" height="28" fill="#a87fe9" />
+    <!-- Facet ring. Bottom-right catch the shade, top-left catch the light. -->
+    <path d="M2 2 H30 L23 9 H9 Z" fill="#cfc4e7" />
+    <path d="M2 30 V2 L9 9 V23 Z" fill="#8e3ee7" />
+    <path d="M30 2 V30 L23 23 V9 Z" fill="#6d2ab5" />
+    <path d="M30 30 H2 L9 23 H23 Z" fill="#461878" />
+    <!-- Specular on the table, the one mark that says "polished" at small sizes. -->
+    <path d="M9 20.5 L20.5 9 H14.5 L9 14.5 Z" fill="#f2f1f6" opacity="0.85" />
+  </g>
+</svg>

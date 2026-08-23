@@ -27,7 +27,7 @@
  *               switcher INLINES the preset onto <html>, shadowing the CSS — so a divergent block renders
  *               fine on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
  *
- * Run: pnpm test   (node scripts/check-theme.mjs)
+ * Run: bun run test   (node scripts/check-theme.mjs)
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -39,9 +39,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // parses the FLATTENED single-file view — the same string consumers install via the registry.
 const css = flattenTheme(root);
 
-// Tint-composing tokens intentionally kept on bare :root/.dark: foreground is AutoForeground's, and
-// must NOT move into the grouped block or a scoped tint would reset a subtree's text color.
-const FOREGROUND_ALLOW = new Set(["--muted-foreground"]);
+// Tint-composing tokens intentionally kept on bare :root/.dark: the FOREGROUND family is
+// AutoForeground's, and must NOT move into the grouped block or a scoped tint would reset a subtree's
+// text color — that is invariant 2 stated from the other side. Matched by name rather than an explicit
+// list: the family is open-ended (--foreground, -soft/-strong/-ui, the -opaque/-crystal tier sets,
+// --muted-foreground and ITS tier twins), every member composes --glass-fg-h, and the old single-entry
+// set only covered --muted-foreground because the narrower composesTint pattern missed the rest.
+const isForegroundToken = (name) => name.includes("foreground");
 
 const failures = [];
 const fail = (m) => failures.push(m);
@@ -82,7 +86,12 @@ function decls(body) {
   return out;
 }
 
-const composesTint = (v) => /var\(--glass-tint-[hca]\)/.test(v);
+/* --glass-tint-h/c/a AND their derived anchors (--glass-tint-c-hi, the near-white chroma cap, and
+   --glass-fg-h, the foreground hue). The derived two live in the tint-anchor block and so re-resolve
+   per scope exactly like the raw knobs — a token composing them from a bare :root bakes in the ROOT
+   value and stops tracking a scoped data-glass-tint, which is the same bug, silently. The old pattern
+   only matched a single char before `)`, so `var(--glass-tint-c-hi)` slipped through. */
+const composesTint = (v) => /var\(--glass-tint-(?:[hca]\b|c-hi)|var\(--glass-fg-h\)/.test(v);
 const selectors = (sel) => sel.split(",").map((s) => s.trim());
 const isBareRootOrDark = (sel) => {
   const l = selectors(sel);
@@ -97,7 +106,7 @@ const rules = topLevelRules(css);
 for (const r of rules) {
   if (!isBareRootOrDark(r.selector)) continue;
   for (const d of decls(r.body)) {
-    if (composesTint(d.value) && !FOREGROUND_ALLOW.has(d.name)) {
+    if (composesTint(d.value) && !isForegroundToken(d.name)) {
       fail(
         `[scope] ${d.name} composes var(--glass-tint-*) but is on bare "${r.selector}". ` +
           `Move it to the ":root, [data-glass-tint]" group, or scoped data-glass-tint won't re-resolve it.`,
@@ -238,12 +247,15 @@ for (const p of frescoPresets) {
   }
 }
 
-// 6a. [materials] each of the four [data-material] blocks declares the FULL --srf-* pin set, so an
+// 6a. [materials] each of the five [data-material] blocks declares the FULL --srf-* pin set, so an
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
-const MATERIALS = ["glass", "frosted", "crystal", "opaque"];
+const MATERIALS = ["glass", "frosted", "crystal", "chakra", "opaque"];
 const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow"];
 const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
+/* Materials whose floor lightness is its own dial and can sit far from the page's, so they must remap
+   the foreground tiers to their own set: opaque's solid floor, and chakra's table. */
+const FG_REMAP_MATERIALS = ["opaque", "chakra"];
 for (const m of MATERIALS) {
   const rule = rules.find((r) => selectors(r.selector).includes(`[data-material="${m}"]`));
   if (!rule) {
@@ -254,8 +266,17 @@ for (const m of MATERIALS) {
   for (const t of PIN_SET) {
     if (!names.has(t)) fail(`[materials] [data-material="${m}"] is missing ${t} — an inherited [data-glass] remap would leak through the un-pinned channel.`);
   }
-  if (m === "opaque") {
-    for (const t of OPAQUE_FG) if (!names.has(t)) fail(`[materials] opaque must remap ${t} to its -opaque twin (its floor can be lighter than the page).`);
+  if (FG_REMAP_MATERIALS.includes(m)) {
+    /* The remap may live on the base block (opaque) or on a veil-guarded companion (chakra, matching
+       crystal's pattern), so look across both — what matters is that the tiers ARE remapped. */
+    const remapped = new Set(
+      rules
+        .filter((r) => selectors(r.selector).some((s) => s.startsWith(`[data-material="${m}"]`) && !s.includes(":hover")))
+        .flatMap((r) => decls(r.body).map((d) => d.name)),
+    );
+    for (const t of OPAQUE_FG) {
+      if (!remapped.has(t)) fail(`[materials] ${m} must remap ${t} to its -${m} twin (its floor lightness is its own dial and can sit far from the page's).`);
+    }
   }
 }
 if (!rules.some((r) => r.selector.includes(`[data-material="crystal"]:hover`) && /--srf-shadow/.test(r.body))) {
@@ -268,20 +289,63 @@ if (!rules.some((r) => r.selector.includes(`[data-material="crystal"]:hover`) &&
 //     only a standalone class (space/quote-delimited) matches. `surface-sm|-lg` precede `surface` so
 //     the longer form wins.
 const RECIPE_CLASS = /(?<![-\w])glass-(?:bg|surface-sm|surface-lg|surface|solid|frosted|crystal|opaque)(?![-\w])/;
+
+/**
+ * Every region of a source file that can hold a CLASS string: the full balanced argument list of a
+ * `cn(…)` / `cva(…)` call, the value of a `className=` prop (string or `{…}` expression), and any
+ * backtick template (JSX code samples).
+ *
+ * The old check matched `(?:className=|cn\()\s*"([^"]*)"`, which captures only the FIRST argument of a
+ * cn() call — so a retired recipe in the second or fourth argument, where conditional and merge
+ * classes actually live, walked straight past it. Same blind spot [opaque-fill] was rewritten for
+ * after it failed to catch its own bug. Extending to `cva(` closes the other half: a recipe sitting in
+ * a variant VALUE was never in a cn()/className position at all.
+ *
+ * [opaque-fill]'s answer was to scan the whole file, which works there because `bg-white/80` is its own
+ * discriminator. That is NOT the answer here: `glass-solid` reads perfectly well as English, and this
+ * repo really does say "one glass-solid card on the canvas" in prose and carries
+ * `aria-label="glass-solid floor opacity"` on a control. Scanning regions keeps every argument
+ * position while leaving JSX text and non-class attributes alone.
+ */
+function classRegions(src) {
+  const out = [];
+  const balanced = (from, open, close) => {
+    let depth = 0;
+    let i = from;
+    for (; i < src.length; i++) {
+      if (src[i] === open) depth++;
+      else if (src[i] === close && --depth === 0) break;
+    }
+    return i;
+  };
+  for (const m of src.matchAll(/\b(?:cn|cva)\(/g)) {
+    out.push(src.slice(m.index, balanced(m.index + m[0].length - 1, "(", ")")));
+  }
+  for (const m of src.matchAll(/className=(?:"([^"]*)"|\{)/g)) {
+    if (m[1] !== undefined) out.push(m[1]);
+    else out.push(src.slice(m.index, balanced(m.index + m[0].length - 1, "{", "}")));
+  }
+  for (const m of src.matchAll(/`([^`]*)`/g)) out.push(m[1]);
+  return out;
+}
 if (/@utility glass-(?:bg|surface|solid|frosted|crystal|opaque)\b/.test(css)) {
   fail(`[recipes-dead] the flattened theme still defines a retired recipe @utility — use the material system.`);
 }
 for (const dir of ["components", "app"]) {
   for (const rel of readdirSync(join(root, dir), { recursive: true })) {
     if (typeof rel !== "string" || !/\.(tsx|ts)$/.test(rel)) continue;
-    // Only class-string positions (className="…" / cn("…") / class inside a JSX code-sample backtick),
-    // so aria-labels, prose, and comments don't false-fail; the token-name guards above handle the
-    // --glass-* references that live inside those same backticks.
-    const src = readFileSync(join(root, dir, rel), "utf8");
-    for (const lit of src.matchAll(/(?:className=|cn\()\s*"([^"]*)"|`([^`]*)`/g)) {
-      const hit = (lit[1] ?? lit[2] ?? "").match(RECIPE_CLASS);
-      if (hit) fail(`[recipes-dead] ${dir}/${rel} uses "${hit[0]}" — use glassMaterial / the glass + axis classes instead.`);
-    }
+    // Class-string positions only (see classRegions), so aria-labels, JSX prose, and comments don't
+    // false-fail; the token-name anchors on RECIPE_CLASS handle the --glass-* references that live
+    // inside those same regions.
+    const src = readFileSync(join(root, dir, rel), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    /* One message per file: `className={cn(…)}` yields two overlapping regions, so a single offending
+       class would otherwise be reported twice. */
+    const hit = classRegions(src)
+      .map((region) => region.match(RECIPE_CLASS))
+      .find(Boolean);
+    if (hit) fail(`[recipes-dead] ${dir}/${rel} uses "${hit[0]}" — use glassMaterial / the glass + axis classes instead.`);
   }
 }
 
@@ -298,7 +362,7 @@ try {
   const theme = JSON.parse(readFileSync(join(root, "public/r/theme.json"), "utf8"));
   const shipped = theme.files?.find((f) => f.path === "registry/theme/globals.css")?.content;
   if (shipped == null) fail(`[sync] public/r/theme.json has no registry/theme/globals.css file.`);
-  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
+  else if (shipped !== css) fail(`[sync] public/r/theme.json's globals.css is STALE — run "bun run registry:check" and commit registry/theme + public/r.`);
 } catch (e) {
   fail(`[sync] could not read public/r/theme.json: ${e.message}`);
 }
@@ -306,9 +370,57 @@ try {
 // 7b. [artifact] the committed flattened artifact matches the live partials (build-theme output is current)
 try {
   const artifact = readFileSync(join(root, "registry/theme/globals.css"), "utf8");
-  if (artifact !== css) fail(`[artifact] registry/theme/globals.css is STALE — run "pnpm registry:check" and commit registry/theme + public/r.`);
+  if (artifact !== css) fail(`[artifact] registry/theme/globals.css is STALE — run "bun run registry:check" and commit registry/theme + public/r.`);
 } catch (e) {
-  fail(`[artifact] could not read registry/theme/globals.css — run "pnpm registry:check" (${e.message}).`);
+  fail(`[artifact] could not read registry/theme/globals.css — run "bun run registry:check" (${e.message}).`);
+}
+
+// 9. [opaque-fill] no raw bg-white / bg-black FILL at alpha >= 0.5 in a component class string.
+//     Everything in this theme gets its hue from the surface underneath, so a fill's alpha is exactly
+//     how much of that hue survives: at 0.2 four fifths of the tint shows through and the element reads
+//     on-theme, at 0.8 only a fifth does and it reads flat white or flat black no matter which preset
+//     is active. That is the bug the active tab/toggle shipped with — `bg-white/80 dark:bg-white/20`,
+//     which looked correct in dark and lost the hue entirely in light, in every theme.
+//     LOW-alpha raw white/black is deliberately allowed: a scrim or a bevel SHOULD be pure, not a
+//     tinted neutral (Table's striped rows and header sit at 0.07–0.35), and it still lets the tint
+//     through. Only fills are checked — a border or text colour does not cover a surface.
+{
+  /* Two opacity spellings, and the brackets are what tells them apart: `/[0.07]` is an arbitrary
+     FRACTION, `/80` is a Tailwind PERCENT step, bare is fully opaque. The bracket must not be optional
+     on the fraction branch or `/10` matches it and reads as alpha 10. */
+  const FILL = /(?<![-\w])bg-(white|black)(?:\/(?:\[(\d?\.?\d+)\]|(\d+)))?(?![-\w])/g;
+  /* Surfaces that are deliberately NOT theme surfaces. Keyed by file with the reason, so adding one
+     means stating why rather than quietly widening the rule. */
+  const NOT_A_THEME_SURFACE = new Map([
+    ["components/open-in-v0-button.tsx", "v0's brand button — a third-party mark must not shift with our tint"],
+    ["components/oklch-ramp-demo.tsx", "the 'copied' pill sits over arbitrary ramp swatches, so it needs its own contrast, not the theme's"],
+  ]);
+  for (const dir of ["components", "app"]) {
+    for (const rel of readdirSync(join(root, dir), { recursive: true })) {
+      if (typeof rel !== "string" || !/\.(tsx|ts)$/.test(rel)) continue;
+      if (NOT_A_THEME_SURFACE.has(`${dir}/${rel}`)) continue;
+      /* Scan the whole source with comments stripped, NOT just class-string positions. The obvious
+         `(?:className=|cn\()\s*"([^"]*)"` shape only captures the FIRST argument of a cn() call, and
+         the bug this invariant exists for lived in the fourth — so that shape would have watched the
+         offending line go past and said nothing. `bg-white/80` is specific enough that the pattern is
+         its own discriminator; comments have to go because the ones explaining this rule quote it. */
+      const src = readFileSync(join(root, dir, rel), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/[^\n]*/g, "");
+      const seen = new Set();
+      for (const hit of src.matchAll(FILL)) {
+        /* `/[0.07]` is a fraction, `/80` is a percent, bare means fully opaque. */
+        const alpha = hit[2] !== undefined ? Number(hit[2]) : hit[3] !== undefined ? Number(hit[3]) / 100 : 1;
+        if (alpha < 0.5 || seen.has(hit[0])) continue;
+        seen.add(hit[0]);
+        fail(
+          `[opaque-fill] ${dir}/${rel} uses "${hit[0]}" — a raw ${hit[1]} fill at alpha ${alpha} leaves only ` +
+            `${Math.round((1 - alpha) * 100)}% of the tinted surface showing, so it reads flat in every theme. ` +
+            `Point it at a role token (e.g. --active-bg for a selected control) or drop the alpha below 0.5.`,
+        );
+      }
+    }
+  }
 }
 
 // 8. [tint-sync] every switcher preset's h/c/a matches its [data-glass-tint] CSS block(s). The switcher

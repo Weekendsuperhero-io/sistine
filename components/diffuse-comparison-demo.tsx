@@ -4,7 +4,7 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 
-const SAMPLE = "The quick brown fox jumps over the lazy dog — is this still legible?";
+const SAMPLE = "The quick brown fox jumps over the lazy dog. Is this still legible?";
 
 /**
  * Side-by-side proof of the `diffuse` axis. Both cards are CRYSTAL (identity blur: 2px) over a
@@ -38,7 +38,7 @@ export function DiffuseComparisonDemo() {
           <Card material="crystal" border diffuse>
             <CardHeader>
               <CardTitle className="text-base">
-                <code className="text-xs">diffuse</code> — blur floor tracks the slider
+                <code className="text-xs">diffuse</code>: blur floor tracks the slider
               </CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
@@ -46,7 +46,7 @@ export function DiffuseComparisonDemo() {
 
           <Card material="crystal" border>
             <CardHeader>
-              <CardTitle className="text-base">plain crystal — its own 2px blur</CardTitle>
+              <CardTitle className="text-base">plain crystal: its own 2px blur</CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground text-sm">{SAMPLE}</CardContent>
           </Card>

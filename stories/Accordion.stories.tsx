@@ -10,6 +10,13 @@ const meta = {
   tags: [
     "autodocs",
   ],
+  /* Radix's Accordion root takes a REQUIRED discriminated `type`, so `StoryObj<typeof meta>` makes
+     `args` mandatory on every story below — and every one of them uses `render` with its own JSX, so
+     none supplies any. Declaring the required prop once here satisfies that at the meta level; the
+     stories still set their own `type` on the element they render. */
+  args: {
+    type: "single",
+  },
 } satisfies Meta<typeof Accordion>;
 
 export default meta;
@@ -43,9 +50,7 @@ export const Multiple: Story = {
       </AccordionItem>
       <AccordionItem value="item-2">
         <AccordionTrigger>What variants are available?</AccordionTrigger>
-        <AccordionContent>
-          We offer multiple glass variants including glass, frosted, and crystal, each with unique visual effects.
-        </AccordionContent>
+        <AccordionContent>We offer multiple glass variants including glass, frosted, and crystal, each with unique visual effects.</AccordionContent>
       </AccordionItem>
       <AccordionItem value="item-3">
         <AccordionTrigger>Can I customize the components?</AccordionTrigger>
@@ -67,7 +72,7 @@ export const FAQ: Story = {
       <AccordionItem value="getting-started">
         <AccordionTrigger>How do I get started?</AccordionTrigger>
         <AccordionContent>
-          Install components using the shadcn CLI: <code className="text-sm">pnpm dlx shadcn@latest add @weekendsuperhero.ioponent-name</code>
+          Install components using the shadcn CLI: <code className="text-sm">bunx shadcn@latest add @sistine/accordion</code>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="customization">

@@ -7,9 +7,16 @@ import * as React from "react";
 import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface.
+   The ON state uses the selected-control pair (--active-bg + --active-shadow), the same tokens Tabs and
+   ToggleGroupItem use — Toggle is the same role and was the one control still left out. It previously
+   reused --accent, the HOVER wash: a token borrowed for a state it does not name. That reads wrong for
+   two reasons even now that --accent is tinted. It cannot distinguish hover from selected, since both
+   would paint the identical fill; and --accent sits at L 96, where the sRGB ceiling is 0.0182 and the
+   most hue any fill can carry is an RGB spread of 13, against 22 for --active-bg at L 93. A selected
+   state needs to be seen from across the room; a hover only has to be seen under the cursor. */
 const toggleVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=on]:bg-[var(--active-bg)] data-[state=on]:text-foreground data-[state=on]:shadow-[var(--active-shadow)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

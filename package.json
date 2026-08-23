@@ -7,19 +7,19 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "npx serve@latest out",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && pnpm test:gamut && pnpm test:dom && pnpm test:apca",
+    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && bun run test:gamut && bun run test:dom && bun run test:apca",
     "test:apca": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/apca-oracle.mjs",
     "test:gamut": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-gamut.mjs",
     "test:dom": "vitest run",
     "registry:build": "node scripts/build-theme.mjs && shadcn build",
     "registry:check": "node scripts/build-theme.mjs && node scripts/fix-registry.mjs && shadcn build && node scripts/smoke-registry.mjs",
+    "registry:smoke": "node scripts/smoke-registry.mjs",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static",
-    "export-storybook": "node scripts/export-storybook.js",
-    "registry:smoke": "node scripts/smoke-registry.mjs"
+    "storybook:build": "storybook build -o storybook-static",
+    "storybook:export": "node scripts/export-storybook.js"
   },
   "browserslist": [
     "Safari >= 17.5",
@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
-    "framer-motion": "^12.43.0",
+    "framer-motion": "^13.1.1",
     "input-otp": "^1.4.2",
     "next": "^16.3.0",
     "next-themes": "^0.4.6",
@@ -75,9 +75,8 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "sharp"
-    ]
+  "overrides": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4"
   }
 }

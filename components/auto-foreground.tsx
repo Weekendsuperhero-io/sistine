@@ -391,7 +391,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // this mix is (1−crysA)(1−tintA)(1−glossA).
       {
         const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
-        const glossL = num("--glass-gloss-l", 66);
+        /* Mode-aware fallback: --glass-gloss-l is a twin now (97 light / 66 dark), so a single 66 here
+           would model the light crystal surface ~6 L darker than it renders and band text too weak. */
+        const glossL = num("--glass-gloss-l", dark ? 66 : 97);
         const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
         const baseL = dark ? 20 : 95;
         const floorL = baseL * (1 - crysA) + 100 * crysA;
@@ -407,6 +409,26 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           "-crystal",
           true,
           LC_MARGIN * uCrystal,
+        );
+      }
+      // Chakra cards: content sits on the translucent body, so --glass-chakra-l IS the banding
+      // lightness. The facet bands need no term — they live in box-shadow, ride the outer few px of the
+      // edge, and pair a highlight against an ink on opposite sides, so they contribute nothing where
+      // text actually sits. Show-through is just (1 − body a), the largest of any tier here, so this
+      // gets the full margin. `adaptive` for the same reason opaque is: an L88 body can sit on a dark
+      // page, and the theme ramp only spans the readable half so it cannot produce dark text.
+      {
+        const bodyA = num("--glass-chakra-a", dark ? 0.58 : 0.62);
+        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA), 0), 1);
+        applyTiers(
+          {
+            l: num("--glass-chakra-l", dark ? 28 : 88),
+            c: Math.min(num("--glass-tint-c", 0), num("--glass-chakra-c-max", dark ? 0.046 : 0.055)),
+            h: tintH,
+          },
+          "-chakra",
+          true,
+          LC_MARGIN * uChakra,
         );
       }
       if (dbg) {

@@ -18,7 +18,7 @@ function renderedNames(): string[] {
   return rows.map((row) => within(row).getAllByRole("cell")[0].textContent?.trim() ?? "");
 }
 
-describe("DataTableBlock — react-table v9 features", () => {
+describe("DataTableBlock: react-table v9 features", () => {
   it("paginates: 12 members across 2 pages of 6", async () => {
     const user = userEvent.setup();
     render(<DataTableBlock />);
@@ -28,11 +28,19 @@ describe("DataTableBlock — react-table v9 features", () => {
     // Page 1 is the fixture order, so a member from the back half must not be present yet.
     expect(screen.queryByText("Tim Berners-Lee")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "Next",
+      }),
+    );
 
     expect(screen.getByText(/Page 2 of 2/)).toBeInTheDocument();
     expect(screen.getByText("Tim Berners-Lee")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", {
+        name: "Next",
+      }),
+    ).toBeDisabled();
   });
 
   it("sorts: clicking the Name header reorders rows and pulls a new member onto page 1", async () => {
@@ -44,13 +52,25 @@ describe("DataTableBlock — react-table v9 features", () => {
     // its sortedRowModel is dropped, the click is inert and this stays absent.
     expect(screen.queryByText("Barbara Liskov")).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Name/ }));
+    await user.click(
+      screen.getByRole("button", {
+        name: /Name/,
+      }),
+    );
 
     const asc = renderedNames();
-    expect(asc).toEqual([...asc].sort((a, b) => a.localeCompare(b)));
+    expect(asc).toEqual(
+      [
+        ...asc,
+      ].sort((a, b) => a.localeCompare(b)),
+    );
     expect(screen.getByText("Barbara Liskov")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Name/ }));
+    await user.click(
+      screen.getByRole("button", {
+        name: /Name/,
+      }),
+    );
     expect(renderedNames()[0]).toBe("Tim Berners-Lee"); // descending
   });
 

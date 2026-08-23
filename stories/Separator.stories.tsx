@@ -25,7 +25,7 @@ export const Horizontal: Story = {
       <Separator />
       <div>
         <h4 className="text-sm font-medium">Modern Design</h4>
-        <p className="text-sm text-muted-foreground">Apple-inspired design language.</p>
+        <p className="text-sm text-muted-foreground">Light, cut glass, and stone.</p>
       </div>
     </div>
   ),

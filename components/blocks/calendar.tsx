@@ -94,7 +94,7 @@ export function CalendarBlock() {
             <ScrollArea className="h-[400px]">
               <div className="space-y-4">
                 {dayEvents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No events for this date — use New Event to add one.</p>
+                  <p className="text-sm text-muted-foreground">No events for this date. Use New Event to add one.</p>
                 ) : (
                   dayEvents.map((event) => (
                     <div key={event.id} className="p-4 rounded-lg glass glass-border">

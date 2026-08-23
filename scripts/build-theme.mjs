@@ -6,7 +6,7 @@
  * clean globals.css (it lands in THEIR app, where editing is expected).
  *
  * The artifact is COMMITTED so fresh clones pass smoke-registry's files-exist check and consumer-facing
- * theme diffs stay reviewable. Runs first in `pnpm registry:build` / `registry:check` (shadcn build
+ * theme diffs stay reviewable. Runs first in `bun run registry:build` / `registry:check` (shadcn build
  * embeds the file's content into public/r/theme.json). check-theme invariant 7b flags a stale artifact.
  */
 import { mkdirSync, writeFileSync } from "node:fs";

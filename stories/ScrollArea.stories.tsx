@@ -62,15 +62,12 @@ export const WithContent: Story = {
     <ScrollArea className="h-[400px] w-[350px] rounded-md border glass backdrop-blur-[var(--blur)] border-[var(--glass-border)] p-4">
       <h4 className="mb-4 text-sm font-medium leading-none">Sistine Documentation</h4>
       <div className="space-y-4 text-sm">
-        <p>
-          Sistine is a modern, glassmorphic component library inspired by Apple's design language, built with Next.js 16, React 19, and shadcn-ui
-          registry.
-        </p>
-        <p>It provides 40+ beautiful glass components with variants including glass, frosted, and crystal effects.</p>
+        <p>Sistine is a glassmorphic component library built on filtered light, with Next.js 16, React 19, and the shadcn-ui registry.</p>
+        <p>It provides 40+ glass components across five materials: glass, frosted, crystal, chakra, and opaque.</p>
         <Separator className="my-4" />
         <h5 className="font-medium">Features</h5>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-          <li>Apple-inspired glassmorphism design</li>
+          <li>Layered translucency with cut, faceted edges</li>
           <li>Built-in light/dark mode support</li>
           <li>Enhanced effects (glow, shimmer, ripple)</li>
           <li>Fully customizable per-component</li>

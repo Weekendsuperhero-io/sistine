@@ -154,7 +154,7 @@ export function OklchRampDemo() {
       <CardHeader>
         <CardTitle>OKLCH ramps</CardTitle>
         <CardDescription>
-          Ramps for your current theme color — its hue tracks the top-menu tint, so picking a theme instantly re-rolls these. Tune lightness, chroma
+          Ramps for your current theme color: its hue tracks the top-menu tint, so picking a theme instantly re-rolls these. Tune lightness, chroma
           and steps below; all four ramps build from the same base via <code className="text-xs">lib/oklch-utils</code>. The base is centered in each;
           click a swatch to copy it.
         </CardDescription>
@@ -167,7 +167,7 @@ export function OklchRampDemo() {
               background: `oklch(60% ${tintActive ? 0.15 : 0} ${h})`,
             }}
           />
-          {tintActive ? `Tracking your theme color — hue ${Math.round(h)}°.` : "Neutral theme → achromatic (gray)."} Change it from the top-menu tint
+          {tintActive ? `Tracking your theme color: hue ${Math.round(h)}°.` : "Neutral theme → achromatic (gray)."} Change it from the top-menu tint
           switcher.
         </div>
 
@@ -236,7 +236,7 @@ export function OklchRampDemo() {
         <div className="space-y-3 border-t border-[var(--glass-border)] pt-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm font-medium">
-              Your color on glass <span className="font-normal text-muted-foreground">· real components — top-menu style + your tint</span>
+              Your color on glass <span className="font-normal text-muted-foreground">· real components: top-menu style + your tint</span>
             </div>
             <div className="inline-flex rounded-lg border border-[var(--glass-border)] p-0.5 text-xs">
               {AUTO_MODES.map((m) => (
@@ -293,7 +293,7 @@ export function OklchRampDemo() {
             <Badge variant="destructive">Destructive</Badge>
           </div>
           <p className="text-xs text-muted-foreground">
-            Real <code className="text-[11px]">&lt;Button&gt;</code> / <code className="text-[11px]">&lt;Badge&gt;</code> components — they follow the
+            Real <code className="text-[11px]">&lt;Button&gt;</code> / <code className="text-[11px]">&lt;Badge&gt;</code> components: they follow the
             glass style from the top menu and take your color as their tint. Glass text uses the APCA foreground (Lc {autoLc} on this surface);
             destructive keeps its red.
           </p>
@@ -335,7 +335,7 @@ function Ramp({ title, colors, mid }: { title: string; colors: string[]; mid: nu
             type="button"
             key={`${css}-${i}`}
             onClick={() => copy(css, i)}
-            title={`${css} — click to copy`}
+            title={`${css} (click to copy)`}
             className={cn(
               "relative h-16 min-w-0 flex-1 rounded-md border border-[var(--glass-border)] transition-transform hover:scale-105",
               i === mid && "ring-2 ring-foreground/50 ring-offset-2 ring-offset-transparent",

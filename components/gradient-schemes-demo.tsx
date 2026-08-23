@@ -49,7 +49,7 @@ export function GradientSchemesDemo() {
       </div>
       <p className="mb-4 text-muted-foreground text-sm">
         The oklch gradient generator (<code className="text-xs">lib/gradient-utils</code>): four harmony schemes from one base hue, plus a stable
-        seeded gradient — all emitted as <code className="text-xs">linear-gradient(… in oklch)</code>.
+        seeded gradient: all emitted as <code className="text-xs">linear-gradient(… in oklch)</code>.
       </p>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {swatches.map(({ scheme, css }) => (
@@ -71,7 +71,7 @@ export function GradientSchemesDemo() {
             backgroundImage: seeded,
           }}
         />
-        <span className="font-mono text-muted-foreground text-xs">seeded("sistine") — deterministic per string</span>
+        <span className="font-mono text-muted-foreground text-xs">seeded("sistine"): deterministic per string</span>
       </div>
     </section>
   );

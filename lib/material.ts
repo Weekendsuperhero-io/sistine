@@ -3,7 +3,7 @@ import type * as React from "react";
 /**
  * The Sistine material system — the single source of the material → markup mapping.
  *
- * FOUR materials (glass, frosted, crystal, opaque), each a `[data-material]` token set in
+ * FIVE materials (glass, frosted, crystal, chakra, opaque), each a `[data-material]` token set in
  * app/theme/materials.css, composed with orthogonal AXES (border, veil, size, gradient, glow, sheen)
  * over the one structural `glass` utility. Components call `glassMaterial()` instead of hardcoding
  * recipe class strings (check-theme bans the legacy `glass-bg`/`glass-surface`/… classes).
@@ -17,7 +17,7 @@ import type * as React from "react";
  * - `"none"` = not a glass surface: the helper returns nothing and the component supplies its plain
  *   (shadcn) classes.
  */
-export type Material = "glass" | "frosted" | "crystal" | "opaque" | "none";
+export type Material = "glass" | "frosted" | "crystal" | "chakra" | "opaque" | "none";
 
 export interface MaterialProps {
   /** undefined = adaptive (follows the page style); "none" = the component's plain fallback. */

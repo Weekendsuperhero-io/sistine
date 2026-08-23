@@ -1,5 +1,5 @@
+import { CalendarDotsIcon as CalendarDays } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { CalendarDays } from "@phosphor-icons/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
@@ -13,25 +13,13 @@ const meta = {
   tags: [
     "autodocs",
   ],
-  argTypes: {
-    variant: {
-      control: "select",
-      options: [
-        "default",
-      ],
-    },
-    material: {
-      control: "select",
-      options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "opaque",
-      ],
-    },
-    border: {
-      control: "boolean",
-    },
+  /* `variant`, `material`, and `border` live on HoverCardContent, not on the Radix root this story is
+     `component`-ed to — declaring them as argTypes here typed them against the wrong props. They were
+     dead controls either way: every story below renders its own JSX and sets `material` on Content
+     directly, so nothing was ever wired to an arg. `subcomponents` documents them in autodocs from
+     the component that actually has them. */
+  subcomponents: {
+    HoverCardContent,
   },
 } satisfies Meta<typeof HoverCard>;
 

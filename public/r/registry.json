@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "weekendsuperhero-io/sistine",
-  "homepage": "https://weekendsuperhero.io",
+  "homepage": "https://sistine.weekendsuperhero.io",
   "items": [
     {
       "name": "button",

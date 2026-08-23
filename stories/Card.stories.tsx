@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { glassVars } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Card",
@@ -156,13 +157,18 @@ export const WithLiftHover: Story = {
 export const WithCustomGlass: Story = {
   args: {
     effect: "scale",
-    glass: {
-      color: "rgba(139, 92, 246, 0.15)",
+    /* The old `glass={{ color, blur, outline, innerGlow, innerGlowBlur }}` prop is gone. Per-instance
+       overrides now go through `glassVars()`, which emits the `--glass-*` custom properties the token
+       system already reads, so an override composes with the active material instead of replacing it.
+       The outline and inner-glow keys have no successor by design: those are the `border` and `glow`
+       axes now. Hue and chroma are the story's original rgb(139 92 246) converted to OKLCH, not
+       re-picked by eye. */
+    style: glassVars({
+      tintH: 292.7,
+      tintC: 0.2189,
+      tintA: 0.15,
       blur: 25,
-      outline: "rgba(139, 92, 246, 0.4)",
-      innerGlow: "rgba(255, 255, 255, 0.2)",
-      innerGlowBlur: 20,
-    },
+    }),
     children: (
       <>
         <CardHeader>

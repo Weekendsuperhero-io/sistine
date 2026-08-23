@@ -90,7 +90,15 @@ const ChartContainer = React.forwardRef<
         ref={ref}
         className={cn(
           m?.className,
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          // Axis tick labels: target the TEXT's own class, not a descendant of .recharts-cartesian-axis-tick.
+          // Recharts 3 split the tick group in two — .recharts-cartesian-axis-tick now wraps only the tick
+          // LINE, while the label moved to a sibling branch (.recharts-cartesian-axis-tick-labels >
+          // .recharts-cartesian-axis-tick-label > text). The old descendant selector matched nothing after
+          // the upgrade, so every tick kept Recharts' own `fill="#666"` — grey in all 17 themes, in both
+          // modes, which is what made the axes unreadable. .recharts-cartesian-axis-tick-value sits ON the
+          // <text> in both Recharts 2 and 3, so it survives the structure change. (A CSS `fill` beats the
+          // fill presentation attribute Recharts sets, so no !important is needed.)
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
           variants[variant],
           className,
         )}

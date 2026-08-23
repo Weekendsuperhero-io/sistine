@@ -42,4 +42,6 @@ next-env.d.ts
 .cursorrules
 *storybook.log
 storybook-static
+# Legacy: Storybook used to be staged here before being folded into the site. It now goes straight to
+# out/storybook (see scripts/export-storybook.js). Kept so a stale local copy stays ignored.
 public/storybook

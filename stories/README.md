@@ -7,7 +7,7 @@ Welcome to the Sistine Storybook! This is your interactive component playground 
 Run Storybook locally:
 
 ```bash
-pnpm storybook
+bun run storybook
 ```
 
 Storybook will start on `http://localhost:6006`
@@ -135,7 +135,7 @@ export const Default: Story = {
 To build a static version of Storybook:
 
 ```bash
-pnpm build-storybook
+bun run storybook:build
 ```
 
 The build output will be in `storybook-static/` directory.

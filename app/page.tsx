@@ -39,6 +39,10 @@ import { cn } from "@/lib/utils";
 
 /** The material system's composable surfaces, sheerest → most solid — the showcase cards below swap
  *  between them: bare structural glass, + the border axis, + the veil floor, and the opaque material. */
+/* The hero's install line. Declared once because the box RENDERS it and the copy button WRITES it, and
+   those two used to be different strings — the visible one namespaced, the copied one a dead URL. */
+const INSTALL_COMMAND = "bunx shadcn@latest add @sistine/button";
+
 const SURFACES = [
   {
     value: "glass",
@@ -87,7 +91,10 @@ export default function Home() {
   ]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("npx shadcn@latest add https://weekendsuperhero.io/r/styles/glass");
+    /* Copy what the box actually SHOWS. It used to write a different command entirely —
+       `npx shadcn@latest add <site>/r/styles/glass` — pointing at a /r/styles/ path the registry has
+       never produced, so anyone using the button got a 404 instead of the namespaced install below. */
+    navigator.clipboard.writeText(INSTALL_COMMAND);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -111,8 +118,8 @@ export default function Home() {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
-              A component library inspired by Apple&apos;s design language. Drop-in replacements for shadcn/ui with blur, depth, and translucency
-              baked&nbsp;in.
+              Drop-in replacements for shadcn/ui, built on what colour does to light on its way through: layered translucency, cut edges, and a
+              spectrum of stone tints that retune the whole system from a single&nbsp;hue.
             </p>
 
             <div className="flex items-center justify-center gap-4 flex-wrap mb-12">
@@ -131,7 +138,7 @@ export default function Home() {
               className="glass max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
               onClick={handleCopy}
             >
-              <code className="text-foreground/70 truncate select-all">pnpm dlx shadcn@latest add @sistine/button</code>
+              <code className="text-foreground/70 truncate select-all">{INSTALL_COMMAND}</code>
               {copied ? (
                 <Check className="h-4 w-4 text-green-500 shrink-0" />
               ) : (
@@ -395,15 +402,16 @@ export default function Home() {
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct materials</h2>
-            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, and Opaque materials.</p>
+            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, Chakra, and Opaque materials.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
             <Tabs defaultValue="glass">
-              <TabsList className="mb-6 w-full grid grid-cols-4">
+              <TabsList className="mb-6 w-full grid grid-cols-5">
                 <TabsTrigger value="glass">Glass</TabsTrigger>
                 <TabsTrigger value="frosted">Frosted</TabsTrigger>
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
+                <TabsTrigger value="chakra">Chakra</TabsTrigger>
                 <TabsTrigger value="opaque">Opaque</TabsTrigger>
               </TabsList>
 
@@ -412,6 +420,7 @@ export default function Home() {
                   "glass",
                   "frosted",
                   "crystal",
+                  "chakra",
                   "opaque",
                 ] as const
               ).map((v) => (
@@ -421,7 +430,7 @@ export default function Home() {
                       <CardTitle className="capitalize">{v} Material</CardTitle>
                       <CardDescription>
                         {v === "crystal"
-                          ? "Crystal ships clear — this card opts into the sheen axis for the highlight + shimmer."
+                          ? "Crystal ships clear: this card opts into the sheen axis for the highlight + shimmer."
                           : `See how every primitive adapts to the ${v} material.`}
                       </CardDescription>
                     </CardHeader>
@@ -530,7 +539,7 @@ export default function Home() {
               {
                 icon: Zap,
                 title: "40+ Components",
-                desc: "Buttons, cards, dialogs, selects, tabs, and more — all glass-ready out of the box.",
+                desc: "Buttons, cards, dialogs, selects, tabs, and more: all glass-ready out of the box.",
               },
               {
                 icon: Palette,

@@ -185,7 +185,7 @@ export function BackgroundSwitcher() {
           {/* Shape: linear | radial | conic */}
           <button
             type="button"
-            title={`Gradient shape: ${gradientShape} — click to change`}
+            title={`Gradient shape: ${gradientShape} (click to change)`}
             aria-label={`Gradient shape ${gradientShape}, click to change`}
             onClick={cycleGradientShape}
             className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", active)}
@@ -196,7 +196,7 @@ export function BackgroundSwitcher() {
           {(gradientShape === "radial" || gradientShape === "conic") && (
             <button
               type="button"
-              title={`Center — ${gradientPosition}`}
+              title={`Center: ${gradientPosition}`}
               aria-label={`Gradient center ${gradientPosition}`}
               onClick={cycleGradientPosition}
               className={cn(segmentButton, "w-7 text-[13px]", idle)}
@@ -231,7 +231,7 @@ export function BackgroundSwitcher() {
           {gradientShape !== "radial" && (
             <button
               type="button"
-              title={`Rotate gradient — ${gradientAngle}°`}
+              title={`Rotate gradient: ${gradientAngle}°`}
               aria-label={`Rotate gradient, currently ${gradientAngle} degrees`}
               onClick={cycleGradientAngle}
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
@@ -247,7 +247,7 @@ export function BackgroundSwitcher() {
           {/* Style: gradient | lava | circle */}
           <button
             type="button"
-            title={`Canvas style: ${canvasStyle} — click for ${nextStyle}`}
+            title={`Canvas style: ${canvasStyle} (click for ${nextStyle})`}
             aria-label={`Canvas style ${canvasStyle}, click to change`}
             onClick={() => setCanvasStyle(nextStyle)}
             className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", active)}
@@ -264,7 +264,7 @@ export function BackgroundSwitcher() {
           {/* Steps per side (4–12) */}
           <button
             type="button"
-            title={`Steps per side — ${canvasSteps}`}
+            title={`Steps per side: ${canvasSteps}`}
             aria-label={`Steps per side, currently ${canvasSteps}`}
             onClick={cycleCanvasSteps}
             className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
@@ -275,7 +275,7 @@ export function BackgroundSwitcher() {
           {canvasStyle === "gradient" && (
             <button
               type="button"
-              title={`Gradient angle — ${canvasAngle}°`}
+              title={`Gradient angle: ${canvasAngle}°`}
               aria-label={`Gradient angle, currently ${canvasAngle} degrees`}
               onClick={cycleCanvasAngle}
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
@@ -287,7 +287,7 @@ export function BackgroundSwitcher() {
           {canvasAnimated && (
             <button
               type="button"
-              title={`Animation speed — ${canvasSpeed}×`}
+              title={`Animation speed: ${canvasSpeed}×`}
               aria-label={`Animation speed, currently ${canvasSpeed} times`}
               onClick={cycleCanvasSpeed}
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", idle)}
@@ -323,7 +323,7 @@ export function BackgroundSwitcher() {
           <select
             value={patternStyle}
             onChange={(e) => setPatternStyle(e.target.value as PatternStyle)}
-            title="Pattern — pick one"
+            title="Pattern: pick one"
             aria-label="Pattern style"
             className={cn(segmentButton, "cursor-pointer bg-transparent px-1.5 text-[10px] font-semibold capitalize outline-none", active)}
           >
@@ -335,7 +335,7 @@ export function BackgroundSwitcher() {
           </select>
           <button
             type="button"
-            title={`Density: ${patternDensity} — click to change`}
+            title={`Density: ${patternDensity} (click to change)`}
             aria-label={`Density ${patternDensity}, click to change`}
             onClick={cyclePatternDensity}
             className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", idle)}
@@ -345,7 +345,7 @@ export function BackgroundSwitcher() {
           {ANIMATED_PATTERNS.has(patternStyle) && (
             <button
               type="button"
-              title={`Speed: ${patternSpeed === 0 ? "static" : `${patternSpeed}s`} — click to change`}
+              title={`Speed: ${patternSpeed === 0 ? "static" : `${patternSpeed}s`} (click to change)`}
               aria-label={`Animation speed ${patternSpeed === 0 ? "static" : `${patternSpeed} seconds`}, click to change`}
               onClick={cyclePatternSpeed}
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold tabular-nums", patternSpeed === 0 ? active : idle)}
@@ -356,7 +356,7 @@ export function BackgroundSwitcher() {
           {DISC_PATTERNS.has(patternStyle) && (
             <button
               type="button"
-              title={`Sun/moon placement: ${patternDisc} — click to change`}
+              title={`Sun/moon placement: ${patternDisc} (click to change)`}
               aria-label={`Sun and moon placement ${patternDisc}, click to change`}
               onClick={cyclePatternDisc}
               className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", idle)}
@@ -367,7 +367,7 @@ export function BackgroundSwitcher() {
           {SAND_PATTERNS.has(patternStyle) && (
             <button
               type="button"
-              title={`Blowing sand: ${patternSand} — click to change`}
+              title={`Blowing sand: ${patternSand} (click to change)`}
               aria-label={`Blowing sand ${patternSand}, click to change`}
               onClick={cyclePatternSand}
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", patternSand === "still" ? active : idle)}
@@ -382,7 +382,7 @@ export function BackgroundSwitcher() {
         <div className="flex items-center gap-1 border-[var(--glass-border)] border-l pl-1.5" role="group" aria-label="Base color">
           <label
             className="relative inline-flex h-6 w-6 cursor-pointer items-center justify-center"
-            title="Base color — pick to override the themed default"
+            title="Base color: pick to override the themed default"
           >
             <span className="sr-only">Base color</span>
             <span

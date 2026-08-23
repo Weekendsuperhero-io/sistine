@@ -36,11 +36,12 @@ const buttonVariantNames = [
   "link",
 ] as const;
 
-// The four materials, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
+// The five materials, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
 const buttonMaterialNames = [
   "glass",
   "frosted",
   "crystal",
+  "chakra",
   "opaque",
 ] as const;
 
@@ -59,7 +60,7 @@ const solidIntensities = [
   },
   {
     label: "Medium",
-    note: "50% — the glass-gradient accent",
+    note: "50%: the glass-gradient accent",
     bg: solidGradient(0.5),
     text: "text-foreground",
   },
@@ -76,6 +77,7 @@ const glassTypes = [
   "glass",
   "frosted",
   "crystal",
+  "chakra",
   "opaque",
 ] as const;
 
@@ -197,7 +199,7 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Button variants</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Semantic <code className="text-xs">variant</code>s on <code className="text-xs">Button</code> — behavior styles, each riding its default
+              Semantic <code className="text-xs">variant</code>s on <code className="text-xs">Button</code>: behavior styles, each riding its default
               surface.
             </CardDescription>
           </CardHeader>
@@ -216,7 +218,7 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Button materials</CardTitle>
             <CardDescription className="text-muted-foreground">
-              The four materials via the <code className="text-xs">material</code> prop — plus the <code className="text-xs">gradient</code> axis
+              The five materials via the <code className="text-xs">material</code> prop, plus the <code className="text-xs">gradient</code> axis
               layering the theme-aware brand gradient over the material.
             </CardDescription>
           </CardHeader>
@@ -236,8 +238,8 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Gradient intensity, over each glass type</CardTitle>
             <CardDescription className="max-w-2xl text-muted-foreground">
-              The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue — the tint hue unless a fresco decouples it)
-              overlaid on each surface at three strengths. <strong>Medium</strong> is the winner — it's the{" "}
+              The theme-aware <code className="text-xs">--gradient</code> (follows the foreground hue, the tint hue unless a fresco decouples it)
+              overlaid on each surface at three strengths. <strong>Medium</strong> is the winner: it's the{" "}
               <code className="text-xs">glass-gradient</code> accent class, which the <code className="text-xs">gradient</code> prop layers over any
               material. Note how <strong>Bold</strong> hides the surface (all types converge) while <strong>Subtle</strong> keeps each glass texture.
             </CardDescription>
@@ -275,7 +277,7 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Gradient axes + direction</CardTitle>
             <CardDescription className="max-w-2xl text-muted-foreground">
-              The brand gradient re-aimed along each ramp axis — the real <code className="text-xs">hue / chroma / lightness / tonal</code> ramps from{" "}
+              The brand gradient re-aimed along each ramp axis: the real <code className="text-xs">hue / chroma / lightness / tonal</code> ramps from{" "}
               <code className="text-xs">lib/oklch-utils</code>, forward and reversed. All follow the current tint hue; flip the tint up top to watch
               them shift.
             </CardDescription>
@@ -311,7 +313,7 @@ export default function ComponentsPage() {
             <CardTitle className="text-foreground">Glow</CardTitle>
             <CardDescription className="max-w-2xl text-muted-foreground">
               The Button's <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
-              avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint — so it recolors
+              avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint, so it recolors
               per theme. <strong>Off</strong> on the left, <strong>on</strong> across four tints. Hover any to watch it intensify.
             </CardDescription>
           </CardHeader>

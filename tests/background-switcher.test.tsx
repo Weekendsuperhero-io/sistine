@@ -34,20 +34,24 @@ async function renderWithPicker(user: ReturnType<typeof userEvent.setup>) {
       <BackgroundSwitcher />
     </BackgroundProvider>,
   );
-  await user.click(screen.getByRole("button", { name: "None background" }));
+  await user.click(
+    screen.getByRole("button", {
+      name: "None background",
+    }),
+  );
   const input = view.container.querySelector<HTMLInputElement>('input[type="color"]');
   if (!input) throw new Error("colour input did not render under the none background");
   return input;
 }
 
-describe("BackgroundSwitcher — themed colour default", () => {
+describe("BackgroundSwitcher: themed colour default", () => {
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.style.setProperty("--glass-tint-h", "250");
   });
   afterEach(() => document.documentElement.style.removeProperty("--glass-tint-h"));
 
-  it("populates the input on focus — the keyboard path", async () => {
+  it("populates the input on focus: the keyboard path", async () => {
     const user = userEvent.setup();
     const input = await renderWithPicker(user);
     expect(input.value).not.toBe(expectedHex(250));
@@ -58,7 +62,7 @@ describe("BackgroundSwitcher — themed colour default", () => {
     expect(input.value).toBe(expectedHex(250));
   });
 
-  it("populates on pointer activation too — focus precedes click", async () => {
+  it("populates on pointer activation too: focus precedes click", async () => {
     const user = userEvent.setup();
     const input = await renderWithPicker(user);
 
@@ -91,7 +95,11 @@ describe("BackgroundSwitcher — themed colour default", () => {
     // fireEvent.change, not a raw .value assignment: React tracks the value internally, so setting it
     // directly and dispatching leaves onChange unfired and baseColor null.
     await user.click(input);
-    fireEvent.change(input, { target: { value: "#123456" } });
+    fireEvent.change(input, {
+      target: {
+        value: "#123456",
+      },
+    });
     input.blur();
     input.focus();
 

@@ -879,7 +879,7 @@ export function Example() {
     case "empty-state":
       return `import { EmptyState, EmptyStateIcon, EmptyStateTitle, EmptyStateDescription } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
-import { Inbox } from "@phosphor-icons/react"
+import { TrayIcon as Inbox } from "@phosphor-icons/react"
 
 export function Example() {
   return (

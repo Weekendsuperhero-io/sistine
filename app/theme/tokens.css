@@ -84,6 +84,29 @@
   --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2), inset 0 1px 2px oklch(var(--shadow-ink) / 0.15);
   --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.25), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
   --active-shadow: 0 1px 3px oklch(var(--shadow-ink) / 0.1), inset 0 1px 1px oklch(var(--shadow-highlight) / 0.5);
+  /* Selected-control FILL — the twin of --active-shadow, which had the lift but no surface, so tabs and
+     toggle-group each hardcoded `bg-white/80 dark:bg-white/20`. The colour is composed in engine.css;
+     these are its knobs.
+     The two modes source their hue by DIFFERENT routes, and that asymmetry is the whole design.
+     DARK is structurally theme-driven: the fill is chroma 0 at alpha 0.2, so 100% of the colour is the
+     tinted surface showing through — the chip literally IS the theme surface, lifted. Nothing can make
+     it drift off-theme.
+     LIGHT cannot use that route. Show-through only carries hue if the surface has hue to give, and a
+     light glass surface measures around chroma 0.018 (the sheet is itself capped by --glass-tint-c-hi
+     at 0.025 near white). So at alpha 0.9 the fill supplies ~94% of the chip's colour and has to carry
+     the tint ITSELF.
+     Which makes the fill's own lightness the binding constraint, because the near-white ceiling
+     collapses hue-dependently — 0.0323 at L 93, 0.061 at L 87, and only 0.0091 by L 98. At the old
+     L 93 the cap was 0.031 and the chip delivered an RGB spread of 20: nominally theme-tinted, visibly
+     neutral, which is why day did not read as theme-driven while night did. L 87 roughly doubles the
+     available chroma and the delivered spread (37), at the cost of sitting 3.6 L BELOW the tab list
+     rather than 1.8 above it — the lift is carried by --active-shadow, so the chip still reads
+     selected, now as a tinted fill rather than a white one.
+     Capped with min() like --border and the chakra body, so selenite (chroma 0) stays exactly neutral
+     and no preset can push the fill out of gamut. */
+  --active-l: 87%;
+  --active-c-max: 0.055; /* ≤ 0.061, the L-87 ceiling floor (lapis h268) */
+  --active-a: 0.9;
   /* ── Mode knobs ──────────────────────────────────────────────────────────
      Single-number dials the glass engine's mode-derived block composes (light values here, dark twins in
      .dark). LEAVES ONLY — none composes a tint var (check-theme invariant 1), so they may live on the bare
@@ -92,10 +115,22 @@
   --glass-sheet-a1: 0.04; /* the sheet's TOP-stop offset (dark tapers it to 0.03) */
   --glass-frost-boost: 0.1; /* frosted = the sheet lifted by this much */
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
-  /* Crystal gloss defaults (mode-shared; the demo's Light/Tint sliders override inline). AutoForeground's
-     crystal tiers mirror --glass-gloss-l = 66 as their snapshot-path fallback — keep them equal. */
+  /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
+     mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
+     --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
   --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
-  --glass-gloss-l: 66; /* gloss ink lightness ("Light") */
+  /* Gloss ink lightness ("Light" in the demo) — a MODE TWIN, because a gloss is defined relative to
+     the surface under it and those surfaces are 68 L apart. The crystal floor computes to L 96.5 in
+     light and L 28 in dark, so a single shared value cannot be a highlight in both: at 66 the top stop
+     lifts dark by +15.2 L (a specular) and darkens light by −12.2 L (a smudge — the same "grey
+     speculars read as grime" failure the shadow bevel comment warns about).
+     97 is the light twin: composited it lands +0.2 L over the surface, which is all the headroom that
+     exists above L 96.5. The cost is a chroma ceiling, and it is strongly HUE-dependent rather than
+     uniform — the ink asks ~0.298 and gets what the gamut allows at L 97, which ranges from 0.0686 for
+     peridot (h128, renders #e8ffcd, RGB spread 49) down to 0.0140 for sapphire (h255, #eff6ff, spread
+     16). So the Tint multiplier still does real work here, but only up to each hue's own ceiling: the
+     green/cyan half stays visibly tinted while the blue/purple/red half approaches white. */
+  --glass-gloss-l: 97;
   /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
      0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
      clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
@@ -116,6 +151,7 @@
   --gradient-c: 0.15;
   --gradient-contrast-l: 0.32; /* contrast gradient text: dark-on-light here, light-on-dark in .dark */
   --gradient-contrast-c: 0.14;
+  --glass-crystal-l: 96; /* crystal body lightness — see --glass-crystal-bg; 100 carries zero chroma */
   --glass-crystal-bg-a: 0.3; /* crystal floor alpha (near-clear in dark) */
   /* glass-solid floor — the "how solid" dial (0 = sheer, 1 = fully solid; shared by light/dark) + the
      mode floor lightness; composed in @utility glass-veil so a scoped --glass-solid-a resolves there. */
@@ -126,6 +162,34 @@
      drift. LOWER = deeper tint. */
   --glass-opaque-l: 90;
   --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
+  /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
+     Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
+     dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
+     (a conic-gradient with hard stops on the diagonals, composed in engine.css), so it reads as a
+     step-cut gem instead.
+     The facets are pure LUMINANCE overlays — --shadow-highlight / --shadow-ink at these alphas, chroma
+     0 — not tinted colors. Two reasons, and they are the same reason: (1) the theme hue already comes
+     through from the tinted body floor beneath, and a translucent white/black over it shifts lightness
+     while preserving hue; (2) a bright facet sits near L96 in light mode, where the sRGB chroma ceiling
+     across the 17 presets collapses to 0.0182 — a tinted highlight there would be gamut-mapped by the
+     browser at nearly every preset. This is the theme's existing rule for the top bevel ("a specular,
+     not a shadow; grey speculars read as grime"), applied to all four sides.
+     The alphas are irregular mode TWINS, not one knob: the same alpha buys a very different lightness
+     step over an L88 body than over an L28 one. They are solved so BOTH modes span 18 L end to end —
+     light 94.0 > 90.5 > 88.0 > 83.0 > 76.0, dark 38.0 > 32.0 > 28.0 > 24.0 > 20.0 (top, left, table,
+     right, bottom). Light comes from the top-left, matching the 135° axis of --glass-bg. */
+  --glass-chakra-l: 88; /* body/table lightness */
+  /* Body alpha — the "between crystal and opaque" dial, and now genuinely that across the WHOLE
+     surface: crystal's floor sits at 0.3, opaque at 1. Nothing is painted over the middle any more
+     (the cut moved into box-shadow), so this alone decides how much backdrop shows, and glass-diffuse
+     / --glass-opacity modulate it the same way they do on crystal. */
+  --glass-chakra-a: 0.62;
+  --glass-chakra-c-max: 0.055; /* body chroma cap — ≤ 0.0564, the L-88 ceiling floor (lapis h268) */
+  --glass-chakra-step: 3px; /* width of ONE bevel step (the frame is two) */
+  --glass-chakra-facet-t-a: 0.5; /* top    — highlight, +6.0 L */
+  --glass-chakra-facet-l-a: 0.208; /* left   — highlight, +2.5 L */
+  --glass-chakra-facet-r-a: 0.057; /* right  — ink,       −5.0 L */
+  --glass-chakra-facet-b-a: 0.136; /* bottom — ink,      −12.0 L */
   /* ── Glass shadows — mode TWINS (not knobs: the light↔dark alpha ratios AND layer structures are
      irregular). They compose only --shadow-ink/-highlight, never tint vars, so bare placement is legal.
      LIGHT twins carry extra definition layers dark mode gets for free (a light surface on a dark page
@@ -180,6 +244,14 @@
   --foreground-strong-crystal: oklch(0.12 0.04 var(--glass-fg-h));
   --foreground-ui-crystal: oklch(0.46 0.05 var(--glass-fg-h));
   --muted-foreground-crystal: oklch(0.14 0.04 var(--glass-fg-h));
+  /* Chakra tier baselines — text sits on the TABLE (the flat centre, L 88), not on the facets, so in
+     light mode the direction matches the page and the normal literals apply. AutoForeground re-bands
+     against the composited table when mounted. */
+  --foreground-chakra: oklch(0.22 0.04 var(--glass-fg-h));
+  --foreground-soft-chakra: oklch(0.4 0.04 var(--glass-fg-h));
+  --foreground-strong-chakra: oklch(0.12 0.04 var(--glass-fg-h));
+  --foreground-ui-chakra: oklch(0.46 0.05 var(--glass-fg-h));
+  --muted-foreground-chakra: oklch(0.14 0.04 var(--glass-fg-h));
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
@@ -187,28 +259,63 @@
 
   /* Primary colors - Light mode */
   --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
-  --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — ≥ Lc 85 at the worst hue (measured) */
+  /* Ceiling on the primary ink's chroma. The ×1.2 in the engine is intent — primary should read MORE
+     saturated than the base tint — but uncapped it asked past the sRGB edge for five presets in light
+     (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
+     gamut-maps and the delivered colour stops tracking the authored one.
+     Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
+     Muse/Gloaming frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
+     shows up as out-of-gamut once you check the fg hue. */
+  --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
+  --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */
 
   /* Secondary colors - Light mode */
-  --secondary: oklch(0.96 0 0); /* Very light gray */
+  /* ── Flat-neutral shadcn SURFACES, now theme-tinted ──────────────────────────
+     --accent, --secondary, --muted and --sidebar were the last chroma-0 tokens in the theme, which is
+     why a toggle's on-state read as near-white in light and near-black in dark no matter which preset
+     was active: the fill simply had no hue to give. Same treatment as --border — lightness stays put
+     (pure recolor), the colour moves to engine.css so it re-resolves per tint scope, and chroma is
+     min(the preset's own, a cap) so a preset that declares less keeps its restraint and selenite stays
+     exactly neutral.
+     Each cap is measured against the tightest sRGB ceiling across all 17 presets AT THAT LIGHTNESS, and
+     they differ by a factor of eight because the ceiling collapses toward white: 0.0714 at L 85, but
+     only 0.0091 at L 98. One shared cap would have to be the smallest, tinting nothing. */
+  --secondary-l: 0.96;
+  --secondary-c-max: 0.018; /* ≤ 0.0182, the L-96 ceiling floor (lapis h268) */
   --secondary-foreground: var(--foreground);
 
   /* Muted colors - Light mode */
-  --muted: oklch(0.85 0 0); /* Dark gray - darker shade to avoid glass effect override */
+  --muted-l: 0.85;
+  --muted-c-max: 0.071; /* ≤ 0.0714, the L-85 ceiling floor (lapis h268) */
   --muted-foreground: oklch(0.14 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
-  /* Accent colors - Light mode */
-  --accent: oklch(0.96 0 0); /* Very light gray */
+  /* Accent colors - Light mode. NOTE the knob prefix: --accent-c / --accent-h are already taken as the
+     user-facing overrides for --glass-accent (the vivid switch/slider fill), a different role. */
+  --accent-bg-l: 0.96;
+  --accent-bg-c-max: 0.018; /* ≤ 0.0182, the L-96 ceiling floor (lapis h268) */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.55 0.22 25); /* Red - 4.5:1 with white */
   --destructive-foreground: oklch(0.98 0 0); /* White text on red */
 
-  /* Border and input - WCAG AA compliant (3:1 for UI components) */
-  --border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
-  --input: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
-  --ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
+  /* Border / input LIGHTNESS + chroma-CAP knobs — the COLOR is composed in engine.css so the edge
+     follows the theme tint like every other surface token (leaves, so they inherit into tint scopes
+     where the engine re-resolves).
+     L 0.85, not the 0.88 the flat neutral carried: sRGB's chroma ceiling collapses as lightness climbs,
+     and at 0.88 the binding ceiling across all 17 presets is 0.0564 — the most colorful in-gamut edge
+     possible there still reads as grey (mean RGB spread 51). Dropping 3 points of L raises the ceiling
+     to 0.0714 and nearly doubles delivered colorfulness (mean spread 65) while moving the grey
+     reference only #d7d7d7 → #cecece, which is below the threshold of a perceived weight change.
+     --border-c-max is the CAP, not the value: chroma is min(tint chroma, cap), so a preset that
+     declares less than the cap keeps its own restraint — selenite (c 0) stays exactly neutral, which is
+     the whole point of that theme — while lapis (c 0.15) clamps instead of being gamut-mapped by the
+     browser. A flat multiplier cannot do both: any factor small enough to keep lapis in gamut drags the
+     0.07 jewels below where they are today. */
+  --border-l: 0.85;
+  --input-l: 0.85;
+  --border-c-max: 0.07; /* ≤ 0.0714, the L-0.85 ceiling floor (lapis h268) */
+  --ring: oklch(0.5 0.2 250); /* Focus ring */
 
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.6 0.2 250); /* Blue */
@@ -218,18 +325,19 @@
   --chart-5: oklch(0.6 0.2 20); /* Orange */
 
   /* Sidebar colors - Light mode */
-  --sidebar: oklch(0.98 0 0); /* Near white */
+  --sidebar-l: 0.98;
+  --sidebar-c-max: 0.009; /* ≤ 0.0091, the L-98 ceiling floor — near white holds almost no hue */
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: oklch(0.5 0.2 250); /* Blue */
   --sidebar-primary-foreground: oklch(0.98 0 0); /* White text on primary */
   --sidebar-accent: oklch(0.15 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: oklch(0.88 0 0); /* Light gray - 3:1 contrast */
+  --sidebar-border: var(--border); /* Same divider role, same value it already carried — follow the role token */
   --sidebar-ring: oklch(0.5 0.2 250); /* Blue ring - 3:1 contrast */
 }
 
 .dark {
-  /* Base colors - Apple-style white text */
+  /* Base colors — light text on a dark ground */
   --background: transparent;
   /* Pressed/active shadow SCALE — dark overrides: primaries deepen +0.1, contact layers +0.05, so the
      push-in still reads on dark surfaces (see :root for the light ladder + rationale). */
@@ -240,6 +348,14 @@
   --active-shadow:
     0 2px 6px oklch(var(--shadow-ink) / 0.4), inset 0 1px 2px oklch(var(--shadow-highlight) / 0.15),
     inset 0 0 8px oklch(var(--shadow-highlight) / 0.1);
+  /* Selected-control fill — dark twin. Deliberately UNCHANGED in behaviour from the `bg-white/20` it
+     replaces: chroma cap 0 makes min() resolve to 0, so this is a pure white lift and the hue arrives
+     by show-through from the surface below, which is exactly why dark already read correctly. Light
+     has to source its hue directly (see :root); the two modes reach the same result by different
+     routes because the near-white gamut only permits one of them. */
+  --active-l: 100%;
+  --active-c-max: 0;
+  --active-a: 0.2;
   /* ── Mode knobs — dark twins (see :root for what each dial does). */
   --glass-sheet-a: 0.05;
   --glass-sheet-a1: 0.03;
@@ -258,12 +374,29 @@
   --gradient-c: 0.14;
   --gradient-contrast-l: 0.9;
   --gradient-contrast-c: 0.09;
+  --glass-crystal-l: 96; /* shared with light: the ceiling that forces 96 is hue-driven, not mode-driven */
   --glass-crystal-bg-a: 0.1;
+  /* Gloss ink lightness — dark twin. Over an L-28 floor there is 72 L of headroom, so 66 lifts +15.2
+     and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
+     have both (see :root). */
+  --glass-gloss-l: 66;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
   --glass-opaque-l: 32;
   --glass-opaque-c-scale: 0.9;
+  /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
+     The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
+     DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
+     land the same 18 L span. The targets also skew brighter here (+10/−8 rather than +6/−12) — a dark
+     gem reads as cut by catching light, where a light one reads by casting shade. */
+  --glass-chakra-l: 28;
+  --glass-chakra-a: 0.58;
+  --glass-chakra-c-max: 0.046; /* ≤ 0.0471, the L-28 ceiling floor (turquoise h190) */
+  --glass-chakra-facet-t-a: 0.139; /* top    — highlight, +10.0 L */
+  --glass-chakra-facet-l-a: 0.056; /* left   — highlight,  +4.0 L */
+  --glass-chakra-facet-r-a: 0.143; /* right  — ink,        −4.0 L */
+  --glass-chakra-facet-b-a: 0.286; /* bottom — ink,        −8.0 L */
   /* ── Glass shadows — dark twins (deeper drops, brighter bevels). */
   --glass-shadow:
     0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset,
@@ -301,35 +434,54 @@
   --foreground-strong-crystal: oklch(0.96 0.035 var(--glass-fg-h));
   --foreground-ui-crystal: oklch(0.75 0.05 var(--glass-fg-h));
   --muted-foreground-crystal: oklch(0.89 0.04 var(--glass-fg-h));
+  /* Chakra tier baselines, dark twins — the L-28 table keeps the page's light-text direction. */
+  --foreground-chakra: oklch(0.92 0.04 var(--glass-fg-h));
+  --foreground-soft-chakra: oklch(0.78 0.04 var(--glass-fg-h));
+  --foreground-strong-chakra: oklch(0.96 0.035 var(--glass-fg-h));
+  --foreground-ui-chakra: oklch(0.75 0.05 var(--glass-fg-h));
+  --muted-foreground-chakra: oklch(0.89 0.04 var(--glass-fg-h));
   --card: transparent;
   --card-foreground: var(--foreground);
   --popover: transparent;
   --popover-foreground: var(--foreground);
 
-  /* Primary colors - Apple-style white text */
+  /* Primary colors — dark mode */
   --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
-  --primary-foreground: oklch(0.15 0 0); /* Near-black text on the primary ink — ≥ Lc 62 at the worst hue (measured) */
+  --primary-c-max: 0.107; /* ≤ 0.1077, the L-78 ceiling floor (h268 lapis) */
+  /* Near-black text on the primary ink — Lc 62.9 at the worst hue, sistine (measured). It was 60.9
+     before --primary-c-max: capping the chroma the browser used to gamut-map moved the worst case back
+     above the 62 this comment had been claiming. */
+  --primary-foreground: oklch(0.15 0 0);
 
-  /* Secondary colors - Apple-style white text */
-  --secondary: oklch(0.25 0 0); /* Dark gray */
+  /* Secondary colors — dark mode */
+  /* Flat-neutral surfaces — dark twins (see :root for why these are knobs now). Lightness unchanged;
+     the caps are the dark ceilings, which are tightest at the DARKEST step, not the lightest. */
+  --secondary-l: 0.25;
+  --secondary-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
   --secondary-foreground: var(--foreground);
 
-  /* Muted colors - Apple-style white text */
-  --muted: oklch(0.18 0 0); /* Darker gray - darker shade to avoid glass effect override */
+  /* Muted colors — dark mode */
+  --muted-l: 0.18;
+  --muted-c-max: 0.03; /* ≤ 0.0307, the L-18 ceiling floor (turquoise h190) */
   --muted-foreground: oklch(0.89 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
-  /* Accent colors - Apple-style white text */
-  --accent: oklch(0.25 0 0); /* Dark gray */
+  /* Accent colors — dark mode */
+  --accent-bg-l: 0.25;
+  --accent-bg-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.65 0.22 25); /* Light red - 4.5:1 with dark background */
   --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
 
-  /* Border and input - WCAG AA compliant (3:1 for UI components) */
-  --border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
-  --input: oklch(0.25 0 0); /* Dark gray - 3:1 contrast */
-  --ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
+  /* Border / input lightness + chroma-cap — dark twins (see :root; color composed in engine.css).
+     L is UNCHANGED here: in dark mode the edge sits at 0.30/0.25 on a dark page, so lowering it would
+     cost contrast rather than buy color. Only the cap moves, up to the tightest dark ceiling — 0.0422
+     at L 0.25 (turquoise h190), which --input hits first, so one cap serves both. */
+  --border-l: 0.3;
+  --input-l: 0.25;
+  --border-c-max: 0.041; /* ≤ 0.0422, the L-0.25 ceiling floor (turquoise h190) */
+  --ring: oklch(0.6 0.2 250); /* Focus ring */
 
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.65 0.2 250); /* Light blue */
@@ -338,14 +490,15 @@
   --chart-4: oklch(0.7 0.2 300); /* Light purple */
   --chart-5: oklch(0.68 0.2 20); /* Light orange */
 
-  /* Sidebar colors - Apple-style white text */
-  --sidebar: oklch(0.18 0 0); /* Dark gray */
+  /* Sidebar colors — dark mode */
+  --sidebar-l: 0.18;
+  --sidebar-c-max: 0.03; /* ≤ 0.0307, the L-18 ceiling floor (turquoise h190) */
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: oklch(0.56 0.16 250); /* Match --primary; white text clears APCA */
-  --sidebar-primary-foreground: oklch(1 0 0); /* White - Apple-style */
+  --sidebar-primary-foreground: oklch(1 0 0); /* White on the sidebar's brand fill */
   --sidebar-accent: oklch(1 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
   --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: oklch(0.3 0 0); /* Medium gray - 3:1 contrast */
+  --sidebar-border: var(--border); /* Same divider role, same value it already carried — follow the role token */
   --sidebar-ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
 }
 

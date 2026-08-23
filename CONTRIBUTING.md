@@ -6,8 +6,8 @@ Thank you for your interest in contributing to Sistine! This document provides g
 
 ### Prerequisites
 
-- Node.js 18 or higher
-- pnpm, yarn, npm, or bun
+- Bun 1.3 or higher (the project's package manager and script runner)
+- Node.js 22 or higher (the theme checks run under `node --experimental-strip-types`)
 - Git
 
 ### Setup Development Environment
@@ -21,12 +21,12 @@ Thank you for your interest in contributing to Sistine! This document provides g
 
 2. **Install dependencies**
    ```bash
-   pnpm install
+   bun install
    ```
 
 3. **Start the development server**
    ```bash
-   pnpm dev
+   bun run dev
    ```
 
 4. **Verify everything works**
@@ -36,11 +36,11 @@ Thank you for your interest in contributing to Sistine! This document provides g
 
 ## 📝 Development Workflow
 
-Components live in a **single tree** — there is no separate `glass/` folder. Each component owns its semantic variants and draws its surface from the material system in `lib/material.ts`. See `components/ui/button.tsx` for the canonical pattern.
+Components live in a **single tree**: there is no separate `glass/` folder. Each component owns its semantic variants and draws its surface from the material system in `lib/material.ts`. See `components/ui/button.tsx` for the canonical pattern.
 
 1. **Create the component**
    - Location: `components/ui/[component-name].tsx`
-   - Define semantic variants with `cva` — each variant carries *behavior* (text, hover, press), **not** the surface.
+   - Define semantic variants with `cva`: each variant carries *behavior* (text, hover, press), **not** the surface.
    - Give each variant a **surface role** (its default axes) and resolve it with `materialSurface()` from `@/lib/material`. Spread `MaterialAxisProps` (`material`, `border`, `veil`, `gradient`, `glow`, `sheen`) onto the props so callers can override per instance.
 
 2. **Update the registry**
@@ -65,7 +65,7 @@ import type * as React from "react"
 import { type MaterialAxisProps, type MaterialProps, materialSurface } from "@/lib/material"
 import { cn } from "@/lib/utils"
 
-// Semantic variants carry BEHAVIOR only (text, hover, press) — the surface comes from the material system.
+// Semantic variants carry BEHAVIOR only (text, hover, press): the surface comes from the material system.
 const componentVariants = cva("…base classes…", {
   variants: {
     variant: {
@@ -90,8 +90,7 @@ function Component({
   veil,
   gradient,
   glow,
-  sheen,
-  ...props
+  sheen, ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof componentVariants> & MaterialAxisProps) {
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, {
     material,
@@ -164,8 +163,8 @@ Before submitting a PR, ensure:
 - [ ] Component works in dark mode
 - [ ] All variants are functional
 - [ ] No TypeScript errors
-- [ ] No linting errors (`pnpm lint`)
-- [ ] Build succeeds (`pnpm build`)
+- [ ] No linting errors (`bun run lint`)
+- [ ] Build succeeds (`bun run build`)
 - [ ] Component is accessible
 - [ ] Documentation is updated
 
@@ -264,7 +263,8 @@ When adding new components or features:
 - Use CSS variables for theme colors
 - Support both light and dark themes
 - Maintain contrast ratios for accessibility
-- Follow Apple's design language
+- Author every color in OKLCH, and check it against the sRGB ceiling at its own lightness, near-white and near-black hold almost no chroma
+- Let color come from the tint, not from a literal: a surface that can't retune with the theme will read flat in every preset but one
 
 ### Animations
 
@@ -286,7 +286,7 @@ All PRs require review before merging. Reviewers will check:
 
 ## 📞 Getting Help
 
-- **Documentation**: [weekendsuperhero.io](https://weekendsuperhero.io)
+- **Documentation**: [sistine.weekendsuperhero.io](https://sistine.weekendsuperhero.io)
 - **Issues**: [GitHub Issues](https://github.com/Weekendsuperhero-io/sistine/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Weekendsuperhero-io/sistine/discussions)
 

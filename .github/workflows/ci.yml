@@ -23,11 +23,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Lint (biome)
-        run: pnpm lint
+        run: bun run lint
       - name: Typecheck
-        run: pnpm typecheck
+        run: bun run typecheck
       - name: Theme invariants
-        run: pnpm test
+        run: bun run test
 
   build:
     name: Build
@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Next build
-        run: pnpm build
+        run: bun run build
 
   registry:
     name: Registry in sync
@@ -45,11 +45,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - name: Rebuild registry from source
-        run: pnpm registry:check
+        run: bun run registry:check
       - name: Verify committed registry output is up to date
         run: |
           if [ -n "$(git status --porcelain -- registry.json public/r)" ]; then
-            echo "::error::registry.json / public/r is out of date with the source. Run 'pnpm registry:check' locally and commit the result."
+            echo "::error::registry.json / public/r is out of date with the source. Run 'bun run registry:check' locally and commit the result."
             git --no-pager diff -- registry.json public/r
             exit 1
           fi

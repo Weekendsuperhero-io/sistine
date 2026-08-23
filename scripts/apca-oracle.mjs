@@ -10,7 +10,7 @@
  * Both sides are fed the SAME sRGB (via our oklchToSrgb), so this isolates the APCA math itself —
  * apcaLuminance + the contrast formula — from the OKLCH→sRGB step.
  *
- * Run: pnpm test:apca   (needs Node ≥22 to type-strip the imported .ts)
+ * Run: bun run test:apca   (needs Node ≥22 to type-strip the imported .ts)
  */
 import { APCAcontrast, sRGBtoY } from "apca-w3";
 import { apcaContrast, oklchToSrgb } from "../lib/oklch-utils.ts";
