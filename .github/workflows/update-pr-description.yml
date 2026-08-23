@@ -25,5 +25,4 @@ jobs:
       diff-file-patterns: "'*.ts' '*.tsx' '*.css' '*.mjs' '*.js' '*.yml' '*.json' '*.md'"
       diff-exclude-patterns: ":!bun.lock ':!public/r/**'"
       max-commit-messages: 100
-      commit-format: "full"
     secrets: inherit
