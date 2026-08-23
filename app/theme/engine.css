@@ -253,9 +253,7 @@
      headroom. L96.5 is the exact crossover at 1.06x, too thin given maxChromaFor already sits 3% inside
      the boundary to stop Safari clamping toward grey. The cost is small — at the 0.3 light-mode alpha
      the composite moves ~1.2 L, and 0.4 L in dark. */
-  --glass-crystal-bg: oklch(
-    calc(var(--glass-crystal-l) * 1%) calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a)
-  );
+  --glass-crystal-bg: oklch(calc(var(--glass-crystal-l) * 1%) calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
   /* ── Chakra — the step-cut gem surface ────────────────────────────────────────────────────────
      BODY: the stone itself. The one tint-composing token here, so it is the only one with a gamut
      budget — min() against --glass-chakra-c-max (not a multiplier) for the same reason --border uses

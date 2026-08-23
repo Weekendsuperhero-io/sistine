@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils";
 const ROOT_KEY = "sistine-glass-tint";
 const CUSTOM_KEY = "sistine-glass-tint-custom";
 const OPACITY_KEY = "sistine-glass-opacity";
+/* Mirrors the --glass-opacity fallback in @utility glass (app/theme/utilities.css). The slider has to
+   START where the stylesheet already is, or the readout lies about the surface until you drag it. */
+const GLASS_OPACITY_DEFAULT = 0.7;
 const DIFFUSE_KEY = "sistine-glass-diffuse";
 const STAINED_KEY = "sistine-glass-stained";
 
@@ -371,7 +374,7 @@ export function GlassTintSwitcher() {
   const [h, setH] = React.useState(250);
   const [c, setC] = React.useState(0);
   const [a, setA] = React.useState(0);
-  const [opacity, setOpacity] = React.useState(0);
+  const [opacity, setOpacity] = React.useState(GLASS_OPACITY_DEFAULT);
   const [diffuse, setDiffuse] = React.useState(0);
   const [stainedOn, setStainedOn] = React.useState(false);
   const [lightness, setLightness] = React.useState(90);
@@ -413,10 +416,15 @@ export function GlassTintSwitcher() {
     setC(nc);
     setA(na);
     applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
-    const no = Number.parseFloat(localStorage.getItem(OPACITY_KEY) ?? "0");
-    const o = Number.isFinite(no) ? no : 0;
+    /* No stored preference -> do NOT write inline, so the theme's own default (the --glass-opacity
+       fallback in @utility glass) stays the single source of truth. Writing it unconditionally is what
+       froze the crystal gloss twin earlier; same shape of bug, same fix. */
+    const rawO = localStorage.getItem(OPACITY_KEY);
+    const no = Number.parseFloat(rawO ?? "");
+    const o = rawO !== null && Number.isFinite(no) ? no : GLASS_OPACITY_DEFAULT;
     setOpacity(o);
-    document.documentElement.style.setProperty("--glass-opacity", String(o));
+    if (rawO !== null && Number.isFinite(no)) document.documentElement.style.setProperty("--glass-opacity", String(o));
+    else document.documentElement.style.removeProperty("--glass-opacity");
     if (localStorage.getItem(STAINED_KEY) === "1") {
       setStainedOn(true);
       document.documentElement.style.setProperty("--srf-stain", "var(--glass-stain)");

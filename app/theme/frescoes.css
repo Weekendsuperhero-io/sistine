@@ -145,7 +145,12 @@
   --glass-tint-h: 205; /* the sweep's midpoint, was 178 */
   --glass-tint-c: 0.07;
   --glass-tint-a: 0.16;
-  --glass-bg: linear-gradient(135deg in oklch, oklch(76.3% 0.124 235 / 0.4) 0%, oklch(74.7% 0.111 205 / 0.38) 50%, oklch(71.8% 0.155 155 / 0.38) 100%);
+  --glass-bg: linear-gradient(
+    135deg in oklch,
+    oklch(76.3% 0.124 235 / 0.4) 0%,
+    oklch(74.7% 0.111 205 / 0.38) 50%,
+    oklch(71.8% 0.155 155 / 0.38) 100%
+  );
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
     oklch(76.3% 0.124 235 / 0.46) 0%,
@@ -156,7 +161,12 @@
 }
 .dark[data-glass-tint="aurora"] {
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
-  --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.32) 0%, oklch(85% 0.127 205 / 0.3) 50%, oklch(80% 0.173 155 / 0.32) 100%);
+  --glass-frosted-bg: linear-gradient(
+    135deg in oklch,
+    oklch(86% 0.071 235 / 0.32) 0%,
+    oklch(85% 0.127 205 / 0.3) 50%,
+    oklch(80% 0.173 155 / 0.32) 100%
+  );
   --glass-crystal-fresco: var(--glass-bg);
 }
 

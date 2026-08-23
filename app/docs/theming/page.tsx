@@ -738,7 +738,7 @@ const onAccent = useReadableForeground(accent, "large");
               </li>
               <li>
                 <IC>--glass-opacity</IC>: <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer glass,{" "}
-                <IC>1</IC> = reads fully opaque. Set it with <IC>glassVars(&#123; opacity &#125;)</IC> (or inline).
+                <IC>1</IC> = reads fully opaque. <strong>Defaults to 0.7</strong>. Set it with <IC>glassVars(&#123; opacity &#125;)</IC> (or inline).
               </li>
               <li>
                 <IC>--glass-solid-a</IC>: how solid the <IC>glass-veil</IC> floor is (≈0.25–0.75; default 0.65).
