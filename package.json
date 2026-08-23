@@ -19,7 +19,7 @@
     "registry:smoke": "node scripts/smoke-registry.mjs",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static",
-    "storybook:export": "node scripts/export-storybook.js",
+    "storybook:export": "node scripts/export-storybook.js"
   },
   "browserslist": [
     "Safari >= 17.5",

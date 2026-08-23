@@ -1,6 +1,6 @@
 {
   "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run build-storybook && bun run export-storybook && bun run build",
+  "buildCommand": "bun run storybook:build && bun run storybook:export && bun run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "git": {

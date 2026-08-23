@@ -135,7 +135,7 @@ export const Default: Story = {
 To build a static version of Storybook:
 
 ```bash
-bun run build-storybook
+bun run storybook:build
 ```
 
 The build output will be in `storybook-static/` directory.

@@ -101,7 +101,7 @@ Explore and test components interactively with Storybook:
 bun run storybook
 
 # Build Storybook (static)
-bun run build-storybook
+bun run storybook:build
 ```
 
 Storybook provides:
@@ -254,12 +254,12 @@ Deploy both the documentation site and Storybook to Vercel:
 **Quick Start:**
 1. Deploy main site: Import your repo at [vercel.com/new](https://vercel.com/new)
 2. Deploy Storybook: Import the same repo again with these settings:
-   - Build Command: `bun run build-storybook`
+   - Build Command: `bun run storybook:build`
    - Output Directory: `storybook-static`
 3. Set environment variable `NEXT_PUBLIC_STORYBOOK_URL` in main site
 4. Redeploy main site
 
-> Both deploy from the same repo: the main site (default settings) and Storybook (build command `bun run build-storybook`, output `storybook-static`).
+> Both deploy from the same repo: the main site (default settings) and Storybook (build command `bun run storybook:build`, output `storybook-static`).
 
 ### Build Commands
 
@@ -268,7 +268,7 @@ Deploy both the documentation site and Storybook to Vercel:
 bun run build
 
 # Build Storybook
-bun run build-storybook
+bun run storybook:build
 
 # Test builds locally
 bun run start  # Serves main site on http://localhost:3000

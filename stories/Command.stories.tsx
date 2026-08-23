@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Calculator, Calendar, CreditCard, GearFineIcon, Smile, User } from "@phosphor-icons/react";
+import { Calculator, Calendar, CreditCard, GearFineIcon, SmileyIcon as Smile, User } from "@phosphor-icons/react";
 import {
   Command,
   CommandDialog,
