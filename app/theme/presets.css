@@ -112,6 +112,21 @@
   --foreground-strong-opaque: oklch(0.16 0.04 75);
   --foreground-ui-opaque: oklch(0.4 0.06 75);
   --muted-foreground-opaque: oklch(0.32 0.05 75);
+  /* Chakra needs the SAME treatment opaque gets above, and did not have it: chakra was added after this
+     block was written, so it kept the global dark body (L28) and rendered oklch(0.28 0.046 75) = #36250c,
+     a dark brown — the one surface where moonstone still read as tobacco rather than stone. Matching
+     opaque's pair (L84, chroma x0.45 → 0.021) lands it on #d3c9bc, the same pale stone.
+     The hue stays 75 deliberately. Cutting CHROMA is what moves this off the tan family; lightness alone
+     does not, and a cool hue would contradict the warm cream light mode keeps at L94. */
+  --glass-chakra-l: 84;
+  --glass-chakra-c-max: 0.021;
+  /* Same reasoning as the -opaque baselines: a LIGHT night floor needs dark text, and the global dark
+     -chakra baselines assume an L28 body. */
+  --foreground-chakra: oklch(0.24 0.04 75);
+  --foreground-soft-chakra: oklch(0.38 0.05 75);
+  --foreground-strong-chakra: oklch(0.16 0.04 75);
+  --foreground-ui-chakra: oklch(0.4 0.06 75);
+  --muted-foreground-chakra: oklch(0.32 0.05 75);
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render

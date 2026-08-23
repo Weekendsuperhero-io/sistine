@@ -125,11 +125,11 @@ const PRESETS = [
   {
     value: "aurora",
     label: "Aurora",
-    h: 178,
+    h: 205,
     c: 0.07,
     a: 0.16,
     bespoke: true,
-    swatch: "linear-gradient(135deg in oklch, oklch(85% 0.14 152), oklch(82% 0.11 196), oklch(74% 0.15 292))",
+    swatch: "linear-gradient(135deg in oklch, oklch(76.3% 0.124 235), oklch(74.7% 0.111 205), oklch(71.8% 0.155 155))",
   },
   {
     value: "gloaming",

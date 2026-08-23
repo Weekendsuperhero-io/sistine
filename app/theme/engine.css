@@ -243,7 +243,19 @@
     oklch(var(--gradient-contrast-l) var(--gradient-contrast-c) var(--glass-fg-h)) 100%
   );
   /* Crystal floor — clear glass; the alpha is the mode dial (--glass-crystal-bg-a). */
-  --glass-crystal-bg: oklch(100% calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a));
+  /* Crystal body. The lightness is a KNOB, not 100%, and that is the whole point: at L100 sRGB holds
+     ZERO chroma, so this surface asked for 0.015 and delivered exactly none — crystal rendered pure
+     white under every preset, in both modes (measured: #fffdff amethyst, #fffef4 moonstone,
+     #fbffff lapis; RGB spread 2–11). check-gamut even reported it as "no attainable chroma at all"
+     and skipped the pair rather than failing it.
+     --glass-crystal-l is 96 because that is the lowest lightness at which the TIGHTEST of the 21 hues
+     this theme uses (h268, lapis) can still carry the 0.015 this asks for: ceiling 0.0182, 1.22x
+     headroom. L96.5 is the exact crossover at 1.06x, too thin given maxChromaFor already sits 3% inside
+     the boundary to stop Safari clamping toward grey. The cost is small — at the 0.3 light-mode alpha
+     the composite moves ~1.2 L, and 0.4 L in dark. */
+  --glass-crystal-bg: oklch(
+    calc(var(--glass-crystal-l) * 1%) calc(var(--glass-tint-c-hi) * 0.6) var(--glass-tint-h) / var(--glass-crystal-bg-a)
+  );
   /* ── Chakra — the step-cut gem surface ────────────────────────────────────────────────────────
      BODY: the stone itself. The one tint-composing token here, so it is the only one with a gamut
      budget — min() against --glass-chakra-c-max (not a multiplier) for the same reason --border uses

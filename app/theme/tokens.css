@@ -151,6 +151,7 @@
   --gradient-c: 0.15;
   --gradient-contrast-l: 0.32; /* contrast gradient text: dark-on-light here, light-on-dark in .dark */
   --gradient-contrast-c: 0.14;
+  --glass-crystal-l: 96; /* crystal body lightness — see --glass-crystal-bg; 100 carries zero chroma */
   --glass-crystal-bg-a: 0.3; /* crystal floor alpha (near-clear in dark) */
   /* glass-solid floor — the "how solid" dial (0 = sheer, 1 = fully solid; shared by light/dark) + the
      mode floor lightness; composed in @utility glass-veil so a scoped --glass-solid-a resolves there. */
@@ -265,7 +266,7 @@
      Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
      Muse/Gloaming frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
      shows up as out-of-gamut once you check the fg hue. */
-  --primary-c-max: 0.07; /* ≤ 0.0705, the L-42 ceiling floor (h190 turquoise) */
+  --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
   --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */
 
   /* Secondary colors - Light mode */
@@ -373,6 +374,7 @@
   --gradient-c: 0.14;
   --gradient-contrast-l: 0.9;
   --gradient-contrast-c: 0.09;
+  --glass-crystal-l: 96; /* shared with light: the ceiling that forces 96 is hue-driven, not mode-driven */
   --glass-crystal-bg-a: 0.1;
   /* Gloss ink lightness — dark twin. Over an L-28 floor there is 72 L of headroom, so 66 lifts +15.2
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
@@ -455,7 +457,7 @@
   /* Flat-neutral surfaces — dark twins (see :root for why these are knobs now). Lightness unchanged;
      the caps are the dark ceilings, which are tightest at the DARKEST step, not the lightest. */
   --secondary-l: 0.25;
-  --secondary-c-max: 0.042; /* ≤ 0.0422, the L-25 ceiling floor (turquoise h190) */
+  --secondary-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
   --secondary-foreground: var(--foreground);
 
   /* Muted colors — dark mode */
@@ -465,7 +467,7 @@
 
   /* Accent colors — dark mode */
   --accent-bg-l: 0.25;
-  --accent-bg-c-max: 0.042; /* ≤ 0.0422, the L-25 ceiling floor (turquoise h190) */
+  --accent-bg-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
