@@ -436,7 +436,14 @@ for (const [value, tint] of presetTint) {
   const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
   if (blocks.length === 0) continue; // selenite has no block — invariant 3 already flags missing blocks
   for (const b of blocks) {
+    /* --glass-tint-a is MODE-SPLIT now (a wash near that mode's floor tolerates far more alpha), and the
+       switcher no longer inlines it for a named preset — CSS is the only source, so there is nothing to
+       keep in sync and nothing to shadow. The preset table's `a` remains the LIGHT value (the seed for a
+       drag into "custom"), so it is still checked against the light block; a .dark block legitimately
+       disagrees and must not be compared. Hue and chroma ARE still inlined and are checked everywhere. */
+    const darkScoped = /(^|[\s,])\.dark/.test(b.selector);
     for (const d of decls(b.body)) {
+      if (darkScoped && d.name === "--glass-tint-a") continue;
       if (!(d.name in tint)) continue;
       const cssNum = Number.parseFloat(d.value);
       if (cssNum !== tint[d.name]) {

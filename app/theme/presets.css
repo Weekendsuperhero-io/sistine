@@ -6,61 +6,61 @@
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.23;
   --glass-wash-l: 63%;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
   --glass-tint-c: 0.076;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.54;
   --glass-wash-l: 88%;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.19;
   --glass-wash-l: 55%;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.22;
   --glass-wash-l: 64%;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
   --glass-tint-c: 0.062;
-  --glass-tint-a: 0.16;
+  --glass-tint-a: 0.44;
   --glass-wash-l: 81%;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
   --glass-tint-c: 0.081;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.24;
   --glass-wash-l: 67%;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
   --glass-tint-c: 0.083;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.54;
   --glass-wash-l: 92%;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
   --glass-tint-c: 0.057;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.54;
   --glass-wash-l: 90%;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
   --glass-tint-c: 0.053;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.54;
   --glass-wash-l: 82%;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.22;
   --glass-wash-l: 67%;
 }
 [data-glass-tint="lapis"] {
@@ -77,14 +77,63 @@
      palette now follows — put the wash where the hue can actually hold chroma, then ask for it. */
   --glass-tint-h: 268;
   --glass-tint-c: 0.085;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.17;
   --glass-wash-l: 46%;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
-  --glass-tint-a: 0.15;
+  --glass-tint-a: 0.21;
   --glass-wash-l: 63%;
+}
+/* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
+   Alpha slides the surface along a straight line from the material floor toward the wash colour, so
+   how much a preset can take is set by how far its wash sits from THAT MODE's floor (L36.4 dark /
+   L90.9 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
+   crosses the mid-tone band where no text polarity reaches the body floor, and tolerates little.
+   Because every wash now sits at its hue's chroma PEAK, dark-peaking hues (lapis L46, amethyst L55)
+   sit near the DARK floor and take high alpha there, while light-peaking hues (peridot L92, turquoise
+   L90) sit near the LIGHT floor and take high alpha there. The two columns are near mirrors.
+   Each value is HALF that mode's measured headroom, so every preset keeps body text >= 75 Lc in both
+   modes with room to spare. A single shared alpha cannot serve both ends: at 0.55 everywhere, five
+   presets lose dark-mode text and lapis/amethyst lose light-mode text.
+   The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
+   values that render — nothing shadows them. */
+.dark[data-glass-tint="rose"] {
+  --glass-tint-a: 0.51;
+}
+.dark[data-glass-tint="goldstone"] {
+  --glass-tint-a: 0.52;
+}
+.dark[data-glass-tint="carnelian"] {
+  --glass-tint-a: 0.47;
+}
+.dark[data-glass-tint="amber"] {
+  --glass-tint-a: 0.35;
+}
+.dark[data-glass-tint="peridot"] {
+  --glass-tint-a: 0.29;
+}
+.dark[data-glass-tint="aventurine"] {
+  --glass-tint-a: 0.3;
+}
+.dark[data-glass-tint="turquoise"] {
+  --glass-tint-a: 0.29;
+}
+.dark[data-glass-tint="aquamarine"] {
+  --glass-tint-a: 0.33;
+}
+.dark[data-glass-tint="sapphire"] {
+  --glass-tint-a: 0.5;
+}
+.dark[data-glass-tint="lapis"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="amethyst"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="tourmaline"] {
+  --glass-tint-a: 0.48;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
