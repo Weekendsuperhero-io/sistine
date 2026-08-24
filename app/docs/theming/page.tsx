@@ -733,8 +733,8 @@ const onAccent = useReadableForeground(accent, "large");
                 harmonic accents together. <IC>0</IC> = neutral.
               </li>
               <li>
-                <IC>--glass-opaque-l</IC>: tint <strong>body lightness</strong> (OKLCH L); lower = a deeper tint. Mode-aware default (90.9 light / 36.4
-                dark), and the floor AutoForeground bands opaque-card text against.
+                <IC>--glass-opaque-l</IC>: tint <strong>body lightness</strong> (OKLCH L); lower = a deeper tint. Mode-aware default (90.9 light /
+                36.4 dark), and the floor AutoForeground bands opaque-card text against.
               </li>
               <li>
                 <IC>--glass-opacity</IC>: <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer glass,{" "}
