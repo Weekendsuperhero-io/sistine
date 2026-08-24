@@ -10,6 +10,10 @@
    source order at equal specificity on <html>). */
 
 [data-material="glass"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-stack-bg);
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
@@ -23,6 +27,10 @@
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
    background-color channel free for the veil floor. */
 [data-material="frosted"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
@@ -36,6 +44,10 @@
    sparkle is a plain token swap; box-shadow transitions on the real property. No saturate(),
    matching the old variant. */
 [data-material="crystal"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
@@ -69,6 +81,10 @@
    raises --dif into the blur below, and the --glass-opacity solidify floor composes under the stack
    exactly as it does for crystal. */
 [data-material="chakra"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-chakra-stack-bg);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
@@ -96,6 +112,14 @@
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
    bands against that floor (inherits into the card's content). */
 [data-material="opaque"] {
+  /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
+     background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
+     ANY alpha. Measured across tints and both modes it moves every channel by exactly 0. So the layer was
+     one full gradient rasterisation (and one dither pass) for provably zero pixels, on the one material
+     with no backdrop-filter behind it to mask that noise. Restored below when the surface is VEILED —
+     there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
+     (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
+  --srf-solidify: none;
   --srf-bg-image: var(--glass-bg);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
@@ -112,6 +136,13 @@
   --foreground-strong: var(--foreground-strong-opaque);
   --foreground-ui: var(--foreground-ui-opaque);
   --muted-foreground: var(--muted-foreground-opaque);
+}
+
+/* Veiled opaque restores the solidify floor: glass-veil moves the background-COLOR channel to the
+   neutral --veil-floor, so the layer is no longer painting --glass-opaque-bg over itself and carries
+   the surface's entire tint. Mirrors crystal's `:not(.glass-veil)` carve-out. */
+[data-material="opaque"].glass-veil {
+  --srf-solidify: initial;
 }
 
 /* ── Gloss flavors ────────────────────────────────────────────────────────────

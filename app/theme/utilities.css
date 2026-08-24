@@ -27,10 +27,16 @@
      background-color  = --veil-floor (element veil) > --srf-bg-color (material floor) > transparent
      backdrop-filter   = --srf-filter (material) > blur(--srf-blur > --blur) saturate(180%)
      box-shadow        = --srf-shadow (material) > --srf-elev (size axis) > --glass-shadow, + glow
-   The leading gradient slot is a no-op transparent layer so `glass-gradient` composes over ANY
-   material (same pattern as the fresco slot inside --crystal-stack-bg). The solidify floor
-   (--glass-opacity dial) is composed HERE, at the element — never in a token context (the
-   var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). */
+   The leading gradient slot is a no-op layer so `glass-gradient` composes over ANY material (same
+   pattern as the fresco slot inside --crystal-stack-bg). Both no-op slots resolve to `none` rather
+   than linear-gradient(transparent, transparent): `none` is a valid <bg-image>, holds the layer
+   position identically, and paints nothing — where a transparent GRADIENT still goes through the
+   gradient rasteriser (and its dither) to deliver zero pixels.
+   The solidify floor (--glass-opacity dial) is composed HERE, at the element — never in a token
+   context (the var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). The
+   --srf-solidify slot lets a material DROP that layer when it is provably a no-op; materials that
+   want the normal floor pin the slot back to `initial` (guaranteed-invalid → the var() fallback
+   below composes --glass-solidify at the element, exactly as before). */
 @utility glass {
   /* Fallback 0.7, not 0: every glass surface now sits on a 70% solidify floor unless a consumer dials
      it back. Measured before changing it, because AutoForeground does NOT read --glass-opacity — it
@@ -39,7 +45,7 @@
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
   --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
-  background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
+  background-image: var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)), var(--srf-solidify, var(--glass-solidify));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).

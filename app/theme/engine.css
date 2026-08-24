@@ -269,8 +269,7 @@
      a fresco slot and the tint wash. Nothing here is inset, so nothing here has a corner of its own —
      the element's border-radius clips the whole stack, which is the point (see the facet bands below). */
   --glass-chakra-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   /* THE CUT — four sides, two steps, as INSET SHADOWS rather than inset background layers.
      A background layer is always a RECTANGLE: background-size shrinks it but gives it no radius of its
      own, so an inset gradient paints square corners over a rounded surface — a card with hard-cornered
@@ -311,6 +310,5 @@
      free for the veil floor. */
   --frosted-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
   --crystal-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
 }

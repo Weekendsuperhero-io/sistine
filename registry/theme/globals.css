@@ -912,8 +912,7 @@
      a fresco slot and the tint wash. Nothing here is inset, so nothing here has a corner of its own —
      the element's border-radius clips the whole stack, which is the point (see the facet bands below). */
   --glass-chakra-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   /* THE CUT — four sides, two steps, as INSET SHADOWS rather than inset background layers.
      A background layer is always a RECTANGLE: background-size shrinks it but gives it no radius of its
      own, so an inset gradient paints square corners over a rounded surface — a card with hard-cornered
@@ -954,8 +953,7 @@
      free for the veil floor. */
   --frosted-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
   --crystal-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
 }
 /* ── Glass surface utilities (@utility — tree-shaken per consumer usage) ──────
    The material system: ONE structural `glass` utility + orthogonal axis classes (border, veil, sm/lg,
@@ -986,10 +984,16 @@
      background-color  = --veil-floor (element veil) > --srf-bg-color (material floor) > transparent
      backdrop-filter   = --srf-filter (material) > blur(--srf-blur > --blur) saturate(180%)
      box-shadow        = --srf-shadow (material) > --srf-elev (size axis) > --glass-shadow, + glow
-   The leading gradient slot is a no-op transparent layer so `glass-gradient` composes over ANY
-   material (same pattern as the fresco slot inside --crystal-stack-bg). The solidify floor
-   (--glass-opacity dial) is composed HERE, at the element — never in a token context (the
-   var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). */
+   The leading gradient slot is a no-op layer so `glass-gradient` composes over ANY material (same
+   pattern as the fresco slot inside --crystal-stack-bg). Both no-op slots resolve to `none` rather
+   than linear-gradient(transparent, transparent): `none` is a valid <bg-image>, holds the layer
+   position identically, and paints nothing — where a transparent GRADIENT still goes through the
+   gradient rasteriser (and its dither) to deliver zero pixels.
+   The solidify floor (--glass-opacity dial) is composed HERE, at the element — never in a token
+   context (the var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). The
+   --srf-solidify slot lets a material DROP that layer when it is provably a no-op; materials that
+   want the normal floor pin the slot back to `initial` (guaranteed-invalid → the var() fallback
+   below composes --glass-solidify at the element, exactly as before). */
 @utility glass {
   /* Fallback 0.7, not 0: every glass surface now sits on a 70% solidify floor unless a consumer dials
      it back. Measured before changing it, because AutoForeground does NOT read --glass-opacity — it
@@ -998,7 +1002,7 @@
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
   --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
-  background-image: var(--acc-gradient, linear-gradient(transparent, transparent)), var(--srf-bg-image, var(--glass-stack-bg)), var(--glass-solidify);
+  background-image: var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)), var(--srf-solidify, var(--glass-solidify));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
@@ -1150,6 +1154,10 @@
    source order at equal specificity on <html>). */
 
 [data-material="glass"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-stack-bg);
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
@@ -1163,6 +1171,10 @@
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
    background-color channel free for the veil floor. */
 [data-material="frosted"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
@@ -1176,6 +1188,10 @@
    sparkle is a plain token swap; box-shadow transitions on the real property. No saturate(),
    matching the old variant. */
 [data-material="crystal"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
@@ -1209,6 +1225,10 @@
    raises --dif into the blur below, and the --glass-opacity solidify floor composes under the stack
    exactly as it does for crystal. */
 [data-material="chakra"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-chakra-stack-bg);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
@@ -1236,6 +1256,14 @@
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
    bands against that floor (inherits into the card's content). */
 [data-material="opaque"] {
+  /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
+     background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
+     ANY alpha. Measured across tints and both modes it moves every channel by exactly 0. So the layer was
+     one full gradient rasterisation (and one dither pass) for provably zero pixels, on the one material
+     with no backdrop-filter behind it to mask that noise. Restored below when the surface is VEILED —
+     there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
+     (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
+  --srf-solidify: none;
   --srf-bg-image: var(--glass-bg);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
@@ -1252,6 +1280,13 @@
   --foreground-strong: var(--foreground-strong-opaque);
   --foreground-ui: var(--foreground-ui-opaque);
   --muted-foreground: var(--muted-foreground-opaque);
+}
+
+/* Veiled opaque restores the solidify floor: glass-veil moves the background-COLOR channel to the
+   neutral --veil-floor, so the layer is no longer painting --glass-opaque-bg over itself and carries
+   the surface's entire tint. Mirrors crystal's `:not(.glass-veil)` carve-out. */
+[data-material="opaque"].glass-veil {
+  --srf-solidify: initial;
 }
 
 /* ── Gloss flavors ────────────────────────────────────────────────────────────
@@ -1418,6 +1453,13 @@
    an explicit frosted/crystal card keeps its translucency AND its normal foreground). Declared ON the
    element because (a) --glass-opaque-outline is settable on any ancestor and must resolve where it's
    read, and (b) the foreground remap must not leak into explicit materials. */
+[data-glass="opaque"] :where(.glass):not([data-material]):not(.glass-veil) {
+  /* Same provable no-op as [data-material="opaque"]: this page remap puts --glass-opaque-bg in the
+     background-COLOR channel, so the solidify layer paints that colour over itself. Element-level and
+     :not([data-material]) so it cannot leak into an explicit material, :not(.glass-veil) because a
+     veiled floor is neutral and the layer is real there. */
+  --srf-solidify: none;
+}
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));

@@ -251,7 +251,7 @@ for (const p of frescoPresets) {
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
 const MATERIALS = ["glass", "frosted", "crystal", "chakra", "opaque"];
-const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow"];
+const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
 const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
 /* Materials whose floor lightness is its own dial and can sit far from the page's, so they must remap
    the foreground tiers to their own set: opaque's solid floor, and chakra's table. */

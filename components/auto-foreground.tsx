@@ -222,6 +222,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // (≈ one ARC band step) at fully-sheer, decaying to +0 at a fully-known floor (solidA 1 — e.g. the
       // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
       const LC_MARGIN = 12;
+      // Parity aim for a FULLY-KNOWN floor. LC_MARGIN above is an UNCERTAINTY margin — it decays to 0 as the
+      // floor becomes exactly modelable, which is right on its own terms but leaves the one surface we model
+      // exactly (opaque) aiming at the BARE band target while every other surface aims 3.6–5.7 Lc above it.
+      // Measured at the shipped defaults that made opaque the lowest-contrast surface in the system for every
+      // tint in BOTH modes (body 80.0 vs 82.0–87.3, muted 72.0 vs 73.0–79.3) — the "soft / out-of-focus"
+      // opaque card. Certainty about the floor is no reason to aim at the minimum, so a known floor gets this
+      // baseline aim instead. Sized to the MIDDLE of the other surfaces' effective margins so opaque lands
+      // LEVEL with them; the full LC_MARGIN here would pin body+muted to the band ceiling and just invert the
+      // asymmetry (opaque becomes the harshest surface). Ceilings still cap the pick.
+      const LC_AIM_KNOWN = 4;
       const solidA = num("--glass-solid-a", 0.65);
       // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
       // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
@@ -276,13 +286,17 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         suffix: string,
         adaptive: boolean,
         lcBoost = 0,
+        // Baseline aim, kept SEPARATE from lcBoost so the two stay honest: lcBoost answers "how much don't
+        // we know about this floor", lcAim answers "how far above the bare minimum should we aim on a floor
+        // we DO know". Only the opaque set passes it (see LC_AIM_KNOWN); every other surface earns its
+        // margin from uncertainty and leaves this 0.
+        lcAim = 0,
       ) => {
-        // Uncertainty margin: lift the band's TARGET toward its ceiling by the show-through boost (0 for
-        // fully-known floors like the opaque set). Floors/ceilings stay — the margin aims higher, it
-        // never legalizes a harsher pick than the band already allowed.
+        // Lift the band's TARGET toward its ceiling by the uncertainty boost + the baseline aim. Floors and
+        // ceilings stay — the margin aims higher, it never legalizes a harsher pick than the band allowed.
         const boost = (band: { floor: number; target: number; ceiling: number }) => ({
           ...band,
-          target: Math.min(band.target + lcBoost, band.ceiling),
+          target: Math.min(band.target + lcBoost + lcAim, band.ceiling),
         });
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
@@ -334,6 +348,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                 }),
               );
         root.style.setProperty(`--foreground-soft${suffix}`, tierAtHue("large", storedFg.softHue));
+        // REACH-LIMITED IN LIGHT MODE, by design of the surfaces themselves: the small band floors at Lc 90,
+        // and a mid-light floor simply cannot deliver that much even with pure black text. Light opaque (L90)
+        // tops out at 82.6–87.6 across the tints and light chakra (L88) at 82.0–83.7, so --foreground-strong
+        // on those two surfaces lands 2.4–8.0 Lc under its floor. readableForeground's documented
+        // reach < floor fallback covers it — it returns the MOST contrast available rather than failing —
+        // and no margin can close the gap. Only raising --glass-opaque-l past ~94.5 / --glass-chakra-l past
+        // ~92.5 would (measurably paler cards); that is a design call, not a banding bug. Dark mode has
+        // headroom to spare (reach 96–104) and hits the floor everywhere.
         root.style.setProperty(`--foreground-strong${suffix}`, tierAtHue("small", storedFg.strongHue));
         // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
         // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
@@ -380,6 +402,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         },
         "-opaque",
         true,
+        0, // no uncertainty — --glass-opaque-l models this floor exactly
+        LC_AIM_KNOWN,
       );
       // Crystal cards: the specular gloss is baked UNDER content, so title-zone text sits on a locally
       // LIGHTENED surface — worst in dark mode, where the ~L94 highlight over a dark floor pulls the
