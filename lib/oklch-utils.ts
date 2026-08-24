@@ -816,13 +816,31 @@ export function glassSolidSurface(
   // (moonstone night: 72 / 2), else the defaults mirror the CSS mode values exactly.
   washL: number = dark ? 58 : 72,
   washCMult = 2.5,
+  // The SOLIDIFY floor — `glass` paints --glass-solidify (--glass-opaque-bg at --glass-opacity, default
+  // 0.7) as its bottom background-IMAGE layer, i.e. above the background-color modeled by solidA and
+  // below the wash. Omitting it models a surface far sheerer than what ships: on most themes the opaque
+  // floor sits the same side of mid-grey as the page, so the error is a few Lc, but where the two
+  // OPPOSE — moonstone night pairs a cream L84.9 floor with an L20 page — the model lands 27 L on the
+  // wrong side and picks text of the wrong polarity entirely. Pass { l, c, a } to include it.
+  solidify?: {
+    l: number;
+    c: number;
+    a: number;
+  },
 ): OklchColor {
   const baseL = dark ? 20 : 95;
   const solidL = dark ? 18 : 99;
-  const floorL = baseL * (1 - solidA) + solidL * solidA;
+  let floorL = baseL * (1 - solidA) + solidL * solidA;
+  let floorC = 0;
+  if (solidify) {
+    floorL = floorL * (1 - solidify.a) + solidify.l * solidify.a;
+    floorC = solidify.c * solidify.a;
+  }
   return {
     l: floorL * (1 - tint.a) + washL * tint.a,
-    c: tint.c * washCMult * tint.a,
+    // The wash composites OVER the solidified floor, so the floor's own chroma survives in proportion
+    // to what the wash lets through — same mix the lightness above takes.
+    c: floorC * (1 - tint.a) + tint.c * washCMult * tint.a,
     h: tint.h,
   };
 }

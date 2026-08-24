@@ -150,7 +150,9 @@ describe("CrystalGlossDemo: per-scheme gloss override", () => {
 
   it("marks an un-overridden scheme as auto in the readout", async () => {
     render(<CrystalGlossDemo />);
-    await waitFor(() => expect(screen.getByText(/· auto$/)).toBeInTheDocument());
+    /* Anchored on the trailing "%" so this keeps matching the LIGHT readout only: Tint carries its own
+       "· auto" now (it has to — presets override --glass-gloss-tint), and a bare /· auto$/ matches both. */
+    await waitFor(() => expect(screen.getByText(/%\s·\sauto$/)).toBeInTheDocument());
 
     localStorage.setItem(
       L_KEY,
@@ -163,5 +165,69 @@ describe("CrystalGlossDemo: per-scheme gloss override", () => {
     root().classList.add("dark");
     root().classList.remove("dark");
     await waitFor(() => expect(screen.getByText("80%")).toBeInTheDocument());
+  });
+});
+
+/**
+ * TST-2-2 — the Tint slider has to be able to give `--glass-gloss-tint` back to the preset.
+ *
+ * Gloss tint is the multiplier taking the theme chroma up to the highlight's chroma, and presets set
+ * their own (moonstone pins 1, against the 4.25 default) because a pale silvery stone with a highlight
+ * 4× its own chroma reads as a colour cast rather than a sheen. That override lives in CSS, so an
+ * inline value on <html> defeats it for every preset at once.
+ *
+ * A one-way slider would therefore be a trapdoor: touch it and no preset can ever style its own
+ * highlight again for the rest of the session. The `auto` state is the way back out — the same shape as
+ * the Light override above, but load-bearing for a different reason: Light's twin is per-SCHEME, this
+ * one is per-PRESET, so the value it must defer to changes on every swatch click rather than only at
+ * the day/night boundary.
+ */
+describe("CrystalGlossDemo: tint auto-toggle", () => {
+  const inlineTint = () => root().style.getPropertyValue("--glass-gloss-tint");
+  const TINT_KEY = "sistine-gloss-tint";
+  /** The Tint readout is a bare 2dp number; Light's carries a "%", so this cannot match the wrong row. */
+  const tintAutoReadout = () => screen.queryByText(/^\d+\.\d{2}\s·\sauto$/);
+
+  it("writes no inline tint and reads as auto when the user has not chosen one", async () => {
+    /* Absent, not "the default written out". Writing 4.25 inline would silently override moonstone's 1
+       with the very number the preset exists to replace. */
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(screen.getByText("Tint")).toBeInTheDocument());
+    expect(inlineTint()).toBe("");
+    expect(tintAutoReadout()).toBeInTheDocument();
+  });
+
+  it("locks the value inline once the user has chosen one", async () => {
+    localStorage.setItem(TINT_KEY, "2.5");
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(inlineTint()).toBe("2.5"));
+    /* Locked: the readout drops "· auto", which is the affordance telling the user CSS no longer owns it. */
+    expect(tintAutoReadout()).not.toBeInTheDocument();
+  });
+
+  it("hands the property back to the preset when the Tint label is clicked", async () => {
+    /* The trapdoor's exit. Clearing storage is not enough on its own — the inline property has to be
+       removed too, or the preset's override stays shadowed until a reload. */
+    localStorage.setItem(TINT_KEY, "2.5");
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(inlineTint()).toBe("2.5"));
+
+    fireEvent.click(screen.getByText("Tint"));
+
+    await waitFor(() => expect(inlineTint()).toBe(""));
+    expect(localStorage.getItem(TINT_KEY)).toBeNull();
+    expect(tintAutoReadout()).toBeInTheDocument();
+  });
+
+  it("leaves the label inert while the value is already auto", async () => {
+    /* onLabelClick is undefined in the auto state, so clicking is a no-op rather than a write of the
+       current number — which would re-lock the property the click is meant to release. */
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(screen.getByText("Tint")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByText("Tint"));
+
+    expect(inlineTint()).toBe("");
+    expect(localStorage.getItem(TINT_KEY)).toBeNull();
   });
 });

@@ -21,8 +21,9 @@
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
   --glass-fg-h: 290; /* text/accent anchor: violet, matching night so the two modes share one identity */
-  --glass-tint-c: 0.06;
+  --glass-tint-c: 0.056;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 76%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(85% 0.1 222 / 0.32) 0%,
@@ -73,8 +74,9 @@
 [data-glass-tint="sistine"] {
   --glass-tint-h: 75; /* surface: mirrors the Sistine switcher preset */
   --glass-fg-h: 18; /* text/accent anchor: crimson (hand-selected) — hue 18 reads as deep red, not the rose at h8 */
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.062;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 81%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(90% 0.11 75 / 0.34) 0%,
@@ -143,8 +145,9 @@
    along. */
 [data-glass-tint="aurora"] {
   --glass-tint-h: 205; /* the sweep's midpoint, was 178 */
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.054;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 86%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(76.3% 0.124 235 / 0.4) 0%,
@@ -174,8 +177,9 @@
    glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.089;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 64%;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
   --glass-crystal-fresco: var(--glass-bg);

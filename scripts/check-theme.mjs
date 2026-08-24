@@ -251,7 +251,7 @@ for (const p of frescoPresets) {
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
 const MATERIALS = ["glass", "frosted", "crystal", "chakra", "opaque"];
-const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow"];
+const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
 const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
 /* Materials whose floor lightness is its own dial and can sit far from the page's, so they must remap
    the foreground tiers to their own set: opaque's solid floor, and chakra's table. */
@@ -436,7 +436,14 @@ for (const [value, tint] of presetTint) {
   const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
   if (blocks.length === 0) continue; // selenite has no block — invariant 3 already flags missing blocks
   for (const b of blocks) {
+    /* --glass-tint-a is MODE-SPLIT now (a wash near that mode's floor tolerates far more alpha), and the
+       switcher no longer inlines it for a named preset — CSS is the only source, so there is nothing to
+       keep in sync and nothing to shadow. The preset table's `a` remains the LIGHT value (the seed for a
+       drag into "custom"), so it is still checked against the light block; a .dark block legitimately
+       disagrees and must not be compared. Hue and chroma ARE still inlined and are checked everywhere. */
+    const darkScoped = /(^|[\s,])\.dark/.test(b.selector);
     for (const d of decls(b.body)) {
+      if (darkScoped && d.name === "--glass-tint-a") continue;
       if (!(d.name in tint)) continue;
       const cssNum = Number.parseFloat(d.value);
       if (cssNum !== tint[d.name]) {
@@ -446,6 +453,43 @@ for (const [value, tint] of presetTint) {
             `sync them or a static (no-switcher) consumer renders a different surface.`,
         );
       }
+    }
+  }
+}
+
+/* ── [fallback-sync] AutoForeground's jsdom fallbacks must equal tokens.css ──────────────────────
+   `num("--x", fallback)` returns the fallback whenever getComputedStyle yields nothing — jsdom, and any
+   pre-hydration path. Those fallbacks encode the opaque floor, and tests/auto-foreground-surface-parity
+   MIRRORS them to model its surfaces, so when they drift the suite keeps passing against a surface the
+   theme no longer ships. That is not hypothetical: --glass-opaque-l sat at 90.9 for a whole release after
+   tokens.css moved to 88, and the c-scale pair was not merely stale but INVERTED (dark holding the light
+   value) directly beneath a comment claiming it mirrored tokens.css. Nothing could catch it, because
+   every guard either reads the CSS (which was right) or runs in jsdom (which read the fallback). This
+   compares the two texts directly. */
+{
+  const af = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
+  const tokens = readFileSync(join(root, "app/theme/tokens.css"), "utf8");
+  const bare = stripComments(tokens);
+  const lightBody = bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"));
+  const darkBody = bare.slice(bare.indexOf(".dark {"));
+  const cssVal = (body, name) => {
+    const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
+    return m ? Number(m[1]) : null;
+  };
+  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max"]) {
+    /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
+    const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
+    if (!m) {
+      fail(`[fallback-sync] auto-foreground.tsx has no \`num("--${name}", dark ? … : …)\` fallback pair to check — if the call was reshaped, update this rule rather than dropping the guard.`);
+      continue;
+    }
+    const [jsDark, jsLight] = [Number(m[1]), Number(m[2])];
+    const [cssDark, cssLight] = [cssVal(darkBody, name), cssVal(lightBody, name)];
+    if (cssDark !== null && jsDark !== cssDark) {
+      fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsDark} in DARK but tokens.css ships ${cssDark}. jsdom tests would model a surface the theme does not paint.`);
+    }
+    if (cssLight !== null && jsLight !== cssLight) {
+      fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsLight} in LIGHT but tokens.css ships ${cssLight}. jsdom tests would model a surface the theme does not paint.`);
     }
   }
 }

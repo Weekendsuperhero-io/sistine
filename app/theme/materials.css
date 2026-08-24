@@ -10,6 +10,10 @@
    source order at equal specificity on <html>). */
 
 [data-material="glass"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-stack-bg);
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
@@ -23,6 +27,10 @@
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
    background-color channel free for the veil floor. */
 [data-material="frosted"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
@@ -36,6 +44,10 @@
    sparkle is a plain token swap; box-shadow transitions on the real property. No saturate(),
    matching the old variant. */
 [data-material="crystal"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--crystal-stack-bg);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
@@ -69,6 +81,10 @@
    raises --dif into the blur below, and the --glass-opacity solidify floor composes under the stack
    exactly as it does for crystal. */
 [data-material="chakra"] {
+  /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
+     AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
+     PAGE remap can never leak its dropped layer into an explicit material. */
+  --srf-solidify: initial;
   --srf-bg-image: var(--glass-chakra-stack-bg);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
@@ -96,7 +112,24 @@
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
    bands against that floor (inherits into the card's content). */
 [data-material="opaque"] {
-  --srf-bg-image: var(--glass-bg);
+  /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
+     background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
+     ANY alpha. Measured across tints and both modes it moves every channel by exactly 0. So the layer was
+     one full gradient rasterisation (and one dither pass) for provably zero pixels, on the one material
+     with no backdrop-filter behind it to mask that noise. Restored below when the surface is VEILED —
+     there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
+     (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
+  --srf-solidify: none;
+  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+     gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
+     light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
+     rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
+     page content that masks that noise; opaque sets --srf-filter: none, so there is nothing behind it and
+     the dither is the only variation on the card — read as grain, worst over text.
+     The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
+     so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
+     same token, so the -opaque text tiers re-band against the new floor automatically. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
@@ -114,6 +147,13 @@
   --muted-foreground: var(--muted-foreground-opaque);
 }
 
+/* Veiled opaque restores the solidify floor: glass-veil moves the background-COLOR channel to the
+   neutral --veil-floor, so the layer is no longer painting --glass-opaque-bg over itself and carries
+   the surface's entire tint. Mirrors crystal's `:not(.glass-veil)` carve-out. */
+[data-material="opaque"].glass-veil {
+  --srf-solidify: initial;
+}
+
 /* ── Gloss flavors ────────────────────────────────────────────────────────────
    data-gloss on <html> (or any ancestor) swaps the crystal gloss. Default (unset) = tonal. Token
    remaps only — they compose with [data-material="crystal"] AND the [data-glass="crystal"] page
@@ -123,7 +163,8 @@
 }
 [data-gloss="tonal"] {
   /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
 }
 [data-gloss="hue"] {
   /* Hue OWNS its lightness rather than sharing the tonal twin. The two flavors want opposite things
@@ -134,14 +175,19 @@
      74 is mode-invariant on purpose: it holds 81% of that chroma, and it lands on the right side of
      both surfaces anyway (+18.4 L over the dark floor, −9.0 over the light one — for an iridescent
      sweep, being SEEN matters more than which direction it moves). The demo's flavor switcher already
-     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too. */
+     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too.
+     "Holds 81% of that chroma" assumed the browser gamut-MAPS an over-ceiling request down to the
+     ceiling. Measured in WebKit it CLIPS instead (see --glass-gloss-c-max in tokens.css), so 0.16 did
+     not deliver 81% of itself — it drove the tightest hues to a pinned channel. 0.12 sits just under
+     0.1240, the L-74 ceiling for turquoise (h190) and the tightest of the presets, so the sweep now
+     renders every hue it asks for. */
   --glass-gloss-l: 74;
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
      arc passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. */
   --glass-gloss-top: linear-gradient(
     to bottom in oklch,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.4
     ),
@@ -150,14 +196,14 @@
   --glass-gloss-streak: linear-gradient(
     115deg in oklch,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
       0%,
-    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16) var(--glass-tint-h) / 0.12) 45%,
+    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12) var(--glass-tint-h) / 0.12) 45%,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
@@ -167,7 +213,7 @@
   --glass-gloss-glow: radial-gradient(
     circle at 50% 120%,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.25
     ),

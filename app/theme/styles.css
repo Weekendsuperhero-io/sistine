@@ -86,7 +86,10 @@
   [data-glass="opaque"][data-glass-tint],
   [data-glass="opaque"] [data-sonner-toast][data-type]
 ) {
-  --srf-bg-image: var(--glass-bg);
+  /* Flat floor, no sheet — same reasoning as [data-material="opaque"] in materials.css: with
+     --srf-filter: none there is no blurred backdrop to mask the dither of a 2–7 code gradient, and the
+     sheet's uniform lift is folded into --glass-opaque-l instead. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
@@ -96,6 +99,13 @@
    an explicit frosted/crystal card keeps its translucency AND its normal foreground). Declared ON the
    element because (a) --glass-opaque-outline is settable on any ancestor and must resolve where it's
    read, and (b) the foreground remap must not leak into explicit materials. */
+[data-glass="opaque"] :where(.glass):not([data-material]):not(.glass-veil) {
+  /* Same provable no-op as [data-material="opaque"]: this page remap puts --glass-opaque-bg in the
+     background-COLOR channel, so the solidify layer paints that colour over itself. Element-level and
+     :not([data-material]) so it cannot leak into an explicit material, :not(.glass-veil) because a
+     veiled floor is neutral and the layer is real there. */
+  --srf-solidify: none;
+}
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));

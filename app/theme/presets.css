@@ -5,71 +5,147 @@
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.075;
+  --glass-tint-a: 0.19;
+  --glass-wash-l: 63%;
+  --glass-opaque-c-max: 0.056;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.076;
+  --glass-tint-a: 0.54;
+  --glass-wash-l: 88%;
+  --glass-opaque-c-max: 0.195;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 55%;
+  --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.095;
+  --glass-tint-a: 0.17;
+  --glass-wash-l: 64%;
+  --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.16;
+  --glass-tint-c: 0.062;
+  --glass-tint-a: 0.38;
+  --glass-wash-l: 81%;
+  --glass-opaque-c-max: 0.096;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.081;
+  --glass-tint-a: 0.19;
+  --glass-wash-l: 67%;
+  --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.083;
+  --glass-tint-a: 0.54;
+  --glass-wash-l: 92%;
+  --glass-opaque-c-max: 0.218;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.057;
+  --glass-tint-a: 0.54;
+  --glass-wash-l: 90%;
+  --glass-opaque-c-max: 0.144;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.053;
+  --glass-tint-a: 0.5;
+  --glass-wash-l: 82%;
+  --glass-opaque-c-max: 0.091;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.106;
+  --glass-tint-a: 0.18;
+  --glass-wash-l: 67%;
+  --glass-opaque-c-max: 0.079;
 }
 [data-glass-tint="lapis"] {
-  /* Lapis runs far hotter than the other jewels (c 0.15 vs 0.07) on purpose — lapis lazuli IS the
-     deep saturated ultramarine; at jewel chroma it reads as just another blue next to sapphire.
-     h268 has the least chroma headroom of any jewel hue, so this asks well past the sRGB ceiling on
-     the near-white surfaces and is gamut-mapped there. That is deliberate and it is NOT wasted: the
-     surfaces that carry color deliver 1.32× sapphire's wash chroma and 2.13× its --primary chroma
-     (measured). Lowering the ask to "stay in gamut" was tried and collapses the difference — at 0.09
-     lapis renders slightly FLATTER than sapphire. The near-white sheet cannot separate two blues at
-     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else. */
+  /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
+     blue next to sapphire. It used to buy that depth by declaring c 0.15 — far past the sRGB ceiling —
+     and letting the browser clip. That DID deliver a deep blue, but by accident rather than by design:
+     clipping chops channels, which drops LIGHTNESS, and the saturation came from landing darker.
+     Measured, oklch(58% 0.375 268) renders L48.1 C0.2941 h271 — a colour nobody wrote down.
+     The wash lightness below asks for that colour on purpose instead. h268's chroma ceiling PEAKS at
+     L46 (0.2979) and collapses to 0.1293 by L74, so the shared 72/58 wash was sitting on the downslope;
+     at L46 the same depth is available inside the gamut. oklch(45% 0.291 268) renders L44.9 C0.2909
+     h267.9 — the same deep ultramarine, hue exact, nothing pinned.
+     So lapis is no longer an exception to anything: it is the clearest case of the rule the whole
+     palette now follows — put the wash where the hue can actually hold chroma, then ask for it. */
   --glass-tint-h: 268;
-  --glass-tint-c: 0.15;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.085;
+  --glass-tint-a: 0.13;
+  --glass-wash-l: 46%;
+  --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
-  --glass-tint-c: 0.07;
-  --glass-tint-a: 0.15;
+  --glass-tint-c: 0.094;
+  --glass-tint-a: 0.17;
+  --glass-wash-l: 63%;
+  --glass-opaque-c-max: 0.06;
+}
+/* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
+   Alpha slides the surface along a straight line from the material floor toward the wash colour, so
+   how much a preset can take is set by how far its wash sits from THAT MODE's floor (L36.4 dark /
+   L88 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
+   crosses the mid-tone band where no text polarity reaches the body floor, and tolerates little.
+   Because every wash now sits at its hue's chroma PEAK, dark-peaking hues (lapis L46, amethyst L55)
+   sit near the DARK floor and take high alpha there, while light-peaking hues (peridot L92, turquoise
+   L90) sit near the LIGHT floor and take high alpha there. The two columns are near mirrors.
+   Each value is HALF that mode's measured headroom, so every preset keeps body text >= 75 Lc in both
+   modes with room to spare. A single shared alpha cannot serve both ends: at 0.55 everywhere, five
+   presets lose dark-mode text and lapis/amethyst lose light-mode text.
+   The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
+   values that render — nothing shadows them. */
+.dark[data-glass-tint="rose"] {
+  --glass-tint-a: 0.49;
+}
+.dark[data-glass-tint="goldstone"] {
+  --glass-tint-a: 0.5;
+}
+.dark[data-glass-tint="carnelian"] {
+  --glass-tint-a: 0.45;
+}
+.dark[data-glass-tint="amber"] {
+  --glass-tint-a: 0.34;
+}
+.dark[data-glass-tint="peridot"] {
+  --glass-tint-a: 0.28;
+}
+.dark[data-glass-tint="aventurine"] {
+  --glass-tint-a: 0.29;
+}
+.dark[data-glass-tint="turquoise"] {
+  --glass-tint-a: 0.28;
+}
+.dark[data-glass-tint="aquamarine"] {
+  --glass-tint-a: 0.31;
+}
+.dark[data-glass-tint="sapphire"] {
+  --glass-tint-a: 0.48;
+}
+.dark[data-glass-tint="lapis"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="amethyst"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="tourmaline"] {
+  --glass-tint-a: 0.46;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
@@ -79,12 +155,26 @@
   --glass-tint-c: 0.047;
   --glass-tint-a: 0.18;
   --harmony-h: 0;
-  --glass-opaque-l: 94; /* moonstone daytime body lightness */
+  /* Gloss chroma, moonstone's own. The global --glass-gloss-tint is 4.25 — sized for the JEWELS, where a
+     0.07–0.1 tint wants a vivid gem highlight. Moonstone declares 0.047 precisely so it "reads as cream,
+     not yellow" (above), and 4.25× asks for 0.1998.
+     --glass-gloss-c-max (tokens.css) is what stops that becoming a clipped primary, and in LIGHT it does
+     the whole job: 0.013 caps both 0.1998 and 0.047 to the same value, so this override changes nothing
+     there. It earns its place in DARK, where the cap is a roomy 0.11 — enough that the multiplier would
+     still put moonstone's highlight at 2.3× its declared chroma, i.e. amber on a stone that is supposed
+     to be pale. 1× holds the specular at the tint's own chroma and lets its LIGHTNESS do the work. */
+  --glass-gloss-tint: 1;
+  /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
+     floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
+     far less than it moved the standard L90 floor. dE 0.0002 — indistinguishable from the old surface. */
+  --glass-opaque-l: 94.5;
   /* NO pinned --glass-opaque-bg: the floor must stay DERIVED from --glass-opaque-l (engine), because the
      lightness slider / stored per-mode L land as an INLINE --glass-opaque-l that shadows this block — a
      literal pin would freeze the paint while AutoForeground keeps banding text against the token (light
-     text on cream). c-scale 1 makes the derived color exactly the original cream in both modes. */
-  --glass-opaque-c-scale: 1;
+     text on cream). Was c-scale 1 — the value that made the derived color exactly the original cream when
+     the sheet still painted over it; 0.92 is that same cream now that the sheet is gone (it desaturated as
+     well as lightened, so both knobs carry part of it). */
+  --glass-opaque-c-scale: 0.92;
 }
 .dark[data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
@@ -97,36 +187,49 @@
      oklch(0.8 0.047 75), which is a sand/tobacco tan, so moonstone night read as brown rather than as
      the pale silvery stone it is named for. Lightness alone does not fix that: h75 is warm, so every
      lightness along it lands somewhere in the tan family. Cutting the CHROMA is what moves it off that
-     family, and the lift to L84 is the "slightly lighter" half. Now derives oklch(0.84 0.021 75) — pale
-     stone with a whisper of warmth. Light mode is untouched (it keeps c-scale 1 at L94, where the same
-     hue reads as cream, not tan). */
+     family. Light mode is untouched (it keeps c-scale 1 at L94, where the same hue reads as cream).
+
+     L52, down from a cream L84.9 — moonstone night is a DARK stone now, and that is forced rather than
+     preferred. This floor feeds two surfaces at once: opaque cards paint it directly, and it composites
+     at --glass-opacity over the dark veil to become the floor sheer glass sits on. Both have to clear
+     the body floor, and for h75 nothing in L55–L84 reaches it in EITHER text polarity — that band is the
+     mid-tone dead zone. A cream L84.9 put the opaque card just above it (Lc 77.1) but dragged the sheer
+     surface to L65, dead centre, where body text topped out at 65.4 Lc and the preset had to be pinned
+     as a known exception. Going lighter cannot fix it: the veil is 30% of the composite, which caps the
+     solidify floor at L75.6 no matter how light this value gets, so the sheer surface can never climb
+     out the top. Only the bottom exit is reachable. L52 is the PALEST value where both surfaces clear:
+     sheer body text lands 80.0 Lc (was 65.4) and the opaque card 82.9 (was 77.1), and it also restores
+     --foreground-strong, which could not reach its 90 target on the cream floor either. Still stone —
+     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4. */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 84;
-  --glass-opaque-c-scale: 0.45;
-  /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
-     dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
-     opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */
-  --foreground-opaque: oklch(0.24 0.04 75);
-  --foreground-soft-opaque: oklch(0.38 0.05 75);
-  --foreground-strong-opaque: oklch(0.16 0.04 75);
-  --foreground-ui-opaque: oklch(0.4 0.06 75);
-  --muted-foreground-opaque: oklch(0.32 0.05 75);
+  /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
+     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
+  --glass-opaque-l: 52;
+  --glass-opaque-c-scale: 0.44;
+  /* Static -opaque tier baselines. These flipped polarity with the floor: on the old cream L84.9 they were
+     dark warm literals, and on an L52 stone they have to be light or SSR's first paint is dark-on-dark.
+     Values are what AutoForeground itself solves for this surface, so the mounted refine is a no-op. */
+  --foreground-opaque: oklch(1 0 75);
+  --foreground-soft-opaque: oklch(0.9 0.05 75);
+  --foreground-strong-opaque: oklch(1 0 75);
+  --foreground-ui-opaque: oklch(0.91 0.05 75);
+  --muted-foreground-opaque: oklch(0.97 0.02 75);
   /* Chakra needs the SAME treatment opaque gets above, and did not have it: chakra was added after this
      block was written, so it kept the global dark body (L28) and rendered oklch(0.28 0.046 75) = #36250c,
      a dark brown — the one surface where moonstone still read as tobacco rather than stone. Matching
-     opaque's pair (L84, chroma x0.45 → 0.021) lands it on #d3c9bc, the same pale stone.
+     opaque's pair — now L51, chroma x0.45 → 0.021, landing on #6d6559, the same stone as the opaque
+     floor one point above it.
      The hue stays 75 deliberately. Cutting CHROMA is what moves this off the tan family; lightness alone
      does not, and a cool hue would contradict the warm cream light mode keeps at L94. */
-  --glass-chakra-l: 84;
+  --glass-chakra-l: 51;
   --glass-chakra-c-max: 0.021;
-  /* Same reasoning as the -opaque baselines: a LIGHT night floor needs dark text, and the global dark
-     -chakra baselines assume an L28 body. */
-  --foreground-chakra: oklch(0.24 0.04 75);
-  --foreground-soft-chakra: oklch(0.38 0.05 75);
-  --foreground-strong-chakra: oklch(0.16 0.04 75);
-  --foreground-ui-chakra: oklch(0.4 0.06 75);
-  --muted-foreground-chakra: oklch(0.32 0.05 75);
+  /* Same reasoning as the -opaque baselines above, and flipped with them: an L51 body needs LIGHT text. */
+  --foreground-chakra: oklch(1 0 75);
+  --foreground-soft-chakra: oklch(0.9 0.05 75);
+  --foreground-strong-chakra: oklch(1 0 75);
+  --foreground-ui-chakra: oklch(0.91 0.05 75);
+  --muted-foreground-chakra: oklch(0.96 0.03 75);
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
@@ -136,24 +239,28 @@
 [data-glass-tint="info"],
 [data-sonner-toast][data-type="info"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }
 [data-glass-tint="success"],
 [data-sonner-toast][data-type="success"] {
   --glass-tint-h: 150;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 87%;
 }
 [data-glass-tint="warning"],
 [data-sonner-toast][data-type="warning"] {
   --glass-tint-h: 85;
-  --glass-tint-c: 0.11;
+  --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 84%;
 }
 [data-glass-tint="destructive"],
 [data-sonner-toast][data-type="error"] {
   --glass-tint-h: 25;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }

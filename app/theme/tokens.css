@@ -8,7 +8,8 @@
        out    — anything ENTERING or EXITING. Starts fast, so the first frame (the one the user is
                 actually watching) already moves.
        in-out — things MOVING on screen that neither enter nor leave: carousels, sliders.
-       drawer — the iOS/Ionic sheet curve, for panels that slide from an edge.
+       drawer — a slower settle for panels that slide in from an edge, so a large surface arrives with
+                weight instead of snapping.
      There is deliberately no `ease-in` token: it delays the first frame, which is the one moment the
      interface most needs to feel responsive. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -126,11 +127,22 @@
      speculars read as grime" failure the shadow bevel comment warns about).
      97 is the light twin: composited it lands +0.2 L over the surface, which is all the headroom that
      exists above L 96.5. The cost is a chroma ceiling, and it is strongly HUE-dependent rather than
-     uniform — the ink asks ~0.298 and gets what the gamut allows at L 97, which ranges from 0.0686 for
-     peridot (h128, renders #e8ffcd, RGB spread 49) down to 0.0140 for sapphire (h255, #eff6ff, spread
-     16). So the Tint multiplier still does real work here, but only up to each hue's own ceiling: the
-     green/cyan half stays visibly tinted while the blue/purple/red half approaches white. */
+     uniform — at L 97 it ranges from 0.0686 for peridot (h128) down to 0.0136 for lapis (h268).
+     CORRECTION, measured in WebKit: an over-ceiling oklch() is NOT gamut-mapped down to that ceiling.
+     It is CLIPPED per channel, which lands FURTHER from the request, not nearer:
+       oklch(97% 0.0686 128) -> 232,255,205   (the ceiling — what the model predicts)
+       oklch(97% 0.2975 128) -> 185,255,0     (what actually shipped: pure chartreuse)
+     So the Tint multiplier did not "do real work up to each hue's own ceiling"; above the ceiling it
+     drove the ink to a fully saturated primary. Every preset was affected — turquoise and aquamarine
+     both clipped to 0,255,255, i.e. the two were indistinguishable — and moonstone reached 255,222,33,
+     the egg-yolk cast that made light mode read yellow. --glass-gloss-c-max below is the fix, sized the
+     way --glass-chakra-c-max is: the TIGHTEST ceiling across every preset hue, so no preset clips and
+     all of them deliver 100% of what they ask for. */
   --glass-gloss-l: 97;
+  /* Gloss chroma cap — the L-97 twin. 0.0136 is lapis (h268), the tightest of the 17 presets; 0.013
+     sits just under it. Light gloss is therefore near-achromatic by necessity, not by choice: sRGB
+     simply holds no more colour that close to white, and asking for more clips rather than tints. */
+  --glass-gloss-c-max: 0.013;
   /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
      0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
      clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
@@ -159,9 +171,36 @@
   --glass-solid-l: 99%;
   /* Opaque tint BODY lightness (plain number → % in the engine). The header L slider drives this; the
      opaque floor color AND AutoForeground's --foreground-opaque banding both read it, so they can't
-     drift. LOWER = deeper tint. */
-  --glass-opaque-l: 90;
-  --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
+     drift. LOWER = deeper tint.
+     L AND the c-scale below together absorb the retired opaque SHEET (see materials.css). --glass-bg was a
+     near-white gradient at ~0.11 alpha, so it did two things to this floor: lightened it AND desaturated
+     it. Compensating with lightness alone reproduced only half of that — it left the floor too saturated,
+     and pushing L further toward white also SHRINKS the sRGB chroma ceiling, which blew the opaque body
+     past check-gamut's 4.6× budget (lapis hit 5.46×). Moving both knobs reproduces both effects and stays
+     inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
+     order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
+     Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
+  /* L88, not 90.9. Near-white is where the sRGB chroma ceiling collapses, so an opaque card at 90.9 had
+     two problems at once: it read as washed-toward-white, and it could not hold enough chroma to carry
+     its own tint (lapis and sapphire were at 97–99% of a ceiling worth only 0.043). Dropping 2.9 L
+     roughly doubles every hue's ceiling while keeping body text at Lc 80.0 — the floor is still firmly
+     on the light side, so text polarity never changes. */
+  --glass-opaque-l: 88;
+  /* 0.85, down from 1.26. The old value only looked large: it was immediately clipped to the shared
+     0.042 cap, so every preset rendered the SAME chroma regardless of its tint. Presets now pin their
+     own --glass-opaque-c-max (their hue's real ceiling at L88), and 0.85 is the multiplier that lets
+     each one reach it. Net effect vs the old flat 0.042: +7% to +88% depending on hue. */
+  --glass-opaque-c-scale: 0.85;
+  /* Opaque floor chroma cap — the near-white sibling of --glass-tint-c-hi / --glass-chakra-c-max /
+     --glass-gloss-c-max, and the last surface that lacked one. Without a cap the floor multiplied raw
+     tint chroma this close to white and clipped for most of the palette.
+     FALLBACK ONLY: the 12 jewels each pin their own above (their hue's real ceiling at L88); this
+     covers the 9 scopes that don't — the 4 frescoes, the 4 status tints and moonstone. Sizing the
+     SHARED cap to the tightest hue is the mistake that came before: one number low enough for amber
+     (h75, ceiling 0.036 at L88) left peridot at 18% of its own much larger ceiling. So this is
+     deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
+     against its real ceiling rather than trusting this number. */
+  --glass-opaque-c-max: 0.055;
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -380,11 +419,33 @@
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
      have both (see :root). */
   --glass-gloss-l: 66;
+  /* Gloss chroma cap — the L-66 twin. Far more headroom this far from white: 0.1094 is aurora (h205),
+     the tightest across all 23 preset scopes — the FRESCOES count here too, which is why this is not
+     turquoise's 0.1106. Dark gloss keeps real colour; it was still clipping before (turquoise
+     0,193,186 and carnelian 255,0,0 both had a pinned channel). */
+  --glass-gloss-c-max: 0.109;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
-  --glass-opaque-l: 32;
-  --glass-opaque-c-scale: 0.9;
+  /* The retired sheet's compensation, dark twin (see :root). Much the larger move of the two modes: a
+     near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
+     two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
+  --glass-opaque-l: 36.4;
+  /* 1.05, up from 0.85. The dark floor was never cap-limited — every preset sat at 31–79% of its own
+     ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. 1.05 is the most
+     the tightest hue (turquoise) can take without clipping; it lifts every preset +24% at Lc 80.0. */
+  --glass-opaque-c-scale: 1.05;
+  /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
+     and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
+     which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
+     Once each preset tuned its own chroma to its own hue, that shared floor-of-the-tightest started
+     costing the hues WITH headroom: at 0.06 amethyst lost 30% of its ask, tourmaline 33%, rose 26% —
+     against own ceilings of 0.189, 0.152 and 0.142. Measured, every preset's dark ask now sits at
+     0.31–0.79× of its own ceiling, so nothing clips with no cap at all. 0.095 clears the largest ask
+     (tourmaline 0.0901) and therefore throttles nobody, while still bounding a future preset that
+     pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
+  /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
+  --glass-opaque-c-max: 0.12;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to

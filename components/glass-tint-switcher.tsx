@@ -111,7 +111,7 @@ const PRESETS = [
     value: "sistine",
     label: "Sistine",
     h: 75,
-    c: 0.1,
+    c: 0.062,
     a: 0.16,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(82% 0.12 75), oklch(80% 0.12 8), oklch(78% 0.12 255), oklch(80% 0.12 158))",
@@ -120,7 +120,7 @@ const PRESETS = [
     value: "muse",
     label: "Muse",
     h: 230,
-    c: 0.06,
+    c: 0.056,
     a: 0.16,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(85% 0.1 222), oklch(78% 0.2 326), oklch(84% 0.12 74))",
@@ -129,7 +129,7 @@ const PRESETS = [
     value: "aurora",
     label: "Aurora",
     h: 205,
-    c: 0.07,
+    c: 0.054,
     a: 0.16,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(76.3% 0.124 235), oklch(74.7% 0.111 205), oklch(71.8% 0.155 155))",
@@ -138,7 +138,7 @@ const PRESETS = [
     value: "gloaming",
     label: "Gloaming",
     h: 32,
-    c: 0.07,
+    c: 0.089,
     a: 0.16,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
@@ -155,31 +155,31 @@ const PRESETS = [
     value: "amber",
     label: "Amber",
     h: 75,
-    c: 0.07,
-    a: 0.16,
+    c: 0.062,
+    a: 0.38,
     swatch: "oklch(85% 0.13 75)",
   },
   {
     value: "rose",
     label: "Rose",
     h: 8,
-    c: 0.07,
-    a: 0.15,
+    c: 0.095,
+    a: 0.17,
     swatch: "oklch(82% 0.12 8)",
   },
   {
     value: "goldstone",
     label: "Goldstone",
     h: 22,
-    c: 0.07,
-    a: 0.15,
+    c: 0.094,
+    a: 0.17,
     swatch: "oklch(68% 0.15 22)",
   },
   {
     value: "amethyst",
     label: "Amethyst",
     h: 300,
-    c: 0.07,
+    c: 0.101,
     a: 0.15,
     swatch: "oklch(78% 0.13 300)",
   },
@@ -187,64 +187,64 @@ const PRESETS = [
     value: "sapphire",
     label: "Sapphire",
     h: 255,
-    c: 0.07,
-    a: 0.15,
+    c: 0.075,
+    a: 0.19,
     swatch: "oklch(78% 0.13 255)",
   },
   {
     value: "lapis",
     label: "Lapis",
     h: 268,
-    c: 0.15,
-    a: 0.15,
+    c: 0.085,
+    a: 0.13,
     swatch: "oklch(56% 0.21 268)",
   },
   {
     value: "aventurine",
     label: "Aventurine",
     h: 158,
-    c: 0.07,
-    a: 0.15,
+    c: 0.076,
+    a: 0.54,
     swatch: "oklch(80% 0.13 158)",
   },
   {
     value: "carnelian",
     label: "Carnelian",
     h: 38,
-    c: 0.07,
-    a: 0.15,
+    c: 0.081,
+    a: 0.19,
     swatch: "oklch(78% 0.14 38)",
   },
   {
     value: "peridot",
     label: "Peridot",
     h: 128,
-    c: 0.07,
-    a: 0.15,
+    c: 0.083,
+    a: 0.54,
     swatch: "oklch(86% 0.16 128)",
   },
   {
     value: "turquoise",
     label: "Turquoise",
     h: 190,
-    c: 0.07,
-    a: 0.15,
+    c: 0.057,
+    a: 0.54,
     swatch: "oklch(82% 0.1 190)",
   },
   {
     value: "aquamarine",
     label: "Aquamarine",
     h: 215,
-    c: 0.07,
-    a: 0.15,
+    c: 0.053,
+    a: 0.5,
     swatch: "oklch(80% 0.11 215)",
   },
   {
     value: "tourmaline",
     label: "Tourmaline",
     h: 342,
-    c: 0.07,
-    a: 0.15,
+    c: 0.106,
+    a: 0.18,
     swatch: "oklch(76% 0.16 342)",
   },
 ] as const;
@@ -270,7 +270,11 @@ const BESPOKE = new Set<string>([
   "moonstone",
 ]);
 
-function applyTint(h: number, c: number, a: number, tint: string | null) {
+/** `a: null` = let CSS own the wash alpha. Named presets now split --glass-tint-a per MODE (a wash near
+ *  that mode's floor tolerates far more alpha than one far from it — see presets.css), and an inline value
+ *  shadows BOTH blocks, which would collapse the split back to one number. So a preset passes null and the
+ *  attribute does the work; only a CUSTOM tint, which has no CSS block to read from, inlines its own. */
+function applyTint(h: number, c: number, a: number | null, tint: string | null) {
   const root = document.documentElement;
   if (tint) {
     root.dataset.glassTint = tint;
@@ -279,12 +283,13 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
   }
   root.style.setProperty("--glass-tint-h", String(h));
   root.style.setProperty("--glass-tint-c", String(c));
-  root.style.setProperty("--glass-tint-a", String(a));
+  if (a === null) root.style.removeProperty("--glass-tint-a");
+  else root.style.setProperty("--glass-tint-a", String(a));
   // Harmonic anchor: the two hue-less themes — selenite (chroma 0) and moonstone — anchor the color wheel at 0°
-  // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Set here
-  // (not via a CSS :root:not rule) because jewels apply as inline vars WITHOUT a data-glass-tint attr, so an
-  // attribute-based selector can't tell them apart from selenite. Keyed on CHROMA — the single colorfulness
-  // master (surfaces + text + harmonics) — not the retired wash alpha, so chroma 0 is the one neutral signal.
+  // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Still set
+  // HERE rather than via CSS even though named presets now carry a data-glass-tint attribute, because a CUSTOM
+  // tint has no attribute and can still be dragged to chroma 0 — keying on CHROMA, the single colorfulness
+  // master (surfaces + text + harmonics), covers the preset and the custom path with one rule.
   if (c === 0 || tint === "moonstone") {
     root.style.setProperty("--harmony-h", "0");
   } else {
@@ -338,7 +343,7 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
 }
 
 /** Per-mode tint-body lightness override ({light?, dark?}), stored as JSON under OPAQUE_L_KEY. Because
- *  --glass-opaque-l is mode-aware in CSS (90 light / 32 dark), L must be tracked separately per mode — a
+ *  --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), L must be tracked separately per mode — a
  *  single global value would wash out the other mode. Old plain-number values parse to a non-object and are
  *  ignored, self-healing to the mode default. */
 function readLmap(): {
@@ -401,21 +406,32 @@ export function GlassTintSwitcher() {
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;
     let na = preset?.a ?? 0;
-    try {
-      const custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? "null");
-      if (custom && typeof custom.h === "number") {
-        nh = custom.h;
-        nc = custom.c;
-        na = custom.a;
+    /* ONLY when custom is the active base. CUSTOM_KEY persists for good once the sliders have been
+       touched, so reading it unconditionally meant one drag to a custom colour poisoned every later
+       reload: the stored preset's own hue/chroma were overwritten by stale custom numbers, and the alpha
+       got inlined on top — which is worse than it sounds, because an inline --glass-tint-a outranks BOTH
+       [data-glass-tint="x"] and .dark[data-glass-tint="x"] at once and collapses the per-mode split to a
+       single value (lapis is 0.13 light / 0.54 dark). The attribute still said the preset's name while
+       nothing about the surface matched it. "A custom tint exists in storage" and "custom is selected"
+       are different questions; only the second one licenses any of this. */
+    if (storedBase === "custom") {
+      try {
+        const custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? "null");
+        if (custom && typeof custom.h === "number") {
+          nh = custom.h;
+          nc = custom.c;
+          na = custom.a;
+        }
+      } catch {
+        // ignore malformed storage
       }
-    } catch {
-      // ignore malformed storage
     }
     setBase(storedBase);
     setH(nh);
     setC(nc);
     setA(na);
-    applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
+    // A custom tint has no CSS block to read from, so it inlines its own alpha; a named preset delegates.
+    applyTint(nh, nc, storedBase === "custom" ? na : null, storedBase === "custom" ? null : storedBase);
     /* No stored preference -> do NOT write inline, so the theme's own default (the --glass-opacity
        fallback in @utility glass) stays the single source of truth. Writing it unconditionally is what
        froze the crystal gloss twin earlier; same shape of bug, same fix. */
@@ -457,7 +473,7 @@ export function GlassTintSwitcher() {
     }
   }, []);
 
-  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (90 light / 32 dark), so a single
+  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), so a single
   // global override would clobber the other mode (dark opaque surfaces would render light). (Re-)apply the
   // current mode's stored L on mount + on every light/dark toggle; with no stored L for a mode, clear the
   // inline override so the CSS default wins. Fires the fg event so AutoForeground re-bands the opaque floor.
@@ -472,7 +488,7 @@ export function GlassTintSwitcher() {
       } else {
         root.style.removeProperty("--glass-opaque-l");
         const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
-        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 32 : 90);
+        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 36.4 : 88);
       }
       window.dispatchEvent(new Event("sistine-fg"));
     };
@@ -508,13 +524,25 @@ export function GlassTintSwitcher() {
     setH(p.h);
     setC(p.c);
     setA(p.a);
-    applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
+    /* Set data-glass-tint for EVERY named preset, not just the bespoke ones. Jewels used to apply as
+       inline h/c/a with no attribute, which was fine while a preset was nothing BUT those three numbers.
+       It stopped being fine once presets carried their own --glass-wash-l (each hue's chroma ceiling
+       peaks at a different lightness): that rule lives behind [data-glass-tint="name"], so without the
+       attribute the whole per-hue wash system was inert on this switcher while a static consumer using
+       <html data-glass-tint="lapis"> got it. The inline vars still win over the block's own h/c/a, and
+       check-theme's [tint-sync] asserts the two agree, so setting the attribute cannot diverge them. */
+    applyTint(p.h, p.c, null, p.value);
     persist(p.value, p.h, p.c, p.a);
-    // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94/80) and, for
+    // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94.5/84.9) and, for
     // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
     // (one reflow on a click is fine) so the tint is accurate and the NEXT drag's snapshot starts from truth.
-    const el = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-opaque-l"));
+    const cs = getComputedStyle(document.documentElement);
+    const el = Number.parseFloat(cs.getPropertyValue("--glass-opaque-l"));
     if (Number.isFinite(el)) setLightness(el);
+    /* Re-seed alpha from what CSS actually resolved for this mode, so a later drag into "custom" starts
+       from the surface you can see rather than from the preset table's light-mode value. */
+    const ea = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
+    if (Number.isFinite(ea)) setA(ea);
     window.dispatchEvent(new Event("sistine-fg"));
   };
 

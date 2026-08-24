@@ -370,7 +370,11 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [canvasSeed, setCanvasSeed] = React.useState("sistine");
   const [patternStyle, cyclePatternStyleState, setPatternStyleState] = useCycle(PATTERN_STYLES, "moonrise");
   const [patternDensity, cyclePatternDensityState] = useCycle(PATTERN_DENSITIES, "medium");
-  const [patternSpeed, cyclePatternSpeedState] = useCycle<number>(PATTERN_SPEEDS, 8);
+  /* Static by DEFAULT (0 = no animation, the last entry in PATTERN_SPEEDS). The pattern layer is a
+     backdrop for reading glass against, and a moving one competes with the content for attention on
+     first load — motion should be something you opt into, not something you have to switch off. The
+     speed control still cycles 2/4/8/12/16/0, so the animation is one click away. */
+  const [patternSpeed, cyclePatternSpeedState] = useCycle<number>(PATTERN_SPEEDS, 0);
   const [baseColor, setBaseColor] = React.useState<string | null>(null);
   const [patternDisc, cyclePatternDiscState] = useCycle(PATTERN_DISCS, "right");
   const [patternSand, cyclePatternSandState] = useCycle(PATTERN_SANDS, "breeze");

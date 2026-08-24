@@ -37,8 +37,14 @@
      went grey in Safari while staying tinted in Chrome"); this is its CSS-side counterpart.
      Capping the BASE (rather than lowering any preset) keeps chroma where it has headroom — a jewel's
      depth lives at mid lightness, in --primary and --glass-tint-wash, which are untouched by this.
-     Guarded by scripts/check-gamut.mjs. */
-  --glass-tint-c-hi: min(var(--glass-tint-c), 0.025);
+     Guarded by scripts/check-gamut.mjs.
+     0.025 was still too generous, because the sheet MULTIPLIES this cap: its stops are
+     calc(--glass-tint-c-hi * 0.3…1.3), so the top stop asked 0.0325 against an L-95 ceiling of 0.0229
+     at the tightest hue — the cap itself clipped. 0.017 is that ceiling divided by the 1.3 multiplier,
+     so the sheet now lands inside the gamut at every preset hue instead of at whatever the browser
+     chops it to. Cap-then-multiply is the order that matters here; see check-gamut's SCALE/CAP/BOTH
+     shapes, which model each form separately for exactly this reason. */
+  --glass-tint-c-hi: min(var(--glass-tint-c), 0.017);
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
@@ -107,9 +113,16 @@
      engine.css imports AFTER tokens.css, so a duplicate at equal :root specificity silently wins and
      pure-CSS consumers get a stale gloss. */
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
-  --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
+  /* hue: chroma of the iridescent stops, at the flavor's own L 74. Was 0.16, chosen believing an
+     over-ceiling request is gamut-MAPPED down to the ceiling ("holds 81% of that chroma"). WebKit clips
+     per channel instead (see --glass-gloss-c-max in tokens.css), so 0.16 pinned a channel on the
+     tightest hues rather than delivering 81% of itself. 0.12 sits just under 0.1226 — aurora (h205) at
+     L 74, the tightest across all 23 preset scopes (frescoes included) — so every hue in the sweep now
+     renders what it asks for. */
+  --glass-gloss-c: 0.12;
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
   --glass-gloss-top: linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%);
   --glass-gloss-streak: linear-gradient(
     calc(135deg * var(--glass-gloss-hue-dir, 1)),
@@ -168,7 +181,17 @@
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style.
      --glass-opaque-l is the body-lightness knob (:root/.dark; the header L slider drives it; the floor
      AND AutoForeground's --foreground-opaque banding both read it, so they can't drift). */
-  --glass-opaque-bg: oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)) var(--glass-tint-h));
+  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sat at L 90.9 in light (it is
+     L88 now, for the same reason) — near-white territory where the sRGB ceiling collapses — yet it was
+     the one near-white surface
+     multiplying RAW --glass-tint-c (×1.26) with no cap, while the sheet had --glass-tint-c-hi, chakra
+     had --glass-chakra-c-max and the gloss had --glass-gloss-c-max. That made it the binding surface
+     for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping
+     it is what let the tints below be normalised to their hue's real capacity rather than to this
+     floor's. Multiply-THEN-cap, matching --glass-gloss-ink. */
+  --glass-opaque-bg: oklch(
+    calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
+  );
   /* Sheer glass sheet — hue/chroma from the tint vars, chroma scaled per stop so the highlights stay
      glassy and the body carries the color. Stop alphas ride the mode base --glass-sheet-a (+ fixed
      offsets; the top stop's offset is its own knob --glass-sheet-a1 — dark tapers it to 0.03);
@@ -269,8 +292,7 @@
      a fresco slot and the tint wash. Nothing here is inset, so nothing here has a corner of its own —
      the element's border-radius clips the whole stack, which is the point (see the facet bands below). */
   --glass-chakra-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   /* THE CUT — four sides, two steps, as INSET SHADOWS rather than inset background layers.
      A background layer is always a RECTANGLE: background-size shrinks it but gives it no radius of its
      own, so an inset gradient paints square corners over a rounded surface — a card with hard-cornered
@@ -311,6 +333,5 @@
      free for the veil floor. */
   --frosted-stack-bg: var(--glass-frosted-bg), var(--glass-wash-layer);
   --crystal-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak),
-    var(--glass-crystal-fresco, linear-gradient(transparent, transparent)), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
 }
