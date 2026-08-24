@@ -126,11 +126,22 @@
      speculars read as grime" failure the shadow bevel comment warns about).
      97 is the light twin: composited it lands +0.2 L over the surface, which is all the headroom that
      exists above L 96.5. The cost is a chroma ceiling, and it is strongly HUE-dependent rather than
-     uniform — the ink asks ~0.298 and gets what the gamut allows at L 97, which ranges from 0.0686 for
-     peridot (h128, renders #e8ffcd, RGB spread 49) down to 0.0140 for sapphire (h255, #eff6ff, spread
-     16). So the Tint multiplier still does real work here, but only up to each hue's own ceiling: the
-     green/cyan half stays visibly tinted while the blue/purple/red half approaches white. */
+     uniform — at L 97 it ranges from 0.0686 for peridot (h128) down to 0.0136 for lapis (h268).
+     CORRECTION, measured in WebKit: an over-ceiling oklch() is NOT gamut-mapped down to that ceiling.
+     It is CLIPPED per channel, which lands FURTHER from the request, not nearer:
+       oklch(97% 0.0686 128) -> 232,255,205   (the ceiling — what the model predicts)
+       oklch(97% 0.2975 128) -> 185,255,0     (what actually shipped: pure chartreuse)
+     So the Tint multiplier did not "do real work up to each hue's own ceiling"; above the ceiling it
+     drove the ink to a fully saturated primary. Every preset was affected — turquoise and aquamarine
+     both clipped to 0,255,255, i.e. the two were indistinguishable — and moonstone reached 255,222,33,
+     the egg-yolk cast that made light mode read yellow. --glass-gloss-c-max below is the fix, sized the
+     way --glass-chakra-c-max is: the TIGHTEST ceiling across every preset hue, so no preset clips and
+     all of them deliver 100% of what they ask for. */
   --glass-gloss-l: 97;
+  /* Gloss chroma cap — the L-97 twin. 0.0136 is lapis (h268), the tightest of the 17 presets; 0.013
+     sits just under it. Light gloss is therefore near-achromatic by necessity, not by choice: sRGB
+     simply holds no more colour that close to white, and asking for more clips rather than tints. */
+  --glass-gloss-c-max: 0.013;
   /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
      0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
      clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
@@ -388,6 +399,11 @@
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
      have both (see :root). */
   --glass-gloss-l: 66;
+  /* Gloss chroma cap — the L-66 twin. Far more headroom this far from white: 0.1094 is aurora (h205),
+     the tightest across all 23 preset scopes — the FRESCOES count here too, which is why this is not
+     turquoise's 0.1106. Dark gloss keeps real colour; it was still clipping before (turquoise
+     0,193,186 and carnelian 255,0,0 both had a pinned channel). */
+  --glass-gloss-c-max: 0.109;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;

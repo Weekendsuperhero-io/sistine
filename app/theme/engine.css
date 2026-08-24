@@ -107,9 +107,16 @@
      engine.css imports AFTER tokens.css, so a duplicate at equal :root specificity silently wins and
      pure-CSS consumers get a stale gloss. */
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
-  --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
+  /* hue: chroma of the iridescent stops, at the flavor's own L 74. Was 0.16, chosen believing an
+     over-ceiling request is gamut-MAPPED down to the ceiling ("holds 81% of that chroma"). WebKit clips
+     per channel instead (see --glass-gloss-c-max in tokens.css), so 0.16 pinned a channel on the
+     tightest hues rather than delivering 81% of itself. 0.12 sits just under 0.1226 — aurora (h205) at
+     L 74, the tightest across all 23 preset scopes (frescoes included) — so every hue in the sweep now
+     renders what it asks for. */
+  --glass-gloss-c: 0.12;
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
   --glass-gloss-top: linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%);
   --glass-gloss-streak: linear-gradient(
     calc(135deg * var(--glass-gloss-hue-dir, 1)),

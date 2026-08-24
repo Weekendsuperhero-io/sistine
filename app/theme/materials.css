@@ -163,7 +163,8 @@
 }
 [data-gloss="tonal"] {
   /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
 }
 [data-gloss="hue"] {
   /* Hue OWNS its lightness rather than sharing the tonal twin. The two flavors want opposite things
@@ -174,14 +175,19 @@
      74 is mode-invariant on purpose: it holds 81% of that chroma, and it lands on the right side of
      both surfaces anyway (+18.4 L over the dark floor, −9.0 over the light one — for an iridescent
      sweep, being SEEN matters more than which direction it moves). The demo's flavor switcher already
-     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too. */
+     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too.
+     "Holds 81% of that chroma" assumed the browser gamut-MAPS an over-ceiling request down to the
+     ceiling. Measured in WebKit it CLIPS instead (see --glass-gloss-c-max in tokens.css), so 0.16 did
+     not deliver 81% of itself — it drove the tightest hues to a pinned channel. 0.12 sits just under
+     0.1240, the L-74 ceiling for turquoise (h190) and the tightest of the presets, so the sweep now
+     renders every hue it asks for. */
   --glass-gloss-l: 74;
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
      arc passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. */
   --glass-gloss-top: linear-gradient(
     to bottom in oklch,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.4
     ),
@@ -190,14 +196,14 @@
   --glass-gloss-streak: linear-gradient(
     115deg in oklch,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
       0%,
-    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16) var(--glass-tint-h) / 0.12) 45%,
+    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12) var(--glass-tint-h) / 0.12) 45%,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
@@ -207,7 +213,7 @@
   --glass-gloss-glow: radial-gradient(
     circle at 50% 120%,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.25
     ),

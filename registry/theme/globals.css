@@ -204,11 +204,22 @@
      speculars read as grime" failure the shadow bevel comment warns about).
      97 is the light twin: composited it lands +0.2 L over the surface, which is all the headroom that
      exists above L 96.5. The cost is a chroma ceiling, and it is strongly HUE-dependent rather than
-     uniform — the ink asks ~0.298 and gets what the gamut allows at L 97, which ranges from 0.0686 for
-     peridot (h128, renders #e8ffcd, RGB spread 49) down to 0.0140 for sapphire (h255, #eff6ff, spread
-     16). So the Tint multiplier still does real work here, but only up to each hue's own ceiling: the
-     green/cyan half stays visibly tinted while the blue/purple/red half approaches white. */
+     uniform — at L 97 it ranges from 0.0686 for peridot (h128) down to 0.0136 for lapis (h268).
+     CORRECTION, measured in WebKit: an over-ceiling oklch() is NOT gamut-mapped down to that ceiling.
+     It is CLIPPED per channel, which lands FURTHER from the request, not nearer:
+       oklch(97% 0.0686 128) -> 232,255,205   (the ceiling — what the model predicts)
+       oklch(97% 0.2975 128) -> 185,255,0     (what actually shipped: pure chartreuse)
+     So the Tint multiplier did not "do real work up to each hue's own ceiling"; above the ceiling it
+     drove the ink to a fully saturated primary. Every preset was affected — turquoise and aquamarine
+     both clipped to 0,255,255, i.e. the two were indistinguishable — and moonstone reached 255,222,33,
+     the egg-yolk cast that made light mode read yellow. --glass-gloss-c-max below is the fix, sized the
+     way --glass-chakra-c-max is: the TIGHTEST ceiling across every preset hue, so no preset clips and
+     all of them deliver 100% of what they ask for. */
   --glass-gloss-l: 97;
+  /* Gloss chroma cap — the L-97 twin. 0.0136 is lapis (h268), the tightest of the 17 presets; 0.013
+     sits just under it. Light gloss is therefore near-achromatic by necessity, not by choice: sRGB
+     simply holds no more colour that close to white, and asking for more clips rather than tints. */
+  --glass-gloss-c-max: 0.013;
   /* Gloss chroma multiplier over the tint ("Tint"). Calibrated for the DEFAULT tint (0.018 × 4.25 =
      0.077, comfortably in gamut); a preset multiplies up from a much higher base, so the product is
      clamped to 0.3 where --glass-gloss-ink composes it — sRGB holds ~0.32 chroma at its very best hue
@@ -466,6 +477,11 @@
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
      have both (see :root). */
   --glass-gloss-l: 66;
+  /* Gloss chroma cap — the L-66 twin. Far more headroom this far from white: 0.1094 is aurora (h205),
+     the tightest across all 23 preset scopes — the FRESCOES count here too, which is why this is not
+     turquoise's 0.1106. Dark gloss keeps real colour; it was still clipping before (turquoise
+     0,193,186 and carnelian 255,0,0 both had a pinned channel). */
+  --glass-gloss-c-max: 0.109;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
@@ -761,9 +777,16 @@
      engine.css imports AFTER tokens.css, so a duplicate at equal :root specificity silently wins and
      pure-CSS consumers get a stale gloss. */
   --glass-gloss-hue-span: 40; /* hue: degrees the iridescent sweep shifts up & down from the tint hue */
-  --glass-gloss-c: 0.16; /* hue: chroma of the iridescent stops (gamut-limited near white → pushes to the edge; drop Light to let it read) */
+  /* hue: chroma of the iridescent stops, at the flavor's own L 74. Was 0.16, chosen believing an
+     over-ceiling request is gamut-MAPPED down to the ceiling ("holds 81% of that chroma"). WebKit clips
+     per channel instead (see --glass-gloss-c-max in tokens.css), so 0.16 pinned a channel on the
+     tightest hues rather than delivering 81% of itself. 0.12 sits just under 0.1226 — aurora (h205) at
+     L 74, the tightest across all 23 preset scopes (frescoes included) — so every hue in the sweep now
+     renders what it asks for. */
+  --glass-gloss-c: 0.12;
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
   --glass-gloss-top: linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%);
   --glass-gloss-streak: linear-gradient(
     calc(135deg * var(--glass-gloss-hue-dir, 1)),
@@ -1318,7 +1341,8 @@
 }
 [data-gloss="tonal"] {
   /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), 0.3) var(--glass-tint-h);
+  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
+    var(--glass-tint-h);
 }
 [data-gloss="hue"] {
   /* Hue OWNS its lightness rather than sharing the tonal twin. The two flavors want opposite things
@@ -1329,14 +1353,19 @@
      74 is mode-invariant on purpose: it holds 81% of that chroma, and it lands on the right side of
      both surfaces anyway (+18.4 L over the dark floor, −9.0 over the light one — for an iridescent
      sweep, being SEEN matters more than which direction it moves). The demo's flavor switcher already
-     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too. */
+     seeded 74 at runtime for this reason; this makes a no-JS consumer get it too.
+     "Holds 81% of that chroma" assumed the browser gamut-MAPS an over-ceiling request down to the
+     ceiling. Measured in WebKit it CLIPS instead (see --glass-gloss-c-max in tokens.css), so 0.16 did
+     not deliver 81% of itself — it drove the tightest hues to a pinned channel. 0.12 sits just under
+     0.1240, the L-74 ceiling for turquoise (h190) and the tightest of the presets, so the sweep now
+     renders every hue it asks for. */
   --glass-gloss-l: 74;
   /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
      arc passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. */
   --glass-gloss-top: linear-gradient(
     to bottom in oklch,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.4
     ),
@@ -1345,14 +1374,14 @@
   --glass-gloss-streak: linear-gradient(
     115deg in oklch,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
       0%,
-    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16) var(--glass-tint-h) / 0.12) 45%,
+    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12) var(--glass-tint-h) / 0.12) 45%,
     oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
           calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
         0.32
       )
@@ -1362,7 +1391,7 @@
   --glass-gloss-glow: radial-gradient(
     circle at 50% 120%,
     oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.16)
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       0.25
     ),
@@ -1579,12 +1608,13 @@
   --glass-tint-a: 0.18;
   --harmony-h: 0;
   /* Gloss chroma, moonstone's own. The global --glass-gloss-tint is 4.25 — sized for the JEWELS, where a
-     0.07–0.1 tint wants a vivid gem highlight and the min(…, 0.3) cap does the limiting. Moonstone
-     declares 0.047 precisely so it "reads as cream, not yellow" (above), and 4.25× turns that into
-     oklch(66% 0.1998 75) — a saturated amber. It only SHOWS in dark: the light gloss sits at L97 where
-     the sRGB chroma ceiling is ~0.02, so the same request gamut-maps to near-white, which is why the
-     yellowing looked like a dark-mode-only bug. 1× keeps the highlight at the tint's own chroma, so the
-     gloss reads as a specular on pale stone and its LIGHTNESS does the work, not its colour. */
+     0.07–0.1 tint wants a vivid gem highlight. Moonstone declares 0.047 precisely so it "reads as cream,
+     not yellow" (above), and 4.25× asks for 0.1998.
+     --glass-gloss-c-max (tokens.css) is what stops that becoming a clipped primary, and in LIGHT it does
+     the whole job: 0.013 caps both 0.1998 and 0.047 to the same value, so this override changes nothing
+     there. It earns its place in DARK, where the cap is a roomy 0.11 — enough that the multiplier would
+     still put moonstone's highlight at 2.3× its declared chroma, i.e. amber on a stone that is supposed
+     to be pale. 1× holds the specular at the tint's own chroma and lets its LIGHTNESS do the work. */
   --glass-gloss-tint: 1;
   /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
      floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
