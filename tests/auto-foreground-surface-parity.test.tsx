@@ -43,7 +43,18 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   const crysA = dark ? 0.1 : 0.3;
   const glossL = dark ? 66 : 97;
   const GLOSS_TOP_A = 0.2;
-  const floorL = (dark ? 20 : 95) * (1 - crysA) + 100 * crysA;
+  // The solidify floor (--glass-opacity, 0.7 fallback) paints over every SHEER material's background
+  // colour and under its image stack, so each sheer model composites toward it. Chroma is 0 throughout
+  // here because jsdom resolves --glass-tint-c to its 0 fallback.
+  const opacity = 0.7;
+  const opaqueL = dark ? 36.4 : 90.9;
+  const solidified = (l: number) => l * (1 - opacity) + opaqueL * opacity;
+  const solidify = {
+    l: opaqueL,
+    c: 0,
+    a: opacity,
+  };
+  const floorL = solidified((dark ? 20 : 95) * (1 - crysA) + 100 * crysA);
   return {
     "": glassSolidSurface(
       dark,
@@ -55,9 +66,10 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       0.65,
       washL,
       2.5,
+      solidify,
     ),
     "-opaque": {
-      l: dark ? 36.4 : 90.9,
+      l: opaqueL,
       c: 0,
       h,
     },
@@ -67,7 +79,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       h,
     },
     "-chakra": {
-      l: dark ? 28 : 88,
+      l: solidified(dark ? 28 : 88),
       c: 0,
       h,
     },

@@ -243,7 +243,23 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const moonstone = root.dataset.glassTint === "moonstone";
       const washL = num("--glass-wash-l", moonstone && dark ? 64 : dark ? 58 : 72);
       const washCMult = num("--glass-wash-c-mult", moonstone && dark ? 2 : 2.5);
-      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA), 0), 1);
+      // THE SOLIDIFY FLOOR — `glass` paints --glass-solidify (the --glass-opacity dial, default 0.7) as the
+      // bottom background-image layer of EVERY sheer material, so it is 70% of what text actually sits on.
+      // The models below used to skip it entirely and band against the sheer floor alone. On most themes the
+      // opaque floor sits the same side of mid-grey as the page, so that cost a few Lc (utilities.css measured
+      // body 91.5 → 86.5). Moonstone NIGHT is the case that breaks it: a cream L84.9 opaque floor under an L20
+      // page, i.e. the two OPPOSE, so the crystal model landed 27.5 L too dark, called for near-white text, and
+      // reported Lc 87.1 for a surface that actually delivers 52.2 — below the body floor of 75, silently.
+      // Reading it here fixes every sheer surface at once, and the c-scale fallbacks mirror tokens.css.
+      const glassOpacity = Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1);
+      const solidifyFloor = {
+        l: num("--glass-opaque-l", dark ? 36.4 : 90.9),
+        c: tintC * num("--glass-opaque-c-scale", dark ? 0.85 : 1.26),
+        a: glassOpacity,
+      };
+      /** Composite the solidify floor over a sheer floor lightness — the layer order `glass` paints. */
+      const solidified = (l: number) => l * (1 - glassOpacity) + solidifyFloor.l * glassOpacity;
+      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
       const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
@@ -386,6 +402,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           solidA,
           washL,
           washCMult,
+          solidifyFloor,
         ),
         "",
         false,
@@ -420,14 +437,18 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const glossL = num("--glass-gloss-l", dark ? 66 : 97);
         const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
         const baseL = dark ? 20 : 95;
-        const floorL = baseL * (1 - crysA) + 100 * crysA;
+        // Layer order: --glass-crystal-bg (background-COLOR) → solidify → wash → gloss. The solidify step
+        // was missing, which is what put moonstone-night crystal 27.5 L below what it paints.
+        const floorL = solidified(baseL * (1 - crysA) + 100 * crysA);
         const washedL = floorL * (1 - tintA) + washL * tintA;
         const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;
-        const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A), 0), 1);
+        const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A) * (1 - glassOpacity), 0), 1);
         applyTiers(
           {
             l: crystalL,
-            c: num("--glass-tint-c", 0) * 0.6,
+            // The crystal floor's own chroma plus the solidify floor's, each surviving what the layers
+            // above let through — the sheer 0.6× term alone assumed nothing solid sat underneath.
+            c: (num("--glass-tint-c", 0) * 0.6 * (1 - glassOpacity) + solidifyFloor.c * glassOpacity) * (1 - tintA) + tintC * washCMult * tintA,
             h: tintH,
           },
           "-crystal",
@@ -443,11 +464,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // page, and the theme ramp only spans the readable half so it cannot produce dark text.
       {
         const bodyA = num("--glass-chakra-a", dark ? 0.58 : 0.62);
-        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA), 0), 1);
+        // The body is the background-COLOR, so solidify paints over it here too. Chakra happened to land
+        // right on moonstone night only because that preset pins --glass-chakra-l light (84) to match its
+        // cream opaque floor — the model was not actually tracking the floor, it just agreed with it.
+        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
         applyTiers(
           {
-            l: num("--glass-chakra-l", dark ? 28 : 88),
-            c: Math.min(num("--glass-tint-c", 0), num("--glass-chakra-c-max", dark ? 0.046 : 0.055)),
+            l: solidified(num("--glass-chakra-l", dark ? 28 : 88)),
+            c:
+              Math.min(num("--glass-tint-c", 0), num("--glass-chakra-c-max", dark ? 0.046 : 0.055)) * (1 - glassOpacity) +
+              solidifyFloor.c * glassOpacity,
             h: tintH,
           },
           "-chakra",
@@ -483,6 +509,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     const STYLE_INPUTS = [
       /--glass-solid-a:\s*([^;]+)/,
       /--glass-gloss-l:\s*([^;]+)/,
+      // --glass-opacity is a surface-model input now that the solidify floor is banded against, and the
+      // component-opacity slider writes it inline with no FG_EVENT — without this the tiers go stale the
+      // moment a consumer dials solidity, which is exactly when the floor moves most.
+      /--glass-opacity:\s*([^;]+)/,
     ];
     const observer = new MutationObserver((muts) => {
       for (const m of muts) {
