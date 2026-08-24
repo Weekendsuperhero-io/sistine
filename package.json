@@ -10,7 +10,7 @@
     "start": "npx serve@latest out",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && bun run test:gamut && bun run test:dom && bun run test:apca",
+    "test": "node scripts/check-theme.mjs && node scripts/check-patterns.mjs && bun run test:gamut && bun run test:contrast && bun run test:dom && bun run test:apca",
     "test:apca": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/apca-oracle.mjs",
     "test:gamut": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-gamut.mjs",
     "test:dom": "vitest run",
@@ -19,7 +19,8 @@
     "registry:smoke": "node scripts/smoke-registry.mjs",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static",
-    "storybook:export": "node scripts/export-storybook.js"
+    "storybook:export": "node scripts/export-storybook.js",
+    "test:contrast": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-contrast.mjs"
   },
   "browserslist": [
     "Safari >= 17.5",

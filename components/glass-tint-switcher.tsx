@@ -156,7 +156,7 @@ const PRESETS = [
     label: "Amber",
     h: 75,
     c: 0.062,
-    a: 0.44,
+    a: 0.38,
     swatch: "oklch(85% 0.13 75)",
   },
   {
@@ -164,7 +164,7 @@ const PRESETS = [
     label: "Rose",
     h: 8,
     c: 0.095,
-    a: 0.22,
+    a: 0.17,
     swatch: "oklch(82% 0.12 8)",
   },
   {
@@ -172,7 +172,7 @@ const PRESETS = [
     label: "Goldstone",
     h: 22,
     c: 0.094,
-    a: 0.21,
+    a: 0.17,
     swatch: "oklch(68% 0.15 22)",
   },
   {
@@ -180,7 +180,7 @@ const PRESETS = [
     label: "Amethyst",
     h: 300,
     c: 0.101,
-    a: 0.19,
+    a: 0.15,
     swatch: "oklch(78% 0.13 300)",
   },
   {
@@ -188,7 +188,7 @@ const PRESETS = [
     label: "Sapphire",
     h: 255,
     c: 0.075,
-    a: 0.23,
+    a: 0.19,
     swatch: "oklch(78% 0.13 255)",
   },
   {
@@ -196,7 +196,7 @@ const PRESETS = [
     label: "Lapis",
     h: 268,
     c: 0.085,
-    a: 0.17,
+    a: 0.13,
     swatch: "oklch(56% 0.21 268)",
   },
   {
@@ -212,7 +212,7 @@ const PRESETS = [
     label: "Carnelian",
     h: 38,
     c: 0.081,
-    a: 0.24,
+    a: 0.19,
     swatch: "oklch(78% 0.14 38)",
   },
   {
@@ -236,7 +236,7 @@ const PRESETS = [
     label: "Aquamarine",
     h: 215,
     c: 0.053,
-    a: 0.54,
+    a: 0.5,
     swatch: "oklch(80% 0.11 215)",
   },
   {
@@ -244,7 +244,7 @@ const PRESETS = [
     label: "Tourmaline",
     h: 342,
     c: 0.106,
-    a: 0.22,
+    a: 0.18,
     swatch: "oklch(76% 0.16 342)",
   },
 ] as const;

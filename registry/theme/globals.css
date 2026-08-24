@@ -1579,7 +1579,7 @@
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
-  --glass-tint-a: 0.23;
+  --glass-tint-a: 0.19;
   --glass-wash-l: 63%;
   --glass-opaque-c-max: 0.056;
 }
@@ -1593,28 +1593,28 @@
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
-  --glass-tint-a: 0.19;
+  --glass-tint-a: 0.15;
   --glass-wash-l: 55%;
   --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
-  --glass-tint-a: 0.22;
+  --glass-tint-a: 0.17;
   --glass-wash-l: 64%;
   --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
   --glass-tint-c: 0.062;
-  --glass-tint-a: 0.44;
+  --glass-tint-a: 0.38;
   --glass-wash-l: 81%;
   --glass-opaque-c-max: 0.096;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
   --glass-tint-c: 0.081;
-  --glass-tint-a: 0.24;
+  --glass-tint-a: 0.19;
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.062;
 }
@@ -1635,14 +1635,14 @@
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
   --glass-tint-c: 0.053;
-  --glass-tint-a: 0.54;
+  --glass-tint-a: 0.5;
   --glass-wash-l: 82%;
   --glass-opaque-c-max: 0.091;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
-  --glass-tint-a: 0.22;
+  --glass-tint-a: 0.18;
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.079;
 }
@@ -1660,14 +1660,14 @@
      palette now follows — put the wash where the hue can actually hold chroma, then ask for it. */
   --glass-tint-h: 268;
   --glass-tint-c: 0.085;
-  --glass-tint-a: 0.17;
+  --glass-tint-a: 0.13;
   --glass-wash-l: 46%;
   --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
-  --glass-tint-a: 0.21;
+  --glass-tint-a: 0.17;
   --glass-wash-l: 63%;
   --glass-opaque-c-max: 0.06;
 }
@@ -1685,31 +1685,31 @@
    The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
    values that render — nothing shadows them. */
 .dark[data-glass-tint="rose"] {
-  --glass-tint-a: 0.51;
+  --glass-tint-a: 0.49;
 }
 .dark[data-glass-tint="goldstone"] {
-  --glass-tint-a: 0.52;
+  --glass-tint-a: 0.5;
 }
 .dark[data-glass-tint="carnelian"] {
-  --glass-tint-a: 0.47;
+  --glass-tint-a: 0.45;
 }
 .dark[data-glass-tint="amber"] {
-  --glass-tint-a: 0.35;
+  --glass-tint-a: 0.34;
 }
 .dark[data-glass-tint="peridot"] {
-  --glass-tint-a: 0.29;
+  --glass-tint-a: 0.28;
 }
 .dark[data-glass-tint="aventurine"] {
-  --glass-tint-a: 0.3;
-}
-.dark[data-glass-tint="turquoise"] {
   --glass-tint-a: 0.29;
 }
+.dark[data-glass-tint="turquoise"] {
+  --glass-tint-a: 0.28;
+}
 .dark[data-glass-tint="aquamarine"] {
-  --glass-tint-a: 0.33;
+  --glass-tint-a: 0.31;
 }
 .dark[data-glass-tint="sapphire"] {
-  --glass-tint-a: 0.5;
+  --glass-tint-a: 0.48;
 }
 .dark[data-glass-tint="lapis"] {
   --glass-tint-a: 0.54;
@@ -1718,7 +1718,7 @@
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="tourmaline"] {
-  --glass-tint-a: 0.48;
+  --glass-tint-a: 0.46;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
