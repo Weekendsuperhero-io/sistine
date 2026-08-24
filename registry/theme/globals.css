@@ -495,9 +495,16 @@
      two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
   --glass-opaque-l: 36.4;
   --glass-opaque-c-scale: 0.85;
-  /* Opaque floor chroma cap, dark twin (see :root). Far more headroom this far from white: 0.0604 is
-     aurora (h205), the tightest across the preset scopes. */
-  --glass-opaque-c-max: 0.06;
+  /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
+     and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
+     which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
+     Once each preset tuned its own chroma to its own hue, that shared floor-of-the-tightest started
+     costing the hues WITH headroom: at 0.06 amethyst lost 30% of its ask, tourmaline 33%, rose 26% —
+     against own ceilings of 0.189, 0.152 and 0.142. Measured, every preset's dark ask now sits at
+     0.31–0.79× of its own ceiling, so nothing clips with no cap at all. 0.095 clears the largest ask
+     (tourmaline 0.0901) and therefore throttles nobody, while still bounding a future preset that
+     pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
+  --glass-opaque-c-max: 0.095;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
@@ -1718,26 +1725,30 @@
 [data-glass-tint="info"],
 [data-sonner-toast][data-type="info"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }
 [data-glass-tint="success"],
 [data-sonner-toast][data-type="success"] {
   --glass-tint-h: 150;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 87%;
 }
 [data-glass-tint="warning"],
 [data-sonner-toast][data-type="warning"] {
   --glass-tint-h: 85;
-  --glass-tint-c: 0.11;
+  --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 84%;
 }
 [data-glass-tint="destructive"],
 [data-sonner-toast][data-type="error"] {
   --glass-tint-h: 25;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }
 /* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
@@ -1762,8 +1773,9 @@
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
   --glass-fg-h: 290; /* text/accent anchor: violet, matching night so the two modes share one identity */
-  --glass-tint-c: 0.06;
+  --glass-tint-c: 0.056;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 76%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(85% 0.1 222 / 0.32) 0%,
@@ -1814,8 +1826,9 @@
 [data-glass-tint="sistine"] {
   --glass-tint-h: 75; /* surface: mirrors the Sistine switcher preset */
   --glass-fg-h: 18; /* text/accent anchor: crimson (hand-selected) — hue 18 reads as deep red, not the rose at h8 */
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.062;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 81%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(90% 0.11 75 / 0.34) 0%,
@@ -1884,8 +1897,9 @@
    along. */
 [data-glass-tint="aurora"] {
   --glass-tint-h: 205; /* the sweep's midpoint, was 178 */
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.054;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 86%;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(76.3% 0.124 235 / 0.4) 0%,
@@ -1915,8 +1929,9 @@
    glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
 [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.089;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 64%;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
   --glass-crystal-fresco: var(--glass-bg);

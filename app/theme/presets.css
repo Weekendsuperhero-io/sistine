@@ -167,24 +167,28 @@
 [data-glass-tint="info"],
 [data-sonner-toast][data-type="info"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }
 [data-glass-tint="success"],
 [data-sonner-toast][data-type="success"] {
   --glass-tint-h: 150;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 87%;
 }
 [data-glass-tint="warning"],
 [data-sonner-toast][data-type="warning"] {
   --glass-tint-h: 85;
-  --glass-tint-c: 0.11;
+  --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 84%;
 }
 [data-glass-tint="destructive"],
 [data-sonner-toast][data-type="error"] {
   --glass-tint-h: 25;
-  --glass-tint-c: 0.1;
+  --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 63%;
 }

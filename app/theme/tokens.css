@@ -417,9 +417,16 @@
      two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
   --glass-opaque-l: 36.4;
   --glass-opaque-c-scale: 0.85;
-  /* Opaque floor chroma cap, dark twin (see :root). Far more headroom this far from white: 0.0604 is
-     aurora (h205), the tightest across the preset scopes. */
-  --glass-opaque-c-max: 0.06;
+  /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
+     and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
+     which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
+     Once each preset tuned its own chroma to its own hue, that shared floor-of-the-tightest started
+     costing the hues WITH headroom: at 0.06 amethyst lost 30% of its ask, tourmaline 33%, rose 26% —
+     against own ceilings of 0.189, 0.152 and 0.142. Measured, every preset's dark ask now sits at
+     0.31–0.79× of its own ceiling, so nothing clips with no cap at all. 0.095 clears the largest ask
+     (tourmaline 0.0901) and therefore throttles nobody, while still bounding a future preset that
+     pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
+  --glass-opaque-c-max: 0.095;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
