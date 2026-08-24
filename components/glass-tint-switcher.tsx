@@ -343,7 +343,7 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
 }
 
 /** Per-mode tint-body lightness override ({light?, dark?}), stored as JSON under OPAQUE_L_KEY. Because
- *  --glass-opaque-l is mode-aware in CSS (90.9 light / 36.4 dark), L must be tracked separately per mode — a
+ *  --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), L must be tracked separately per mode — a
  *  single global value would wash out the other mode. Old plain-number values parse to a non-object and are
  *  ignored, self-healing to the mode default. */
 function readLmap(): {
@@ -464,7 +464,7 @@ export function GlassTintSwitcher() {
     }
   }, []);
 
-  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (90.9 light / 36.4 dark), so a single
+  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), so a single
   // global override would clobber the other mode (dark opaque surfaces would render light). (Re-)apply the
   // current mode's stored L on mount + on every light/dark toggle; with no stored L for a mode, clear the
   // inline override so the CSS default wins. Fires the fg event so AutoForeground re-bands the opaque floor.
@@ -479,7 +479,7 @@ export function GlassTintSwitcher() {
       } else {
         root.style.removeProperty("--glass-opaque-l");
         const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
-        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 36.4 : 90.9);
+        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 36.4 : 88);
       }
       window.dispatchEvent(new Event("sistine-fg"));
     };

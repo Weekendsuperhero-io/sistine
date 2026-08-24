@@ -101,7 +101,7 @@
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
    Alpha slides the surface along a straight line from the material floor toward the wash colour, so
    how much a preset can take is set by how far its wash sits from THAT MODE's floor (L36.4 dark /
-   L90.9 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
+   L88 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
    crosses the mid-tone band where no text polarity reaches the body floor, and tolerates little.
    Because every wash now sits at its hue's chroma PEAK, dark-peaking hues (lapis L46, amethyst L55)
    sit near the DARK floor and take high alpha there, while light-peaking hues (peridot L92, turquoise

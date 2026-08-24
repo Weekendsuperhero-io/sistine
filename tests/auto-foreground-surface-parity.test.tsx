@@ -47,7 +47,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   // colour and under its image stack, so each sheer model composites toward it. Chroma is 0 throughout
   // here because jsdom resolves --glass-tint-c to its 0 fallback.
   const opacity = 0.7;
-  const opaqueL = dark ? 36.4 : 90.9;
+  const opaqueL = dark ? 36.4 : 88;
   const solidified = (l: number) => l * (1 - opacity) + opaqueL * opacity;
   const solidify = {
     l: opaqueL,
@@ -161,13 +161,29 @@ describe.each([
   /**
    * Pins the LC_AIM_KNOWN baseline itself. `-opaque` is the one floor modelled exactly, so it earns no
    * uncertainty margin — without a separate baseline aim it lands on the bare band target. Body aims
-   * 80 + 4, muted 72 + 4; both are reachable in every mode here, so the solve is exact.
+   * 80 + 4, muted 72 + 4.
+   *
+   * LIGHT is now reach-limited on the body tier, and that is a real property of the floor rather than a
+   * slack expectation: dark text on a light surface gets more contrast the lighter the surface is, and
+   * dropping the opaque floor from L90.9 to L88 (tokens.css — near-white is where the sRGB chroma
+   * ceiling collapses, so the old floor could not hold its own tint) took the ceiling with it. At L88
+   * even pure black reaches only 82.8 Lc, so the 84 aim is unreachable and the solve saturates. That is
+   * still above the bare 80 band target and well above the 75 body floor, which is what actually has to
+   * hold — so this asserts reaching the aim OR saturating above the bare target, not a fixed number.
    */
   it("aims -opaque above the bare band target", async () => {
     await mount(dark);
 
     const s = surfaces(dark);
-    expect(lcOn("--foreground-opaque", s["-opaque"])).toBeCloseTo(84, 0);
+    const body = lcOn("--foreground-opaque", s["-opaque"]);
+    /* Dark has the headroom and must hit the aim exactly; light saturates at its ceiling. Asserting the
+       ceiling to 1dp keeps this honest — if the floor moves again the number moves and this test says so
+       rather than passing on a loose ">= 80". */
+    if (dark) expect(body).toBeCloseTo(84, 0);
+    else expect(body).toBeCloseTo(82.8, 1);
+    expect(body).toBeGreaterThan(80);
+
+    // Muted aims 72 + 4 and stays reachable in both modes, so it is exact either way.
     expect(lcOn("--muted-foreground-opaque", s["-opaque"])).toBeCloseTo(76, 0);
   });
 });

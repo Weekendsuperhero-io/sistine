@@ -270,11 +270,14 @@
      each one reach it. Net effect vs the old flat 0.042: +7% to +88% depending on hue. */
   --glass-opaque-c-scale: 0.85;
   /* Opaque floor chroma cap — the near-white sibling of --glass-tint-c-hi / --glass-chakra-c-max /
-     --glass-gloss-c-max, and the last surface that lacked one. 0.0423 is lapis (h268), the tightest
-     ceiling at L 90.9 across all 18 preset scopes; 0.042 sits just under it. Without this the floor
-     multiplied raw tint chroma by 1.26 this close to white and clipped for most of the palette. */
-  /* Fallback only — every jewel pins its own above. A shared cap sized to the tightest hue is what made
-     peridot render at 18% of its ceiling while lapis sat at 99% of a much smaller one. */
+     --glass-gloss-c-max, and the last surface that lacked one. Without a cap the floor multiplied raw
+     tint chroma this close to white and clipped for most of the palette.
+     FALLBACK ONLY: the 12 jewels each pin their own above (their hue's real ceiling at L88); this
+     covers the 9 scopes that don't — the 4 frescoes, the 4 status tints and moonstone. Sizing the
+     SHARED cap to the tightest hue is the mistake that came before: one number low enough for amber
+     (h75, ceiling 0.036 at L88) left peridot at 18% of its own much larger ceiling. So this is
+     deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
+     against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
@@ -882,8 +885,9 @@
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style.
      --glass-opaque-l is the body-lightness knob (:root/.dark; the header L slider drives it; the floor
      AND AutoForeground's --foreground-opaque banding both read it, so they can't drift). */
-  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sits at L 90.9 in light, which
-     is near-white territory where the sRGB ceiling collapses — yet it was the one near-white surface
+  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sat at L 90.9 in light (it is
+     L88 now, for the same reason) — near-white territory where the sRGB ceiling collapses — yet it was
+     the one near-white surface
      multiplying RAW --glass-tint-c (×1.26) with no cap, while the sheet had --glass-tint-c-hi, chakra
      had --glass-chakra-c-max and the gloss had --glass-gloss-c-max. That made it the binding surface
      for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping
@@ -1675,7 +1679,7 @@
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
    Alpha slides the surface along a straight line from the material floor toward the wash colour, so
    how much a preset can take is set by how far its wash sits from THAT MODE's floor (L36.4 dark /
-   L90.9 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
+   L88 light). A wash near the floor barely moves the surface and tolerates a lot; a wash far from it
    crosses the mid-tone band where no text polarity reaches the body floor, and tolerates little.
    Because every wash now sits at its hue's chroma PEAK, dark-peaking hues (lapis L46, amethyst L55)
    sit near the DARK floor and take high alpha there, while light-peaking hues (peridot L92, turquoise

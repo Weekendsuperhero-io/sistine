@@ -181,8 +181,9 @@
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style.
      --glass-opaque-l is the body-lightness knob (:root/.dark; the header L slider drives it; the floor
      AND AutoForeground's --foreground-opaque banding both read it, so they can't drift). */
-  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sits at L 90.9 in light, which
-     is near-white territory where the sRGB ceiling collapses — yet it was the one near-white surface
+  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sat at L 90.9 in light (it is
+     L88 now, for the same reason) — near-white territory where the sRGB ceiling collapses — yet it was
+     the one near-white surface
      multiplying RAW --glass-tint-c (×1.26) with no cap, while the sheet had --glass-tint-c-hi, chakra
      had --glass-chakra-c-max and the gloss had --glass-gloss-c-max. That made it the binding surface
      for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping

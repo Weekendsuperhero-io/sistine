@@ -250,11 +250,19 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // body 91.5 → 86.5). Moonstone NIGHT is the case that breaks it: a cream L84.9 opaque floor under an L20
       // page, i.e. the two OPPOSE, so the crystal model landed 27.5 L too dark, called for near-white text, and
       // reported Lc 87.1 for a surface that actually delivers 52.2 — below the body floor of 75, silently.
-      // Reading it here fixes every sheer surface at once, and the c-scale fallbacks mirror tokens.css.
+      // Reading it here fixes every sheer surface at once, and the fallbacks mirror tokens.css.
       const glassOpacity = Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1);
+      /* The CAP is not cosmetic: engine.css paints this floor as
+         `min(--glass-tint-c * --glass-opaque-c-scale, --glass-opaque-c-max)`, because a jewel's tint chroma
+         scaled up would leave the sRGB gamut at the opaque floor's lightness and WebKit clips out-of-gamut
+         oklch() per channel rather than reducing chroma — which trades lightness away and drifts hue. The
+         cap is what each preset's own ceiling is FOR. Modelling the floor uncapped bands text against a
+         surface more colourful (and so slightly darker) than the one actually painted; scripts/
+         check-contrast.mjs already clamps here, so an uncapped model here also silently disagrees with the
+         guard that signs the presets off. Keep the three in step. */
       const solidifyFloor = {
-        l: num("--glass-opaque-l", dark ? 36.4 : 90.9),
-        c: tintC * num("--glass-opaque-c-scale", dark ? 0.85 : 1.26),
+        l: num("--glass-opaque-l", dark ? 36.4 : 88),
+        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-opaque-c-max", dark ? 0.12 : 0.055)),
         a: glassOpacity,
       };
       /** Composite the solidify floor over a sheer floor lightness — the layer order `glass` paints. */
@@ -408,13 +416,18 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         false,
         normalLcBoost,
       );
-      // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it (its lightness
-      // is exposed as the numeric --glass-opaque-l token; chroma/hue from the tint). `adaptive` so a LIGHT
-      // floor (moonstone cream) gets DARK text — the theme ramp only spans the readable half and can't.
+      // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it. This IS the
+      // solidify floor, undiluted: an opaque card is the one surface with nothing sheer above it, so it is
+      // `solidifyFloor` at full strength. Reuse it rather than re-deriving, which is how this drifted — it
+      // carried its own `* 0.9` (a multiplier matching neither mode: tokens.css ships 0.85 light / 1.05
+      // dark), its own stale lightness, and no chroma cap at all, so the opaque tier banded against a
+      // surface the CSS never paints. One derivation, one place to keep in step with tokens.css.
+      // `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
+      // readable half and can't.
       applyTiers(
         {
-          l: num("--glass-opaque-l", dark ? 36.4 : 90.9),
-          c: num("--glass-tint-c", 0) * 0.9,
+          l: solidifyFloor.l,
+          c: solidifyFloor.c,
           h: tintH,
         },
         "-opaque",
