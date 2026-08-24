@@ -1578,6 +1578,14 @@
   --glass-tint-c: 0.047;
   --glass-tint-a: 0.18;
   --harmony-h: 0;
+  /* Gloss chroma, moonstone's own. The global --glass-gloss-tint is 4.25 — sized for the JEWELS, where a
+     0.07–0.1 tint wants a vivid gem highlight and the min(…, 0.3) cap does the limiting. Moonstone
+     declares 0.047 precisely so it "reads as cream, not yellow" (above), and 4.25× turns that into
+     oklch(66% 0.1998 75) — a saturated amber. It only SHOWS in dark: the light gloss sits at L97 where
+     the sRGB chroma ceiling is ~0.02, so the same request gamut-maps to near-white, which is why the
+     yellowing looked like a dark-mode-only bug. 1× keeps the highlight at the tint's own chroma, so the
+     gloss reads as a specular on pale stone and its LIGHTNESS does the work, not its colour. */
+  --glass-gloss-tint: 1;
   /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
      floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
      far less than it moved the standard L90 floor. dE 0.0002 — indistinguishable from the old surface. */

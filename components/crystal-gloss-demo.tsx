@@ -384,6 +384,15 @@ function CrystalSwatch({ swatch, dark }: { swatch: (typeof SWATCHES)[number]; da
   return (
     <div
       data-material="crystal"
+      /* REQUIRED, not decorative: --glass-gloss-ink, --crystal-stack-bg and every other composed glass
+         token is declared on the grouped `:root, [data-glass-tint], …` selector, so a scope only
+         re-resolves them if it MATCHES that selector. Setting the raw --glass-tint-* below without this
+         attribute left all six swatches inheriting <html>'s already-composed values — the row rendered
+         six copies of the current site tint while claiming to be six hues (the whole point of the demo).
+         This is the var-composition-resolves-at-declaration gotcha check-theme's [scope] invariant
+         guards for the theme's own tokens; an inline scope has to opt in the same way. Empty value is
+         enough — the presets match on `[data-glass-tint="name"]`, the engine on bare `[data-glass-tint]`. */
+      data-glass-tint=""
       className="glass glass-border flex h-24 items-end rounded-lg p-2"
       style={
         {
