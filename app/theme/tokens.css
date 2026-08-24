@@ -8,7 +8,8 @@
        out    — anything ENTERING or EXITING. Starts fast, so the first frame (the one the user is
                 actually watching) already moves.
        in-out — things MOVING on screen that neither enter nor leave: carousels, sliders.
-       drawer — the iOS/Ionic sheet curve, for panels that slide from an edge.
+       drawer — a slower settle for panels that slide in from an edge, so a large surface arrives with
+                weight instead of snapping.
      There is deliberately no `ease-in` token: it delays the first frame, which is the one moment the
      interface most needs to feel responsive. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);

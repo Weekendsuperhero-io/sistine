@@ -108,13 +108,13 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <Badge className="mb-8 px-4 py-1.5 text-sm">
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-              50+ Liquid Glass Components
+              55 Glass Components
             </Badge>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-[1.08] text-balance">
               <span className="text-foreground">Beautiful interfaces,</span>
               <br />
-              <GradientText>built with liquid glass.</GradientText>
+              <GradientText>built with glass materials.</GradientText>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed text-pretty">
@@ -152,7 +152,7 @@ export default function Home() {
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Components that speak for themselves</h2>
-            <p className="text-muted-foreground max-w-lg mx-auto">Real UI patterns built entirely with Liquid Glass components.</p>
+            <p className="text-muted-foreground max-w-lg mx-auto">Real UI patterns built entirely with glass materials.</p>
           </div>
 
           {/* Surface switcher — swaps the material-system axes on every card below. */}
@@ -461,7 +461,7 @@ export default function Home() {
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Try it live</h2>
-            <p className="text-muted-foreground">Click to experience liquid glass in action.</p>
+            <p className="text-muted-foreground">Click to see the materials in action.</p>
           </div>
 
           <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -530,7 +530,7 @@ export default function Home() {
         {/* ───────────────── Features ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Why Liquid Glass?</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Why glass materials?</h2>
             <p className="text-muted-foreground">Everything you need to ship polished interfaces.</p>
           </div>
 
@@ -538,13 +538,13 @@ export default function Home() {
             {[
               {
                 icon: Zap,
-                title: "40+ Components",
+                title: "55 Components",
                 desc: "Buttons, cards, dialogs, selects, tabs, and more: all glass-ready out of the box.",
               },
               {
                 icon: Palette,
-                title: "4 Variants",
-                desc: "Glass, Frosted, Crystal, and Opaque. Each component adapts to every variant automatically.",
+                title: "5 Materials",
+                desc: "Glass, Frosted, Crystal, Chakra, and Opaque. Each component adapts to every material automatically.",
               },
               {
                 icon: Layers,
