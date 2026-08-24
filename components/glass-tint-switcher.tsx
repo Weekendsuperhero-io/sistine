@@ -281,10 +281,10 @@ function applyTint(h: number, c: number, a: number, tint: string | null) {
   root.style.setProperty("--glass-tint-c", String(c));
   root.style.setProperty("--glass-tint-a", String(a));
   // Harmonic anchor: the two hue-less themes — selenite (chroma 0) and moonstone — anchor the color wheel at 0°
-  // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Set here
-  // (not via a CSS :root:not rule) because jewels apply as inline vars WITHOUT a data-glass-tint attr, so an
-  // attribute-based selector can't tell them apart from selenite. Keyed on CHROMA — the single colorfulness
-  // master (surfaces + text + harmonics) — not the retired wash alpha, so chroma 0 is the one neutral signal.
+  // for a colorful red-based harmony; every other tint lets --harmony-h default to the content hue. Still set
+  // HERE rather than via CSS even though named presets now carry a data-glass-tint attribute, because a CUSTOM
+  // tint has no attribute and can still be dragged to chroma 0 — keying on CHROMA, the single colorfulness
+  // master (surfaces + text + harmonics), covers the preset and the custom path with one rule.
   if (c === 0 || tint === "moonstone") {
     root.style.setProperty("--harmony-h", "0");
   } else {
@@ -415,7 +415,7 @@ export function GlassTintSwitcher() {
     setH(nh);
     setC(nc);
     setA(na);
-    applyTint(nh, nc, na, BESPOKE.has(storedBase) ? storedBase : null);
+    applyTint(nh, nc, na, storedBase === "custom" ? null : storedBase);
     /* No stored preference -> do NOT write inline, so the theme's own default (the --glass-opacity
        fallback in @utility glass) stays the single source of truth. Writing it unconditionally is what
        froze the crystal gloss twin earlier; same shape of bug, same fix. */
@@ -508,7 +508,14 @@ export function GlassTintSwitcher() {
     setH(p.h);
     setC(p.c);
     setA(p.a);
-    applyTint(p.h, p.c, p.a, BESPOKE.has(p.value) ? p.value : null);
+    /* Set data-glass-tint for EVERY named preset, not just the bespoke ones. Jewels used to apply as
+       inline h/c/a with no attribute, which was fine while a preset was nothing BUT those three numbers.
+       It stopped being fine once presets carried their own --glass-wash-l (each hue's chroma ceiling
+       peaks at a different lightness): that rule lives behind [data-glass-tint="name"], so without the
+       attribute the whole per-hue wash system was inert on this switcher while a static consumer using
+       <html data-glass-tint="lapis"> got it. The inline vars still win over the block's own h/c/a, and
+       check-theme's [tint-sync] asserts the two agree, so setting the attribute cannot diverge them. */
+    applyTint(p.h, p.c, p.a, p.value);
     persist(p.value, p.h, p.c, p.a);
     // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94.5/84.9) and, for
     // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
