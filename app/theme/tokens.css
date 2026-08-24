@@ -181,6 +181,11 @@
      Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
   --glass-opaque-l: 90.9;
   --glass-opaque-c-scale: 1.26; /* opaque floor chroma multiplier (0.85 in dark keeps warm hues in-gamut) */
+  /* Opaque floor chroma cap — the near-white sibling of --glass-tint-c-hi / --glass-chakra-c-max /
+     --glass-gloss-c-max, and the last surface that lacked one. 0.0423 is lapis (h268), the tightest
+     ceiling at L 90.9 across all 18 preset scopes; 0.042 sits just under it. Without this the floor
+     multiplied raw tint chroma by 1.26 this close to white and clipped for most of the palette. */
+  --glass-opaque-c-max: 0.042;
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -412,6 +417,9 @@
      two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
   --glass-opaque-l: 36.4;
   --glass-opaque-c-scale: 0.85;
+  /* Opaque floor chroma cap, dark twin (see :root). Far more headroom this far from white: 0.0604 is
+     aurora (h205), the tightest across the preset scopes. */
+  --glass-opaque-c-max: 0.06;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to

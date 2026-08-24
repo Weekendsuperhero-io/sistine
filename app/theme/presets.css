@@ -5,52 +5,52 @@
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.055;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.05;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.063;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.067;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.045;
   --glass-tint-a: 0.16;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.066;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.056;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.037;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.038;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.086;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="lapis"] {
@@ -61,14 +61,20 @@
      surfaces that carry color deliver 1.32× sapphire's wash chroma and 2.13× its --primary chroma
      (measured). Lowering the ask to "stay in gamut" was tried and collapses the difference — at 0.09
      lapis renders slightly FLATTER than sapphire. The near-white sheet cannot separate two blues at
-     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else. */
+     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else.
+     DELIBERATE EXCEPTION to the C%-of-max normalisation the other jewels now follow. Normalising put
+     lapis at 0.053 against sapphire's 0.055 — flatter than sapphire, which is precisely the outcome
+     recorded above as already tried and rejected. h268 has less headroom than sapphire's h255 at the
+     binding surface, so at any UNIFORM percentage lapis lands under sapphire; the only way it reads as
+     the deeper ultramarine is to overreach and be pinned at the gamut boundary. That is what this value
+     buys, and why check-gamut's OVERAGE_MAX baseline is sized around it. */
   --glass-tint-h: 268;
   --glass-tint-c: 0.15;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.064;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="moonstone"] {

@@ -259,6 +259,11 @@
      Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
   --glass-opaque-l: 90.9;
   --glass-opaque-c-scale: 1.26; /* opaque floor chroma multiplier (0.85 in dark keeps warm hues in-gamut) */
+  /* Opaque floor chroma cap — the near-white sibling of --glass-tint-c-hi / --glass-chakra-c-max /
+     --glass-gloss-c-max, and the last surface that lacked one. 0.0423 is lapis (h268), the tightest
+     ceiling at L 90.9 across all 18 preset scopes; 0.042 sits just under it. Without this the floor
+     multiplied raw tint chroma by 1.26 this close to white and clipped for most of the palette. */
+  --glass-opaque-c-max: 0.042;
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -490,6 +495,9 @@
      two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
   --glass-opaque-l: 36.4;
   --glass-opaque-c-scale: 0.85;
+  /* Opaque floor chroma cap, dark twin (see :root). Far more headroom this far from white: 0.0604 is
+     aurora (h205), the tightest across the preset scopes. */
+  --glass-opaque-c-max: 0.06;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
@@ -707,8 +715,14 @@
      went grey in Safari while staying tinted in Chrome"); this is its CSS-side counterpart.
      Capping the BASE (rather than lowering any preset) keeps chroma where it has headroom — a jewel's
      depth lives at mid lightness, in --primary and --glass-tint-wash, which are untouched by this.
-     Guarded by scripts/check-gamut.mjs. */
-  --glass-tint-c-hi: min(var(--glass-tint-c), 0.025);
+     Guarded by scripts/check-gamut.mjs.
+     0.025 was still too generous, because the sheet MULTIPLIES this cap: its stops are
+     calc(--glass-tint-c-hi * 0.3…1.3), so the top stop asked 0.0325 against an L-95 ceiling of 0.0229
+     at the tightest hue — the cap itself clipped. 0.017 is that ceiling divided by the 1.3 multiplier,
+     so the sheet now lands inside the gamut at every preset hue instead of at whatever the browser
+     chops it to. Cap-then-multiply is the order that matters here; see check-gamut's SCALE/CAP/BOTH
+     shapes, which model each form separately for exactly this reason. */
+  --glass-tint-c-hi: min(var(--glass-tint-c), 0.017);
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
@@ -845,7 +859,16 @@
   /* Opaque glass — a fully solid, faintly tinted floor (no see-through) for the "opaque" style.
      --glass-opaque-l is the body-lightness knob (:root/.dark; the header L slider drives it; the floor
      AND AutoForeground's --foreground-opaque banding both read it, so they can't drift). */
-  --glass-opaque-bg: oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)) var(--glass-tint-h));
+  /* Chroma is CAPPED now (--glass-opaque-c-max, tokens.css). This floor sits at L 90.9 in light, which
+     is near-white territory where the sRGB ceiling collapses — yet it was the one near-white surface
+     multiplying RAW --glass-tint-c (×1.26) with no cap, while the sheet had --glass-tint-c-hi, chakra
+     had --glass-chakra-c-max and the gloss had --glass-gloss-c-max. That made it the binding surface
+     for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping
+     it is what let the tints below be normalised to their hue's real capacity rather than to this
+     floor's. Multiply-THEN-cap, matching --glass-gloss-ink. */
+  --glass-opaque-bg: oklch(
+    calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
+  );
   /* Sheer glass sheet — hue/chroma from the tint vars, chroma scaled per stop so the highlights stay
      glassy and the body carries the color. Stop alphas ride the mode base --glass-sheet-a (+ fixed
      offsets; the top stop's offset is its own knob --glass-sheet-a1 — dark tapers it to 0.03);
@@ -1533,52 +1556,52 @@
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.055;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.05;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.063;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.067;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.045;
   --glass-tint-a: 0.16;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.066;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.056;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.037;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.038;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.086;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="lapis"] {
@@ -1589,14 +1612,20 @@
      surfaces that carry color deliver 1.32× sapphire's wash chroma and 2.13× its --primary chroma
      (measured). Lowering the ask to "stay in gamut" was tried and collapses the difference — at 0.09
      lapis renders slightly FLATTER than sapphire. The near-white sheet cannot separate two blues at
-     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else. */
+     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else.
+     DELIBERATE EXCEPTION to the C%-of-max normalisation the other jewels now follow. Normalising put
+     lapis at 0.053 against sapphire's 0.055 — flatter than sapphire, which is precisely the outcome
+     recorded above as already tried and rejected. h268 has less headroom than sapphire's h255 at the
+     binding surface, so at any UNIFORM percentage lapis lands under sapphire; the only way it reads as
+     the deeper ultramarine is to overreach and be pinned at the gamut boundary. That is what this value
+     buys, and why check-gamut's OVERAGE_MAX baseline is sized around it. */
   --glass-tint-h: 268;
   --glass-tint-c: 0.15;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
-  --glass-tint-c: 0.07;
+  --glass-tint-c: 0.064;
   --glass-tint-a: 0.15;
 }
 [data-glass-tint="moonstone"] {
