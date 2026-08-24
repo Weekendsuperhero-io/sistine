@@ -1556,77 +1556,86 @@
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
-  --glass-tint-c: 0.055;
+  --glass-tint-c: 0.075;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 63%;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
-  --glass-tint-c: 0.05;
+  --glass-tint-c: 0.076;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 88%;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
-  --glass-tint-c: 0.063;
+  --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 55%;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
-  --glass-tint-c: 0.067;
+  --glass-tint-c: 0.095;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 64%;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
-  --glass-tint-c: 0.045;
+  --glass-tint-c: 0.062;
   --glass-tint-a: 0.16;
+  --glass-wash-l: 81%;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
-  --glass-tint-c: 0.066;
+  --glass-tint-c: 0.081;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 67%;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
-  --glass-tint-c: 0.056;
+  --glass-tint-c: 0.083;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 92%;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
-  --glass-tint-c: 0.037;
+  --glass-tint-c: 0.057;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 90%;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
-  --glass-tint-c: 0.038;
+  --glass-tint-c: 0.053;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 82%;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
-  --glass-tint-c: 0.086;
+  --glass-tint-c: 0.106;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 67%;
 }
 [data-glass-tint="lapis"] {
-  /* Lapis runs far hotter than the other jewels (c 0.15 vs 0.07) on purpose — lapis lazuli IS the
-     deep saturated ultramarine; at jewel chroma it reads as just another blue next to sapphire.
-     h268 has the least chroma headroom of any jewel hue, so this asks well past the sRGB ceiling on
-     the near-white surfaces and is gamut-mapped there. That is deliberate and it is NOT wasted: the
-     surfaces that carry color deliver 1.32× sapphire's wash chroma and 2.13× its --primary chroma
-     (measured). Lowering the ask to "stay in gamut" was tried and collapses the difference — at 0.09
-     lapis renders slightly FLATTER than sapphire. The near-white sheet cannot separate two blues at
-     any chroma, which is what --glass-tint-c-hi caps; this value exists for everything else.
-     DELIBERATE EXCEPTION to the C%-of-max normalisation the other jewels now follow. Normalising put
-     lapis at 0.053 against sapphire's 0.055 — flatter than sapphire, which is precisely the outcome
-     recorded above as already tried and rejected. h268 has less headroom than sapphire's h255 at the
-     binding surface, so at any UNIFORM percentage lapis lands under sapphire; the only way it reads as
-     the deeper ultramarine is to overreach and be pinned at the gamut boundary. That is what this value
-     buys, and why check-gamut's OVERAGE_MAX baseline is sized around it. */
+  /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
+     blue next to sapphire. It used to buy that depth by declaring c 0.15 — far past the sRGB ceiling —
+     and letting the browser clip. That DID deliver a deep blue, but by accident rather than by design:
+     clipping chops channels, which drops LIGHTNESS, and the saturation came from landing darker.
+     Measured, oklch(58% 0.375 268) renders L48.1 C0.2941 h271 — a colour nobody wrote down.
+     The wash lightness below asks for that colour on purpose instead. h268's chroma ceiling PEAKS at
+     L46 (0.2979) and collapses to 0.1293 by L74, so the shared 72/58 wash was sitting on the downslope;
+     at L46 the same depth is available inside the gamut. oklch(45% 0.291 268) renders L44.9 C0.2909
+     h267.9 — the same deep ultramarine, hue exact, nothing pinned.
+     So lapis is no longer an exception to anything: it is the clearest case of the rule the whole
+     palette now follows — put the wash where the hue can actually hold chroma, then ask for it. */
   --glass-tint-h: 268;
-  --glass-tint-c: 0.15;
+  --glass-tint-c: 0.085;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 46%;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
-  --glass-tint-c: 0.064;
+  --glass-tint-c: 0.094;
   --glass-tint-a: 0.15;
+  --glass-wash-l: 63%;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent

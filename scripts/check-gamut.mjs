@@ -77,20 +77,26 @@ function collectPresets() {
       const c = body.match(/--glass-tint-c:\s*([\d.]+)/);
       const key = `${name}${darkSel ? " (dark)" : ""}`;
       const prev = out.get(key) ?? {};
-      out.set(key, { name, dark: !!darkSel, h: h ? +h[1] : prev.h, c: c ? +c[1] : prev.c });
+      /* Numeric LIGHTNESS vars the preset pins for itself. Presets now set their own --glass-wash-l —
+         each hue's chroma ceiling peaks at a different lightness, so a shared wash sat on the downslope
+         for most of them — and scoring every preset at tokens.css's single 72/58 would model a surface
+         that no preset actually renders. Captured here and applied per row in the evaluator. */
+      const vars = new Map(prev.vars ?? []);
+      for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) vars.set(k, +v);
+      out.set(key, { name, dark: !!darkSel, h: h ? +h[1] : prev.h, c: c ? +c[1] : prev.c, vars });
     }
   }
   /* A dark-only block (moonstone) inherits the hue/chroma its light block declared. */
   for (const [key, p] of out) {
     if (p.dark && (p.h === undefined || p.c === undefined)) {
       const base = out.get(p.name);
-      out.set(key, { ...p, h: p.h ?? base?.h, c: p.c ?? base?.c });
+      out.set(key, { ...p, h: p.h ?? base?.h, c: p.c ?? base?.c, vars: new Map([...(base?.vars ?? []), ...p.vars]) });
     }
   }
   /* The engine default, which selenite and any unlisted tint fall back to. */
   const dh = css.engine.match(/--glass-tint-h:\s*([\d.]+)/);
   const dc = css.engine.match(/--glass-tint-c:\s*([\d.]+)/);
-  if (dh && dc) out.set("selenite (default)", { name: "selenite", dark: false, h: +dh[1], c: +dc[1] });
+  if (dh && dc) out.set("selenite (default)", { name: "selenite", dark: false, h: +dh[1], c: +dc[1], vars: new Map() });
   return [...out.entries()].filter(([, p]) => p.h !== undefined && p.c !== undefined).map(([key, p]) => ({ key, ...p }));
 }
 
@@ -199,7 +205,7 @@ function collectSurfaces(vars) {
         const id = `${label}|${mode}|${l}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        surfaces.push({ label, mode, l, mult, capped: nearWhiteCap, hardCap });
+        surfaces.push({ label, mode, l, lname, mult, capped: nearWhiteCap, hardCap });
         }
       }
     }
@@ -343,7 +349,11 @@ for (const s of surfaces) {
       const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
       let want = base * s.mult;
       if (s.hardCap !== undefined) want = Math.min(want, s.hardCap);
-      const ceiling = maxSrgbChroma(s.l, p.h);
+      /* A preset that pins this surface's lightness var is scored at ITS lightness, not the global
+         one — --glass-wash-l is now per-preset, and the ceiling is a function of lightness. */
+      const pinned = s.lname ? p.vars?.get(s.lname) : undefined;
+      const surfaceL = pinned === undefined ? s.l : pinned <= 1 ? pinned * 100 : pinned;
+      const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
          must not vary is how much of its declared intent survives. */
       return { key: p.key, want, ceiling, efficiency: Math.min(1, ceiling / want), overage: want / ceiling };
