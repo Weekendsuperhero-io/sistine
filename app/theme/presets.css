@@ -8,60 +8,70 @@
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.23;
   --glass-wash-l: 63%;
+  --glass-opaque-c-max: 0.056;
 }
 [data-glass-tint="aventurine"] {
   --glass-tint-h: 158;
   --glass-tint-c: 0.076;
   --glass-tint-a: 0.54;
   --glass-wash-l: 88%;
+  --glass-opaque-c-max: 0.195;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
   --glass-tint-a: 0.19;
   --glass-wash-l: 55%;
+  --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
   --glass-tint-a: 0.22;
   --glass-wash-l: 64%;
+  --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
   --glass-tint-h: 75;
   --glass-tint-c: 0.062;
   --glass-tint-a: 0.44;
   --glass-wash-l: 81%;
+  --glass-opaque-c-max: 0.096;
 }
 [data-glass-tint="carnelian"] {
   --glass-tint-h: 38;
   --glass-tint-c: 0.081;
   --glass-tint-a: 0.24;
   --glass-wash-l: 67%;
+  --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
   --glass-tint-c: 0.083;
   --glass-tint-a: 0.54;
   --glass-wash-l: 92%;
+  --glass-opaque-c-max: 0.218;
 }
 [data-glass-tint="turquoise"] {
   --glass-tint-h: 190;
   --glass-tint-c: 0.057;
   --glass-tint-a: 0.54;
   --glass-wash-l: 90%;
+  --glass-opaque-c-max: 0.144;
 }
 [data-glass-tint="aquamarine"] {
   --glass-tint-h: 215;
   --glass-tint-c: 0.053;
   --glass-tint-a: 0.54;
   --glass-wash-l: 82%;
+  --glass-opaque-c-max: 0.091;
 }
 [data-glass-tint="tourmaline"] {
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
   --glass-tint-a: 0.22;
   --glass-wash-l: 67%;
+  --glass-opaque-c-max: 0.079;
 }
 [data-glass-tint="lapis"] {
   /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
@@ -79,12 +89,14 @@
   --glass-tint-c: 0.085;
   --glass-tint-a: 0.17;
   --glass-wash-l: 46%;
+  --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="goldstone"] {
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.21;
   --glass-wash-l: 63%;
+  --glass-opaque-c-max: 0.06;
 }
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
    Alpha slides the surface along a straight line from the material floor toward the wash colour, so

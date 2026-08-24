@@ -205,7 +205,7 @@ function collectSurfaces(vars) {
         const id = `${label}|${mode}|${l}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        surfaces.push({ label, mode, l, lname, mult, capped: nearWhiteCap, hardCap });
+        surfaces.push({ label, mode, l, lname, kname, capName, mult, capped: nearWhiteCap, hardCap });
         }
       }
     }
@@ -346,13 +346,18 @@ for (const s of surfaces) {
          chroma, then the multiplier, then the surface's own hard cap. Capping before the multiplier
          would under-report — min(c, cap) × mult can land back outside the gamut the cap exists to
          hold. A pure CAP surface carries mult 1, so this reduces to min(c, cap) for it. */
-      const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
-      let want = base * s.mult;
-      if (s.hardCap !== undefined) want = Math.min(want, s.hardCap);
-      /* A preset that pins this surface's lightness var is scored at ITS lightness, not the global
-         one — --glass-wash-l is now per-preset, and the ceiling is a function of lightness. */
+      /* A preset may pin this surface's lightness, multiplier or cap for itself — moonstone's dark block
+         pins --glass-opaque-l AND --glass-opaque-c-scale, and the jewels pin --glass-wash-l and their own
+         --glass-opaque-c-max. Whatever the preset declares wins, exactly as the cascade resolves it;
+         scoring it at the global value invents clipping it does not have (or hides clipping it does). */
       const pinned = s.lname ? p.vars?.get(s.lname) : undefined;
       const surfaceL = pinned === undefined ? s.l : pinned <= 1 ? pinned * 100 : pinned;
+      const pinnedMult = s.kname ? p.vars?.get(s.kname) : undefined;
+      const pinnedCap = s.capName ? p.vars?.get(s.capName) : undefined;
+      const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
+      let want = base * (pinnedMult ?? s.mult);
+      const cap = pinnedCap ?? s.hardCap;
+      if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
          must not vary is how much of its declared intent survives. */

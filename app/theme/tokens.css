@@ -179,13 +179,24 @@
      inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
      order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
      Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
-  --glass-opaque-l: 90.9;
-  --glass-opaque-c-scale: 1.26; /* opaque floor chroma multiplier (0.85 in dark keeps warm hues in-gamut) */
+  /* L88, not 90.9. Near-white is where the sRGB chroma ceiling collapses, so an opaque card at 90.9 had
+     two problems at once: it read as washed-toward-white, and it could not hold enough chroma to carry
+     its own tint (lapis and sapphire were at 97–99% of a ceiling worth only 0.043). Dropping 2.9 L
+     roughly doubles every hue's ceiling while keeping body text at Lc 80.0 — the floor is still firmly
+     on the light side, so text polarity never changes. */
+  --glass-opaque-l: 88;
+  /* 0.85, down from 1.26. The old value only looked large: it was immediately clipped to the shared
+     0.042 cap, so every preset rendered the SAME chroma regardless of its tint. Presets now pin their
+     own --glass-opaque-c-max (their hue's real ceiling at L88), and 0.85 is the multiplier that lets
+     each one reach it. Net effect vs the old flat 0.042: +7% to +88% depending on hue. */
+  --glass-opaque-c-scale: 0.85;
   /* Opaque floor chroma cap — the near-white sibling of --glass-tint-c-hi / --glass-chakra-c-max /
      --glass-gloss-c-max, and the last surface that lacked one. 0.0423 is lapis (h268), the tightest
      ceiling at L 90.9 across all 18 preset scopes; 0.042 sits just under it. Without this the floor
      multiplied raw tint chroma by 1.26 this close to white and clipped for most of the palette. */
-  --glass-opaque-c-max: 0.042;
+  /* Fallback only — every jewel pins its own above. A shared cap sized to the tightest hue is what made
+     peridot render at 18% of its ceiling while lapis sat at 99% of a much smaller one. */
+  --glass-opaque-c-max: 0.055;
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -416,7 +427,10 @@
      near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
      two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
   --glass-opaque-l: 36.4;
-  --glass-opaque-c-scale: 0.85;
+  /* 1.05, up from 0.85. The dark floor was never cap-limited — every preset sat at 31–79% of its own
+     ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. 1.05 is the most
+     the tightest hue (turquoise) can take without clipping; it lifts every preset +24% at Lc 80.0. */
+  --glass-opaque-c-scale: 1.05;
   /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
      and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
      which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
@@ -426,7 +440,8 @@
      0.31–0.79× of its own ceiling, so nothing clips with no cap at all. 0.095 clears the largest ask
      (tourmaline 0.0901) and therefore throttles nobody, while still bounding a future preset that
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
-  --glass-opaque-c-max: 0.095;
+  /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
+  --glass-opaque-c-max: 0.12;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
