@@ -1765,38 +1765,49 @@
      oklch(0.8 0.047 75), which is a sand/tobacco tan, so moonstone night read as brown rather than as
      the pale silvery stone it is named for. Lightness alone does not fix that: h75 is warm, so every
      lightness along it lands somewhere in the tan family. Cutting the CHROMA is what moves it off that
-     family, and the lift to L84 is the "slightly lighter" half. Now derives oklch(0.84 0.021 75) — pale
-     stone with a whisper of warmth. Light mode is untouched (it keeps c-scale 1 at L94, where the same
-     hue reads as cream, not tan). */
+     family. Light mode is untouched (it keeps c-scale 1 at L94, where the same hue reads as cream).
+
+     L52, down from a cream L84.9 — moonstone night is a DARK stone now, and that is forced rather than
+     preferred. This floor feeds two surfaces at once: opaque cards paint it directly, and it composites
+     at --glass-opacity over the dark veil to become the floor sheer glass sits on. Both have to clear
+     the body floor, and for h75 nothing in L55–L84 reaches it in EITHER text polarity — that band is the
+     mid-tone dead zone. A cream L84.9 put the opaque card just above it (Lc 77.1) but dragged the sheer
+     surface to L65, dead centre, where body text topped out at 65.4 Lc and the preset had to be pinned
+     as a known exception. Going lighter cannot fix it: the veil is 30% of the composite, which caps the
+     solidify floor at L75.6 no matter how light this value gets, so the sheer surface can never climb
+     out the top. Only the bottom exit is reachable. L52 is the PALEST value where both surfaces clear:
+     sheer body text lands 80.0 Lc (was 65.4) and the opaque card 82.9 (was 77.1), and it also restores
+     --foreground-strong, which could not reach its 90 target on the cream floor either. Still stone —
+     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4. */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
      pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
-  --glass-opaque-l: 84.9;
+  --glass-opaque-l: 52;
   --glass-opaque-c-scale: 0.44;
-  /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
-     dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
-     opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */
-  --foreground-opaque: oklch(0.24 0.04 75);
-  --foreground-soft-opaque: oklch(0.38 0.05 75);
-  --foreground-strong-opaque: oklch(0.16 0.04 75);
-  --foreground-ui-opaque: oklch(0.4 0.06 75);
-  --muted-foreground-opaque: oklch(0.32 0.05 75);
+  /* Static -opaque tier baselines. These flipped polarity with the floor: on the old cream L84.9 they were
+     dark warm literals, and on an L52 stone they have to be light or SSR's first paint is dark-on-dark.
+     Values are what AutoForeground itself solves for this surface, so the mounted refine is a no-op. */
+  --foreground-opaque: oklch(1 0 75);
+  --foreground-soft-opaque: oklch(0.9 0.05 75);
+  --foreground-strong-opaque: oklch(1 0 75);
+  --foreground-ui-opaque: oklch(0.91 0.05 75);
+  --muted-foreground-opaque: oklch(0.97 0.02 75);
   /* Chakra needs the SAME treatment opaque gets above, and did not have it: chakra was added after this
      block was written, so it kept the global dark body (L28) and rendered oklch(0.28 0.046 75) = #36250c,
      a dark brown — the one surface where moonstone still read as tobacco rather than stone. Matching
-     opaque's pair (L84, chroma x0.45 → 0.021) lands it on #d3c9bc, the same pale stone.
+     opaque's pair — now L51, chroma x0.45 → 0.021, landing on #6d6559, the same stone as the opaque
+     floor one point above it.
      The hue stays 75 deliberately. Cutting CHROMA is what moves this off the tan family; lightness alone
      does not, and a cool hue would contradict the warm cream light mode keeps at L94. */
-  --glass-chakra-l: 84;
+  --glass-chakra-l: 51;
   --glass-chakra-c-max: 0.021;
-  /* Same reasoning as the -opaque baselines: a LIGHT night floor needs dark text, and the global dark
-     -chakra baselines assume an L28 body. */
-  --foreground-chakra: oklch(0.24 0.04 75);
-  --foreground-soft-chakra: oklch(0.38 0.05 75);
-  --foreground-strong-chakra: oklch(0.16 0.04 75);
-  --foreground-ui-chakra: oklch(0.4 0.06 75);
-  --muted-foreground-chakra: oklch(0.32 0.05 75);
+  /* Same reasoning as the -opaque baselines above, and flipped with them: an L51 body needs LIGHT text. */
+  --foreground-chakra: oklch(1 0 75);
+  --foreground-soft-chakra: oklch(0.9 0.05 75);
+  --foreground-strong-chakra: oklch(1 0 75);
+  --foreground-ui-chakra: oklch(0.91 0.05 75);
+  --muted-foreground-chakra: oklch(0.96 0.03 75);
 }
 
 /* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render

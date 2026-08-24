@@ -53,7 +53,7 @@ const MARGIN = 1.5; // Lc of slack required on top of the floor
  * preset. Fixing it properly means choosing between solid-cream cards or sheer-dark ones — a design
  * call, not a number. Until then this is pinned.
  */
-const KNOWN = new Map([["moonstone|dark", { lc: 65.4, why: "cream floor on a dark page lands mid-tone through the solidify layer — needs a design decision, not a tuning change" }]]);
+const KNOWN = new Map([]);
 
 const css = {
   tokens: read("app/theme/tokens.css"),
