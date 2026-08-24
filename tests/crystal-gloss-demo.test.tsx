@@ -150,7 +150,9 @@ describe("CrystalGlossDemo: per-scheme gloss override", () => {
 
   it("marks an un-overridden scheme as auto in the readout", async () => {
     render(<CrystalGlossDemo />);
-    await waitFor(() => expect(screen.getByText(/· auto$/)).toBeInTheDocument());
+    /* Anchored on the trailing "%" so this keeps matching the LIGHT readout only: Tint carries its own
+       "· auto" now (it has to — presets override --glass-gloss-tint), and a bare /· auto$/ matches both. */
+    await waitFor(() => expect(screen.getByText(/%\s·\sauto$/)).toBeInTheDocument());
 
     localStorage.setItem(
       L_KEY,

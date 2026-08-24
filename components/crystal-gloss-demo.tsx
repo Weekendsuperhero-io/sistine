@@ -111,6 +111,9 @@ export function CrystalGlossDemo() {
   const [l, setL] = React.useState(97);
   const [lAuto, setLAuto] = React.useState(true);
   const [tint, setTint] = React.useState(4.25);
+  /* Whether Tint is still the theme's (a preset may override --glass-gloss-tint), mirroring lAuto.
+     While auto, apply() must NOT write the inline prop — that is what shadowed moonstone's override. */
+  const [tintAuto, setTintAuto] = React.useState(true);
   const [span, setSpan] = React.useState(40);
   const [dir, setDir] = React.useState(1);
   const [dark, setDark] = React.useState(false);
@@ -176,12 +179,17 @@ export function CrystalGlossDemo() {
     syncL,
   ]);
 
-  /* Everything EXCEPT Light, which syncL owns — those three are mode-shared, so a plain inline write
-     is correct for them and freezes nothing. */
-  const apply = (m: Mode, nt: number, ns: number, nd: number) => {
+  /* Span and Dir are global constants no preset overrides, so a plain inline write freezes nothing.
+     TINT IS NOT: presets override --glass-gloss-tint (moonstone dials it to 1 so its pale stone does not
+     get a jewel's vivid highlight), and an inline style on <html> beats every [data-glass-tint] rule.
+     Stamping it on MOUNT — which this did unconditionally, with the 4.25 default when storage was empty
+     — silently defeated that override on every page carrying this demo. `nt: null` means "no user
+     override": the property is removed and CSS owns it, exactly as syncL does for Light. */
+  const apply = (m: Mode, nt: number | null, ns: number, nd: number) => {
     const root = document.documentElement;
     root.dataset.gloss = m;
-    root.style.setProperty("--glass-gloss-tint", String(nt));
+    if (nt === null) root.style.removeProperty("--glass-gloss-tint");
+    else root.style.setProperty("--glass-gloss-tint", String(nt));
     root.style.setProperty("--glass-gloss-hue-span", String(ns));
     root.style.setProperty("--glass-gloss-hue-dir", String(nd));
   };
@@ -195,19 +203,26 @@ export function CrystalGlossDemo() {
   };
 
   React.useEffect(() => {
+    const root = document.documentElement;
     const raw = localStorage.getItem(MODE_KEY);
     const m: Mode = raw === "white" || raw === "hue" ? raw : "tonal";
-    const nt = Number.parseFloat(localStorage.getItem(TINT_KEY) ?? "4.25");
+    /* No stored value means the user never touched this knob, so there is no override to re-apply. */
+    const stored = localStorage.getItem(TINT_KEY);
+    const parsed = stored === null ? Number.NaN : Number.parseFloat(stored);
+    const T = Number.isFinite(parsed) ? parsed : null;
     const ns = Number.parseFloat(localStorage.getItem(SPAN_KEY) ?? "40");
     const nd = Number.parseFloat(localStorage.getItem(DIR_KEY) ?? "1");
-    const T = Number.isFinite(nt) ? nt : 2;
     const S = Number.isFinite(ns) ? ns : 40;
     const D = nd === -1 ? -1 : 1;
     setMode(m);
-    setTint(T);
     setSpan(S);
     setDir(D);
+    setTintAuto(T === null);
     apply(m, T, S, D);
+    /* Read AFTER apply(): with no override the inline prop is gone, so this reports what the active
+       preset's CSS actually resolves — the number the slider should show, not the 4.25 global. */
+    const live = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-gloss-tint"));
+    setTint(T ?? (Number.isFinite(live) ? live : 4.25));
     syncL(); /* after dataset.gloss is set, so the hue flavor's own pinned value resolves */
   }, [
     syncL,
@@ -220,7 +235,7 @@ export function CrystalGlossDemo() {
        its surface and those are 68 L apart), hue pins 74 in both so its swept stops keep chroma
        headroom, and white ignores Light entirely. Duplicating those numbers here is how they drift. */
     setMode(m);
-    apply(m, tint, span, dir);
+    apply(m, tintAuto ? null : tint, span, dir);
     persist(MODE_KEY, m);
     persist(L_KEY, "{}"); /* drop every override — both schemes go back to the theme */
     syncL();
@@ -238,18 +253,19 @@ export function CrystalGlossDemo() {
   };
   const changeTint = (v: number) => {
     setTint(v);
+    setTintAuto(false);
     apply(mode, v, span, dir);
     persist(TINT_KEY, String(v));
   };
   const changeSpan = (v: number) => {
     setSpan(v);
-    apply(mode, tint, v, dir);
+    apply(mode, tintAuto ? null : tint, v, dir);
     persist(SPAN_KEY, String(v));
   };
 
   const changeDir = (nd: number) => {
     setDir(nd);
-    apply(mode, tint, span, nd);
+    apply(mode, tintAuto ? null : tint, span, nd);
     persist(DIR_KEY, String(nd));
   };
 
@@ -315,7 +331,27 @@ export function CrystalGlossDemo() {
           </SliderRow>
         )}
         {mode === "tonal" && (
-          <SliderRow label="Tint" value={tint.toFixed(2)} hint="theme-chroma ×">
+          <SliderRow
+            label="Tint"
+            value={`${tint.toFixed(2)}${tintAuto ? " · auto" : ""}`}
+            hint={tintAuto ? "theme-chroma × (follows the preset)" : "theme-chroma ×. Click Tint to follow the preset again"}
+            onLabelClick={
+              tintAuto
+                ? undefined
+                : () => {
+                    /* Hand --glass-gloss-tint back to CSS so a preset override (moonstone's 1) applies. */
+                    try {
+                      localStorage.removeItem(TINT_KEY);
+                    } catch {
+                      // ignore storage failures
+                    }
+                    setTintAuto(true);
+                    apply(mode, null, span, dir);
+                    const live = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glass-gloss-tint"));
+                    setTint(Number.isFinite(live) ? live : 4.25);
+                  }
+            }
+          >
             <Slider
               value={[
                 tint,
