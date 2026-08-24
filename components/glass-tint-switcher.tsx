@@ -406,23 +406,32 @@ export function GlassTintSwitcher() {
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;
     let na = preset?.a ?? 0;
-    let hasCustom = false;
-    try {
-      const custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? "null");
-      if (custom && typeof custom.h === "number") {
-        nh = custom.h;
-        nc = custom.c;
-        na = custom.a;
-        hasCustom = true;
+    /* ONLY when custom is the active base. CUSTOM_KEY persists for good once the sliders have been
+       touched, so reading it unconditionally meant one drag to a custom colour poisoned every later
+       reload: the stored preset's own hue/chroma were overwritten by stale custom numbers, and the alpha
+       got inlined on top — which is worse than it sounds, because an inline --glass-tint-a outranks BOTH
+       [data-glass-tint="x"] and .dark[data-glass-tint="x"] at once and collapses the per-mode split to a
+       single value (lapis is 0.13 light / 0.54 dark). The attribute still said the preset's name while
+       nothing about the surface matched it. "A custom tint exists in storage" and "custom is selected"
+       are different questions; only the second one licenses any of this. */
+    if (storedBase === "custom") {
+      try {
+        const custom = JSON.parse(localStorage.getItem(CUSTOM_KEY) ?? "null");
+        if (custom && typeof custom.h === "number") {
+          nh = custom.h;
+          nc = custom.c;
+          na = custom.a;
+        }
+      } catch {
+        // ignore malformed storage
       }
-    } catch {
-      // ignore malformed storage
     }
     setBase(storedBase);
     setH(nh);
     setC(nc);
     setA(na);
-    applyTint(nh, nc, hasCustom || storedBase === "custom" ? na : null, storedBase === "custom" ? null : storedBase);
+    // A custom tint has no CSS block to read from, so it inlines its own alpha; a named preset delegates.
+    applyTint(nh, nc, storedBase === "custom" ? na : null, storedBase === "custom" ? null : storedBase);
     /* No stored preference -> do NOT write inline, so the theme's own default (the --glass-opacity
        fallback in @utility glass) stays the single source of truth. Writing it unconditionally is what
        froze the crystal gloss twin earlier; same shape of bug, same fix. */

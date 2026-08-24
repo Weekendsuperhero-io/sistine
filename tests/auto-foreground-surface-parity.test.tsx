@@ -187,3 +187,81 @@ describe.each([
     expect(lcOn("--muted-foreground-opaque", s["-opaque"])).toBeCloseTo(76, 0);
   });
 });
+
+/**
+ * TST-3-1 — the opaque floor's chroma CAP, exercised with a real chroma.
+ *
+ * engine.css paints that floor as `min(--glass-tint-c * --glass-opaque-c-scale, --glass-opaque-c-max)`,
+ * because a jewel's tint chroma scaled up leaves the sRGB gamut at the floor's lightness, and WebKit
+ * clips out-of-gamut oklch() per channel rather than reducing chroma — trading lightness away and
+ * drifting hue. AutoForeground has to model the SAME clamp or it bands text against a surface more
+ * colourful, and so slightly darker, than the one on screen. In production that mismatch reached 1.45x
+ * on 10 of the 12 jewels.
+ *
+ * Everything above runs on jsdom fallbacks, where `--glass-tint-c` resolves to 0 — so `min(0 * s, cap)`
+ * is 0 either way and the clamp is structurally unreachable. Those tests would pass with the cap deleted.
+ * This one sets a real chroma inline and measures against the surface the CSS would actually paint.
+ *
+ * DARK on purpose: light saturates at pure black (the L88 ceiling is 82.8 Lc), and a saturated solve is
+ * insensitive to the surface it was solved against — black is black whether or not the cap applied.
+ */
+describe("AutoForeground: opaque floor honours --glass-opaque-c-max", () => {
+  const H = 255;
+  const L = 36.4; // the dark opaque floor
+  const SCALE = 1.05; // tokens.css, .dark
+  const CAP = 0.12; // tokens.css, .dark
+  const TINT_C = 0.3; // well past the cap: 0.3 * 1.05 = 0.315
+
+  it("bands -opaque text against the CAPPED floor, not the raw scaled chroma", async () => {
+    root().classList.add("dark");
+    root().style.setProperty("--glass-tint-h", String(H));
+    root().style.setProperty("--glass-tint-c", String(TINT_C));
+    root().style.setProperty("--glass-opaque-l", String(L));
+    root().style.setProperty("--glass-opaque-c-scale", String(SCALE));
+    root().style.setProperty("--glass-opaque-c-max", String(CAP));
+
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+
+    const capped: OklchColor = {
+      l: L,
+      c: Math.min(TINT_C * SCALE, CAP),
+      h: H,
+    };
+    const uncapped: OklchColor = {
+      l: L,
+      c: TINT_C * SCALE,
+      h: H,
+    };
+
+    /* The discriminator. The solver aims body 80 + LC_AIM_KNOWN 4 = 84 on whichever surface it modelled,
+       so the emitted token reads ~84 against that one. Modelled capped -> 84.0 on `capped`; modelled
+       uncapped -> 84.0 on `uncapped` and ~87.5 on `capped`. Measuring on `capped` — the surface the CSS
+       paints — separates the two by ~3.5 Lc. */
+    expect(lcOn("--foreground-opaque", capped)).toBeCloseTo(84, 0);
+    expect(lcOn("--foreground-opaque", uncapped)).not.toBeCloseTo(84, 0);
+  });
+
+  it("leaves the floor alone when the scaled chroma is already under the cap", async () => {
+    /* The clamp must not become a floor of its own: under the cap the raw product has to pass through,
+       or every low-chroma preset would be pushed UP to the cap and moonstone would read as tan again. */
+    const lowC = 0.05; // 0.05 * 1.05 = 0.0525, comfortably under 0.12
+    root().classList.add("dark");
+    root().style.setProperty("--glass-tint-h", String(H));
+    root().style.setProperty("--glass-tint-c", String(lowC));
+    root().style.setProperty("--glass-opaque-l", String(L));
+    root().style.setProperty("--glass-opaque-c-scale", String(SCALE));
+    root().style.setProperty("--glass-opaque-c-max", String(CAP));
+
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+
+    expect(
+      lcOn("--foreground-opaque", {
+        l: L,
+        c: lowC * SCALE,
+        h: H,
+      }),
+    ).toBeCloseTo(84, 0);
+  });
+});

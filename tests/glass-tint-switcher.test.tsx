@@ -132,4 +132,60 @@ describe("GlassTintSwitcher: per-mode alpha stays with CSS", () => {
     await waitFor(() => expect(root().style.getPropertyValue("--glass-tint-h")).not.toBe(""));
     expect(root().style.getPropertyValue("--glass-tint-c")).not.toBe("");
   });
+
+  /**
+   * REV-3-1 — a saved CUSTOM tint must not leak onto a named preset at MOUNT.
+   *
+   * `sistine-glass-tint-custom` persists for good once the user has dragged the sliders even once. The
+   * mount effect restored it unconditionally, so from then on every reload overwrote the SELECTED
+   * preset's hue and chroma with those stale custom numbers, and — because the alpha delegation was
+   * gated on "does a custom tint exist in storage" rather than "is custom the active base" — re-inlined
+   * the alpha too. The attribute still said `lapis` while the inline vars said something else entirely,
+   * with the mode split collapsed to one number.
+   *
+   * The delegation tests above all pick a preset by CLICK, which routes through `choose()` and never
+   * touches this branch, so the whole class was invisible to them. That is the gap: the bug lives on
+   * the reload path, not the interaction path.
+   */
+  it("ignores a saved custom tint when a named preset is the active base", async () => {
+    localStorage.setItem("sistine-glass-tint", "lapis");
+    localStorage.setItem(
+      "sistine-glass-tint-custom",
+      JSON.stringify({
+        h: 30,
+        c: 0.2,
+        a: 0.9,
+      }),
+    );
+
+    await mounted();
+
+    /* Lapis's own hue, not the custom 30 — and critically NO inline alpha, so `[data-glass-tint="lapis"]`
+       and `.dark[data-glass-tint="lapis"]` keep their 0.13 / 0.54 split. */
+    await waitFor(() => expect(root().dataset.glassTint).toBe("lapis"));
+    expect(inlineAlpha()).toBe("");
+    expect(root().style.getPropertyValue("--glass-tint-h")).toBe("268");
+    expect(root().style.getPropertyValue("--glass-tint-c")).toBe("0.085");
+  });
+
+  it("still restores the custom tint when custom IS the active base", async () => {
+    /* The other side: the custom path has no CSS block to read from, so it MUST inline all three. A fix
+       that simply stopped reading CUSTOM_KEY would silently discard the user's own colour on reload. */
+    localStorage.setItem("sistine-glass-tint", "custom");
+    localStorage.setItem(
+      "sistine-glass-tint-custom",
+      JSON.stringify({
+        h: 30,
+        c: 0.2,
+        a: 0.9,
+      }),
+    );
+
+    await mounted();
+
+    await waitFor(() => expect(root().style.getPropertyValue("--glass-tint-h")).toBe("30"));
+    expect(root().style.getPropertyValue("--glass-tint-c")).toBe("0.2");
+    expect(inlineAlpha()).toBe("0.9");
+    expect(root().dataset.glassTint).toBeUndefined();
+  });
 });

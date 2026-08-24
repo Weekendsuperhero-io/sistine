@@ -457,6 +457,43 @@ for (const [value, tint] of presetTint) {
   }
 }
 
+/* ── [fallback-sync] AutoForeground's jsdom fallbacks must equal tokens.css ──────────────────────
+   `num("--x", fallback)` returns the fallback whenever getComputedStyle yields nothing — jsdom, and any
+   pre-hydration path. Those fallbacks encode the opaque floor, and tests/auto-foreground-surface-parity
+   MIRRORS them to model its surfaces, so when they drift the suite keeps passing against a surface the
+   theme no longer ships. That is not hypothetical: --glass-opaque-l sat at 90.9 for a whole release after
+   tokens.css moved to 88, and the c-scale pair was not merely stale but INVERTED (dark holding the light
+   value) directly beneath a comment claiming it mirrored tokens.css. Nothing could catch it, because
+   every guard either reads the CSS (which was right) or runs in jsdom (which read the fallback). This
+   compares the two texts directly. */
+{
+  const af = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
+  const tokens = readFileSync(join(root, "app/theme/tokens.css"), "utf8");
+  const bare = stripComments(tokens);
+  const lightBody = bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"));
+  const darkBody = bare.slice(bare.indexOf(".dark {"));
+  const cssVal = (body, name) => {
+    const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
+    return m ? Number(m[1]) : null;
+  };
+  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max"]) {
+    /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
+    const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
+    if (!m) {
+      fail(`[fallback-sync] auto-foreground.tsx has no \`num("--${name}", dark ? … : …)\` fallback pair to check — if the call was reshaped, update this rule rather than dropping the guard.`);
+      continue;
+    }
+    const [jsDark, jsLight] = [Number(m[1]), Number(m[2])];
+    const [cssDark, cssLight] = [cssVal(darkBody, name), cssVal(lightBody, name)];
+    if (cssDark !== null && jsDark !== cssDark) {
+      fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsDark} in DARK but tokens.css ships ${cssDark}. jsdom tests would model a surface the theme does not paint.`);
+    }
+    if (cssLight !== null && jsLight !== cssLight) {
+      fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsLight} in LIGHT but tokens.css ships ${cssLight}. jsdom tests would model a surface the theme does not paint.`);
+    }
+  }
+}
+
 if (failures.length) {
   console.error(`✗ theme invariants: ${failures.length} failure(s)\n${failures.map((f) => `  - ${f}`).join("\n")}`);
   process.exit(1);
