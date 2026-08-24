@@ -10,6 +10,7 @@
  * absent preference, and a truthiness check would silently discard it.
  */
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GlassTintSwitcher } from "@/components/glass-tint-switcher";
 
@@ -18,6 +19,8 @@ const OPACITY_KEY = "sistine-glass-opacity";
 const root = () => document.documentElement;
 /** The INLINE value only. `style.getPropertyValue` never sees the stylesheet, which is the point. */
 const inlineOpacity = () => root().style.getPropertyValue("--glass-opacity");
+/** Likewise inline-only: the whole point is that CSS, not <html>, owns this one. */
+const inlineAlpha = () => root().style.getPropertyValue("--glass-tint-a");
 
 /** The switcher writes on mount inside an effect; wait for that pass to settle. */
 async function mounted() {
@@ -29,12 +32,14 @@ beforeEach(() => {
   localStorage.clear();
   root().removeAttribute("style");
   root().className = "";
+  delete root().dataset.glassTint;
 });
 
 afterEach(() => {
   localStorage.clear();
   root().removeAttribute("style");
   root().className = "";
+  delete root().dataset.glassTint;
 });
 
 describe("GlassTintSwitcher: --glass-opacity persistence", () => {
@@ -72,5 +77,59 @@ describe("GlassTintSwitcher: --glass-opacity persistence", () => {
     root().style.setProperty("--glass-opacity", "0.9");
     await mounted();
     await waitFor(() => expect(inlineOpacity()).toBe(""));
+  });
+});
+
+/**
+ * TST-2-1 — a named preset must hand `--glass-tint-a` back to CSS rather than inline it.
+ *
+ * Alpha is the blend weight sliding a surface from the material floor toward the tint wash, and how far
+ * it can travel before body text drops under the 75 Lc floor depends on the MODE: a wash sitting near
+ * dark's floor barely moves it, the same wash in light drags the surface through the mid-tone band where
+ * no text polarity reaches the floor. So alpha is a mode twin — lapis takes 0.54 in dark and 0.13 in
+ * light — carried by `[data-glass-tint="lapis"]` and `.dark[data-glass-tint="lapis"]`.
+ *
+ * An inline value on <html> outranks BOTH blocks at once, which is what makes this worth pinning: it
+ * does not merely override one number, it collapses the twin to whichever single value the preset table
+ * happened to hold, silently stranding that preset in the other mode. scripts/check-contrast.mjs cannot
+ * see it — it reads the CSS, and the CSS stays correct; only the runtime DOM goes wrong.
+ */
+describe("GlassTintSwitcher: per-mode alpha stays with CSS", () => {
+  /** Open the popover and pick a swatch by its aria-label. */
+  async function pick(label: string) {
+    const user = userEvent.setup();
+    await mounted();
+    await user.click(screen.getByLabelText("Glass color"));
+    await user.click(await screen.findByLabelText(label));
+  }
+
+  it("sets data-glass-tint and inlines no alpha for a named preset", async () => {
+    await pick("Lapis");
+
+    /* The attribute is what activates the preset's block at all — its per-hue --glass-wash-l and its
+       mode-split alpha both live behind it. Jewels used to apply as bare inline h/c/a with no attribute,
+       which left the whole per-hue system inert on this switcher. */
+    await waitFor(() => expect(root().dataset.glassTint).toBe("lapis"));
+    expect(inlineAlpha()).toBe("");
+  });
+
+  it("removes a stale inline alpha left by an earlier custom tint", async () => {
+    /* The path that actually bites: drag to a custom colour (which legitimately inlines its own alpha,
+       having no CSS block to read from), then pick a preset. Skipping the write is not enough here —
+       the old value survives and shadows the twin. It has to be removed. */
+    root().style.setProperty("--glass-tint-a", "0.94");
+
+    await pick("Lapis");
+
+    await waitFor(() => expect(inlineAlpha()).toBe(""));
+  });
+
+  it("still pins hue and chroma inline", async () => {
+    /* Alpha is delegated; h and c are not. They stay inline so a drag off a preset starts from the
+       preset's own numbers, and check-theme's [tint-sync] asserts they match the block they shadow. */
+    await pick("Lapis");
+
+    await waitFor(() => expect(root().style.getPropertyValue("--glass-tint-h")).not.toBe(""));
+    expect(root().style.getPropertyValue("--glass-tint-c")).not.toBe("");
   });
 });
