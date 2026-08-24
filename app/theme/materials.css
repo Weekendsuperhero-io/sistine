@@ -120,7 +120,16 @@
      there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
      (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
   --srf-solidify: none;
-  --srf-bg-image: var(--glass-bg);
+  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+     gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
+     light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
+     rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
+     page content that masks that noise; opaque sets --srf-filter: none, so there is nothing behind it and
+     the dither is the only variation on the card — read as grain, worst over text.
+     The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
+     so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
+     same token, so the -opaque text tiers re-band against the new floor automatically. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));

@@ -237,9 +237,17 @@
   --glass-solid-l: 99%;
   /* Opaque tint BODY lightness (plain number → % in the engine). The header L slider drives this; the
      opaque floor color AND AutoForeground's --foreground-opaque banding both read it, so they can't
-     drift. LOWER = deeper tint. */
-  --glass-opaque-l: 90;
-  --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
+     drift. LOWER = deeper tint.
+     L AND the c-scale below together absorb the retired opaque SHEET (see materials.css). --glass-bg was a
+     near-white gradient at ~0.11 alpha, so it did two things to this floor: lightened it AND desaturated
+     it. Compensating with lightness alone reproduced only half of that — it left the floor too saturated,
+     and pushing L further toward white also SHRINKS the sRGB chroma ceiling, which blew the opaque body
+     past check-gamut's 4.6× budget (lapis hit 5.46×). Moving both knobs reproduces both effects and stays
+     inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
+     order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
+     Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
+  --glass-opaque-l: 90.9;
+  --glass-opaque-c-scale: 1.26; /* opaque floor chroma multiplier (0.85 in dark keeps warm hues in-gamut) */
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -461,8 +469,11 @@
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
-  --glass-opaque-l: 32;
-  --glass-opaque-c-scale: 0.9;
+  /* The retired sheet's compensation, dark twin (see :root). Much the larger move of the two modes: a
+     near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
+     two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
+  --glass-opaque-l: 36.4;
+  --glass-opaque-c-scale: 0.85;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
@@ -1264,7 +1275,16 @@
      there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
      (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
   --srf-solidify: none;
-  --srf-bg-image: var(--glass-bg);
+  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+     gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
+     light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
+     rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
+     page content that masks that noise; opaque sets --srf-filter: none, so there is nothing behind it and
+     the dither is the only variation on the card — read as grain, worst over text.
+     The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
+     so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
+     same token, so the -opaque text tiers re-band against the new floor automatically. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
@@ -1443,7 +1463,10 @@
   [data-glass="opaque"][data-glass-tint],
   [data-glass="opaque"] [data-sonner-toast][data-type]
 ) {
-  --srf-bg-image: var(--glass-bg);
+  /* Flat floor, no sheet — same reasoning as [data-material="opaque"] in materials.css: with
+     --srf-filter: none there is no blurred backdrop to mask the dither of a 2–7 code gradient, and the
+     sheet's uniform lift is folded into --glass-opaque-l instead. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
@@ -1555,12 +1578,17 @@
   --glass-tint-c: 0.047;
   --glass-tint-a: 0.18;
   --harmony-h: 0;
-  --glass-opaque-l: 94; /* moonstone daytime body lightness */
+  /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
+     floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
+     far less than it moved the standard L90 floor. dE 0.0002 — indistinguishable from the old surface. */
+  --glass-opaque-l: 94.5;
   /* NO pinned --glass-opaque-bg: the floor must stay DERIVED from --glass-opaque-l (engine), because the
      lightness slider / stored per-mode L land as an INLINE --glass-opaque-l that shadows this block — a
      literal pin would freeze the paint while AutoForeground keeps banding text against the token (light
-     text on cream). c-scale 1 makes the derived color exactly the original cream in both modes. */
-  --glass-opaque-c-scale: 1;
+     text on cream). Was c-scale 1 — the value that made the derived color exactly the original cream when
+     the sheet still painted over it; 0.92 is that same cream now that the sheet is gone (it desaturated as
+     well as lightened, so both knobs carry part of it). */
+  --glass-opaque-c-scale: 0.92;
 }
 .dark[data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
@@ -1578,8 +1606,10 @@
      hue reads as cream, not tan). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 84;
-  --glass-opaque-c-scale: 0.45;
+  /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
+     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
+  --glass-opaque-l: 84.9;
+  --glass-opaque-c-scale: 0.44;
   /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
      dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
      opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */

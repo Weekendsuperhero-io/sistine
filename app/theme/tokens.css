@@ -159,9 +159,17 @@
   --glass-solid-l: 99%;
   /* Opaque tint BODY lightness (plain number → % in the engine). The header L slider drives this; the
      opaque floor color AND AutoForeground's --foreground-opaque banding both read it, so they can't
-     drift. LOWER = deeper tint. */
-  --glass-opaque-l: 90;
-  --glass-opaque-c-scale: 1.4; /* opaque floor chroma multiplier (0.9 in dark keeps warm hues in-gamut) */
+     drift. LOWER = deeper tint.
+     L AND the c-scale below together absorb the retired opaque SHEET (see materials.css). --glass-bg was a
+     near-white gradient at ~0.11 alpha, so it did two things to this floor: lightened it AND desaturated
+     it. Compensating with lightness alone reproduced only half of that — it left the floor too saturated,
+     and pushing L further toward white also SHRINKS the sRGB chroma ceiling, which blew the opaque body
+     past check-gamut's 4.6× budget (lapis hit 5.46×). Moving both knobs reproduces both effects and stays
+     inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
+     order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
+     Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
+  --glass-opaque-l: 90.9;
+  --glass-opaque-c-scale: 1.26; /* opaque floor chroma multiplier (0.85 in dark keeps warm hues in-gamut) */
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -383,8 +391,11 @@
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
-  --glass-opaque-l: 32;
-  --glass-opaque-c-scale: 0.9;
+  /* The retired sheet's compensation, dark twin (see :root). Much the larger move of the two modes: a
+     near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
+     two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
+  --glass-opaque-l: 36.4;
+  --glass-opaque-c-scale: 0.85;
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to

@@ -57,7 +57,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       2.5,
     ),
     "-opaque": {
-      l: dark ? 32 : 90,
+      l: dark ? 36.4 : 90.9,
       c: 0,
       h,
     },

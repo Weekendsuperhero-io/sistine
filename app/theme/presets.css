@@ -79,12 +79,17 @@
   --glass-tint-c: 0.047;
   --glass-tint-a: 0.18;
   --harmony-h: 0;
-  --glass-opaque-l: 94; /* moonstone daytime body lightness */
+  /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
+     floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
+     far less than it moved the standard L90 floor. dE 0.0002 — indistinguishable from the old surface. */
+  --glass-opaque-l: 94.5;
   /* NO pinned --glass-opaque-bg: the floor must stay DERIVED from --glass-opaque-l (engine), because the
      lightness slider / stored per-mode L land as an INLINE --glass-opaque-l that shadows this block — a
      literal pin would freeze the paint while AutoForeground keeps banding text against the token (light
-     text on cream). c-scale 1 makes the derived color exactly the original cream in both modes. */
-  --glass-opaque-c-scale: 1;
+     text on cream). Was c-scale 1 — the value that made the derived color exactly the original cream when
+     the sheet still painted over it; 0.92 is that same cream now that the sheet is gone (it desaturated as
+     well as lightened, so both knobs carry part of it). */
+  --glass-opaque-c-scale: 0.92;
 }
 .dark[data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
@@ -102,8 +107,10 @@
      hue reads as cream, not tan). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
-  --glass-opaque-l: 84;
-  --glass-opaque-c-scale: 0.45;
+  /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
+     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
+  --glass-opaque-l: 84.9;
+  --glass-opaque-c-scale: 0.44;
   /* Static -opaque tier baselines for moonstone's LIGHT night floor — the global dark baselines assume a
      dark opaque floor (L32) and would put light text on this cream. Dark warm literals keep moonstone's
      opaque cards legible for no-JS consumers + SSR first paint; AutoForeground refines when mounted. */

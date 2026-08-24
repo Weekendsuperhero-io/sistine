@@ -86,7 +86,10 @@
   [data-glass="opaque"][data-glass-tint],
   [data-glass="opaque"] [data-sonner-toast][data-type]
 ) {
-  --srf-bg-image: var(--glass-bg);
+  /* Flat floor, no sheet — same reasoning as [data-material="opaque"] in materials.css: with
+     --srf-filter: none there is no blurred backdrop to mask the dither of a 2–7 code gradient, and the
+     sheet's uniform lift is folded into --glass-opaque-l instead. */
+  --srf-bg-image: none;
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);

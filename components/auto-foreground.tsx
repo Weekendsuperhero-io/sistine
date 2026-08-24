@@ -396,7 +396,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // floor (moonstone cream) gets DARK text — the theme ramp only spans the readable half and can't.
       applyTiers(
         {
-          l: num("--glass-opaque-l", dark ? 32 : 90),
+          l: num("--glass-opaque-l", dark ? 36.4 : 90.9),
           c: num("--glass-tint-c", 0) * 0.9,
           h: tintH,
         },
