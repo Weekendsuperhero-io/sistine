@@ -3,6 +3,7 @@
 import * as React from "react";
 import {
   apcaContrast,
+  compositeSurface,
   formatOklch,
   glassSolidSurface,
   HARMONIC_OFFSETS,
@@ -279,8 +280,37 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-opaque-c-max", dark ? 0.12 : 0.055)),
         a: glassOpacity,
       };
-      /** Composite the solidify floor over a sheer floor lightness — the layer order `glass` paints. */
-      const solidified = (l: number) => l * (1 - glassOpacity) + solidifyFloor.l * glassOpacity;
+      /** The solidify floor as a compositable layer — the layer order `glass` paints. */
+      const solidifyLayer = {
+        l: solidifyFloor.l,
+        c: solidifyFloor.c,
+        h: tintH,
+        a: solidifyFloor.a,
+      };
+      /* --glass-tint-c-hi (engine.css): the HIGHLIGHT chroma budget, min(--glass-tint-c, 0.017). The
+         sheet stops and the crystal floor are all scaled off this, not off raw --glass-tint-c — at
+         near-white lightnesses the gamut ceiling collapses, so the cap is what keeps those layers
+         rendering what they ask for. check-theme [gamut] holds the 0.017 in step with engine.css. */
+      const TINT_C_HI_MAX = 0.017;
+      const tintCHi = Math.min(tintC, TINT_C_HI_MAX);
+      /* The gloss triple (top / streak / glow) — crystal AND chakra bake the same --glass-gloss-ink, so
+         it is derived once here. Only the TOP highlight is modeled: it peaks at 0.4α and fades out by
+         30% height, so ≈0.2 is its mean across the title zone (modeling the 0.4 peak would make the band
+         unsatisfiable on mid-gray). The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
+         at 50% 120%, i.e. BELOW the card) are left out: the glow is past its 70% fade before it reaches
+         the title zone, and the streak's mean there is a geometry estimate rather than a measurement.
+         Both would only ADD light, so omitting them is the conservative direction. */
+      const GLOSS_TOP_A = 0.2;
+      const glossLayer = {
+        /* Mode-aware fallback: --glass-gloss-l is a twin (97 light / 66 dark), so a single 66 here would
+           model the light crystal surface ~6 L darker than it renders and band text too weak. */
+        l: num("--glass-gloss-l", dark ? 66 : 97),
+        // --glass-gloss-ink is TINTED — min(--glass-tint-c × --glass-gloss-tint, --glass-gloss-c-max).
+        // Modeling it achromatic dropped the gloss's colour from every crystal/chakra band.
+        c: Math.min(tintC * num("--glass-gloss-tint", 4.25), num("--glass-gloss-c-max", dark ? 0.109 : 0.013)),
+        h: tintH,
+        a: GLOSS_TOP_A,
+      };
       const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
       const normalLcBoost = LC_MARGIN * showThrough;
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
@@ -490,57 +520,89 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Crystal cards: the specular gloss is baked UNDER content, so title-zone text sits on a locally
       // LIGHTENED surface — worst in dark mode, where the ~L94 highlight over a dark floor pulls the
       // local surface toward mid-gray. Band a THIRD set against the crystal surface + the title zone's
-      // MEAN gloss term (the top highlight peaks at 0.4α and fades out by 30% height → ≈0.2 effective;
-      // modeling the 0.4 peak would make the band unsatisfiable on mid-gray). [data-material="crystal"]
-      // and the crystal page style remap the tiers to this set — except veiled crystal, whose floor is
-      // what the NORMAL tiers are banded for. Same show-through margin logic: the backdrop's weight in
-      // this mix is (1−crysA)(1−tintA)(1−glossA).
+      // mean gloss term (see glossLayer). [data-material="crystal"] and the crystal page style remap the
+      // tiers to this set — except veiled crystal, whose floor is what the NORMAL tiers are banded for.
+      // Same show-through margin logic: the backdrop's weight in this mix is (1−crysA)(1−tintA)(1−glossA).
       {
         const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
-        /* Mode-aware fallback: --glass-gloss-l is a twin now (97 light / 66 dark), so a single 66 here
-           would model the light crystal surface ~6 L darker than it renders and band text too weak. */
-        const glossL = num("--glass-gloss-l", dark ? 66 : 97);
-        const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
-        const baseL = dark ? 20 : 95;
         // Layer order: --glass-crystal-bg (background-COLOR) → solidify → wash → gloss. The solidify step
-        // was missing, which is what put moonstone-night crystal 27.5 L below what it paints.
-        const floorL = solidified(baseL * (1 - crysA) + 100 * crysA);
-        const washedL = floorL * (1 - tintA) + washL * tintA;
-        const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;
+        // was missing, which is what put moonstone-night crystal 27.5 L below what it paints. Each layer
+        // now composites in sRGB (see compositeSurface) rather than lerping OKLCH coordinates — on this
+        // surface that error CHANGED SIGN by preset, so nothing shorter than a real composite fixes it.
         const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A) * (1 - glassOpacity), 0), 1);
         applyTiers(
-          {
-            l: crystalL,
-            // The crystal floor's own chroma plus the solidify floor's, each surviving what the layers
-            // above let through — the sheer 0.6× term alone assumed nothing solid sat underneath.
-            c: (num("--glass-tint-c", 0) * 0.6 * (1 - glassOpacity) + solidifyFloor.c * glassOpacity) * (1 - tintA) + tintC * washCMult * tintA,
-            h: tintH,
-          },
+          compositeSurface(
+            {
+              l: dark ? 20 : 95,
+              c: 0,
+              h: tintH,
+            },
+            [
+              // --glass-crystal-bg, engine.css: oklch(--glass-crystal-l, --glass-tint-c-hi × 0.6). This
+              // modeled a flat L100 at the RAW tint chroma — 100 carries no chroma at all (which is why
+              // the token pins 96), and skipping the -c-hi cap asked for up to 6× the colour that
+              // renders (tourmaline 0.0636 vs the 0.0102 ceiling).
+              {
+                l: num("--glass-crystal-l", 96),
+                c: tintCHi * 0.6,
+                h: tintH,
+                a: crysA,
+              },
+              solidifyLayer,
+              {
+                l: washL,
+                c: tintC * washCMult,
+                h: tintH,
+                a: tintA,
+              },
+              glossLayer,
+            ],
+          ),
           "-crystal",
           true,
           LC_MARGIN * uCrystal,
         );
       }
-      // Chakra cards: content sits on the translucent body, so --glass-chakra-l IS the banding
-      // lightness. The facet bands need no term — they live in box-shadow, ride the outer few px of the
-      // edge, and pair a highlight against an ink on opposite sides, so they contribute nothing where
-      // text actually sits. Show-through is just (1 − body a), the largest of any tier here, so this
-      // gets the full margin. `adaptive` for the same reason opaque is: an L88 body can sit on a dark
-      // page, and the theme ramp only spans the readable half so it cannot produce dark text.
+      // Chakra cards: content sits on the translucent body, banded against the whole stack it paints.
+      // The facet bands need no term — they live in box-shadow, ride the outer few px of the edge, and
+      // pair a highlight against an ink on opposite sides, so they contribute nothing where text
+      // actually sits. Show-through is (1 − body a)(1 − tintA)(1 − glassOpacity), the largest of any
+      // tier here, so this gets the full margin. `adaptive` for the same reason opaque is: an L88 body
+      // can sit on a dark page, and the theme ramp only spans the readable half so it cannot make dark text.
       {
         const bodyA = num("--glass-chakra-a", dark ? 0.58 : 0.62);
-        // The body is the background-COLOR, so solidify paints over it here too. Chakra happened to land
-        // right on moonstone night only because that preset pins --glass-chakra-l light (84) to match its
-        // cream opaque floor — the model was not actually tracking the floor, it just agreed with it.
+        /* --glass-chakra-bg is the background-COLOR and it is TRANSLUCENT (--glass-chakra-a, 0.62 light
+           / 0.58 dark), so --glass-chakra-l was never the banding lightness on its own — the page shows
+           through it. And --glass-chakra-stack-bg is the SAME stack crystal bakes (gloss triple, fresco
+           slot, wash layer) with solidify composed under it, so chakra takes the tint wash and the gloss
+           too. Modeling only `chakra-l → solidify` dropped the page, the body's own alpha, the entire
+           wash and the gloss; it agreed with the truth on moonstone night by coincidence, because that
+           preset pins --glass-chakra-l (84) near its cream opaque floor. Full stack, real paint order. */
         const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
         applyTiers(
-          {
-            l: solidified(num("--glass-chakra-l", dark ? 28 : 88)),
-            c:
-              Math.min(num("--glass-tint-c", 0), num("--glass-chakra-c-max", dark ? 0.046 : 0.055)) * (1 - glassOpacity) +
-              solidifyFloor.c * glassOpacity,
-            h: tintH,
-          },
+          compositeSurface(
+            {
+              l: dark ? 20 : 95,
+              c: 0,
+              h: tintH,
+            },
+            [
+              {
+                l: num("--glass-chakra-l", dark ? 28 : 88),
+                c: Math.min(tintC, num("--glass-chakra-c-max", dark ? 0.046 : 0.055)),
+                h: tintH,
+                a: bodyA,
+              },
+              solidifyLayer,
+              {
+                l: washL,
+                c: tintC * washCMult,
+                h: tintH,
+                a: tintA,
+              },
+              glossLayer,
+            ],
+          ),
           "-chakra",
           true,
           LC_MARGIN * uChakra,

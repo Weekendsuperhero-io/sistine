@@ -18,7 +18,7 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -48,13 +48,24 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   // here because jsdom resolves --glass-tint-c to its 0 fallback.
   const opacity = 0.7;
   const opaqueL = dark ? 36.4 : 88;
-  const solidified = (l: number) => l * (1 - opacity) + opaqueL * opacity;
   const solidify = {
     l: opaqueL,
     c: 0,
+    h,
     a: opacity,
   };
-  const floorL = solidified((dark ? 20 : 95) * (1 - crysA) + 100 * crysA);
+  const page = {
+    l: dark ? 20 : 95,
+    c: 0,
+    h,
+  };
+  // Same gloss ink both sheer materials bake; chroma 0 here because jsdom resolves --glass-tint-c to 0.
+  const gloss = {
+    l: glossL,
+    c: 0,
+    h,
+    a: GLOSS_TOP_A,
+  };
   return {
     "": glassSolidSurface(
       dark,
@@ -73,16 +84,31 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       c: 0,
       h,
     },
-    "-crystal": {
-      l: floorL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A,
-      c: 0,
-      h,
-    },
-    "-chakra": {
-      l: solidified(dark ? 28 : 88),
-      c: 0,
-      h,
-    },
+    // --glass-crystal-bg over the page, then solidify → wash → gloss. Composited in sRGB, the way the
+    // browser paints it; the crystal floor is --glass-crystal-l (96), NOT a flat L100.
+    "-crystal": compositeSurface(page, [
+      {
+        l: 96,
+        c: 0,
+        h,
+        a: crysA,
+      },
+      solidify,
+      gloss,
+    ]),
+    // The chakra BODY is translucent (--glass-chakra-a), so the page shows through it, and chakra bakes
+    // the same wash + gloss stack crystal does. The wash is absent here only because jsdom leaves
+    // --glass-tint-a at its 0 fallback.
+    "-chakra": compositeSurface(page, [
+      {
+        l: dark ? 28 : 88,
+        c: 0,
+        h,
+        a: dark ? 0.58 : 0.62,
+      },
+      solidify,
+      gloss,
+    ]),
   };
 };
 

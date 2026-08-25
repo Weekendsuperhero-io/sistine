@@ -693,6 +693,81 @@ export function oklchToSrgb(
   ];
 }
 
+/** Gamma-encoded sRGB channels in [0, 1] → OKLCH (l 0–100). Exact inverse of {@link oklchToSrgb} for
+ *  in-gamut input, so a composite→decompose round trip is lossless. */
+export function srgbToOklch([r, g, b]: [
+  number,
+  number,
+  number,
+]): OklchColor {
+  const decode = (v: number) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const [lr, lg, lb] = [
+    decode(r),
+    decode(g),
+    decode(b),
+  ];
+  const l_ = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m_ = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s_ = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  const L = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_;
+  const a = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_;
+  const bb = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_;
+  return {
+    l: L * 100,
+    c: Math.hypot(a, bb),
+    h: wrapHue((Math.atan2(bb, a) * 180) / Math.PI),
+  };
+}
+
+/**
+ * Composite a stack of translucent OKLCH layers THE WAY THE BROWSER DOES — CSS source-over on
+ * gamma-encoded sRGB channels — and report the result in OKLCH.
+ *
+ * The obvious shortcut is to lerp the OKLCH coordinates instead (`l1·(1−a) + l2·a`, same for chroma).
+ * That is a different operation and it is measurably wrong: OKLCH lightness is a cube-root-ish
+ * perceptual scale, sRGB is a ~2.2 gamma, and chroma is a POLAR coordinate, so lerping it mixes two
+ * hues along a straight line through the chroma plane rather than around it. Measured against the
+ * shipped presets, the shortcut overstated light-mode body contrast by up to 2.8 Lc on the veiled
+ * surface — enough to hide four presets sitting under the ARC body floor — while on the crystal
+ * surface the error CHANGES SIGN by preset (+0.95 carnelian, −2.66 aventurine). That sign flip is why
+ * this is a compositing fix and not a fudge factor: no single correction term can be both.
+ *
+ * `layers` paint bottom-first; `base` is fully opaque. Each layer's alpha is its own (a layer at
+ * alpha 1 simply replaces what is under it). Hue is carried through from the top-most layer that
+ * actually contributed chroma, so a neutral stack keeps its nominal hue instead of collapsing to 0.
+ */
+export function compositeSurface(
+  base: OklchColor,
+  layers: Array<
+    OklchColor & {
+      a: number;
+    }
+  >,
+): OklchColor {
+  let px = oklchToSrgb(base.l, base.c, base.h);
+  let hue = base.h;
+  for (const layer of layers) {
+    const a = Math.min(Math.max(layer.a, 0), 1);
+    if (a <= 0) continue;
+    const src = oklchToSrgb(layer.l, layer.c, layer.h);
+    px = [
+      src[0] * a + px[0] * (1 - a),
+      src[1] * a + px[1] * (1 - a),
+      src[2] * a + px[2] * (1 - a),
+    ];
+    if (layer.c > 0) hue = layer.h;
+  }
+  const out = srgbToOklch(px);
+  // Below this the hue angle is numerical noise off a near-neutral pixel — keep the stack's nominal
+  // hue so callers that tint from the surface (readableForeground, the ramp base) stay on the theme.
+  return out.c < 1e-4
+    ? {
+        ...out,
+        h: hue,
+      }
+    : out;
+}
+
 /** APCA screen luminance (Ys) from gamma-encoded sRGB. */
 function apcaLuminance([r, g, b]: [
   number,
@@ -791,11 +866,21 @@ export function glassSurface(
 ): OklchColor {
   const baseL = dark ? 20 : 95;
   const washL = dark ? 58 : 72;
-  return {
-    l: baseL * (1 - tint.a) + washL * tint.a,
-    c: tint.c * 2.5 * tint.a,
-    h: tint.h,
-  };
+  return compositeSurface(
+    {
+      l: baseL,
+      c: 0,
+      h: tint.h,
+    },
+    [
+      {
+        l: washL,
+        c: tint.c * 2.5,
+        h: tint.h,
+        a: tint.a,
+      },
+    ],
+  );
 }
 
 /**
@@ -830,19 +915,39 @@ export function glassSolidSurface(
 ): OklchColor {
   const baseL = dark ? 20 : 95;
   const solidL = dark ? 18 : 99;
-  let floorL = baseL * (1 - solidA) + solidL * solidA;
-  let floorC = 0;
-  if (solidify) {
-    floorL = floorL * (1 - solidify.a) + solidify.l * solidify.a;
-    floorC = solidify.c * solidify.a;
-  }
-  return {
-    l: floorL * (1 - tint.a) + washL * tint.a,
-    // The wash composites OVER the solidified floor, so the floor's own chroma survives in proportion
-    // to what the wash lets through — same mix the lightness above takes.
-    c: floorC * (1 - tint.a) + tint.c * washCMult * tint.a,
-    h: tint.h,
-  };
+  // The real paint order, composited in the real space — see compositeSurface for why lerping the
+  // OKLCH coordinates instead is not the same operation.
+  return compositeSurface(
+    {
+      l: baseL,
+      c: 0,
+      h: tint.h,
+    },
+    [
+      {
+        l: solidL,
+        c: 0,
+        h: tint.h,
+        a: solidA,
+      },
+      ...(solidify
+        ? [
+            {
+              l: solidify.l,
+              c: solidify.c,
+              h: tint.h,
+              a: solidify.a,
+            },
+          ]
+        : []),
+      {
+        l: washL,
+        c: tint.c * washCMult,
+        h: tint.h,
+        a: tint.a,
+      },
+    ],
+  );
 }
 
 /** Options for {@link themeForeground}. */
