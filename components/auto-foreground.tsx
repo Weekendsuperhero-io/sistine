@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  apcaContrast,
   formatOklch,
   glassSolidSurface,
   HARMONIC_OFFSETS,
@@ -61,6 +62,19 @@ const DEFAULT_FG: FgConfig = {
   softHue: null,
   strongHue: null,
 };
+/** Lightness below which an sRGB colour renders as black no matter its chroma — the ramp's dark end is
+ *  clipped here on tinted themes so a reach-limited tier keeps its hue instead of collapsing to #000.
+ *  18 sits just above L15 (#130900 at the warm hue, still reading black at text size); the darkest step
+ *  kept is L20 (#211300), which is unambiguously tinted. */
+const TONAL_MIN_L = 18;
+/** The same clip at the WHITE end, where L100 is exactly achromatic. Deliberately much tighter than its
+ *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
+ *  while near white a single 3-point step is worth 6–8 Lc. 97 clips the pure-white end point (and, on a
+ *  finer ramp, the step just below it) while keeping L96.7 — #eff4ff at the blue hue, faint but tinted. */
+const TONAL_MAX_L = 97;
+/** The contrast line the tonal clip may never trade away: the body band's floor, i.e. the point where
+ *  text stops being readable rather than merely missing an aspirational target. */
+const LEGIBLE_FLOOR = READABLE_USAGE.body.floor;
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
@@ -282,7 +296,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       };
       // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
       // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
-      const ramp = Array.from(
+      const rawRamp = Array.from(
         {
           length: count + 1,
         },
@@ -295,6 +309,23 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             dark,
           }),
       );
+      /* Drop BOTH achromatic ends of the ramp on tinted themes. sRGB has almost no gamut volume at either
+         extreme, so the steps there are pure black / pure white wearing a theme colour's name: at L0 any
+         requested chroma renders #000000 (L5 → #030000, L10 → #070200), and at L100 it renders #ffffff.
+         pickInBand reaches them whenever a band's target sits above every step — it then picks for maximum
+         contrast, which IS the extreme. The `small` band (floor Lc 90) does exactly that in both modes, so
+         --foreground-strong was #000000 on 20 of 21 presets in light and #ffffff on 18 of 21 in dark, while
+         body text one band down stayed properly tonal. Light was worse: body ALSO went black on 10 of 21.
+         The two ends are not symmetric, which is why the thresholds are not either. Near black, luminance
+         barely moves with lightness, so the whole L0–L18 span is visually one colour and giving it up costs
+         1.3–1.9 Lc — nothing. Near white the same lightness step is worth 6–8 Lc, so only the very top is
+         clipped, and fine text in dark lands 80–91 Lc instead of 86–97. That is a real reduction, taken
+         deliberately: it matches what light mode already ships for the same tier (76–88), and the 90 floor
+         was never actually held there — 11 of 21 presets miss it even at pure white.
+         NEUTRAL themes (selenite: base chroma 0) keep the full ramp, since there black and white are the
+         genuine ends of a grey scale rather than colours that lost their hue. */
+      const tonal = rawRamp.filter((c) => c.l >= TONAL_MIN_L && c.l <= TONAL_MAX_L);
+      const ramp = base.c > 0 && tonal.length ? tonal : rawRamp;
       const iconHue = storedFg.iconHue;
       // Set the full foreground tier set against a given SURFACE, under a var suffix. Run twice: "" for the
       // normal glass-SOLID surface (page + translucent/solid cards), and "-opaque" for the solid
@@ -322,6 +353,27 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           ...band,
           target: Math.min(band.target + lcBoost + lcAim, band.ceiling),
         });
+        /* Pick from the TONAL ramp, but never at the cost of the band's floor. The clipped ramp above drops
+           the steps that render black; if a band is so demanding that only those steps could satisfy its
+           FLOOR, legibility outranks hue and the full ramp comes back. Today no band needs it — light body
+           bottoms out at 75.4 Lc on the clipped ramp — but /colors lets a consumer re-base the ramp (its
+           lightness, chroma and step count are all user config), and a shallow enough ramp could put the
+           floor out of the clipped subset's reach. This keeps the preference from ever becoming a
+           readability regression, rather than relying on TONAL_MIN_L being right for every ramp. */
+        const pickTonal = (band: { floor: number; target: number; ceiling: number }) => {
+          const best = pickInBand(ramp, surface, band);
+          if (ramp === rawRamp) return best;
+          const lc = (c: { l: number; c: number; h: number }) => Math.abs(apcaContrast(c, surface));
+          /* Guard LEGIBILITY, not each band's aspiration. Checking against band.floor would undo the clip
+             on the one tier it exists for: the `small` band asks Lc 90, which no light surface reaches at
+             all and which in dark only pure white reaches, so a band.floor test hands the extreme straight
+             back. The body floor is the line that actually has to hold — below it text stops being
+             readable — and every clipped pick clears it comfortably (light body bottoms out at 75.4, dark
+             fine text at 80.1). Above that line, hue wins. */
+          if (lc(best) >= LEGIBLE_FLOOR) return best;
+          const full = pickInBand(rawRamp, surface, band);
+          return lc(full) > lc(best) ? full : best;
+        };
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
@@ -344,7 +396,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   // theme passes 0 → behavior unchanged.
                   minChroma: huelessAccent ? 0.08 : 0,
                 })
-              : pickInBand(ramp, surface, band),
+              : pickTonal(band),
           );
         };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));

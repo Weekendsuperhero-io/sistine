@@ -262,13 +262,17 @@
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(
-    0.22 0.04 var(--glass-fg-h)
+    0.2 0.035 var(--glass-fg-h)
   ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */
   /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
      these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
-  --foreground-soft: oklch(0.4 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
-  --foreground-strong: oklch(0.12 0.04 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
-  --foreground-ui: oklch(0.46 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  --foreground-soft: oklch(
+    0.45 0.077 var(--glass-fg-h)
+  ); /* large/heading — baseline matched to AutoForeground's median pick; chroma is the LOWEST any preset hue solves to, so no hue clips before JS refines */
+  --foreground-strong: oklch(
+    0.2 0.034 var(--glass-fg-h)
+  ); /* fine/small — the ramp's tonal clip put this at L20, not L12; the old value flashed dark-then-tinted on every load */
+  --foreground-ui: oklch(0.42 0.071 var(--glass-fg-h)); /* icons — AutoForeground re-bands (+ optional hue) */
   /* Static baselines for the OPAQUE + CRYSTAL tier sets (the [data-material] remaps read these) —
      WITHOUT them, a no-JS consumer (or SSR first paint) would substitute an unset var and INHERIT the
      page foreground onto those floors. Light mode: the opaque floor (L90) and crystal surface share
@@ -326,12 +330,26 @@
   /* Muted colors - Light mode */
   --muted-l: 0.85;
   --muted-c-max: 0.071; /* ≤ 0.0714, the L-85 ceiling floor (lapis h268) */
-  --muted-foreground: oklch(0.14 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
+  --muted-foreground: oklch(
+    0.35 0.06 var(--glass-fg-h)
+  ); /* Level 1 — L35, not L14: the widest gap of the set, and the one doing most of the first-paint flash */
 
   /* Accent colors - Light mode. NOTE the knob prefix: --accent-c / --accent-h are already taken as the
      user-facing overrides for --glass-accent (the vivid switch/slider fill), a different role. */
-  --accent-bg-l: 0.96;
-  --accent-bg-c-max: 0.018; /* ≤ 0.0182, the L-96 ceiling floor (lapis h268) */
+  /* L93, down from 0.96, and the cap raised with it. The hover fill was reading as plain white: at L96 the
+     sRGB gamut allows a chroma of only 0.0182, an RGB spread of 19, so "tinted" was arithmetically
+     invisible. Chroma near the extremes is not a free parameter — it is whatever the gamut leaves — so the
+     only way to a visible tint is to step off the extreme. Three points of lightness buys 1.7x the spread
+     (19 -> 32) and moves the fill DARKER than the surface, the direction a highlight should go on a light
+     page. It cannot go much further: --accent is also painted at 50% (bg-accent/50 on calendar's "today",
+     button's active state, ToggleGroup hover), and that composite over an L88 card is what binds — at L92
+     it drops to 76.0 Lc, under the floor+margin, while L93 holds 76.9. */
+  --accent-bg-l: 0.93;
+  --accent-bg-c-max: 0.032; /* ≤ 0.0323, the L-93 ceiling floor (lapis h268) */
+  /* Stays --foreground: this token is text on a SURFACE-lightness background, and it has two callers with
+     that shape — the accent fill here, and the bg-foreground/10 wash the menus use (dropdown, context,
+     navigation, command, menubar, select). They only share a text colour while --accent stays near the
+     surface, which is precisely why the fill was moved by chroma rather than by weight. */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
@@ -475,13 +493,13 @@
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
   --foreground: oklch(
-    0.92 0.04 var(--glass-fg-h)
+    0.95 0.03 var(--glass-fg-h)
   ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */
   /* Size-tiered foregrounds (ARC Bronze Simple Mode bands) — static fallback; AutoForeground re-bands
      these against the live glass surface at runtime. text-foreground-soft / -strong utilities. */
-  --foreground-soft: oklch(0.78 0.04 var(--glass-fg-h)); /* large/heading — tinted baseline; refined at runtime */
-  --foreground-strong: oklch(0.96 0.035 var(--glass-fg-h)); /* fine/small — tinted baseline; refined at runtime */
-  --foreground-ui: oklch(0.75 0.05 var(--glass-fg-h)); /* icons — tinted baseline; AutoForeground re-bands (+ optional hue) */
+  --foreground-soft: oklch(0.83 0.065 var(--glass-fg-h)); /* large/heading — refined at runtime */
+  --foreground-strong: oklch(0.97 0.015 var(--glass-fg-h)); /* fine/small — refined at runtime */
+  --foreground-ui: oklch(0.87 0.057 var(--glass-fg-h)); /* icons — AutoForeground re-bands (+ optional hue) */
   /* Static OPAQUE + CRYSTAL tier baselines, dark twins — the standard dark opaque floor (L32) and
      crystal surface keep the page's light-text direction. Presets whose dark floors flip LIGHT (moonstone
      cream) override the -opaque set in their own block; AutoForeground refines when mounted. */
@@ -524,11 +542,15 @@
   /* Muted colors — dark mode */
   --muted-l: 0.18;
   --muted-c-max: 0.03; /* ≤ 0.0307, the L-18 ceiling floor (turquoise h190) */
-  --muted-foreground: oklch(0.89 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
+  --muted-foreground: oklch(0.9 0.031 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
   /* Accent colors — dark mode */
-  --accent-bg-l: 0.25;
-  --accent-bg-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
+  /* L34, up from 0.25 — the same fix as light, mirrored. At L25 the ceiling was 0.0417 (spread 29), so the
+     fill read as near-black; L34 allows 0.0565 (spread 42) and moves it BRIGHTER than the surface, which is
+     the direction a highlight goes on a dark page. Dark has more room than light here (its 50% composite
+     sits at 77.5 Lc rather than 76.0), because the fill and the L36.4 card floor are close together. */
+  --accent-bg-l: 0.34;
+  --accent-bg-c-max: 0.056; /* ≤ 0.0565, the L-34 ceiling floor (aurora h205) */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */

@@ -241,6 +241,9 @@
      and these sit from L 18 to L 98 — a shared cap would have to be the smallest of them (0.009, at the
      near-white sidebar) and would tint nothing. See the knobs in tokens.css. */
   --accent: oklch(var(--accent-bg-l) min(var(--glass-tint-c), var(--accent-bg-c-max)) var(--glass-tint-h));
+  /* The hover wash as an IMAGE layer (glass-hover-accent). Translucent so the material still reads
+     through it — a hover that paints a flat fill stops looking like glass. */
+  --glass-hover-wash: color-mix(in oklch, var(--accent) 70%, transparent);
   --secondary: oklch(var(--secondary-l) min(var(--glass-tint-c), var(--secondary-c-max)) var(--glass-tint-h));
   --muted: oklch(var(--muted-l) min(var(--glass-tint-c), var(--muted-c-max)) var(--glass-tint-h));
   --sidebar: oklch(var(--sidebar-l) min(var(--glass-tint-c), var(--sidebar-c-max)) var(--glass-tint-h));

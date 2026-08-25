@@ -91,6 +91,9 @@ const ToggleGroupItem = React.forwardRef<
         "data-[state=on]:bg-[var(--active-bg)]",
         "data-[state=on]:text-foreground",
         "data-[state=on]:shadow-[var(--active-shadow)]",
+        /* Plain bg-accent/50 is correct here: a ToggleGroup ITEM paints no material of its own (only the
+           group root carries glass-border), so its background-color is the top layer and nothing covers
+           it. The standalone Toggle is the opposite case and needs glass-hover-accent — see toggle.tsx. */
         "hover:bg-accent/50 hover:text-accent-foreground",
         className,
       )}
