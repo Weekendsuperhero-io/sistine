@@ -316,13 +316,37 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
       const fgHarmonyH = huelessAccent ? accentH : harmonyH;
+      /* The veiled floor body text sits on (page + translucent/veiled cards). Derived HERE, above the
+         ramp, because the ramp's hue comes from it — see below. */
+      const normalSurface = glassSolidSurface(
+        dark,
+        {
+          h: tintH,
+          c: tintC,
+          a: tintA,
+        },
+        solidA,
+        washL,
+        washCMult,
+        solidifyFloor,
+      );
+      /* TEXT FOLLOWS THE SURFACE'S HUE, NOT THE TINT TOKEN'S. --glass-tint-h is what the WASH declares;
+         what a reader sees is the wash composited over the solid/solidify floor, and that mix does not
+         travel a radial path — the floor is near-neutral, so it has almost no hue to interpolate toward
+         and the result lands a few degrees off the declared angle (measured light: rose 8 → 2.5, goldstone
+         22 → 17.1, lapis 268 → 271.7). Seeding the ramp from tintH therefore painted text at an angle the
+         surface underneath it never actually occupies. Opaque is the one surface unaffected: it is a solid
+         painted colour with nothing composited over it, so its hue IS tintH and surface.h returns exactly
+         that. The residual spread BETWEEN materials is ≤5.5°, which at the ink's chroma (~0.08) sits well
+         under a just-noticeable difference — far smaller than the ink-vs-surface mismatch it removes. */
+      const surfaceH = huelessAccent ? accentH : normalSurface.h;
       // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue palette
       // stays a full-spectrum color wheel even when neutral. A hue-less accent overrides both — it hue +
       // vividnesses the whole ramp so every text tier tints toward the chosen accent.
       const base = {
         l: rl ?? storedRamp.l,
         c: huelessAccent ? accentC || cfgC : palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
-        h: huelessAccent ? accentH : tintH,
+        h: surfaceH,
       };
       // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
       // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
@@ -418,7 +442,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   ceiling: band.ceiling,
                   // Opaque cards on the hue-less themes (selenite + moonstone) follow the chosen accent too — same as
                   // the normal surface above — so moonstone/selenite opaque-card text tints toward the accent.
-                  hue: huelessAccent ? accentH : tintH,
+                  // Otherwise THIS surface's own composited hue, not the tint token's (see surfaceH): each
+                  // adaptive material composites a different stack, so each gets ink at its own angle.
+                  hue: huelessAccent ? accentH : surface.h,
                   chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
                   // Accent path ONLY: keep the accent VISIBLE on floors whose max contrast sits below the
                   // band (moonstone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
@@ -466,7 +492,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
         // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
         // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
-        const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : tintH;
+        // null → follow the theme, which means THIS surface's composited hue (see surfaceH), so an icon
+        // sits at the same angle as the material behind it. A pinned number / harmonic is a deliberate
+        // choice and overrides that.
+        const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : surface.h;
         root.style.setProperty(
           `--foreground-ui${suffix}`,
           formatOklch(
@@ -480,24 +509,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       };
 
       // Normal surface: the veiled floor body text sits on (page + translucent/veiled cards), with the
-      // show-through margin lifting each band target as the floor gets sheerer.
-      applyTiers(
-        glassSolidSurface(
-          dark,
-          {
-            h: tintH,
-            c: num("--glass-tint-c", 0),
-            a: tintA,
-          },
-          solidA,
-          washL,
-          washCMult,
-          solidifyFloor,
-        ),
-        "",
-        false,
-        normalLcBoost,
-      );
+      // show-through margin lifting each band target as the floor gets sheerer. Derived above the ramp
+      // (see normalSurface) because the ramp's hue is read off it.
+      applyTiers(normalSurface, "", false, normalLcBoost);
       // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it. This IS the
       // solidify floor, undiluted: an opaque card is the one surface with nothing sheer above it, so it is
       // `solidifyFloor` at full strength. Reuse it rather than re-deriving, which is how this drifted — it
