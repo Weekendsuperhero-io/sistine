@@ -1647,14 +1647,16 @@
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
-  --glass-wash-l: 55%;
+  /* LIGHT-mode wash, raised off this hue's chroma peak to buy body-text contrast — see the note above
+     the .dark block below. Dark mode pins the peak value back. */
+  --glass-wash-l: 57%;
   --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
   --glass-tint-a: 0.17;
-  --glass-wash-l: 64%;
+  --glass-wash-l: 67%; /* light-mode wash — see the .dark block note */
   --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
@@ -1696,7 +1698,7 @@
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
   --glass-tint-a: 0.18;
-  --glass-wash-l: 67%;
+  --glass-wash-l: 69.5%; /* light-mode wash — see the .dark block note */
   --glass-opaque-c-max: 0.079;
 }
 [data-glass-tint="lapis"] {
@@ -1721,7 +1723,7 @@
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.17;
-  --glass-wash-l: 63%;
+  --glass-wash-l: 67%; /* light-mode wash — see the .dark block note */
   --glass-opaque-c-max: 0.06;
 }
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
@@ -1737,11 +1739,27 @@
    presets lose dark-mode text and lapis/amethyst lose light-mode text.
    The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
    values that render — nothing shadows them. */
+/* ── Per-mode wash LIGHTNESS (five presets) ───────────────────────────────────
+   Each wash sits at its hue's sRGB chroma PEAK (see the lapis note). For the blue-purple-red arc that
+   peak is DARK, which in LIGHT mode pulls the veiled surface down to L84–86 — where body text bottoms
+   out at 74.6–76.0 Lc, at or under the 75 floor. (It read as passing until the surface model was fixed
+   to composite in sRGB rather than lerp OKLCH coordinates, which had overstated light contrast by up
+   to 2.8 Lc.) Raising each LIGHT wash 2–5.5 L lifts the surface enough to clear the floor with margin.
+   Alpha is deliberately NOT the lever here: it is per-mode already, and lowering it desaturates.
+   --glass-tint-c is not either — glass-tint-switcher.tsx INLINES it (applyTint), which would shadow any
+   per-mode split, the same trap documented there for alpha. --glass-wash-l is never inlined, so it is
+   the one knob that can differ per mode and still render.
+   Above its peak a wash asks more chroma than the gamut holds and the browser clips per channel;
+   measured, that costs ≤0.6° of hue and ≤5% chroma here, and check-gamut's overage stays ~1.1× against
+   a 4.6× limit. DARK mode already clears the floor everywhere, so each block below pins the original
+   peak value rather than inheriting the light one. */
 .dark[data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
+  --glass-wash-l: 64%;
 }
 .dark[data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
+  --glass-wash-l: 63%;
 }
 .dark[data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
@@ -1769,9 +1787,11 @@
 }
 .dark[data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
+  --glass-wash-l: 55%;
 }
 .dark[data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
+  --glass-wash-l: 67%;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
@@ -1888,6 +1908,13 @@
   --glass-tint-h: 25;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
+  --glass-wash-l: 68.5%; /* light-mode wash — same reasoning as the jewels, see the per-mode note above */
+}
+/* The only STATUS preset needing the per-mode wash split: at the shared 63% its light body text reached
+   74.6 Lc, the one outright floor miss in the system. Dark clears it, so pin the original here. Both
+   selectors are carried so an error toast tracks the alert. */
+.dark[data-glass-tint="destructive"],
+.dark [data-sonner-toast][data-type="error"] {
   --glass-wash-l: 63%;
 }
 /* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
