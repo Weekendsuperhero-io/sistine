@@ -23,7 +23,7 @@
 
 /* Structural glass — background/filter/shadow plumbing only; borderless (add glass-border).
    Channels, outermost first:
-     background-image  = [--acc-gradient accent slot] + [--srf-bg-image material stack] + [solidify]
+     background-image  = [--srf-hover state slot] + [--acc-gradient accent slot] + [--srf-bg-image material stack] + [solidify]
      background-color  = --veil-floor (element veil) > --srf-bg-color (material floor) > transparent
      backdrop-filter   = --srf-filter (material) > blur(--srf-blur > --blur) saturate(180%)
      box-shadow        = --srf-shadow (material) > --srf-elev (size axis) > --glass-shadow, + glow
@@ -45,7 +45,14 @@
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
   --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
-  background-image: var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)), var(--srf-solidify, var(--glass-solidify));
+  /* --srf-hover leads the stack because a hover/selection wash has to sit ON the material, not under it.
+     `hover:bg-accent` sets background-COLOR, which is the bottom of the box — beneath all 14 image layers
+     the glass stack paints, of which the solidify floor alone is 70% opaque. At most ~30% of the accent
+     survived to the eye, so the hover read as the material's own colour (white in light mode) no matter
+     what --accent was set to. No amount of tuning the token could fix that; it is a layer-order problem.
+     Same no-op `none` slot pattern as --acc-gradient below it. */
+  background-image:
+    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)), var(--srf-solidify, var(--glass-solidify));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
@@ -113,6 +120,22 @@
    opaque alike. A token-setter (no property `glass` sets), so it's immune to utility emission order. */
 @utility glass-gradient {
   --acc-gradient: var(--gradient);
+}
+
+/* ── Hover/selection WASH — the interactive twin of glass-gradient. Fills the --srf-hover slot at the
+   very top of the background stack, which is the only place a state colour is actually visible on a
+   glass surface: `hover:bg-accent` writes background-COLOR, and every one of the material's image
+   layers paints over it (solidify alone is 70% opaque), so the accent arrived at ~30% strength blended
+   into the material and read as plain white on a light theme.
+   The wash is deliberately translucent rather than a flat fill — glass that turns solid on hover stops
+   looking like glass. 70% of --accent over the material keeps the wash, gloss and blur reading through
+   it while still shifting the surface unmistakably toward the theme colour.
+   Pair with `hover:bg-accent` rather than replacing it: the background-color still does the work on the
+   NON-glass variants (outline/default paint no material, so nothing covers it there). */
+@utility glass-hover-accent {
+  &:hover {
+    --srf-hover: linear-gradient(var(--glass-hover-wash), var(--glass-hover-wash));
+  }
 }
 
 /* Sheen — the OPT-IN hover shimmer (the gloss slides across on hover). Self-contained (highlight + diagonal

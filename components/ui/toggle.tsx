@@ -22,7 +22,9 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
-        glass: "hover:opacity-90",
+        /* glass-hover-accent, not just the base `hover:bg-accent`: this variant paints a material, and a
+           background-COLOR sits under every one of its image layers. See utilities.css. */
+        glass: "glass-hover-accent hover:opacity-90",
       },
       size: {
         default: "h-10 px-3",
