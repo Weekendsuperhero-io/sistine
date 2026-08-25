@@ -322,6 +322,7 @@ const vars = lightnessVars();
 const surfaces = collectSurfaces(vars);
 const fixed = collectFixed(vars);
 const failures = [];
+const accentReport = [];
 const report = [];
 const unattainable = [];
 
@@ -431,6 +432,42 @@ if (process.argv.includes("--report")) {
   for (const u of unattainable) console.log(`  — no attainable chroma at all: ${u}`);
 }
 
+/* ── [accent] the hover/selection fill must be able to CARRY a tint ───────────────────────────────
+   The generic [cap] rule above already catches a cap set ABOVE its lightness's ceiling. It cannot catch
+   the opposite failure, which is the one that actually shipped: a cap sitting exactly AT the ceiling,
+   correct by every gamut test, on a lightness where that ceiling is worth almost nothing. --accent sat at
+   L96, where the tightest preset hue tops out at 0.0182 — an RGB spread of 19 — so the hover highlight
+   rendered as plain white on every theme and the tint was invisible by arithmetic, not by mistake.
+   Chroma near the extremes is not a free parameter; it is whatever the gamut leaves. So the invariant is
+   not "the cap fits" but "the lightness leaves room worth having". */
+{
+  const MIN_TINTABLE = 0.03; // ~RGB spread 30 at the tightest hue — the point a tint reads as a colour
+  for (const [mode, body] of [
+    ["light", css.tokens.slice(css.tokens.indexOf(":root {"), css.tokens.indexOf(".dark {"))],
+    ["dark", css.tokens.slice(css.tokens.indexOf(".dark {"))],
+  ]) {
+    const bare = body.replace(/\/\*[\s\S]*?\*\//g, "");
+    const l = /--accent-bg-l:\s*([\d.]+)/.exec(bare);
+    if (!l) {
+      failures.push(`[accent] ${mode}: could not read --accent-bg-l from tokens.css — if it was renamed, update this rule rather than dropping it.`);
+      continue;
+    }
+    const L = Number(l[1]) * 100;
+    let worst = { ceiling: Infinity, key: "" };
+    for (const p of presets) {
+      const ceiling = maxSrgbChroma(L, p.h);
+      if (ceiling < worst.ceiling) worst = { ceiling, key: p.key };
+    }
+    if (worst.ceiling < MIN_TINTABLE) {
+      failures.push(
+        `[accent] ${mode}: --accent-bg-l ${l[1]} sits where the sRGB ceiling is only ${worst.ceiling.toFixed(4)} (tightest hue: ${worst.key}), under the ${MIN_TINTABLE} a tint needs to read as a colour. ` +
+          `The hover/selection fill will render as flat white or black whatever the theme. Move the lightness off the extreme — no cap can fix this.`,
+      );
+    }
+    accentReport.push(`${mode} L${L.toFixed(0)} ceiling ${worst.ceiling.toFixed(4)} (${worst.key})`);
+  }
+}
+
 /* A sanity floor: the check is worthless if the scrapers silently matched nothing. */
 if (presets.length < 15 || surfaces.length < 8 || fixed.length < 2) {
   console.error(
@@ -446,7 +483,7 @@ const worstSpread = Math.max(...report.map((r) => r.spread));
 const worstOver = Math.max(...report.map((r) => r.overage));
 console.log(
   `✓ tint gamut — ${presets.length} presets × ${surfaces.length} scaled + ${fixed.length} fixed-chroma surface/mode pairs: ` +
-    `worst spread ${worstSpread.toFixed(2)}× (max ${SPREAD_MAX}), worst overage ${worstOver.toFixed(2)}× (max ${OVERAGE_MAX})`,
+    `worst spread ${worstSpread.toFixed(2)}× (max ${SPREAD_MAX}), worst overage ${worstOver.toFixed(2)}× (max ${OVERAGE_MAX}); accent ${accentReport.join(" | ")}`,
 );
 // Verify a known in-gamut pair still reads as in-gamut, so a broken import can't pass silently.
 if (!inSrgbGamut(50, 0.05, 200)) {

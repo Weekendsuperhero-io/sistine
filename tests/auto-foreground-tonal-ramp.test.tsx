@@ -153,6 +153,35 @@ describe("AutoForeground: light-mode text keeps its hue", () => {
     expect(fg("--foreground-strong").c).toBeGreaterThan(0.005);
   });
 
+  /**
+   * The legibility guard, on the one surface that needs it.
+   *
+   * pickTonal prefers the clipped ramp, but not unconditionally: if the best TONAL step cannot reach the
+   * body floor it hands the achromatic extreme back, because unreadable-and-tinted is worse than
+   * readable-and-grey. On every shipped preset the clipped ramp clears the floor comfortably, so this
+   * branch never runs in normal use — which is exactly why it needs pinning. A change to the contrast
+   * math, the ramp generator or TONAL_MIN_L could disable the safety net with nothing to say so.
+   *
+   * The surface that triggers it is the mid-tone dead zone: around L65 NO text polarity reaches the body
+   * floor (it is the same wall moonstone night hit — see presets.css), so the clipped ramp tops out at
+   * 43.5 Lc. Nothing is readable there; the guard's job is only to give up hue for the extra contrast the
+   * extreme still provides rather than sit on a tinted step that is strictly worse.
+   */
+  it("falls back to the achromatic extreme when no tonal step is legible", async () => {
+    root().style.setProperty("--glass-tint-h", "75");
+    root().style.setProperty("--glass-tint-c", "0.09");
+    root().style.setProperty("--glass-tint-a", "0.2");
+    // Drive the surface into the mid-tone band, where the clipped ramp cannot clear the 75 Lc body floor.
+    root().style.setProperty("--glass-opaque-l", "60");
+    root().style.setProperty("--glass-opacity", "0.9");
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground")).not.toBe(""));
+
+    /* Below TONAL_MIN_L means the pick came from the clipped-away end — i.e. the guard fired. Left to the
+       tonal preference alone this would be L20, which scores LOWER on this surface. */
+    expect(fg("--foreground").l).toBeLessThan(READS_AS_BLACK);
+  });
+
   it("leaves a NEUTRAL dark theme achromatic", async () => {
     /* Chroma 0 → a grey scale, where black and white are the genuine ends rather than colours that lost
        their hue, so the clip is bypassed entirely. Whether the solver then HAPPENS to want L100 is a

@@ -330,8 +330,20 @@
 
   /* Accent colors - Light mode. NOTE the knob prefix: --accent-c / --accent-h are already taken as the
      user-facing overrides for --glass-accent (the vivid switch/slider fill), a different role. */
-  --accent-bg-l: 0.96;
-  --accent-bg-c-max: 0.018; /* ≤ 0.0182, the L-96 ceiling floor (lapis h268) */
+  /* L93, down from 0.96, and the cap raised with it. The hover fill was reading as plain white: at L96 the
+     sRGB gamut allows a chroma of only 0.0182, an RGB spread of 19, so "tinted" was arithmetically
+     invisible. Chroma near the extremes is not a free parameter — it is whatever the gamut leaves — so the
+     only way to a visible tint is to step off the extreme. Three points of lightness buys 1.7x the spread
+     (19 -> 32) and moves the fill DARKER than the surface, the direction a highlight should go on a light
+     page. It cannot go much further: --accent is also painted at 50% (bg-accent/50 on calendar's "today",
+     button's active state, ToggleGroup hover), and that composite over an L88 card is what binds — at L92
+     it drops to 76.0 Lc, under the floor+margin, while L93 holds 76.9. */
+  --accent-bg-l: 0.93;
+  --accent-bg-c-max: 0.032; /* ≤ 0.0323, the L-93 ceiling floor (lapis h268) */
+  /* Stays --foreground: this token is text on a SURFACE-lightness background, and it has two callers with
+     that shape — the accent fill here, and the bg-foreground/10 wash the menus use (dropdown, context,
+     navigation, command, menubar, select). They only share a text colour while --accent stays near the
+     surface, which is precisely why the fill was moved by chroma rather than by weight. */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
@@ -527,8 +539,12 @@
   --muted-foreground: oklch(0.89 0.04 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
   /* Accent colors — dark mode */
-  --accent-bg-l: 0.25;
-  --accent-bg-c-max: 0.041; /* ≤ 0.0417, the L-25 ceiling floor — h205 (aurora) is now tighter than h190 */
+  /* L34, up from 0.25 — the same fix as light, mirrored. At L25 the ceiling was 0.0417 (spread 29), so the
+     fill read as near-black; L34 allows 0.0565 (spread 42) and moves it BRIGHTER than the surface, which is
+     the direction a highlight goes on a dark page. Dark has more room than light here (its 50% composite
+     sits at 77.5 Lc rather than 76.0), because the fill and the L36.4 card floor are close together. */
+  --accent-bg-l: 0.34;
+  --accent-bg-c-max: 0.056; /* ≤ 0.0565, the L-34 ceiling floor (aurora h205) */
   --accent-foreground: var(--foreground);
 
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
