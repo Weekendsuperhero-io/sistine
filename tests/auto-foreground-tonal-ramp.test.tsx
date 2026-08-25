@@ -33,6 +33,8 @@ const fg = (name: string): OklchColor => {
 
 /** Below this an sRGB colour is black regardless of the chroma asked for — see TONAL_MIN_L. */
 const READS_AS_BLACK = 16;
+/** Above this an sRGB colour is white regardless of the chroma asked for — see TONAL_MAX_L. */
+const READS_AS_WHITE = 98;
 
 const TIERS = [
   "--foreground",
@@ -40,11 +42,29 @@ const TIERS = [
   "--muted-foreground",
 ];
 
-/** Mount in light mode carrying a real tint, as a preset does. */
+/** Mount carrying a real tint, as a preset does. */
 async function mountTinted(hue: number) {
   root().style.setProperty("--glass-tint-h", String(hue));
   root().style.setProperty("--glass-tint-c", "0.09");
   root().style.setProperty("--glass-tint-a", "0.15");
+  render(<AutoForeground />);
+  await waitFor(() => expect(read("--foreground-strong")).not.toBe(""));
+}
+
+/**
+ * Dark needs its SURFACE pinned, not just its tint. jsdom resolves the surface knobs to fallbacks that
+ * land darker than anything the theme ships, and a darker surface hands out more contrast — so the small
+ * band is satisfied early and the solve never approaches white, which is exactly the case under test.
+ * These numbers put the surface at L41, alongside the real dark presets (L44.5), where the unclipped ramp
+ * does reach for L100 and the clipped one answers L96.7 at 87 Lc.
+ */
+async function mountTintedDark(hue: number) {
+  root().classList.add("dark");
+  root().style.setProperty("--glass-tint-h", String(hue));
+  root().style.setProperty("--glass-tint-c", "0.09");
+  root().style.setProperty("--glass-tint-a", "0.2");
+  root().style.setProperty("--glass-opaque-l", "44");
+  root().style.setProperty("--glass-wash-l", "60");
   render(<AutoForeground />);
   await waitFor(() => expect(read("--foreground-strong")).not.toBe(""));
 }
@@ -106,12 +126,53 @@ describe("AutoForeground: light-mode text keeps its hue", () => {
     expect(fg("--foreground-strong").l).toBeLessThan(READS_AS_BLACK);
   });
 
-  it("still lets dark mode use its own full ramp", async () => {
-    /* The dark ramp runs L60 → L100 — no steps in the clipped zone — so this must be a no-op there. A
-       regression that clipped by distance-from-extreme instead of by lightness would eat the white end. */
-    root().classList.add("dark");
-    await mountTinted(268);
+  it.each([
+    [
+      "blue",
+      268,
+    ],
+    [
+      "warm",
+      75,
+    ],
+    [
+      "green",
+      145,
+    ],
+  ])("does not collapse any tier to white in dark on a %s tint", async (_label, hue) => {
+    /* The mirror case, and NOT symmetric with the black end. A dark ramp runs L60 → L100 and only its top
+       point is exactly achromatic, but each 3-point step near white is worth 6–8 Lc where the whole L0–L18
+       span near black is worth ~1.5. So the clip up here is tight, and the contrast it costs is real —
+       taken deliberately so fine text carries the theme in both modes. */
+    await mountTintedDark(hue);
 
-    expect(fg("--foreground").l).toBeGreaterThan(60);
+    for (const t of TIERS) {
+      const c = fg(t);
+      expect(c.l, `${t} is L${c.l.toFixed(1)} — pure white rather than a theme colour`).toBeLessThan(READS_AS_WHITE);
+    }
+    expect(fg("--foreground-strong").c).toBeGreaterThan(0.005);
+  });
+
+  it("leaves a NEUTRAL dark theme achromatic", async () => {
+    /* Chroma 0 → a grey scale, where black and white are the genuine ends rather than colours that lost
+       their hue, so the clip is bypassed entirely. Whether the solver then HAPPENS to want L100 is a
+       property of the band, not of the clip (here it picks L96.7 as the nearest in-band step), so the
+       assertion is that no hue was invented — the bypass itself is pinned by the light-mode case above,
+       where neutral is free to go all the way to black. */
+    root().classList.add("dark");
+    root().style.setProperty("--glass-tint-h", "250");
+    root().style.setProperty("--glass-tint-c", "0");
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-strong")).not.toBe(""));
+
+    expect(fg("--foreground-strong").c).toBe(0);
+  });
+
+  it("keeps every clipped pick above the body floor", async () => {
+    /* The line the clip may never cross. Missing the `small` band's aspirational 90 is accepted — no light
+       surface reaches it and in dark only pure white does — but nothing may drop under the readability
+       floor to buy hue. */
+    await mountTintedDark(268);
+    for (const t of TIERS) expect(fg(t).l).toBeGreaterThan(60);
   });
 });
