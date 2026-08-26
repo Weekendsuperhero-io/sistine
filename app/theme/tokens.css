@@ -201,6 +201,28 @@
      deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
      against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
+  /* ── Solidify floor — the opaque backing UNDER sheer glass ───────────────────
+     `glass` paints --glass-solidify (this colour at --glass-opacity) as the bottom background-image
+     layer of every SHEER material, so it is ~70% of what page/crystal/chakra text actually sits on.
+     It used to be --glass-opaque-bg itself, which conflated two different jobs: the colour an OPAQUE
+     CARD shows, and the backing that sets sheer text contrast. Opaque cards explicitly drop this layer
+     (materials.css, --srf-solidify: none — it would be C over C), so the two were never actually the
+     same surface; they only shared a token.
+     Splitting them is what lets the sheer floor rise without repainting opaque cards. It is the right
+     lever for text contrast because it is the only one with real WEIGHT in the composite (0.7) that is
+     not part of a preset's declared identity: --glass-wash-l is the theme COLOUR (moving it changes
+     what lapis IS), and --glass-tint-a is already per-mode and desaturates. Measured across all 17
+     scopes, L92 is what puts every preset's body text over the 75 floor with the 1.5 Lc margin, with
+     no preset's tint tokens touched. DARK needs none of this (it clears everywhere already), so it
+     pins both back to the opaque floor below and nothing changes there. */
+  --glass-solidify-l: 92;
+  /* The floor's chroma ceiling collapses as it lightens, so the L88 caps above would clip here. Rather
+     than 17 new per-preset numbers, derive from the ones each preset already declares: across the
+     palette the L92/L88 ceiling ratio runs 0.60–0.90, and 0.65 lands every scope INSIDE its real
+     ceiling (worst 0.99×, verified by scripts/check-gamut.mjs). Hues that peak light — peridot,
+     turquoise, aventurine, amber, aquamarine — are not bound by it at all and keep 100% of their
+     surface chroma; the dark-peaking arc keeps 80–86%. */
+  --glass-solidify-c-max: calc(var(--glass-opaque-c-max, 0.055) * 0.65);
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -464,6 +486,12 @@
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
   /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
   --glass-opaque-c-max: 0.12;
+  /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
+     text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
+     opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
+     change: a lighter backing under dark glass would wash the whole mode out. */
+  --glass-solidify-l: var(--glass-opaque-l);
+  --glass-solidify-c-max: var(--glass-opaque-c-max);
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to

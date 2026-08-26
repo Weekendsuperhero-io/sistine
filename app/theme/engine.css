@@ -192,6 +192,14 @@
   --glass-opaque-bg: oklch(
     calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
   );
+  /* The same floor at the SOLIDIFY lightness/cap — the backing `glass` paints under every sheer
+     material (see --glass-solidify in utilities.css). Split from --glass-opaque-bg because an opaque
+     CARD and the backing under sheer glass are different surfaces with different jobs; tokens.css has
+     the reasoning. Same scale, so a preset's tint still drives it; only the lightness and cap differ. */
+  --glass-solidify-bg: oklch(
+    calc(var(--glass-solidify-l, var(--glass-opaque-l)) * 1%)
+      min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-solidify-c-max, var(--glass-opaque-c-max, 0.3))) var(--glass-tint-h)
+  );
   /* Sheer glass sheet — hue/chroma from the tint vars, chroma scaled per stop so the highlights stay
      glassy and the body carries the color. Stop alphas ride the mode base --glass-sheet-a (+ fixed
      offsets; the top stop's offset is its own knob --glass-sheet-a1 — dark tapers it to 0.03);

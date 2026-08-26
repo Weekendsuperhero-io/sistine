@@ -275,9 +275,15 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          surface more colourful (and so slightly darker) than the one actually painted; scripts/
          check-contrast.mjs already clamps here, so an uncapped model here also silently disagrees with the
          guard that signs the presets off. Keep the three in step. */
+      const opaqueCMax = num("--glass-opaque-c-max", dark ? 0.12 : 0.055);
+      /* --glass-solidify-*, NOT --glass-opaque-*: the backing under sheer glass is its own surface (see
+         tokens.css). It is the one high-weight term in the composite that is not part of a preset's
+         declared identity, which is why LIGHT lifts it to 92 to buy body-text contrast without touching
+         a single tint token. Dark pins both back to the opaque floor, so this reads identically there.
+         Fallbacks mirror tokens.css: the derived cap is --glass-opaque-c-max × 0.65 in light. */
       const solidifyFloor = {
-        l: num("--glass-opaque-l", dark ? 36.4 : 88),
-        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-opaque-c-max", dark ? 0.12 : 0.055)),
+        l: num("--glass-solidify-l", dark ? 36.4 : 92),
+        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-solidify-c-max", dark ? opaqueCMax : opaqueCMax * 0.65)),
         a: glassOpacity,
       };
       /** The solidify floor as a compositable layer — the layer order `glass` paints. */
@@ -512,18 +518,19 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // show-through margin lifting each band target as the floor gets sheerer. Derived above the ramp
       // (see normalSurface) because the ramp's hue is read off it.
       applyTiers(normalSurface, "", false, normalLcBoost);
-      // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it. This IS the
-      // solidify floor, undiluted: an opaque card is the one surface with nothing sheer above it, so it is
-      // `solidifyFloor` at full strength. Reuse it rather than re-deriving, which is how this drifted — it
-      // carried its own `* 0.9` (a multiplier matching neither mode: tokens.css ships 0.85 light / 1.05
-      // dark), its own stale lightness, and no chroma cap at all, so the opaque tier banded against a
-      // surface the CSS never paints. One derivation, one place to keep in step with tokens.css.
-      // `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
-      // readable half and can't.
+      /* Opaque cards paint --glass-opaque-bg, so band a second set against THAT — derived here from
+         --glass-opaque-l / -c-max rather than reused from solidifyFloor. Those two used to be the same
+         colour, and this call read `solidifyFloor` on exactly that basis; they are separate surfaces now
+         (tokens.css), so sharing would band opaque-card text against the sheer backing instead of the
+         card. In dark the two still resolve identically; in light the card stays at L88 while the backing
+         sits at L92. Keep in step with tokens.css — an earlier version of this re-derivation drifted,
+         carrying its own `* 0.9` multiplier (matching neither mode) and no chroma cap at all.
+         `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
+         readable half and can't. */
       applyTiers(
         {
-          l: solidifyFloor.l,
-          c: solidifyFloor.c,
+          l: num("--glass-opaque-l", dark ? 36.4 : 88),
+          c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), opaqueCMax),
           h: tintH,
         },
         "-opaque",

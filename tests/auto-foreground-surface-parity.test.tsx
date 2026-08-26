@@ -48,8 +48,11 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   // here because jsdom resolves --glass-tint-c to its 0 fallback.
   const opacity = 0.7;
   const opaqueL = dark ? 36.4 : 88;
+  /* The backing under SHEER glass is --glass-solidify-l, split from the opaque card floor: light lifts
+     it to 92, dark pins it back to --glass-opaque-l. Chroma is 0 throughout here because jsdom resolves
+     --glass-tint-c to its 0 fallback, so the derived cap never binds. */
   const solidify = {
-    l: opaqueL,
+    l: dark ? opaqueL : 92,
     c: 0,
     h,
     a: opacity,

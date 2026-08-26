@@ -47,8 +47,10 @@ const normalSurface = (h: number) =>
     72,
     2.5,
     {
-      l: 88,
-      c: Math.min(TINT_C * 0.85, 0.055),
+      // The SOLIDIFY floor (--glass-solidify-l / -c-max), not the opaque one — the backing under sheer
+      // glass is its own surface. Light lifts it to 92 with the cap derived as opaque-c-max × 0.65.
+      l: 92,
+      c: Math.min(TINT_C * 0.85, 0.055 * 0.65),
       a: 0.7,
     },
   );

@@ -279,6 +279,28 @@
      deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
      against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
+  /* ── Solidify floor — the opaque backing UNDER sheer glass ───────────────────
+     `glass` paints --glass-solidify (this colour at --glass-opacity) as the bottom background-image
+     layer of every SHEER material, so it is ~70% of what page/crystal/chakra text actually sits on.
+     It used to be --glass-opaque-bg itself, which conflated two different jobs: the colour an OPAQUE
+     CARD shows, and the backing that sets sheer text contrast. Opaque cards explicitly drop this layer
+     (materials.css, --srf-solidify: none — it would be C over C), so the two were never actually the
+     same surface; they only shared a token.
+     Splitting them is what lets the sheer floor rise without repainting opaque cards. It is the right
+     lever for text contrast because it is the only one with real WEIGHT in the composite (0.7) that is
+     not part of a preset's declared identity: --glass-wash-l is the theme COLOUR (moving it changes
+     what lapis IS), and --glass-tint-a is already per-mode and desaturates. Measured across all 17
+     scopes, L92 is what puts every preset's body text over the 75 floor with the 1.5 Lc margin, with
+     no preset's tint tokens touched. DARK needs none of this (it clears everywhere already), so it
+     pins both back to the opaque floor below and nothing changes there. */
+  --glass-solidify-l: 92;
+  /* The floor's chroma ceiling collapses as it lightens, so the L88 caps above would clip here. Rather
+     than 17 new per-preset numbers, derive from the ones each preset already declares: across the
+     palette the L92/L88 ceiling ratio runs 0.60–0.90, and 0.65 lands every scope INSIDE its real
+     ceiling (worst 0.99×, verified by scripts/check-gamut.mjs). Hues that peak light — peridot,
+     turquoise, aventurine, amber, aquamarine — are not bound by it at all and keep 100% of their
+     surface chroma; the dark-peaking arc keeps 80–86%. */
+  --glass-solidify-c-max: calc(var(--glass-opaque-c-max, 0.055) * 0.65);
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -542,6 +564,12 @@
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
   /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
   --glass-opaque-c-max: 0.12;
+  /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
+     text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
+     opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
+     change: a lighter backing under dark glass would wash the whole mode out. */
+  --glass-solidify-l: var(--glass-opaque-l);
+  --glass-solidify-c-max: var(--glass-opaque-c-max);
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
@@ -918,6 +946,14 @@
   --glass-opaque-bg: oklch(
     calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
   );
+  /* The same floor at the SOLIDIFY lightness/cap — the backing `glass` paints under every sheer
+     material (see --glass-solidify in utilities.css). Split from --glass-opaque-bg because an opaque
+     CARD and the backing under sheer glass are different surfaces with different jobs; tokens.css has
+     the reasoning. Same scale, so a preset's tint still drives it; only the lightness and cap differ. */
+  --glass-solidify-bg: oklch(
+    calc(var(--glass-solidify-l, var(--glass-opaque-l)) * 1%)
+      min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-solidify-c-max, var(--glass-opaque-c-max, 0.3))) var(--glass-tint-h)
+  );
   /* Sheer glass sheet — hue/chroma from the tint vars, chroma scaled per stop so the highlights stay
      glassy and the body carries the color. Stop alphas ride the mode base --glass-sheet-a (+ fixed
      offsets; the top stop's offset is its own knob --glass-sheet-a1 — dark tapers it to 0.03);
@@ -1109,7 +1145,9 @@
      bands text against the sheer floor, so a more solid surface than it modelled could have cost
      contrast. Body text goes 91.5 -> 86.5 Lc in light and 88.0 -> 85.8 in dark, both far above the
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
-  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
+  /* --glass-solidify-BG, not --glass-opaque-bg: the backing under sheer glass is its own surface now
+     (engine.css / tokens.css). In dark the two resolve identically, so this is a light-mode change. */
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-solidify-bg, var(--glass-opaque-bg)) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   /* --srf-hover leads the stack because a hover/selection wash has to sit ON the material, not under it.
      `hover:bg-accent` sets background-COLOR, which is the bottom of the box — beneath all 14 image layers
@@ -1647,16 +1685,14 @@
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
-  /* LIGHT-mode wash, raised off this hue's chroma peak to buy body-text contrast — see the note above
-     the .dark block below. Dark mode pins the peak value back. */
-  --glass-wash-l: 57%;
+  --glass-wash-l: 55%;
   --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
   --glass-tint-a: 0.17;
-  --glass-wash-l: 67%; /* light-mode wash — see the .dark block note */
+  --glass-wash-l: 64%;
   --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
@@ -1698,7 +1734,7 @@
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
   --glass-tint-a: 0.18;
-  --glass-wash-l: 69.5%; /* light-mode wash — see the .dark block note */
+  --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.079;
 }
 [data-glass-tint="lapis"] {
@@ -1723,7 +1759,7 @@
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.17;
-  --glass-wash-l: 67%; /* light-mode wash — see the .dark block note */
+  --glass-wash-l: 63%;
   --glass-opaque-c-max: 0.06;
 }
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
@@ -1739,27 +1775,11 @@
    presets lose dark-mode text and lapis/amethyst lose light-mode text.
    The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
    values that render — nothing shadows them. */
-/* ── Per-mode wash LIGHTNESS (five presets) ───────────────────────────────────
-   Each wash sits at its hue's sRGB chroma PEAK (see the lapis note). For the blue-purple-red arc that
-   peak is DARK, which in LIGHT mode pulls the veiled surface down to L84–86 — where body text bottoms
-   out at 74.6–76.0 Lc, at or under the 75 floor. (It read as passing until the surface model was fixed
-   to composite in sRGB rather than lerp OKLCH coordinates, which had overstated light contrast by up
-   to 2.8 Lc.) Raising each LIGHT wash 2–5.5 L lifts the surface enough to clear the floor with margin.
-   Alpha is deliberately NOT the lever here: it is per-mode already, and lowering it desaturates.
-   --glass-tint-c is not either — glass-tint-switcher.tsx INLINES it (applyTint), which would shadow any
-   per-mode split, the same trap documented there for alpha. --glass-wash-l is never inlined, so it is
-   the one knob that can differ per mode and still render.
-   Above its peak a wash asks more chroma than the gamut holds and the browser clips per channel;
-   measured, that costs ≤0.6° of hue and ≤5% chroma here, and check-gamut's overage stays ~1.1× against
-   a 4.6× limit. DARK mode already clears the floor everywhere, so each block below pins the original
-   peak value rather than inheriting the light one. */
 .dark[data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
-  --glass-wash-l: 64%;
 }
 .dark[data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
-  --glass-wash-l: 63%;
 }
 .dark[data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
@@ -1787,11 +1807,9 @@
 }
 .dark[data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
-  --glass-wash-l: 55%;
 }
 .dark[data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
-  --glass-wash-l: 67%;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
@@ -1908,13 +1926,6 @@
   --glass-tint-h: 25;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
-  --glass-wash-l: 68.5%; /* light-mode wash — same reasoning as the jewels, see the per-mode note above */
-}
-/* The only STATUS preset needing the per-mode wash split: at the shared 63% its light body text reached
-   74.6 Lc, the one outright floor miss in the system. Dark clears it, so pin the original here. Both
-   selectors are carried so an error toast tracks the alert. */
-.dark[data-glass-tint="destructive"],
-.dark [data-sonner-toast][data-type="error"] {
   --glass-wash-l: 63%;
 }
 /* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its

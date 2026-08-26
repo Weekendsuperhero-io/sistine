@@ -31,7 +31,13 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apcaContrast, glassSolidSurface, READABLE_USAGE, readableForeground } from "../lib/oklch-utils.ts";
+import { apcaContrast, glassSolidSurface, pickInBand, READABLE_USAGE, themeForeground } from "../lib/oklch-utils.ts";
+
+/* Mirrors the ramp AutoForeground builds: the /colors default step count, and the clip that drops the
+   achromatic ends. Keep in step with components/auto-foreground.tsx. */
+const RAMP_COUNT = 12;
+const TONAL_MIN_L = 18;
+const TONAL_MAX_L = 97;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -114,14 +120,37 @@ for (const p of all) {
     const cMax = resolve(p, mode, vars, "glass-opaque-c-max", dark ? 0.12 : 0.055);
     const solidA = vars[mode].get("glass-solid-a") ?? 0.65;
 
+    /* The backing under sheer glass is --glass-solidify-*, its own surface since the split (tokens.css)
+       — NOT --glass-opaque-*, which is what an opaque CARD paints. Light lifts it to 92 with a derived
+       cap; dark pins both back to the opaque floor, so this resolves identically there. */
+    const solidifyL = resolve(p, mode, vars, "glass-solidify-l", dark ? opaqueL : 92);
+    const solidifyCMax = resolve(p, mode, vars, "glass-solidify-c-max", dark ? cMax : cMax * 0.65);
+
     /* The same composition components/auto-foreground.tsx models: the veil/solid floor, the solidify
        layer (--glass-opacity, 0.7 fallback) over it, then the tint wash on top. */
     const surface = glassSolidSurface(dark, { h, c, a }, solidA, washL, washCMult, {
-      l: opaqueL,
-      c: Math.min(c * cScale, cMax),
+      l: solidifyL,
+      c: Math.min(c * cScale, solidifyCMax),
       a: 0.7,
     });
-    const fg = readableForeground(surface, { ...READABLE_USAGE.body, hue: h, chroma: 0.15 });
+    /* Measure THE TOKEN THAT SHIPS, not a parallel solve. The normal surface does NOT use
+       readableForeground — that is the `adaptive` path, for the opaque/crystal/chakra floors. Body text on
+       the page draws from the discrete tonal RAMP via pickInBand, whose darkest surviving step is L20.
+       The two disagree exactly where it matters: readableForeground solves a continuous lightness and can
+       always find one that clears the floor, while the ramp either has a step that clears it or does not.
+       Measured on this tree, four presets sat at 74.9 Lc on the L20 step — just under
+       AutoForeground's legibility guard, which then discards the tonal ramp and hands back the raw
+       ramp's extreme, i.e. #000000. This guard reported all four green at 76.5 Lc throughout, because the
+       continuous solve found a near-black it could reach. Modelling the ramp is what makes "the floor
+       holds" mean "the emitted colour holds". */
+    const base = { l: 60, c: 0.15, h: surface.h };
+    const ramp = Array.from({ length: RAMP_COUNT + 1 }, (_, level) =>
+      themeForeground({ palette: "lightness", level, count: RAMP_COUNT, base, dark }),
+    ).filter((s) => s.l >= TONAL_MIN_L && s.l <= TONAL_MAX_L);
+    // The show-through margin AutoForeground lifts each band target by (see LC_MARGIN there).
+    const boost = 12 * (1 - solidA) * (1 - a) * (1 - 0.7);
+    const band = { ...READABLE_USAGE.body, target: Math.min(READABLE_USAGE.body.target + boost, READABLE_USAGE.body.ceiling) };
+    const fg = pickInBand(ramp, surface, band);
     const lc = Math.abs(apcaContrast(fg, surface));
     report.push({ name: p.name, mode, lc, washL, a });
 
