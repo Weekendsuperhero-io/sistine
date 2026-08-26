@@ -1648,6 +1648,8 @@
      veiled floor is neutral and the layer is real there. */
   --srf-solidify: none;
 }
+/* The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
+   still reads as a solid panel and needs the same outline. */
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
@@ -1656,6 +1658,16 @@
      some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
      resolve the same vars, so nothing double-draws. */
   border: var(--srf-border-w) solid var(--srf-border-color);
+}
+/* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
+   one the --srf-solidify rule above already makes for this page style. A veiled card does not paint
+   --glass-opaque-bg: glass-veil moves the background-COLOR channel to the neutral --veil-floor, so its
+   text sits on the veil surface the BASE tokens are banded for, not on the opaque floor. Remapping it
+   here handed those cards ink solved for a surface they do not have — visible as a hue jump, since the
+   opaque floor is the one surface with nothing composited over it and so sits at the raw --glass-tint-h
+   while every sheer surface lands a few degrees off it (measured on the /colors panel: 22.0 vs 14.6).
+   Splitting the rule is what keeps the edge treatment while dropping the foreground one. */
+[data-glass="opaque"] :where(.glass):not([data-material]):not(.glass-veil) {
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);
