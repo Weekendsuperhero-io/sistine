@@ -1652,6 +1652,19 @@
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
+}
+/* --glass-solid-a CANNOT ride in the :where() block above. :where() is specificity ZERO by design (so a
+   page style never beats an explicit material), and every other declaration up there survives that
+   because nothing else declares them — they are material SLOTS with no competing value. This one is
+   different: tokens.css declares --glass-solid-a on :root, which is (0,1,0), so the :where() version
+   lost every time and the opaque page never actually got its solid floor. Measured: --glass-solid-a
+   resolved to 0.65 on <html> under [data-glass="opaque"], identical to every other page style.
+   The visible symptom is any VEILED surface on an opaque page staying translucent while the solid
+   panels around it go opaque — menus, toasts and popovers, which is exactly what the block above says
+   this is for. A bare attribute selector is (0,1,0), which ties :root and wins on source order because
+   globals.css imports styles.css after tokens.css. It is a plain literal, so it simply inherits into
+   the tint / toast scopes and needs none of their re-resolution. */
+[data-glass="opaque"] {
   --glass-solid-a: 1;
 }
 /* Opaque page: element-level touches for ADAPTIVE surfaces only (`.glass` with no explicit material —

@@ -111,6 +111,11 @@ const WEIGHTS = [
  * readableForeground demo — lightness solved for the ui band at an optional hue. App-only.
  */
 export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: { live?: boolean; palettes?: FgPalette[] } = {}) {
+  /* Seeded FROM the page, not hardcoded. The opaque page style sets --glass-solid-a: 1 so veiled
+     surfaces go solid; pinning 0.65 here left this card translucent while every panel around it went
+     opaque, AND modelled the wrong surface — the panel claims its Lc matches production, so the solid
+     dial has to start where production has it. The slider still overrides; it re-seeds only when the
+     PAGE's value changes (i.e. when the page style is switched), so dragging is never clobbered. */
   const [solidA, setSolidA] = React.useState(0.65);
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
   // Icon-hue: when `live`, writes fgConfig.iconHue → AutoForeground sets the site `--foreground-ui`
@@ -162,6 +167,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     solidifyL: 36.4,
     solidifyC: 0,
     glassOpacity: 0.7,
+    pageSolidA: 0.65,
   });
 
   React.useEffect(() => {
@@ -191,6 +197,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
           num("--glass-solidify-c-max", isDark ? opaqueCMax : opaqueCMax * 0.65),
         ),
         glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
+        pageSolidA: Math.min(Math.max(num("--glass-solid-a", 0.65), 0), 1),
         // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for selenite/moonstone), so the chip hues here
         // land on the same angle as the --hue-* swatches. Falls back to the content hue when unset (jewels).
         harmonyH: num("--harmony-h", num("--glass-fg-h", num("--glass-tint-h", r.h))),
@@ -210,6 +217,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       attributeFilter: [
         "class",
         "data-glass-tint",
+        // data-glass is the PAGE STYLE, and it moves surface-model tokens — most visibly
+        // --glass-solid-a, which the opaque page pins to 1. Without it here the panel kept modelling
+        // (and rendering) the previous page style's surface until some other attribute happened to change.
+        "data-glass",
         "style",
       ],
     });
@@ -219,6 +230,19 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       window.removeEventListener("sistine-fg", read);
     };
   }, []);
+
+  /* Re-seed the solid dial whenever the PAGE's value changes — switching to the opaque page style moves
+     --glass-solid-a to 1. Keyed on the page value (not on every render) so a user-dragged slider is left
+     alone until the page itself changes. */
+  const lastPageSolidA = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (lastPageSolidA.current !== env.pageSolidA) {
+      lastPageSolidA.current = env.pageSolidA;
+      setSolidA(env.pageSolidA);
+    }
+  }, [
+    env.pageSolidA,
+  ]);
 
   /* The SAME surface AutoForeground bands against — full argument list. Passing only (dark, tint, solidA)
      silently drops the per-preset wash lightness AND the solidify floor, which is what made this panel
