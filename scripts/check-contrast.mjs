@@ -31,11 +31,13 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apcaContrast, glassSolidSurface, pickInBand, READABLE_USAGE, themeForeground } from "../lib/oklch-utils.ts";
+import { apcaContrast, clampToGamut, glassSolidSurface, pickInBand, READABLE_USAGE, readableForeground, themeForeground } from "../lib/oklch-utils.ts";
 
 /* Mirrors the ramp AutoForeground builds: the /colors default step count, and the clip that drops the
    achromatic ends. Keep in step with components/auto-foreground.tsx. */
 const RAMP_COUNT = 12;
+const RAMP_CHROMA = 0.15; // the /colors ramp default AutoForeground solves adaptive tiers at
+const LC_AIM_KNOWN = 4; // the opaque tier's baseline aim above target — mirrors auto-foreground.tsx
 const TONAL_MIN_L = 18;
 const TONAL_MAX_L = 97;
 
@@ -153,6 +155,36 @@ for (const p of all) {
     const fg = pickInBand(ramp, surface, band);
     const lc = Math.abs(apcaContrast(fg, surface));
     report.push({ name: p.name, mode, lc, washL, a });
+
+    /* THE OPAQUE TIER, which this guard did not cover at all — and which was silently shipping #000000
+       on every jewel in light. That surface is solved by readableForeground, not the ramp, and it aims
+       at target + LC_AIM_KNOWN; an L88 floor tops out at 81.1–84.3 Lc, so the aim is unreachable and the
+       solve pins to the lightness extreme where the gamut annihilates chroma. AutoForeground clips it to
+       the same TONAL bounds as the ramp; assert the clip held, i.e. that the emitted ink still carries
+       the theme's colour rather than having collapsed to black or white. Neutral scopes are exempt for
+       the same reason the ramp clip exempts them: there the extremes are genuine ends of a grey scale. */
+    const opaqueSurface = { l: opaqueL, c: Math.min(c * cScale, cMax), h };
+    const opaqueBand = { ...READABLE_USAGE.body, target: Math.min(READABLE_USAGE.body.target + LC_AIM_KNOWN, READABLE_USAGE.body.ceiling) };
+    const opaqueSolved = readableForeground(opaqueSurface, { ...opaqueBand, hue: opaqueSurface.h, chroma: RAMP_CHROMA });
+    const opaqueL2 = Math.min(Math.max(opaqueSolved.l, TONAL_MIN_L), TONAL_MAX_L);
+    const opaqueInk = opaqueL2 === opaqueSolved.l ? opaqueSolved : clampToGamut({ l: opaqueL2, c: RAMP_CHROMA, h: opaqueSurface.h });
+    const opaqueLc = Math.abs(apcaContrast(opaqueInk, opaqueSurface));
+    /* Assert LIGHTNESS, not chroma. At L≈0 the shared gamut test is eps-tolerant and reports PHANTOM
+       chroma — #000000 comes back carrying c 0.067 at the warm hues — so a chroma assertion silently
+       passes the exact colour it is meant to catch (lib/oklch-utils documents this inside
+       readableForeground's minChroma branch, which rejects it with a tighter eps). The clip bounds are
+       the honest test: inside them the colour renders tinted, outside it does not. */
+    if (c > 0 && (opaqueInk.l < TONAL_MIN_L || opaqueInk.l > TONAL_MAX_L)) {
+      failures.push(
+        `[opaque] ${p.name} (${mode}) — --foreground-opaque solved to L${opaqueInk.l.toFixed(1)}, past the tonal clip ` +
+          `(${TONAL_MIN_L}–${TONAL_MAX_L}), on an L${opaqueL} floor whose reach is ${opaqueLc.toFixed(1)} Lc. ` +
+          `That is the achromatic extreme — the clip should have caught it.`,
+      );
+    } else if (opaqueLc < BODY_FLOOR) {
+      failures.push(
+        `[opaque] ${p.name} (${mode}) — opaque-card body text reaches only ${opaqueLc.toFixed(1)} Lc on its L${opaqueL} floor, under the ${BODY_FLOOR} floor.`,
+      );
+    }
 
     const known = KNOWN.get(`${p.name}|${mode}`);
     if (known) {

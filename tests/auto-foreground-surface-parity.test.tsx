@@ -12,6 +12,10 @@
  * These tests measure the emitted tokens the way a reader sees them — |Lc| of the solved foreground
  * against the surface it is painted on — and assert the four surfaces stay clustered.
  *
+ * FOUR sets, FIVE materials: `glass` and `frosted` both fall through to the base "" set, so there is no
+ * `-frosted` surface to measure here. That is a real (if conservative) approximation rather than an
+ * oversight in this file — see the applyTiers comment in components/auto-foreground.tsx.
+ *
  * jsdom resolves no stylesheets, so every `num(name, fallback)` in the component takes its fallback;
  * the surface models below mirror those same fallbacks (tint chroma/alpha 0, hue 255, solid-a 0.65).
  */
