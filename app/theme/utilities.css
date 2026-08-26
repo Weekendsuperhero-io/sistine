@@ -101,6 +101,23 @@
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
 }
 
+/* THE PAGE BACKDROP LAYER — the fixed, full-viewport ground every sheer material blurs. Put this on the
+   `fixed inset-0 -z-10` container each background component renders.
+   It exists to force a compositing layer. `backdrop-filter` re-samples everything painted beneath it,
+   and this layer sits at z-index -10 under the entire document; unpromoted, the compositor has to
+   re-rasterise it against the scroll position every frame, which is where the scroll artifact on the
+   sheer materials comes from. `opaque` is the ONE material that sets --srf-filter: none — and the one
+   material that never showed the artifact, which is the correlation that points here.
+   Measured on the deployed page, this element resolved will-change:auto / transform:none /
+   contain:none — nothing was promoting it. Promoting is safe specifically because it has ZERO
+   position:fixed descendants and no background-attachment:fixed; a transform/will-change would
+   otherwise become their containing block and reparent them. Re-check that before adding children.
+   will-change (rather than a translateZ hack) because the hint is honest here: this layer is on screen
+   and being sampled for the whole session, so there is nothing to hint OFF later. */
+@utility glass-backdrop-layer {
+  will-change: transform;
+}
+
 /* Size axes — blur + elevation tiers. These feed the GLASS material only: frosted/crystal/opaque
    (and page remaps) set --srf-filter/--srf-shadow wholesale, which flattens the tiers — matching
    the old system, where the [data-glass] styles flattened glass-surface-sm/-lg. */
