@@ -632,9 +632,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Chakra cards: content sits on the translucent body, banded against the whole stack it paints.
       // The facet bands need no term — they live in box-shadow, ride the outer few px of the edge, and
       // pair a highlight against an ink on opposite sides, so they contribute nothing where text
-      // actually sits. Show-through is (1 − body a)(1 − tintA)(1 − glassOpacity), the largest of any
-      // tier here, so this gets the full margin. `adaptive` for the same reason opaque is: an L88 body
-      // can sit on a dark page, and the theme ramp only spans the readable half so it cannot make dark text.
+      // actually sits. Show-through is (1 − body a)(1 − tintA)(1 − glossA)(1 − glassOpacity) — the same
+      // four-term form crystal uses, since chakra bakes the same gloss. `adaptive` for the same reason
+      // opaque is: an L88 body can sit on a dark page, and the theme ramp only spans the readable half.
       {
         const bodyA = num("--glass-chakra-a", dark ? 0.58 : 0.62);
         /* --glass-chakra-bg is the background-COLOR and it is TRANSLUCENT (--glass-chakra-a, 0.62 light
@@ -644,7 +644,12 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
            too. Modeling only `chakra-l → solidify` dropped the page, the body's own alpha, the entire
            wash and the gloss; it agreed with the truth on moonstone night by coincidence, because that
            preset pins --glass-chakra-l (84) near its cream opaque floor. Full stack, real paint order. */
-        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
+        /* (1 − GLOSS_TOP_A) belongs here for the same reason it does on crystal: show-through is the
+           backdrop's SURVIVING weight, so every layer painted above it attenuates — and chakra bakes the
+           gloss now. Omitting it overstated the backdrop's share by 1/(1−0.2) = 1.25×, which inflated an
+           UNCERTAINTY margin (the boost is LC_MARGIN × this) on a surface that is in fact better known
+           than the model claimed. */
+        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - GLOSS_TOP_A) * (1 - glassOpacity), 0), 1);
         applyTiers(
           compositeSurface(
             {

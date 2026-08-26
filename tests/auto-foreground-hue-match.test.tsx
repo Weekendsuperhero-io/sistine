@@ -127,6 +127,39 @@ describe("AutoForeground: ink follows its surface's hue", () => {
     expect(Math.abs(hueGap(fg("--foreground-opaque").h, hue))).toBeLessThan(1);
   });
 
+  it("puts --foreground-ui at the composited surface hue too", async () => {
+    /* Icons take the same rule as text when iconHue is null: follow THIS surface's composited hue, so an
+       icon sits at the same angle as the material behind it. It solves on a separate path from the text
+       tiers (its own ui band, its own hue resolution), so passing there says nothing about here. */
+    for (const hue of [
+      8,
+      22,
+      268,
+    ]) {
+      root().removeAttribute("style");
+      await mountTinted(hue);
+      const surface = normalSurface(hue);
+      expect(Math.abs(hueGap(fg("--foreground-ui").h, surface.h)), `--foreground-ui on h${hue}`).toBeLessThan(1);
+    }
+  });
+
+  it("drifts the icon tiers off the tint hue on the crystal and chakra stacks", async () => {
+    /* The discriminating half: --foreground-ui* must track its own material's composite, not the raw
+       token. h8 drifts ~4.7°, so a tier still sitting at 8 would fail this. */
+    const hue = 8;
+    await mountTinted(hue);
+
+    for (const tier of [
+      "--foreground-ui",
+      "--foreground-ui-crystal",
+      "--foreground-ui-chakra",
+    ]) {
+      expect(Math.abs(hueGap(fg(tier).h, hue)), `${tier} sat back at the tint hue`).toBeGreaterThan(1);
+    }
+    // Opaque is the control here as well: nothing composites over it, so its icon stays at the tint hue.
+    expect(Math.abs(hueGap(fg("--foreground-ui-opaque").h, hue))).toBeLessThan(1);
+  });
+
   it("matches ink to surface on the crystal and chakra stacks too", async () => {
     /* Both composite their own layer stacks, so each lands at its own angle — and each one's text should
        follow ITS surface, not the page's. They differ from the normal surface by well under a JND, so the
