@@ -322,7 +322,7 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
         <>
           <style>{`[data-bg-none]{background:oklch(0.98 0.006 var(--glass-tint-h))}.dark [data-bg-none]{background:oklch(0.15 0.014 var(--glass-tint-h))}`}</style>
           <div
-            className="fixed inset-0 -z-10 transition-[background-color] duration-500"
+            className="fixed inset-0 -z-10 glass-backdrop-layer transition-[background-color] duration-500"
             data-bg-none=""
             style={
               args.baseColor

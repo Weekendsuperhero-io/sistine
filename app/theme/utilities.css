@@ -43,7 +43,9 @@
      bands text against the sheer floor, so a more solid surface than it modelled could have cost
      contrast. Body text goes 91.5 -> 86.5 Lc in light and 88.0 -> 85.8 in dark, both far above the
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
-  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
+  /* --glass-solidify-BG, not --glass-opaque-bg: the backing under sheer glass is its own surface now
+     (engine.css / tokens.css). In dark the two resolve identically, so this is a light-mode change. */
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-solidify-bg, var(--glass-opaque-bg)) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   /* --srf-hover leads the stack because a hover/selection wash has to sit ON the material, not under it.
      `hover:bg-accent` sets background-COLOR, which is the bottom of the box — beneath all 14 image layers
@@ -97,6 +99,23 @@
 
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
+}
+
+/* THE PAGE BACKDROP LAYER — the fixed, full-viewport ground every sheer material blurs. Put this on the
+   `fixed inset-0 -z-10` container each background component renders.
+   It exists to force a compositing layer. `backdrop-filter` re-samples everything painted beneath it,
+   and this layer sits at z-index -10 under the entire document; unpromoted, the compositor has to
+   re-rasterise it against the scroll position every frame, which is where the scroll artifact on the
+   sheer materials comes from. `opaque` is the ONE material that sets --srf-filter: none — and the one
+   material that never showed the artifact, which is the correlation that points here.
+   Measured on the deployed page, this element resolved will-change:auto / transform:none /
+   contain:none — nothing was promoting it. Promoting is safe specifically because it has ZERO
+   position:fixed descendants and no background-attachment:fixed; a transform/will-change would
+   otherwise become their containing block and reparent them. Re-check that before adding children.
+   will-change (rather than a translateZ hack) because the hint is honest here: this layer is on screen
+   and being sampled for the whole session, so there is nothing to hint OFF later. */
+@utility glass-backdrop-layer {
+  will-change: transform;
 }
 
 /* Size axes — blur + elevation tiers. These feed the GLASS material only: frosted/crystal/opaque

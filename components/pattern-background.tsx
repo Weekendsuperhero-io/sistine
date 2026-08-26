@@ -2183,7 +2183,7 @@ export function PatternBackground({
   if (style === "chase") {
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
             "--pat-dur": patDur,
@@ -2267,7 +2267,7 @@ export function PatternBackground({
     const moon = style === "moonrise";
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
             // Scene colors (incl. --sw-line) live in SYNTHWAVE_STYLES' [data-pattern] palette blocks so the
@@ -2309,7 +2309,7 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
             // Moon placement (left/center/right) + the shared animated-pattern pace; scene colors live in
@@ -2370,7 +2370,7 @@ export function PatternBackground({
     }[sand];
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
             "--sw-disc-x": discX,
@@ -2434,7 +2434,7 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
         style={
           {
             // Sun placement (day only — the scene is moonless at night) plus the shared pace vars.
@@ -2487,7 +2487,10 @@ export function PatternBackground({
     // layer so the palette's --sw-stars-o can dim them by day.
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none transition-[background-color] duration-500" data-pattern="starfield">
+      <div
+        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        data-pattern="starfield"
+      >
         <style>{STARFIELD_STYLES}</style>
         <div className="sf-scene" />
         <div
@@ -2502,7 +2505,7 @@ export function PatternBackground({
   }
   return (
     <div
-      className="fixed inset-0 -z-10 pointer-events-none transition-[background-color] duration-500"
+      className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background-color] duration-500"
       style={styleFor(style, density)}
       data-pattern={style}
     />

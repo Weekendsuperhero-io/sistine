@@ -7,15 +7,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import {
   apcaContrast,
+  boostBand,
+  foregroundRamp,
   formatOklch,
   glassSolidSurface,
   HARMONIC_NAMES,
   type HarmonicName,
   harmonicHue,
+  LC_MARGIN,
   type OklchColor,
+  pickTonalInBand,
   READABLE_USAGE,
   type ReadableUsage,
   readableForeground,
+  showThrough,
   themeForeground,
 } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
@@ -106,6 +111,11 @@ const WEIGHTS = [
  * readableForeground demo — lightness solved for the ui band at an optional hue. App-only.
  */
 export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: { live?: boolean; palettes?: FgPalette[] } = {}) {
+  /* Seeded FROM the page, not hardcoded. The opaque page style sets --glass-solid-a: 1 so veiled
+     surfaces go solid; pinning 0.65 here left this card translucent while every panel around it went
+     opaque, AND modelled the wrong surface — the panel claims its Lc matches production, so the solid
+     dial has to start where production has it. The slider still overrides; it re-seeds only when the
+     PAGE's value changes (i.e. when the page style is switched), so dragging is never clobbered. */
   const [solidA, setSolidA] = React.useState(0.65);
   const [palette, setPaletteState] = React.useState<FgPalette>(palettes[0] ?? "lightness");
   // Icon-hue: when `live`, writes fgConfig.iconHue → AutoForeground sets the site `--foreground-ui`
@@ -147,6 +157,17 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       h: 255,
     },
     count: 12,
+    /* The rest of the surface model. These were missing, and the omission is why this panel disagreed
+       with what AutoForeground actually emits: without them glassSolidSurface() falls back to the shared
+       wash lightness and — far more significantly — models NO solidify floor at all, the single heaviest
+       term in the composite at 0.7 alpha. Measured on amethyst night the panel's surface sat 3.3 L below
+       the real one, shifting every Lc in the strip by ~3 and widening the zero band by a whole step. */
+    washL: 58,
+    washCMult: 2.5,
+    solidifyL: 36.4,
+    solidifyC: 0,
+    glassOpacity: 0.7,
+    pageSolidA: 0.65,
   });
 
   React.useEffect(() => {
@@ -158,11 +179,25 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         return Number.isNaN(v) ? fb : v;
       };
       const r = readRampConfig();
+      const isDark = root.classList.contains("dark");
+      const tintC = num("--glass-tint-c", 0);
+      const moonstone = root.dataset.glassTint === "moonstone";
+      // Fallbacks mirror components/auto-foreground.tsx, which is the source of truth for this model.
+      const opaqueCMax = num("--glass-opaque-c-max", isDark ? 0.12 : 0.055);
       setEnv({
         h: num("--glass-fg-h", num("--glass-tint-h", 255)),
-        c: num("--glass-tint-c", 0),
+        c: tintC,
         a: num("--glass-tint-a", 0),
-        dark: root.classList.contains("dark"),
+        dark: isDark,
+        washL: num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72),
+        washCMult: num("--glass-wash-c-mult", moonstone && isDark ? 2 : 2.5),
+        solidifyL: num("--glass-solidify-l", isDark ? 36.4 : 92),
+        solidifyC: Math.min(
+          tintC * num("--glass-opaque-c-scale", isDark ? 1.05 : 0.85),
+          num("--glass-solidify-c-max", isDark ? opaqueCMax : opaqueCMax * 0.65),
+        ),
+        glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
+        pageSolidA: Math.min(Math.max(num("--glass-solid-a", 0.65), 0), 1),
         // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for selenite/moonstone), so the chip hues here
         // land on the same angle as the --hue-* swatches. Falls back to the content hue when unset (jewels).
         harmonyH: num("--harmony-h", num("--glass-fg-h", num("--glass-tint-h", r.h))),
@@ -182,6 +217,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       attributeFilter: [
         "class",
         "data-glass-tint",
+        // data-glass is the PAGE STYLE, and it moves surface-model tokens — most visibly
+        // --glass-solid-a, which the opaque page pins to 1. Without it here the panel kept modelling
+        // (and rendering) the previous page style's surface until some other attribute happened to change.
+        "data-glass",
         "style",
       ],
     });
@@ -192,6 +231,22 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     };
   }, []);
 
+  /* Re-seed the solid dial whenever the PAGE's value changes — switching to the opaque page style moves
+     --glass-solid-a to 1. Keyed on the page value (not on every render) so a user-dragged slider is left
+     alone until the page itself changes. */
+  const lastPageSolidA = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (lastPageSolidA.current !== env.pageSolidA) {
+      lastPageSolidA.current = env.pageSolidA;
+      setSolidA(env.pageSolidA);
+    }
+  }, [
+    env.pageSolidA,
+  ]);
+
+  /* The SAME surface AutoForeground bands against — full argument list. Passing only (dark, tint, solidA)
+     silently drops the per-preset wash lightness AND the solidify floor, which is what made this panel
+     disagree with the tokens it is meant to explain. */
   const surface = glassSolidSurface(
     env.dark,
     {
@@ -200,15 +255,28 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       a: env.a,
     },
     solidA,
+    env.washL,
+    env.washCMult,
+    {
+      l: env.solidifyL,
+      c: env.solidifyC,
+      a: env.glassOpacity,
+    },
   );
   // neutral → achromatic base; an active tint adds (gamut-clamped) color. Text uses Tonal / Linear only.
   const baseChroma = env.c > 0 ? env.base.c : 0;
   const base = {
     l: env.base.l,
+    // The ramp is seeded from the COMPOSITED surface hue, not --glass-tint-h: the wash mixed over a
+    // near-neutral floor lands a few degrees off the declared angle, and AutoForeground follows the
+    // surface so text sits at the angle it is painted on. Using the token here showed a ramp the
+    // component never draws (amethyst night: 300 vs the surface's 301.4).
     c: baseChroma,
-    h: env.base.h,
+    h: surface.h,
   };
-  // The full ramp: one extreme (black/white) → base (center) → the opposite extreme; picks come from the readable side.
+  /* The DISPLAY ramp: one extreme (black/white) → base (center) → the opposite extreme. Twice the
+     length of the pick pool on purpose — the far half is shown so the strip reads as a whole ramp, but
+     a foreground is only ever drawn from the readable side. */
   const ramp: OklchColor[] = Array.from(
     {
       length: 2 * env.count + 1,
@@ -224,16 +292,22 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   );
   const lcOf = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
 
-  // Band-aware pick (honor floor ≤ Lc ≤ ceiling, aim for target), returning the ramp index.
-  const pickIdx = (band: { floor: number; target: number; ceiling: number }) => {
-    const scored = ramp.map((c, i) => ({
-      i,
-      lc: lcOf(c),
-    }));
-    const inBand = scored.filter((s) => s.lc >= band.floor && s.lc <= band.ceiling);
-    const pool = inBand.length ? inBand : scored;
-    const err = (lc: number) => (inBand.length ? Math.abs(lc - band.target) : Math.min(Math.abs(lc - band.floor), Math.abs(lc - band.ceiling)));
-    return pool.reduce((best, s) => (err(s.lc) < err(best.lc) ? s : best), pool[0]).i;
+  /* The PICK, delegated to lib/oklch-utils so this panel cannot drift from what AutoForeground emits.
+     It did, on every axis: no solidify floor in the surface, no tonal clip (so `Fn` marked the ramp's
+     pure-WHITE end point, which the component never ships), no show-through margin, the raw tint hue
+     instead of the composited one, and a pick pool twice the size the component uses. */
+  const solved = foregroundRamp({
+    palette,
+    count: env.count,
+    base,
+    dark: env.dark,
+  });
+  const lcBoost = LC_MARGIN * showThrough(solidA, env.a, env.glassOpacity);
+  /** Solve a tier and map the chosen colour back to its index in the DISPLAY ramp, for the markers. */
+  const pickIdx = (rawBand: { floor: number; target: number; ceiling: number }) => {
+    const pick = pickTonalInBand(solved, surface, boostBand(rawBand, lcBoost));
+    const i = solved.raw.indexOf(pick);
+    return i >= 0 ? i : 0;
   };
 
   const tiers = TIERS.map((t) => {

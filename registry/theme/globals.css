@@ -279,6 +279,28 @@
      deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
      against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
+  /* ── Solidify floor — the opaque backing UNDER sheer glass ───────────────────
+     `glass` paints --glass-solidify (this colour at --glass-opacity) as the bottom background-image
+     layer of every SHEER material, so it is ~70% of what page/crystal/chakra text actually sits on.
+     It used to be --glass-opaque-bg itself, which conflated two different jobs: the colour an OPAQUE
+     CARD shows, and the backing that sets sheer text contrast. Opaque cards explicitly drop this layer
+     (materials.css, --srf-solidify: none — it would be C over C), so the two were never actually the
+     same surface; they only shared a token.
+     Splitting them is what lets the sheer floor rise without repainting opaque cards. It is the right
+     lever for text contrast because it is the only one with real WEIGHT in the composite (0.7) that is
+     not part of a preset's declared identity: --glass-wash-l is the theme COLOUR (moving it changes
+     what lapis IS), and --glass-tint-a is already per-mode and desaturates. Measured across all 17
+     scopes, L92 is what puts every preset's body text over the 75 floor with the 1.5 Lc margin, with
+     no preset's tint tokens touched. DARK needs none of this (it clears everywhere already), so it
+     pins both back to the opaque floor below and nothing changes there. */
+  --glass-solidify-l: 92;
+  /* The floor's chroma ceiling collapses as it lightens, so the L88 caps above would clip here. Rather
+     than 17 new per-preset numbers, derive from the ones each preset already declares: across the
+     palette the L92/L88 ceiling ratio runs 0.60–0.90, and 0.65 lands every scope INSIDE its real
+     ceiling (worst 0.99×, verified by scripts/check-gamut.mjs). Hues that peak light — peridot,
+     turquoise, aventurine, amber, aquamarine — are not bound by it at all and keep 100% of their
+     surface chroma; the dark-peaking arc keeps 80–86%. */
+  --glass-solidify-c-max: calc(var(--glass-opaque-c-max, 0.055) * 0.65);
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -542,6 +564,12 @@
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
   /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
   --glass-opaque-c-max: 0.12;
+  /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
+     text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
+     opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
+     change: a lighter backing under dark glass would wash the whole mode out. */
+  --glass-solidify-l: var(--glass-opaque-l);
+  --glass-solidify-c-max: var(--glass-opaque-c-max);
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
      DOWN, so the highlights need far less alpha and the inks far more than their light-mode twins to
@@ -918,6 +946,14 @@
   --glass-opaque-bg: oklch(
     calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
   );
+  /* The same floor at the SOLIDIFY lightness/cap — the backing `glass` paints under every sheer
+     material (see --glass-solidify in utilities.css). Split from --glass-opaque-bg because an opaque
+     CARD and the backing under sheer glass are different surfaces with different jobs; tokens.css has
+     the reasoning. Same scale, so a preset's tint still drives it; only the lightness and cap differ. */
+  --glass-solidify-bg: oklch(
+    calc(var(--glass-solidify-l, var(--glass-opaque-l)) * 1%)
+      min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-solidify-c-max, var(--glass-opaque-c-max, 0.3))) var(--glass-tint-h)
+  );
   /* Sheer glass sheet — hue/chroma from the tint vars, chroma scaled per stop so the highlights stay
      glassy and the body carries the color. Stop alphas ride the mode base --glass-sheet-a (+ fixed
      offsets; the top stop's offset is its own knob --glass-sheet-a1 — dark tapers it to 0.03);
@@ -1109,7 +1145,9 @@
      bands text against the sheer floor, so a more solid surface than it modelled could have cost
      contrast. Body text goes 91.5 -> 86.5 Lc in light and 88.0 -> 85.8 in dark, both far above the
      75 body floor (it still clears at a full 1.0). Set --glass-opacity: 0 for the old sheer default. */
-  --glass-solidify-fill: color-mix(in oklch, var(--glass-opaque-bg) calc(var(--glass-opacity, 0.7) * 100%), transparent);
+  /* --glass-solidify-BG, not --glass-opaque-bg: the backing under sheer glass is its own surface now
+     (engine.css / tokens.css). In dark the two resolve identically, so this is a light-mode change. */
+  --glass-solidify-fill: color-mix(in oklch, var(--glass-solidify-bg, var(--glass-opaque-bg)) calc(var(--glass-opacity, 0.7) * 100%), transparent);
   --glass-solidify: linear-gradient(var(--glass-solidify-fill), var(--glass-solidify-fill));
   /* --srf-hover leads the stack because a hover/selection wash has to sit ON the material, not under it.
      `hover:bg-accent` sets background-COLOR, which is the bottom of the box — beneath all 14 image layers
@@ -1163,6 +1201,23 @@
 
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
+}
+
+/* THE PAGE BACKDROP LAYER — the fixed, full-viewport ground every sheer material blurs. Put this on the
+   `fixed inset-0 -z-10` container each background component renders.
+   It exists to force a compositing layer. `backdrop-filter` re-samples everything painted beneath it,
+   and this layer sits at z-index -10 under the entire document; unpromoted, the compositor has to
+   re-rasterise it against the scroll position every frame, which is where the scroll artifact on the
+   sheer materials comes from. `opaque` is the ONE material that sets --srf-filter: none — and the one
+   material that never showed the artifact, which is the correlation that points here.
+   Measured on the deployed page, this element resolved will-change:auto / transform:none /
+   contain:none — nothing was promoting it. Promoting is safe specifically because it has ZERO
+   position:fixed descendants and no background-attachment:fixed; a transform/will-change would
+   otherwise become their containing block and reparent them. Re-check that before adding children.
+   will-change (rather than a translateZ hack) because the hint is honest here: this layer is on screen
+   and being sampled for the whole session, so there is nothing to hint OFF later. */
+@utility glass-backdrop-layer {
+  will-change: transform;
 }
 
 /* Size axes — blur + elevation tiers. These feed the GLASS material only: frosted/crystal/opaque
@@ -1597,6 +1652,19 @@
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
+}
+/* --glass-solid-a CANNOT ride in the :where() block above. :where() is specificity ZERO by design (so a
+   page style never beats an explicit material), and every other declaration up there survives that
+   because nothing else declares them — they are material SLOTS with no competing value. This one is
+   different: tokens.css declares --glass-solid-a on :root, which is (0,1,0), so the :where() version
+   lost every time and the opaque page never actually got its solid floor. Measured: --glass-solid-a
+   resolved to 0.65 on <html> under [data-glass="opaque"], identical to every other page style.
+   The visible symptom is any VEILED surface on an opaque page staying translucent while the solid
+   panels around it go opaque — menus, toasts and popovers, which is exactly what the block above says
+   this is for. A bare attribute selector is (0,1,0), which ties :root and wins on source order because
+   globals.css imports styles.css after tokens.css. It is a plain literal, so it simply inherits into
+   the tint / toast scopes and needs none of their re-resolution. */
+[data-glass="opaque"] {
   --glass-solid-a: 1;
 }
 /* Opaque page: element-level touches for ADAPTIVE surfaces only (`.glass` with no explicit material —
@@ -1610,6 +1678,8 @@
      veiled floor is neutral and the layer is real there. */
   --srf-solidify: none;
 }
+/* The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
+   still reads as a solid panel and needs the same outline. */
 [data-glass="opaque"] :where(.glass):not([data-material]) {
   --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
   --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
@@ -1618,6 +1688,16 @@
      some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
      resolve the same vars, so nothing double-draws. */
   border: var(--srf-border-w) solid var(--srf-border-color);
+}
+/* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
+   one the --srf-solidify rule above already makes for this page style. A veiled card does not paint
+   --glass-opaque-bg: glass-veil moves the background-COLOR channel to the neutral --veil-floor, so its
+   text sits on the veil surface the BASE tokens are banded for, not on the opaque floor. Remapping it
+   here handed those cards ink solved for a surface they do not have — visible as a hue jump, since the
+   opaque floor is the one surface with nothing composited over it and so sits at the raw --glass-tint-h
+   while every sheer surface lands a few degrees off it (measured on the /colors panel: 22.0 vs 14.6).
+   Splitting the rule is what keeps the edge treatment while dropping the foreground one. */
+[data-glass="opaque"] :where(.glass):not([data-material]):not(.glass-veil) {
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
   --foreground-strong: var(--foreground-strong-opaque);

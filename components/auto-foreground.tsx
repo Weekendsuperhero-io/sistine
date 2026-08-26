@@ -2,17 +2,22 @@
 
 import * as React from "react";
 import {
-  apcaContrast,
+  showThrough as backdropShowThrough,
+  boostBand,
+  type ContrastBand,
+  compositeSurface,
+  foregroundRamp,
   formatOklch,
   glassSolidSurface,
   HARMONIC_OFFSETS,
   type HarmonicName,
   harmonicHue,
-  pickInBand,
+  LC_AIM_KNOWN,
+  LC_MARGIN,
+  pickTonalInBand,
   READABLE_USAGE,
-  readableForeground,
+  readableTonal,
   type ThemeForegroundOptions,
-  themeForeground,
 } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
@@ -62,19 +67,9 @@ const DEFAULT_FG: FgConfig = {
   softHue: null,
   strongHue: null,
 };
-/** Lightness below which an sRGB colour renders as black no matter its chroma — the ramp's dark end is
- *  clipped here on tinted themes so a reach-limited tier keeps its hue instead of collapsing to #000.
- *  18 sits just above L15 (#130900 at the warm hue, still reading black at text size); the darkest step
- *  kept is L20 (#211300), which is unambiguously tinted. */
-const TONAL_MIN_L = 18;
-/** The same clip at the WHITE end, where L100 is exactly achromatic. Deliberately much tighter than its
- *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
- *  while near white a single 3-point step is worth 6–8 Lc. 97 clips the pure-white end point (and, on a
- *  finer ramp, the step just below it) while keeping L96.7 — #eff4ff at the blue hue, faint but tinted. */
-const TONAL_MAX_L = 97;
-/** The contrast line the tonal clip may never trade away: the body band's floor, i.e. the point where
- *  text stops being readable rather than merely missing an aspirational target. */
-const LEGIBLE_FLOOR = READABLE_USAGE.body.floor;
+/* The tonal clip bounds, the margins and the pick/solve themselves now live in lib/oklch-utils — see
+   the "Foreground solve" section there. They were duplicated into components/foreground-tester.tsx and
+   scripts/check-contrast.mjs, and every copy had drifted from this one in a way no test could see. */
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
@@ -235,7 +230,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // the model can be trusted, so each band's TARGET gets a safety margin of up to +LC_MARGIN
       // (≈ one ARC band step) at fully-sheer, decaying to +0 at a fully-known floor (solidA 1 — e.g. the
       // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
-      const LC_MARGIN = 12;
+      // (LC_MARGIN / LC_AIM_KNOWN are exported from lib/oklch-utils so every consumer aims the same.)
       // Parity aim for a FULLY-KNOWN floor. LC_MARGIN above is an UNCERTAINTY margin — it decays to 0 as the
       // floor becomes exactly modelable, which is right on its own terms but leaves the one surface we model
       // exactly (opaque) aiming at the BARE band target while every other surface aims 3.6–5.7 Lc above it.
@@ -245,7 +240,6 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // baseline aim instead. Sized to the MIDDLE of the other surfaces' effective margins so opaque lands
       // LEVEL with them; the full LC_MARGIN here would pin body+muted to the band ceiling and just invert the
       // asymmetry (opaque becomes the harshest surface). Ceilings still cap the pick.
-      const LC_AIM_KNOWN = 4;
       const solidA = num("--glass-solid-a", 0.65);
       // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
       // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
@@ -274,64 +268,110 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          surface more colourful (and so slightly darker) than the one actually painted; scripts/
          check-contrast.mjs already clamps here, so an uncapped model here also silently disagrees with the
          guard that signs the presets off. Keep the three in step. */
+      const opaqueCMax = num("--glass-opaque-c-max", dark ? 0.12 : 0.055);
+      /* --glass-solidify-*, NOT --glass-opaque-*: the backing under sheer glass is its own surface (see
+         tokens.css). It is the one high-weight term in the composite that is not part of a preset's
+         declared identity, which is why LIGHT lifts it to 92 to buy body-text contrast without touching
+         a single tint token. Dark pins both back to the opaque floor, so this reads identically there.
+         Fallbacks mirror tokens.css: the derived cap is --glass-opaque-c-max × 0.65 in light. */
       const solidifyFloor = {
-        l: num("--glass-opaque-l", dark ? 36.4 : 88),
-        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-opaque-c-max", dark ? 0.12 : 0.055)),
+        l: num("--glass-solidify-l", dark ? 36.4 : 92),
+        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-solidify-c-max", dark ? opaqueCMax : opaqueCMax * 0.65)),
         a: glassOpacity,
       };
-      /** Composite the solidify floor over a sheer floor lightness — the layer order `glass` paints. */
-      const solidified = (l: number) => l * (1 - glassOpacity) + solidifyFloor.l * glassOpacity;
-      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
-      const normalLcBoost = LC_MARGIN * showThrough;
+      /** The solidify floor as a compositable layer — the layer order `glass` paints. */
+      const solidifyLayer = {
+        l: solidifyFloor.l,
+        c: solidifyFloor.c,
+        h: tintH,
+        a: solidifyFloor.a,
+      };
+      /* --glass-tint-c-hi (engine.css): the HIGHLIGHT chroma budget, min(--glass-tint-c, 0.017). The
+         sheet stops and the crystal floor are all scaled off this, not off raw --glass-tint-c — at
+         near-white lightnesses the gamut ceiling collapses, so the cap is what keeps those layers
+         rendering what they ask for. check-theme [gamut] holds the 0.017 in step with engine.css. */
+      const TINT_C_HI_MAX = 0.017;
+      const tintCHi = Math.min(tintC, TINT_C_HI_MAX);
+      /* The gloss triple (top / streak / glow) — crystal AND chakra bake the same --glass-gloss-ink, so
+         it is derived once here. Only the TOP highlight is modeled: it peaks at 0.4α and fades out by
+         30% height, so ≈0.2 is its mean across the title zone (modeling the 0.4 peak would make the band
+         unsatisfiable on mid-gray). The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
+         at 50% 120%, i.e. BELOW the card) are left out: the glow is past its 70% fade before it reaches
+         the title zone, and the streak's mean there is a geometry estimate rather than a measurement.
+         Both would only ADD light, so omitting them is the conservative direction. */
+      const GLOSS_TOP_A = 0.2;
+      const glossLayer = {
+        /* Mode-aware fallback: --glass-gloss-l is a twin (97 light / 66 dark), so a single 66 here would
+           model the light crystal surface ~6 L darker than it renders and band text too weak. */
+        l: num("--glass-gloss-l", dark ? 66 : 97),
+        // --glass-gloss-ink is TINTED — min(--glass-tint-c × --glass-gloss-tint, --glass-gloss-c-max).
+        // Modeling it achromatic dropped the gloss's colour from every crystal/chakra band.
+        c: Math.min(tintC * num("--glass-gloss-tint", 4.25), num("--glass-gloss-c-max", dark ? 0.109 : 0.013)),
+        h: tintH,
+        a: GLOSS_TOP_A,
+      };
+      const normalLcBoost = LC_MARGIN * backdropShowThrough(solidA, tintA, glassOpacity);
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
       const fgHarmonyH = huelessAccent ? accentH : harmonyH;
+      /* The veiled floor body text sits on (page + translucent/veiled cards). Derived HERE, above the
+         ramp, because the ramp's hue comes from it — see below. */
+      const normalSurface = glassSolidSurface(
+        dark,
+        {
+          h: tintH,
+          c: tintC,
+          a: tintA,
+        },
+        solidA,
+        washL,
+        washCMult,
+        solidifyFloor,
+      );
+      /* TEXT FOLLOWS THE SURFACE'S HUE, NOT THE TINT TOKEN'S. --glass-tint-h is what the WASH declares;
+         what a reader sees is the wash composited over the solid/solidify floor, and that mix does not
+         travel a radial path — the floor is near-neutral, so it has almost no hue to interpolate toward
+         and the result lands a few degrees off the declared angle (measured light: rose 8 → 2.5, goldstone
+         22 → 17.1, lapis 268 → 271.7). Seeding the ramp from tintH therefore painted text at an angle the
+         surface underneath it never actually occupies. Opaque is the one surface unaffected: it is a solid
+         painted colour with nothing composited over it, so its hue IS tintH and surface.h returns exactly
+         that. The residual spread BETWEEN materials is ≤5.5°, which at the ink's chroma (~0.08) sits well
+         under a just-noticeable difference — far smaller than the ink-vs-surface mismatch it removes. */
+      const surfaceH = huelessAccent ? accentH : normalSurface.h;
       // A neutral tint → ACHROMATIC foregrounds (black/white/gray by lightness). EXCEPTION: the Hue palette
       // stays a full-spectrum color wheel even when neutral. A hue-less accent overrides both — it hue +
       // vividnesses the whole ramp so every text tier tints toward the chosen accent.
       const base = {
         l: rl ?? storedRamp.l,
         c: huelessAccent ? accentC || cfgC : palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
-        h: huelessAccent ? accentH : tintH,
+        h: surfaceH,
       };
-      // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
-      // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
-      const rawRamp = Array.from(
-        {
-          length: count + 1,
-        },
-        (_, level) =>
-          themeForeground({
-            palette,
-            level,
-            count,
-            base,
-            dark,
-          }),
-      );
-      /* Drop BOTH achromatic ends of the ramp on tinted themes. sRGB has almost no gamut volume at either
-         extreme, so the steps there are pure black / pure white wearing a theme colour's name: at L0 any
-         requested chroma renders #000000 (L5 → #030000, L10 → #070200), and at L100 it renders #ffffff.
-         pickInBand reaches them whenever a band's target sits above every step — it then picks for maximum
-         contrast, which IS the extreme. The `small` band (floor Lc 90) does exactly that in both modes, so
-         --foreground-strong was #000000 on 20 of 21 presets in light and #ffffff on 18 of 21 in dark, while
-         body text one band down stayed properly tonal. Light was worse: body ALSO went black on 10 of 21.
-         The two ends are not symmetric, which is why the thresholds are not either. Near black, luminance
-         barely moves with lightness, so the whole L0–L18 span is visually one colour and giving it up costs
-         1.3–1.9 Lc — nothing. Near white the same lightness step is worth 6–8 Lc, so only the very top is
-         clipped, and fine text in dark lands 80–91 Lc instead of 86–97. That is a real reduction, taken
-         deliberately: it matches what light mode already ships for the same tier (76–88), and the 90 floor
-         was never actually held there — 11 of 21 presets miss it even at pure white.
-         NEUTRAL themes (selenite: base chroma 0) keep the full ramp, since there black and white are the
-         genuine ends of a grey scale rather than colours that lost their hue. */
-      const tonal = rawRamp.filter((c) => c.l >= TONAL_MIN_L && c.l <= TONAL_MAX_L);
-      const ramp = base.c > 0 && tonal.length ? tonal : rawRamp;
+      /* Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral gray —
+         each picked to hit its ARC-Bronze contrast target on the surface text actually sits on. Only the
+         READABLE half (count + 1 levels) is built: the far side of the base is display-only, and picking
+         from it would offer steps the surface can never make legible.
+         foregroundRamp also drops both achromatic ends on tinted themes — see lib/oklch-utils for why the
+         two thresholds are not symmetric. Before that clip, --foreground-strong was #000000 on 20 of 21
+         presets in light and #ffffff on 18 of 21 in dark, and body text ALSO went black on 10 of 21. */
+      const ramp = foregroundRamp({
+        palette,
+        count,
+        base,
+        dark,
+      });
       const iconHue = storedFg.iconHue;
-      // Set the full foreground tier set against a given SURFACE, under a var suffix. Run twice: "" for the
-      // normal glass-SOLID surface (page + translucent/solid cards), and "-opaque" for the solid
-      // --glass-opaque-bg floor. The opaque re-skin in globals.css remaps --foreground* → the -opaque vars
-      // inside opaque cards, so a LIGHT opaque floor (e.g. dark-mode moonstone cream) gets DARK card text while
-      // the dark page keeps light text — one global foreground can't do both, so opaque cards get their own.
+      /* Set the full foreground tier set against a given SURFACE, under a var suffix. Run FOUR times, once
+         per modeled surface: "" (the normal glass-SOLID floor), "-opaque", "-crystal", "-chakra". Each
+         material's [data-material] block remaps --foreground* → its own suffixed set, so a LIGHT opaque
+         floor (dark-mode moonstone cream) gets DARK card text while the dark page keeps light text — one
+         global foreground cannot do both.
+         FIVE materials share those four sets: `glass` and `frosted` both fall through to "". They are not
+         quite the same surface — frosted paints --glass-frosted-bg, the same sheet lifted by
+         --glass-frost-boost (0.1 light / 0.06 dark) — and the "" model deliberately stops at the wash, so
+         NEITHER sheet is in it. Both are therefore banded against a floor darker than what renders, which
+         is the safe direction (measured light: text lands 2.2–2.6 Lc over-contrasted on glass, 4.2–4.6 on
+         frosted, and no tier breaches its band ceiling). Frosted is the loosest fit in the system; giving
+         it a fifth set would tighten it. */
       const applyTiers = (
         surface: {
           l: number;
@@ -349,54 +389,34 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       ) => {
         // Lift the band's TARGET toward its ceiling by the uncertainty boost + the baseline aim. Floors and
         // ceilings stay — the margin aims higher, it never legalizes a harsher pick than the band allowed.
-        const boost = (band: { floor: number; target: number; ceiling: number }) => ({
-          ...band,
-          target: Math.min(band.target + lcBoost + lcAim, band.ceiling),
-        });
-        /* Pick from the TONAL ramp, but never at the cost of the band's floor. The clipped ramp above drops
-           the steps that render black; if a band is so demanding that only those steps could satisfy its
-           FLOOR, legibility outranks hue and the full ramp comes back. Today no band needs it — light body
-           bottoms out at 75.4 Lc on the clipped ramp — but /colors lets a consumer re-base the ramp (its
-           lightness, chroma and step count are all user config), and a shallow enough ramp could put the
-           floor out of the clipped subset's reach. This keeps the preference from ever becoming a
-           readability regression, rather than relying on TONAL_MIN_L being right for every ramp. */
-        const pickTonal = (band: { floor: number; target: number; ceiling: number }) => {
-          const best = pickInBand(ramp, surface, band);
-          if (ramp === rawRamp) return best;
-          const lc = (c: { l: number; c: number; h: number }) => Math.abs(apcaContrast(c, surface));
-          /* Guard LEGIBILITY, not each band's aspiration. Checking against band.floor would undo the clip
-             on the one tier it exists for: the `small` band asks Lc 90, which no light surface reaches at
-             all and which in dark only pure white reaches, so a band.floor test hands the extreme straight
-             back. The body floor is the line that actually has to hold — below it text stops being
-             readable — and every clipped pick clears it comfortably (light body bottoms out at 75.4, dark
-             fine text at 80.1). Above that line, hue wins. */
-          if (lc(best) >= LEGIBLE_FLOOR) return best;
-          const full = pickInBand(rawRamp, surface, band);
-          return lc(full) > lc(best) ? full : best;
-        };
+        const boost = (band: ContrastBand) => boostBand(band, lcBoost, lcAim);
+        /* Pick from the TONAL ramp, never at the cost of the band's floor — see pickTonalInBand in
+           lib/oklch-utils. Today no band needs the fallback (light body bottoms out at 75.4 Lc on the
+           clipped ramp), but /colors lets a consumer re-base the ramp entirely, so the guard exists so
+           the hue preference can never become a readability regression. */
+        /* The adaptive twin, readableTonal, also lives in lib/oklch-utils: an unreachable aim makes
+           readableForeground return the lightness EXTREME, where the gamut annihilates chroma, so every
+           jewel's --foreground-opaque solved to pure black in light. Same clip, same ~1 Lc cost. */
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
         // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (moonstone cream).
-        const tier = (rawBand: { floor: number; target: number; ceiling: number }) => {
+        const tier = (rawBand: ContrastBand) => {
           const band = boost(rawBand);
           return formatOklch(
             adaptive
-              ? readableForeground(surface, {
-                  floor: band.floor,
-                  target: band.target,
-                  ceiling: band.ceiling,
+              ? readableTonal(surface, band, {
                   // Opaque cards on the hue-less themes (selenite + moonstone) follow the chosen accent too — same as
                   // the normal surface above — so moonstone/selenite opaque-card text tints toward the accent.
-                  hue: huelessAccent ? accentH : tintH,
+                  // Otherwise THIS surface's own composited hue, not the tint token's (see surfaceH): each
+                  // adaptive material composites a different stack, so each gets ink at its own angle.
+                  hue: huelessAccent ? accentH : surface.h,
                   chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
-                  // Accent path ONLY: keep the accent VISIBLE on floors whose max contrast sits below the
-                  // band (moonstone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
-                  // pins to L≈0, the gamut collapses chroma, and accent text renders BLACK. Every other
-                  // theme passes 0 → behavior unchanged.
+                  // Accent path ONLY — the one case where the background CAN hold the kept chroma, so the
+                  // minChroma search does not bail to the extreme (see readableTonal).
                   minChroma: huelessAccent ? 0.08 : 0,
                 })
-              : pickTonal(band),
+              : pickTonalInBand(ramp, surface, band),
           );
         };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
@@ -417,8 +437,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           choice == null
             ? tier(READABLE_USAGE[usage])
             : formatOklch(
-                readableForeground(surface, {
-                  ...boost(READABLE_USAGE[usage]),
+                // Clipped like every other solve: a PINNED hue is the one case where collapsing to the
+                // achromatic extreme is most obviously wrong — the whole point of pinning is to see it.
+                readableTonal(surface, boost(READABLE_USAGE[usage]), {
                   hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
                   chroma: 0.15,
                 }),
@@ -436,12 +457,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         // Icons get their own foreground: a ui-band-legible color (lightness solved for contrast) at an
         // OPTIONAL chosen hue — so icons can be tinted/cycled while staying readable, independent of the
         // text palette. iconHue null → follow the theme (neutral → gray, tinted → the tint hue).
-        const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : tintH;
+        // null → follow the theme, which means THIS surface's composited hue (see surfaceH), so an icon
+        // sits at the same angle as the material behind it. A pinned number / harmonic is a deliberate
+        // choice and overrides that.
+        const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : surface.h;
         root.style.setProperty(
           `--foreground-ui${suffix}`,
           formatOklch(
-            readableForeground(surface, {
-              ...boost(READABLE_USAGE.ui),
+            readableTonal(surface, boost(READABLE_USAGE.ui), {
               hue: iconH,
               chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
             }),
@@ -450,36 +473,22 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       };
 
       // Normal surface: the veiled floor body text sits on (page + translucent/veiled cards), with the
-      // show-through margin lifting each band target as the floor gets sheerer.
-      applyTiers(
-        glassSolidSurface(
-          dark,
-          {
-            h: tintH,
-            c: num("--glass-tint-c", 0),
-            a: tintA,
-          },
-          solidA,
-          washL,
-          washCMult,
-          solidifyFloor,
-        ),
-        "",
-        false,
-        normalLcBoost,
-      );
-      // Opaque cards paint the solid --glass-opaque-bg floor — band a second set against it. This IS the
-      // solidify floor, undiluted: an opaque card is the one surface with nothing sheer above it, so it is
-      // `solidifyFloor` at full strength. Reuse it rather than re-deriving, which is how this drifted — it
-      // carried its own `* 0.9` (a multiplier matching neither mode: tokens.css ships 0.85 light / 1.05
-      // dark), its own stale lightness, and no chroma cap at all, so the opaque tier banded against a
-      // surface the CSS never paints. One derivation, one place to keep in step with tokens.css.
-      // `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
-      // readable half and can't.
+      // show-through margin lifting each band target as the floor gets sheerer. Derived above the ramp
+      // (see normalSurface) because the ramp's hue is read off it.
+      applyTiers(normalSurface, "", false, normalLcBoost);
+      /* Opaque cards paint --glass-opaque-bg, so band a second set against THAT — derived here from
+         --glass-opaque-l / -c-max rather than reused from solidifyFloor. Those two used to be the same
+         colour, and this call read `solidifyFloor` on exactly that basis; they are separate surfaces now
+         (tokens.css), so sharing would band opaque-card text against the sheer backing instead of the
+         card. In dark the two still resolve identically; in light the card stays at L88 while the backing
+         sits at L92. Keep in step with tokens.css — an earlier version of this re-derivation drifted,
+         carrying its own `* 0.9` multiplier (matching neither mode) and no chroma cap at all.
+         `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
+         readable half and can't. */
       applyTiers(
         {
-          l: solidifyFloor.l,
-          c: solidifyFloor.c,
+          l: num("--glass-opaque-l", dark ? 36.4 : 88),
+          c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), opaqueCMax),
           h: tintH,
         },
         "-opaque",
@@ -490,57 +499,94 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Crystal cards: the specular gloss is baked UNDER content, so title-zone text sits on a locally
       // LIGHTENED surface — worst in dark mode, where the ~L94 highlight over a dark floor pulls the
       // local surface toward mid-gray. Band a THIRD set against the crystal surface + the title zone's
-      // MEAN gloss term (the top highlight peaks at 0.4α and fades out by 30% height → ≈0.2 effective;
-      // modeling the 0.4 peak would make the band unsatisfiable on mid-gray). [data-material="crystal"]
-      // and the crystal page style remap the tiers to this set — except veiled crystal, whose floor is
-      // what the NORMAL tiers are banded for. Same show-through margin logic: the backdrop's weight in
-      // this mix is (1−crysA)(1−tintA)(1−glossA).
+      // mean gloss term (see glossLayer). [data-material="crystal"] and the crystal page style remap the
+      // tiers to this set — except veiled crystal, whose floor is what the NORMAL tiers are banded for.
+      // Same show-through margin logic: the backdrop's weight in this mix is (1−crysA)(1−tintA)(1−glossA).
       {
         const crysA = num("--glass-crystal-bg-a", dark ? 0.1 : 0.3);
-        /* Mode-aware fallback: --glass-gloss-l is a twin now (97 light / 66 dark), so a single 66 here
-           would model the light crystal surface ~6 L darker than it renders and band text too weak. */
-        const glossL = num("--glass-gloss-l", dark ? 66 : 97);
-        const GLOSS_TOP_A = 0.2; // mean of the 0.4α top highlight across the title zone
-        const baseL = dark ? 20 : 95;
         // Layer order: --glass-crystal-bg (background-COLOR) → solidify → wash → gloss. The solidify step
-        // was missing, which is what put moonstone-night crystal 27.5 L below what it paints.
-        const floorL = solidified(baseL * (1 - crysA) + 100 * crysA);
-        const washedL = floorL * (1 - tintA) + washL * tintA;
-        const crystalL = washedL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A;
+        // was missing, which is what put moonstone-night crystal 27.5 L below what it paints. Each layer
+        // now composites in sRGB (see compositeSurface) rather than lerping OKLCH coordinates — on this
+        // surface that error CHANGED SIGN by preset, so nothing shorter than a real composite fixes it.
         const uCrystal = Math.min(Math.max((1 - crysA) * (1 - tintA) * (1 - GLOSS_TOP_A) * (1 - glassOpacity), 0), 1);
         applyTiers(
-          {
-            l: crystalL,
-            // The crystal floor's own chroma plus the solidify floor's, each surviving what the layers
-            // above let through — the sheer 0.6× term alone assumed nothing solid sat underneath.
-            c: (num("--glass-tint-c", 0) * 0.6 * (1 - glassOpacity) + solidifyFloor.c * glassOpacity) * (1 - tintA) + tintC * washCMult * tintA,
-            h: tintH,
-          },
+          compositeSurface(
+            {
+              l: dark ? 20 : 95,
+              c: 0,
+              h: tintH,
+            },
+            [
+              // --glass-crystal-bg, engine.css: oklch(--glass-crystal-l, --glass-tint-c-hi × 0.6). This
+              // modeled a flat L100 at the RAW tint chroma — 100 carries no chroma at all (which is why
+              // the token pins 96), and skipping the -c-hi cap asked for up to 6× the colour that
+              // renders (tourmaline 0.0636 vs the 0.0102 ceiling).
+              {
+                l: num("--glass-crystal-l", 96),
+                c: tintCHi * 0.6,
+                h: tintH,
+                a: crysA,
+              },
+              solidifyLayer,
+              {
+                l: washL,
+                c: tintC * washCMult,
+                h: tintH,
+                a: tintA,
+              },
+              glossLayer,
+            ],
+          ),
           "-crystal",
           true,
           LC_MARGIN * uCrystal,
         );
       }
-      // Chakra cards: content sits on the translucent body, so --glass-chakra-l IS the banding
-      // lightness. The facet bands need no term — they live in box-shadow, ride the outer few px of the
-      // edge, and pair a highlight against an ink on opposite sides, so they contribute nothing where
-      // text actually sits. Show-through is just (1 − body a), the largest of any tier here, so this
-      // gets the full margin. `adaptive` for the same reason opaque is: an L88 body can sit on a dark
-      // page, and the theme ramp only spans the readable half so it cannot produce dark text.
+      // Chakra cards: content sits on the translucent body, banded against the whole stack it paints.
+      // The facet bands need no term — they live in box-shadow, ride the outer few px of the edge, and
+      // pair a highlight against an ink on opposite sides, so they contribute nothing where text
+      // actually sits. Show-through is (1 − body a)(1 − tintA)(1 − glossA)(1 − glassOpacity) — the same
+      // four-term form crystal uses, since chakra bakes the same gloss. `adaptive` for the same reason
+      // opaque is: an L88 body can sit on a dark page, and the theme ramp only spans the readable half.
       {
         const bodyA = num("--glass-chakra-a", dark ? 0.58 : 0.62);
-        // The body is the background-COLOR, so solidify paints over it here too. Chakra happened to land
-        // right on moonstone night only because that preset pins --glass-chakra-l light (84) to match its
-        // cream opaque floor — the model was not actually tracking the floor, it just agreed with it.
-        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
+        /* --glass-chakra-bg is the background-COLOR and it is TRANSLUCENT (--glass-chakra-a, 0.62 light
+           / 0.58 dark), so --glass-chakra-l was never the banding lightness on its own — the page shows
+           through it. And --glass-chakra-stack-bg is the SAME stack crystal bakes (gloss triple, fresco
+           slot, wash layer) with solidify composed under it, so chakra takes the tint wash and the gloss
+           too. Modeling only `chakra-l → solidify` dropped the page, the body's own alpha, the entire
+           wash and the gloss; it agreed with the truth on moonstone night by coincidence, because that
+           preset pins --glass-chakra-l (84) near its cream opaque floor. Full stack, real paint order. */
+        /* (1 − GLOSS_TOP_A) belongs here for the same reason it does on crystal: show-through is the
+           backdrop's SURVIVING weight, so every layer painted above it attenuates — and chakra bakes the
+           gloss now. Omitting it overstated the backdrop's share by 1/(1−0.2) = 1.25×, which inflated an
+           UNCERTAINTY margin (the boost is LC_MARGIN × this) on a surface that is in fact better known
+           than the model claimed. */
+        const uChakra = Math.min(Math.max((1 - bodyA) * (1 - tintA) * (1 - GLOSS_TOP_A) * (1 - glassOpacity), 0), 1);
         applyTiers(
-          {
-            l: solidified(num("--glass-chakra-l", dark ? 28 : 88)),
-            c:
-              Math.min(num("--glass-tint-c", 0), num("--glass-chakra-c-max", dark ? 0.046 : 0.055)) * (1 - glassOpacity) +
-              solidifyFloor.c * glassOpacity,
-            h: tintH,
-          },
+          compositeSurface(
+            {
+              l: dark ? 20 : 95,
+              c: 0,
+              h: tintH,
+            },
+            [
+              {
+                l: num("--glass-chakra-l", dark ? 28 : 88),
+                c: Math.min(tintC, num("--glass-chakra-c-max", dark ? 0.046 : 0.055)),
+                h: tintH,
+                a: bodyA,
+              },
+              solidifyLayer,
+              {
+                l: washL,
+                c: tintC * washCMult,
+                h: tintH,
+                a: tintA,
+              },
+              glossLayer,
+            ],
+          ),
           "-chakra",
           true,
           LC_MARGIN * uChakra,

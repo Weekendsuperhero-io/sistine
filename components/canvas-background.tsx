@@ -130,7 +130,7 @@ export function CanvasBackground({
   return (
     <canvas
       ref={canvasRef}
-      className={`fixed inset-0 -z-10 pointer-events-none ${className}`}
+      className={`fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none ${className}`}
       style={{
         opacity,
         filter: blur ? "blur(20px)" : "none",

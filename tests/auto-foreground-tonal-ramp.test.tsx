@@ -117,7 +117,13 @@ describe("AutoForeground: light-mode text keeps its hue", () => {
 
   it("leaves NEUTRAL themes free to use black", async () => {
     /* Selenite has chroma 0: its ramp is a grey scale, where black is the darkest TONE rather than a
-       colour that lost its hue. Clipping there would cap contrast for nothing. */
+       colour that lost its hue. Clipping there would cap contrast for nothing.
+       The surface is PINNED because the bypass is only observable when the `small` band is out of
+       reach: that is what sends pickInBand past the clip to the extreme, and a clipped ramp would stop
+       at L20 instead. At the shipped --glass-solidify-l (92) the surface is light enough that the band
+       is satisfiable at L25, so the solver correctly picks a softer ink and the bypass is invisible —
+       which says nothing about whether it still exists. L88 is the backing this was written against. */
+    root().style.setProperty("--glass-solidify-l", "88");
     root().style.setProperty("--glass-tint-h", "250");
     root().style.setProperty("--glass-tint-c", "0");
     render(<AutoForeground />);
@@ -171,8 +177,10 @@ describe("AutoForeground: light-mode text keeps its hue", () => {
     root().style.setProperty("--glass-tint-h", "75");
     root().style.setProperty("--glass-tint-c", "0.09");
     root().style.setProperty("--glass-tint-a", "0.2");
-    // Drive the surface into the mid-tone band, where the clipped ramp cannot clear the 75 Lc body floor.
-    root().style.setProperty("--glass-opaque-l", "60");
+    /* Drive the surface into the mid-tone band, where the clipped ramp cannot clear the 75 Lc body floor.
+       --glass-solidify-l, not --glass-opaque-l: the backing under sheer glass is its own token now, and
+       --glass-opaque-l moves only the opaque CARD floor (see tokens.css). */
+    root().style.setProperty("--glass-solidify-l", "60");
     root().style.setProperty("--glass-opacity", "0.9");
     render(<AutoForeground />);
     await waitFor(() => expect(read("--foreground")).not.toBe(""));

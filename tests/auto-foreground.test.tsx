@@ -90,21 +90,53 @@ describe("AutoForeground: chakra tiers", () => {
     expect(darkBody).toBeGreaterThan(50); // light ink on the L28 body
   });
 
-  it("tracks --glass-chakra-l rather than assuming the default body", async () => {
-    /* The banding lightness is read from the token. Driving the body from L88 to a near-black L12
-       must move the solved text the other way, or the tier is ignoring its own surface. */
-    root().style.setProperty("--glass-chakra-l", "88");
-    render(<AutoForeground />);
-    await waitFor(() => expect(read("--foreground-chakra")).not.toBe(""));
-    const onLightBody = lightnessOf(read("--foreground-chakra"));
-
+  /** Solve --foreground-chakra with an arbitrary set of root vars pinned. */
+  const chakraWith = async (vars: Record<string, string>) => {
     root().removeAttribute("style");
-    root().style.setProperty("--glass-chakra-l", "12");
+    for (const [k, v] of Object.entries(vars)) root().style.setProperty(k, v);
     render(<AutoForeground />);
     await waitFor(() => expect(read("--foreground-chakra")).not.toBe(""));
-    const onDarkBody = lightnessOf(read("--foreground-chakra"));
+    return lightnessOf(read("--foreground-chakra"));
+  };
 
-    expect(onLightBody).toBeLessThan(onDarkBody);
+  it("tracks --glass-chakra-l rather than assuming the default body", async () => {
+    /* The banding lightness is read from the token, but it is only ONE layer of the chakra stack: the
+       body is translucent (--glass-chakra-a) AND the solidify floor paints OVER it at --glass-opacity,
+       so at shipped defaults the token carries just 13% of its nominal authority (a full L88 → L12
+       sweep moves the composited surface only L90.5 → L80.8). Both ends stay light-side of the ~L70
+       polarity crossover, so the text stays DARK and gets darker — it does not flip. Assert the
+       direction it actually has: a darker body means less reach for dark ink, so the pick goes down. */
+    const onLightBody = await chakraWith({
+      "--glass-chakra-l": "88",
+    });
+    const onDarkBody = await chakraWith({
+      "--glass-chakra-l": "12",
+    });
+
+    expect(onLightBody).toBeGreaterThan(onDarkBody);
+    expect(onLightBody - onDarkBody).toBeGreaterThan(5); // the token must MOVE the solve, not be ignored
+  });
+
+  it("lets --glass-chakra-l flip the text once the layers above it are out of the way", async () => {
+    /* The polarity flip the token can't reach on its own. Drop the solidify floor (--glass-opacity: 0)
+       and make the body opaque, and --glass-chakra-l drives 75% of the surface — enough to cross the
+       crossover, at which point `adaptive` must switch the ink to light. This pins that the chakra tier
+       is genuinely banding against its own composited surface rather than a fixed assumption. */
+    const solo = {
+      "--glass-opacity": "0",
+      "--glass-chakra-a": "1",
+    };
+    const onLightBody = await chakraWith({
+      ...solo,
+      "--glass-chakra-l": "88",
+    });
+    const onDarkBody = await chakraWith({
+      ...solo,
+      "--glass-chakra-l": "12",
+    });
+
+    expect(onLightBody).toBeLessThan(50); // dark ink on the L88 body
+    expect(onDarkBody).toBeGreaterThan(50); // light ink once the body actually goes dark
   });
 });
 

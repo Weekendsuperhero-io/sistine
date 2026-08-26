@@ -12,13 +12,17 @@
  * These tests measure the emitted tokens the way a reader sees them — |Lc| of the solved foreground
  * against the surface it is painted on — and assert the four surfaces stay clustered.
  *
+ * FOUR sets, FIVE materials: `glass` and `frosted` both fall through to the base "" set, so there is no
+ * `-frosted` surface to measure here. That is a real (if conservative) approximation rather than an
+ * oversight in this file — see the applyTiers comment in components/auto-foreground.tsx.
+ *
  * jsdom resolves no stylesheets, so every `num(name, fallback)` in the component takes its fallback;
  * the surface models below mirror those same fallbacks (tint chroma/alpha 0, hue 255, solid-a 0.65).
  */
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -37,31 +41,66 @@ const lcOn = (token: string, surface: OklchColor) => Math.abs(apcaContrast(fg(to
  * The four surface models, mirroring the component's jsdom-fallback inputs exactly. Kept in step with
  * the `applyTiers()` call sites in components/auto-foreground.tsx.
  */
+const H = 255;
+/* A REAL tint, set inline the way a preset does. These used to be left at jsdom's 0 fallback, which made
+   every layer achromatic and silently skipped the whole cap system: --glass-tint-c-hi on the crystal
+   floor, the derived --glass-solidify-c-max, --glass-chakra-c-max, and the gloss ink's own
+   --glass-gloss-c-max. Those caps are the part most likely to drift, since each is a different formula
+   over the same tint chroma. 0.09 exceeds every light cap, so all four of them bind. */
+const TINT_C = 0.09;
+const TINT_A = 0.15;
+
 const surfaces = (dark: boolean): Record<string, OklchColor> => {
-  const h = 255;
+  const h = H;
   const washL = dark ? 58 : 72;
   const crysA = dark ? 0.1 : 0.3;
   const glossL = dark ? 66 : 97;
   const GLOSS_TOP_A = 0.2;
-  // The solidify floor (--glass-opacity, 0.7 fallback) paints over every SHEER material's background
-  // colour and under its image stack, so each sheer model composites toward it. Chroma is 0 throughout
-  // here because jsdom resolves --glass-tint-c to its 0 fallback.
   const opacity = 0.7;
   const opaqueL = dark ? 36.4 : 88;
-  const solidified = (l: number) => l * (1 - opacity) + opaqueL * opacity;
+  /* Each cap, mirroring tokens.css / engine.css exactly. Written out per layer rather than shared,
+     because they genuinely differ: opaque SCALES then caps, chakra caps the raw chroma, crystal uses the
+     near-white -c-hi budget, and the gloss multiplies by --glass-gloss-tint before its own cap. */
+  const opaqueC = Math.min(TINT_C * (dark ? 1.05 : 0.85), dark ? 0.12 : 0.055);
+  // --glass-solidify-c-max: the opaque cap × 0.65 in light, pinned back to the opaque cap in dark.
+  const solidifyC = Math.min(TINT_C * (dark ? 1.05 : 0.85), dark ? 0.12 : 0.055 * 0.65);
+  const tintCHi = Math.min(TINT_C, 0.017); // --glass-tint-c-hi
+  const glossC = Math.min(TINT_C * 4.25, dark ? 0.109 : 0.013); // --glass-gloss-tint × cap
+  const chakraC = Math.min(TINT_C, dark ? 0.046 : 0.055); // --glass-chakra-c-max
+  /* The backing under SHEER glass is --glass-solidify-l, split from the opaque card floor: light lifts
+     it to 92, dark pins it back to --glass-opaque-l. */
   const solidify = {
-    l: opaqueL,
-    c: 0,
+    l: dark ? opaqueL : 92,
+    c: solidifyC,
+    h,
     a: opacity,
   };
-  const floorL = solidified((dark ? 20 : 95) * (1 - crysA) + 100 * crysA);
+  const page = {
+    l: dark ? 20 : 95,
+    c: 0,
+    h,
+  };
+  // The tint wash, painted over solidify on every sheer material.
+  const wash = {
+    l: washL,
+    c: TINT_C * 2.5,
+    h,
+    a: TINT_A,
+  };
+  // Same gloss ink both sheer materials bake — TINTED, not achromatic (--glass-gloss-ink).
+  const gloss = {
+    l: glossL,
+    c: glossC,
+    h,
+    a: GLOSS_TOP_A,
+  };
   return {
     "": glassSolidSurface(
       dark,
       {
         h,
-        c: 0,
-        a: 0,
+        c: TINT_C,
+        a: TINT_A,
       },
       0.65,
       washL,
@@ -70,19 +109,36 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
     ),
     "-opaque": {
       l: opaqueL,
-      c: 0,
+      c: opaqueC,
       h,
     },
-    "-crystal": {
-      l: floorL * (1 - GLOSS_TOP_A) + glossL * GLOSS_TOP_A,
-      c: 0,
-      h,
-    },
-    "-chakra": {
-      l: solidified(dark ? 28 : 88),
-      c: 0,
-      h,
-    },
+    // --glass-crystal-bg over the page, then solidify → wash → gloss. Composited in sRGB, the way the
+    // browser paints it; the crystal floor is --glass-crystal-l (96) at --glass-tint-c-hi × 0.6, NOT a
+    // flat L100 at the raw tint chroma.
+    "-crystal": compositeSurface(page, [
+      {
+        l: 96,
+        c: tintCHi * 0.6,
+        h,
+        a: crysA,
+      },
+      solidify,
+      wash,
+      gloss,
+    ]),
+    // The chakra BODY is translucent (--glass-chakra-a), so the page shows through it, and chakra bakes
+    // the same wash + gloss stack crystal does.
+    "-chakra": compositeSurface(page, [
+      {
+        l: dark ? 28 : 88,
+        c: chakraC,
+        h,
+        a: dark ? 0.58 : 0.62,
+      },
+      solidify,
+      wash,
+      gloss,
+    ]),
   };
 };
 
@@ -101,6 +157,11 @@ afterEach(() => {
 
 const mount = async (dark: boolean) => {
   if (dark) root().classList.add("dark");
+  // Carry a real tint, as a preset does — without it jsdom resolves --glass-tint-c to 0 and every
+  // chroma cap in the models above is bypassed.
+  root().style.setProperty("--glass-tint-h", String(H));
+  root().style.setProperty("--glass-tint-c", String(TINT_C));
+  root().style.setProperty("--glass-tint-a", String(TINT_A));
   render(<AutoForeground />);
   await waitFor(() => expect(read("--foreground-chakra")).not.toBe(""));
 };
@@ -163,24 +224,29 @@ describe.each([
    * uncertainty margin — without a separate baseline aim it lands on the bare band target. Body aims
    * 80 + 4, muted 72 + 4.
    *
-   * LIGHT is now reach-limited on the body tier, and that is a real property of the floor rather than a
+   * LIGHT is reach-limited on the body tier, and that is a real property of the floor rather than a
    * slack expectation: dark text on a light surface gets more contrast the lighter the surface is, and
    * dropping the opaque floor from L90.9 to L88 (tokens.css — near-white is where the sRGB chroma
    * ceiling collapses, so the old floor could not hold its own tint) took the ceiling with it. At L88
-   * even pure black reaches only 82.8 Lc, so the 84 aim is unreachable and the solve saturates. That is
-   * still above the bare 80 band target and well above the 75 body floor, which is what actually has to
-   * hold — so this asserts reaching the aim OR saturating above the bare target, not a fixed number.
+   * the floor reaches only 82.99 Lc even at pure black, so the 84 aim is unreachable and the solve
+   * saturates at the lightness extreme.
+   *
+   * Which is exactly where readableTonal now catches it: saturating means #000000, so the pick is
+   * clipped back to TONAL_MIN_L and delivers 82.08 rather than 82.99. That ~0.9 Lc is the whole cost of
+   * keeping the ink tinted, and it is what this number pins. (The floor's own chroma is NOT the cause —
+   * carrying it actually lifts the reach a touch, 82.83 → 82.99.) Still above the bare 80 band target
+   * and well clear of the 75 body floor, which is what has to hold.
    */
   it("aims -opaque above the bare band target", async () => {
     await mount(dark);
 
     const s = surfaces(dark);
     const body = lcOn("--foreground-opaque", s["-opaque"]);
-    /* Dark has the headroom and must hit the aim exactly; light saturates at its ceiling. Asserting the
-       ceiling to 1dp keeps this honest — if the floor moves again the number moves and this test says so
-       rather than passing on a loose ">= 80". */
+    /* Dark has the headroom and must hit the aim exactly; light saturates and is then pulled back by the
+       tonal clip. Asserting to 1dp keeps this honest — if the floor or the clip bound moves, the number
+       moves and this test says so rather than passing on a loose ">= 80". */
     if (dark) expect(body).toBeCloseTo(84, 0);
-    else expect(body).toBeCloseTo(82.8, 1);
+    else expect(body).toBeCloseTo(82.1, 1);
     expect(body).toBeGreaterThan(80);
 
     // Muted aims 72 + 4 and stays reachable in both modes, so it is exact either way.

@@ -401,7 +401,7 @@ export default function Home() {
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Four distinct materials</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Five distinct materials</h2>
             <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, Chakra, and Opaque materials.</p>
           </div>
 

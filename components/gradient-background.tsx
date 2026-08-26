@@ -58,7 +58,7 @@ export function GradientBackground({
 
   return (
     <div
-      className="fixed inset-0 -z-10 pointer-events-none transition-[background] duration-500"
+      className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background] duration-500"
       style={{
         background: gradient,
       }}
