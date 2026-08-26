@@ -31,15 +31,25 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { apcaContrast, clampToGamut, glassSolidSurface, pickInBand, READABLE_USAGE, readableForeground, themeForeground } from "../lib/oklch-utils.ts";
+import {
+  apcaContrast,
+  boostBand,
+  foregroundRamp,
+  glassSolidSurface,
+  LC_AIM_KNOWN,
+  LC_MARGIN,
+  pickTonalInBand,
+  READABLE_USAGE,
+  readableTonal,
+  showThrough,
+  TONAL_MAX_L,
+  TONAL_MIN_L,
+} from "../lib/oklch-utils.ts";
 
-/* Mirrors the ramp AutoForeground builds: the /colors default step count, and the clip that drops the
-   achromatic ends. Keep in step with components/auto-foreground.tsx. */
+/* The /colors ramp defaults AutoForeground solves at. The clip bounds, margins, ramp build and pick all
+   come from lib/oklch-utils now — this file used to re-declare them and had drifted. */
 const RAMP_COUNT = 12;
-const RAMP_CHROMA = 0.15; // the /colors ramp default AutoForeground solves adaptive tiers at
-const LC_AIM_KNOWN = 4; // the opaque tier's baseline aim above target — mirrors auto-foreground.tsx
-const TONAL_MIN_L = 18;
-const TONAL_MAX_L = 97;
+const RAMP_CHROMA = 0.15;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -145,14 +155,9 @@ for (const p of all) {
        ramp's extreme, i.e. #000000. This guard reported all four green at 76.5 Lc throughout, because the
        continuous solve found a near-black it could reach. Modelling the ramp is what makes "the floor
        holds" mean "the emitted colour holds". */
-    const base = { l: 60, c: 0.15, h: surface.h };
-    const ramp = Array.from({ length: RAMP_COUNT + 1 }, (_, level) =>
-      themeForeground({ palette: "lightness", level, count: RAMP_COUNT, base, dark }),
-    ).filter((s) => s.l >= TONAL_MIN_L && s.l <= TONAL_MAX_L);
-    // The show-through margin AutoForeground lifts each band target by (see LC_MARGIN there).
-    const boost = 12 * (1 - solidA) * (1 - a) * (1 - 0.7);
-    const band = { ...READABLE_USAGE.body, target: Math.min(READABLE_USAGE.body.target + boost, READABLE_USAGE.body.ceiling) };
-    const fg = pickInBand(ramp, surface, band);
+    const ramp = foregroundRamp({ palette: "lightness", count: RAMP_COUNT, base: { l: 60, c: RAMP_CHROMA, h: surface.h }, dark });
+    const band = boostBand(READABLE_USAGE.body, LC_MARGIN * showThrough(solidA, a, 0.7));
+    const fg = pickTonalInBand(ramp, surface, band);
     const lc = Math.abs(apcaContrast(fg, surface));
     report.push({ name: p.name, mode, lc, washL, a });
 
@@ -164,10 +169,8 @@ for (const p of all) {
        the theme's colour rather than having collapsed to black or white. Neutral scopes are exempt for
        the same reason the ramp clip exempts them: there the extremes are genuine ends of a grey scale. */
     const opaqueSurface = { l: opaqueL, c: Math.min(c * cScale, cMax), h };
-    const opaqueBand = { ...READABLE_USAGE.body, target: Math.min(READABLE_USAGE.body.target + LC_AIM_KNOWN, READABLE_USAGE.body.ceiling) };
-    const opaqueSolved = readableForeground(opaqueSurface, { ...opaqueBand, hue: opaqueSurface.h, chroma: RAMP_CHROMA });
-    const opaqueL2 = Math.min(Math.max(opaqueSolved.l, TONAL_MIN_L), TONAL_MAX_L);
-    const opaqueInk = opaqueL2 === opaqueSolved.l ? opaqueSolved : clampToGamut({ l: opaqueL2, c: RAMP_CHROMA, h: opaqueSurface.h });
+    const opaqueBand = boostBand(READABLE_USAGE.body, 0, LC_AIM_KNOWN);
+    const opaqueInk = readableTonal(opaqueSurface, opaqueBand, { hue: opaqueSurface.h, chroma: RAMP_CHROMA });
     const opaqueLc = Math.abs(apcaContrast(opaqueInk, opaqueSurface));
     /* Assert LIGHTNESS, not chroma. At L≈0 the shared gamut test is eps-tolerant and reports PHANTOM
        chroma — #000000 comes back carrying c 0.067 at the warm hues — so a chroma assertion silently

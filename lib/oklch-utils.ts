@@ -1197,3 +1197,178 @@ export function readableForeground(bg: OklchColor | string, opts: ReadableForegr
     gamut,
   );
 }
+
+// ── Foreground solve ─────────────────────────────────────────────────────────
+// The model AutoForeground applies to every surface, lifted out of the component so the /colors tester
+// and scripts/check-contrast.mjs run the SAME solve instead of each re-deriving it. Every one of them
+// had drifted from the others, and none of the drifts was visible without measuring the emitted token:
+// the tester modelled no solidify floor (3.3 L off), skipped the tonal clip (so it marked the ramp's
+// pure-WHITE end point as the `fine` pick, a colour the component never emits), skipped the
+// show-through margin, seeded the ramp from --glass-tint-h rather than the composited surface hue, and
+// picked from the whole 2·count+1 ramp where the component only ever considers the readable half; the
+// guard measured readableForeground where the page ships a discrete ramp pick, which hid four presets
+// emitting #000000. Duplication was the root cause in all of them, so it is the thing being removed.
+
+/** A tier's contrast band: floor = legible minimum, target = aim, ceiling = anti-spike cap. */
+export interface ContrastBand {
+  floor: number;
+  target: number;
+  ceiling: number;
+}
+
+/** Lightness below which an sRGB colour renders as black whatever chroma is asked for — the ramp's dark
+ *  end is clipped here on tinted themes so a reach-limited tier keeps its hue instead of collapsing to
+ *  #000. 18 sits just above L15 (#130900 at the warm hue, still reading black at text size). */
+export const TONAL_MIN_L = 18;
+/** The same clip at the WHITE end, where L100 is exactly achromatic. Deliberately much tighter than its
+ *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
+ *  while near white a single 3-point step is worth 6–8 Lc. */
+export const TONAL_MAX_L = 97;
+/** Uncertainty margin at a fully-sheer floor, decaying to 0 as the floor becomes exactly modelable. */
+export const LC_MARGIN = 12;
+/** Baseline aim for a floor that IS modelled exactly, so certainty is not a reason to aim at the bare
+ *  minimum. Only the opaque set earns it; every other surface earns its margin from uncertainty. */
+export const LC_AIM_KNOWN = 4;
+
+/** The backdrop's SURVIVING weight through a stack of alphas — every layer painted above attenuates it.
+ *  This is what the uncertainty margin scales: the more backdrop shows, the less the model can be
+ *  trusted. Pass each layer's alpha; order is irrelevant. */
+export function showThrough(...alphas: number[]): number {
+  return Math.min(
+    Math.max(
+      alphas.reduce((acc, a) => acc * (1 - Math.min(Math.max(a, 0), 1)), 1),
+      0,
+    ),
+    1,
+  );
+}
+
+/** Lift a band's TARGET by the uncertainty boost + the baseline aim. Floors and ceilings never move —
+ *  the margin aims higher, it never legalizes a harsher pick than the band allowed. */
+export function boostBand(band: ContrastBand, lcBoost = 0, lcAim = 0): ContrastBand {
+  return {
+    ...band,
+    target: Math.min(band.target + lcBoost + lcAim, band.ceiling),
+  };
+}
+
+export interface ForegroundRampOptions {
+  palette: ThemeForegroundOptions["palette"];
+  count: number;
+  base: OklchColor;
+  dark: boolean;
+  /** Levels to build. Defaults to the READABLE half (count + 1) — the only part a foreground is ever
+   *  drawn from. The full 2·count+1 ramp exists for display; picking from it would offer steps on the
+   *  far side of the base that the surface can never make legible. */
+  levels?: number;
+}
+
+/** The ramp a foreground is picked from: the full build, plus the tonally-clipped subset. */
+export interface ForegroundRamp {
+  raw: OklchColor[];
+  tonal: OklchColor[];
+}
+
+/**
+ * Build the foreground ramp and its tonal clip.
+ *
+ * Both achromatic ends are dropped on TINTED themes: sRGB has almost no gamut volume there, so those
+ * steps are pure black / pure white wearing a theme colour's name (at L0 any requested chroma renders
+ * #000000; at L100, #ffffff). pickInBand reaches them whenever a band's target sits above every step —
+ * it then picks for maximum contrast, which IS the extreme. NEUTRAL themes (base chroma 0) keep the
+ * full ramp, since there black and white are the genuine ends of a grey scale rather than colours that
+ * lost their hue.
+ */
+export function foregroundRamp(o: ForegroundRampOptions): ForegroundRamp {
+  const levels = o.levels ?? o.count + 1;
+  const raw = Array.from(
+    {
+      length: levels,
+    },
+    (_, level) =>
+      themeForeground({
+        palette: o.palette,
+        level,
+        count: o.count,
+        base: o.base,
+        dark: o.dark,
+      }),
+  );
+  if (o.base.c <= 0)
+    return {
+      raw,
+      tonal: raw,
+    };
+  const tonal = raw.filter((c) => c.l >= TONAL_MIN_L && c.l <= TONAL_MAX_L);
+  return {
+    raw,
+    tonal: tonal.length ? tonal : raw,
+  };
+}
+
+/**
+ * Pick from the TONAL ramp, but never at the cost of the band's floor.
+ *
+ * The clip drops the steps that render black or white; if a band is so demanding that only those could
+ * satisfy its FLOOR, legibility outranks hue and the full ramp comes back. Guard the FLOOR, not each
+ * band's aspiration: the `small` band asks Lc 90, which no light surface reaches at all, so testing
+ * against band.floor there would hand the extreme straight back on every light preset.
+ */
+export function pickTonalInBand(ramp: ForegroundRamp, surface: OklchColor | string, band: ContrastBand): OklchColor {
+  const best = pickInBand(ramp.tonal, surface, band);
+  if (ramp.tonal === ramp.raw) return best;
+  const lc = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
+  if (lc(best) >= READABLE_USAGE.body.floor) return best;
+  const full = pickInBand(ramp.raw, surface, band);
+  return lc(full) > lc(best) ? full : best;
+}
+
+/**
+ * The ADAPTIVE twin of {@link pickTonalInBand}, for surfaces the ramp cannot serve (they may need a
+ * polarity it does not span — a LIGHT opaque card on a dark page needs DARK text).
+ *
+ * readableForeground aims at the band target and, when the target sits beyond what the surface can
+ * give, returns the most contrast AVAILABLE — which is the lightness extreme, exactly where the gamut
+ * annihilates the requested chroma. In light mode that is the default rather than an edge case: an L88
+ * opaque floor tops out around 81–84 Lc while the opaque tiers aim at target + LC_AIM_KNOWN, so every
+ * jewel's `--foreground-opaque` solved to pure black. Clipping to the same bounds costs 0.7–1.3 Lc and
+ * returns a genuinely tinted ink.
+ *
+ * `minChroma` is NOT a substitute despite documenting this case: its search bisects toward the
+ * BACKGROUND lightness, and a near-white floor cannot hold the kept chroma at any hue on the
+ * dark-peaking arc, so it bails back to the extreme. It stays on for the accent path it was built for.
+ */
+export function readableTonal(
+  surface: OklchColor,
+  band: ContrastBand,
+  opts: {
+    hue: number;
+    chroma: number;
+    minChroma?: number;
+    gamut?: "srgb" | "p3";
+  },
+): OklchColor {
+  const solved = readableForeground(surface, {
+    floor: band.floor,
+    target: band.target,
+    ceiling: band.ceiling,
+    hue: opts.hue,
+    chroma: opts.chroma,
+    minChroma: opts.minChroma ?? 0,
+    gamut: opts.gamut,
+  });
+  // Neutral keeps the full range — black and white are the genuine ends of a grey scale there.
+  if (opts.chroma <= 0) return solved;
+  const l = Math.min(Math.max(solved.l, TONAL_MIN_L), TONAL_MAX_L);
+  if (l === solved.l) return solved;
+  const clipped = clampToGamut(
+    {
+      l,
+      c: opts.chroma,
+      h: opts.hue,
+    },
+    opts.gamut,
+  );
+  // Guard legibility, never the aspiration — the same line pickTonalInBand holds.
+  return Math.abs(apcaContrast(clipped, surface)) >= READABLE_USAGE.body.floor ? clipped : solved;
+}

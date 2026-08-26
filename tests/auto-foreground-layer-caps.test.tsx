@@ -24,7 +24,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, compositeSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, compositeSurface, LC_MARGIN, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -112,11 +112,11 @@ afterEach(() => {
 });
 
 /* The band aim each adaptive tier solves for: the body target lifted by the show-through margin
-   (LC_MARGIN × the backdrop's surviving weight). Asserting the emitted ink hits THIS on the correctly-
+   (LC_MARGIN × the backdrop's surviving weight). LC_MARGIN is IMPORTED rather than re-stated — it is not
+   what these assert, so a change to it should move the expectation with it rather than fail here. Asserting the emitted ink hits THIS on the correctly-
    capped mirror is what makes the test discriminating — it is a statement that the component modelled the
    same surface this file does. A wrong cap gives a different surface, so the ink lands off its aim when
    measured here, with no magic constant to keep in step. */
-const LC_MARGIN = 12;
 const aim = (surviving: number) => Math.min(80 + LC_MARGIN * surviving, 90);
 const crystalAim = (opacity: number) => aim((1 - 0.3) * (1 - TINT_A) * (1 - 0.2) * (1 - opacity));
 const chakraAim = (opacity: number) => aim((1 - 0.62) * (1 - TINT_A) * (1 - 0.2) * (1 - opacity));

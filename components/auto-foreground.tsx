@@ -2,19 +2,22 @@
 
 import * as React from "react";
 import {
-  apcaContrast,
-  clampToGamut,
+  showThrough as backdropShowThrough,
+  boostBand,
+  type ContrastBand,
   compositeSurface,
+  foregroundRamp,
   formatOklch,
   glassSolidSurface,
   HARMONIC_OFFSETS,
   type HarmonicName,
   harmonicHue,
-  pickInBand,
+  LC_AIM_KNOWN,
+  LC_MARGIN,
+  pickTonalInBand,
   READABLE_USAGE,
-  readableForeground,
+  readableTonal,
   type ThemeForegroundOptions,
-  themeForeground,
 } from "@/lib/oklch-utils";
 
 const FG_STORAGE_KEY = "sistine-fg";
@@ -64,19 +67,9 @@ const DEFAULT_FG: FgConfig = {
   softHue: null,
   strongHue: null,
 };
-/** Lightness below which an sRGB colour renders as black no matter its chroma — the ramp's dark end is
- *  clipped here on tinted themes so a reach-limited tier keeps its hue instead of collapsing to #000.
- *  18 sits just above L15 (#130900 at the warm hue, still reading black at text size); the darkest step
- *  kept is L20 (#211300), which is unambiguously tinted. */
-const TONAL_MIN_L = 18;
-/** The same clip at the WHITE end, where L100 is exactly achromatic. Deliberately much tighter than its
- *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
- *  while near white a single 3-point step is worth 6–8 Lc. 97 clips the pure-white end point (and, on a
- *  finer ramp, the step just below it) while keeping L96.7 — #eff4ff at the blue hue, faint but tinted. */
-const TONAL_MAX_L = 97;
-/** The contrast line the tonal clip may never trade away: the body band's floor, i.e. the point where
- *  text stops being readable rather than merely missing an aspirational target. */
-const LEGIBLE_FLOOR = READABLE_USAGE.body.floor;
+/* The tonal clip bounds, the margins and the pick/solve themselves now live in lib/oklch-utils — see
+   the "Foreground solve" section there. They were duplicated into components/foreground-tester.tsx and
+   scripts/check-contrast.mjs, and every copy had drifted from this one in a way no test could see. */
 const DEFAULT_RAMP: RampConfig = {
   l: 60,
   c: 0.15,
@@ -237,7 +230,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // the model can be trusted, so each band's TARGET gets a safety margin of up to +LC_MARGIN
       // (≈ one ARC band step) at fully-sheer, decaying to +0 at a fully-known floor (solidA 1 — e.g. the
       // opaque page style sets --glass-solid-a: 1). Ceilings still cap the pick (anti-harshness).
-      const LC_MARGIN = 12;
+      // (LC_MARGIN / LC_AIM_KNOWN are exported from lib/oklch-utils so every consumer aims the same.)
       // Parity aim for a FULLY-KNOWN floor. LC_MARGIN above is an UNCERTAINTY margin — it decays to 0 as the
       // floor becomes exactly modelable, which is right on its own terms but leaves the one surface we model
       // exactly (opaque) aiming at the BARE band target while every other surface aims 3.6–5.7 Lc above it.
@@ -247,7 +240,6 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // baseline aim instead. Sized to the MIDDLE of the other surfaces' effective margins so opaque lands
       // LEVEL with them; the full LC_MARGIN here would pin body+muted to the band ceiling and just invert the
       // asymmetry (opaque becomes the harshest surface). Ceilings still cap the pick.
-      const LC_AIM_KNOWN = 4;
       const solidA = num("--glass-solid-a", 0.65);
       // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
       // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
@@ -318,8 +310,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         h: tintH,
         a: GLOSS_TOP_A,
       };
-      const showThrough = Math.min(Math.max((1 - solidA) * (1 - tintA) * (1 - glassOpacity), 0), 1);
-      const normalLcBoost = LC_MARGIN * showThrough;
+      const normalLcBoost = LC_MARGIN * backdropShowThrough(solidA, tintA, glassOpacity);
       const huelessAccent = harmonyH === 0 && !Number.isNaN(accentH);
       // The wheel origin harmonics rotate from — the accent on hue-less+accent, else the CSS --harmony-h.
       const fgHarmonyH = huelessAccent ? accentH : harmonyH;
@@ -355,38 +346,19 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         c: huelessAccent ? accentC || cfgC : palette === "hue" ? cfgC || 0.15 : tintC > 0 ? cfgC : 0,
         h: surfaceH,
       };
-      // Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral
-      // gray — each picked to hit its ARC-Bronze contrast target on the surface text actually sits on.
-      const rawRamp = Array.from(
-        {
-          length: count + 1,
-        },
-        (_, level) =>
-          themeForeground({
-            palette,
-            level,
-            count,
-            base,
-            dark,
-          }),
-      );
-      /* Drop BOTH achromatic ends of the ramp on tinted themes. sRGB has almost no gamut volume at either
-         extreme, so the steps there are pure black / pure white wearing a theme colour's name: at L0 any
-         requested chroma renders #000000 (L5 → #030000, L10 → #070200), and at L100 it renders #ffffff.
-         pickInBand reaches them whenever a band's target sits above every step — it then picks for maximum
-         contrast, which IS the extreme. The `small` band (floor Lc 90) does exactly that in both modes, so
-         --foreground-strong was #000000 on 20 of 21 presets in light and #ffffff on 18 of 21 in dark, while
-         body text one band down stayed properly tonal. Light was worse: body ALSO went black on 10 of 21.
-         The two ends are not symmetric, which is why the thresholds are not either. Near black, luminance
-         barely moves with lightness, so the whole L0–L18 span is visually one colour and giving it up costs
-         1.3–1.9 Lc — nothing. Near white the same lightness step is worth 6–8 Lc, so only the very top is
-         clipped, and fine text in dark lands 80–91 Lc instead of 86–97. That is a real reduction, taken
-         deliberately: it matches what light mode already ships for the same tier (76–88), and the 90 floor
-         was never actually held there — 11 of 21 presets miss it even at pure white.
-         NEUTRAL themes (selenite: base chroma 0) keep the full ramp, since there black and white are the
-         genuine ends of a grey scale rather than colours that lost their hue. */
-      const tonal = rawRamp.filter((c) => c.l >= TONAL_MIN_L && c.l <= TONAL_MAX_L);
-      const ramp = base.c > 0 && tonal.length ? tonal : rawRamp;
+      /* Draw every foreground from the chosen tonal/lightness ramp — real theme COLORS, not neutral gray —
+         each picked to hit its ARC-Bronze contrast target on the surface text actually sits on. Only the
+         READABLE half (count + 1 levels) is built: the far side of the base is display-only, and picking
+         from it would offer steps the surface can never make legible.
+         foregroundRamp also drops both achromatic ends on tinted themes — see lib/oklch-utils for why the
+         two thresholds are not symmetric. Before that clip, --foreground-strong was #000000 on 20 of 21
+         presets in light and #ffffff on 18 of 21 in dark, and body text ALSO went black on 10 of 21. */
+      const ramp = foregroundRamp({
+        palette,
+        count,
+        base,
+        dark,
+      });
       const iconHue = storedFg.iconHue;
       /* Set the full foreground tier set against a given SURFACE, under a var suffix. Run FOUR times, once
          per modeled surface: "" (the normal glass-SOLID floor), "-opaque", "-crystal", "-chakra". Each
@@ -417,101 +389,34 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       ) => {
         // Lift the band's TARGET toward its ceiling by the uncertainty boost + the baseline aim. Floors and
         // ceilings stay — the margin aims higher, it never legalizes a harsher pick than the band allowed.
-        const boost = (band: { floor: number; target: number; ceiling: number }) => ({
-          ...band,
-          target: Math.min(band.target + lcBoost + lcAim, band.ceiling),
-        });
-        /* Pick from the TONAL ramp, but never at the cost of the band's floor. The clipped ramp above drops
-           the steps that render black; if a band is so demanding that only those steps could satisfy its
-           FLOOR, legibility outranks hue and the full ramp comes back. Today no band needs it — light body
-           bottoms out at 75.4 Lc on the clipped ramp — but /colors lets a consumer re-base the ramp (its
-           lightness, chroma and step count are all user config), and a shallow enough ramp could put the
-           floor out of the clipped subset's reach. This keeps the preference from ever becoming a
-           readability regression, rather than relying on TONAL_MIN_L being right for every ramp. */
-        const pickTonal = (band: { floor: number; target: number; ceiling: number }) => {
-          const best = pickInBand(ramp, surface, band);
-          if (ramp === rawRamp) return best;
-          const lc = (c: { l: number; c: number; h: number }) => Math.abs(apcaContrast(c, surface));
-          /* Guard LEGIBILITY, not each band's aspiration. Checking against band.floor would undo the clip
-             on the one tier it exists for: the `small` band asks Lc 90, which no light surface reaches at
-             all and which in dark only pure white reaches, so a band.floor test hands the extreme straight
-             back. The body floor is the line that actually has to hold — below it text stops being
-             readable — and every clipped pick clears it comfortably (light body bottoms out at 75.4, dark
-             fine text at 80.1). Above that line, hue wins. */
-          if (lc(best) >= LEGIBLE_FLOOR) return best;
-          const full = pickInBand(rawRamp, surface, band);
-          return lc(full) > lc(best) ? full : best;
-        };
-        /* THE ADAPTIVE TWIN OF pickTonal. readableForeground aims at the band target and, when the target
-           sits beyond what the surface can give, returns the most contrast AVAILABLE — which is the
-           lightness extreme, exactly where the gamut annihilates the requested chroma and tinted text
-           renders #000 / #fff. That is the same failure the tonal ramp clip exists to prevent, on the
-           three surfaces the ramp cannot serve (they need a polarity the ramp does not span).
-           It fires in light mode by construction: an L88 opaque floor tops out at 81.1–84.3 Lc while the
-           opaque tiers aim at target + LC_AIM_KNOWN, so the aim is unreachable and every jewel's
-           --foreground-opaque solved to pure black. Clipping to the same bounds costs 0.7–1.3 Lc — the
-           same near-nothing the ramp clip trades, for the same reason (near the extreme, luminance barely
-           moves with lightness) — and returns a genuinely tinted ink. Dark is untouched: those solves land
-           at L92–93, comfortably inside the clip.
-           minChroma is NOT the lever here despite documenting this case: its search bisects toward the
-           BACKGROUND lightness, and a near-white floor cannot hold the kept chroma at any hue on the
-           dark-peaking arc, so the branch bails straight back to the extreme. Measured, minChroma 0.08
-           still renders lapis/goldstone/rose black. It stays on for the accent path, which it was built
-           for and where the background IS able to hold the chroma. */
-        const readableTonal = (
-          band: {
-            floor: number;
-            target: number;
-            ceiling: number;
-          },
-          hue: number,
-          chroma: number,
-        ) => {
-          const solved = readableForeground(surface, {
-            floor: band.floor,
-            target: band.target,
-            ceiling: band.ceiling,
-            hue,
-            chroma,
-            // Accent path ONLY: keep the accent VISIBLE on floors whose max contrast sits below the
-            // band (moonstone-dark cream L80 tops out at Lc ≈ 68 < body floor 75) — without this the solve
-            // pins to L≈0, the gamut collapses chroma, and accent text renders BLACK. Every other
-            // theme passes 0 → behavior unchanged.
-            minChroma: huelessAccent ? 0.08 : 0,
-          });
-          // NEUTRAL themes keep the full range: there black and white are the genuine ends of a grey
-          // scale, not colours that lost their hue — same exemption the ramp clip makes.
-          if (chroma <= 0) return solved;
-          const clippedL = Math.min(Math.max(solved.l, TONAL_MIN_L), TONAL_MAX_L);
-          if (clippedL === solved.l) return solved;
-          const clipped = clampToGamut({
-            l: clippedL,
-            c: chroma,
-            h: hue,
-          });
-          /* Guard LEGIBILITY, never the aspiration — the same line pickTonal holds. Every measured case
-             clears it with room (80.0–83.3 against a floor of 75), but a re-based ramp or a shallower
-             surface could not, and hue must never be bought with readability. */
-          return Math.abs(apcaContrast(clipped, surface)) >= LEGIBLE_FLOOR ? clipped : solved;
-        };
+        const boost = (band: ContrastBand) => boostBand(band, lcBoost, lcAim);
+        /* Pick from the TONAL ramp, never at the cost of the band's floor — see pickTonalInBand in
+           lib/oklch-utils. Today no band needs the fallback (light body bottoms out at 75.4 Lc on the
+           clipped ramp), but /colors lets a consumer re-base the ramp entirely, so the guard exists so
+           the hue preference can never become a readability regression. */
+        /* The adaptive twin, readableTonal, also lives in lib/oklch-utils: an unreachable aim makes
+           readableForeground return the lightness EXTREME, where the gamut annihilates chroma, so every
+           jewel's --foreground-opaque solved to pure black in light. Same clip, same ~1 Lc cost. */
         // Band-aware pick: honor each tier's floor (minimum) + ceiling (anti-spike), aiming for target. Normal
         // surfaces draw a COLORED pick from the theme ramp; `adaptive` (opaque floors) uses readableForeground
         // instead, which flips the lightness DIRECTION to whatever the floor needs — the ramp only spans the
         // readable half (white→base in dark mode), so it can't produce DARK text for a light floor (moonstone cream).
-        const tier = (rawBand: { floor: number; target: number; ceiling: number }) => {
+        const tier = (rawBand: ContrastBand) => {
           const band = boost(rawBand);
           return formatOklch(
             adaptive
-              ? readableTonal(
-                  band,
+              ? readableTonal(surface, band, {
                   // Opaque cards on the hue-less themes (selenite + moonstone) follow the chosen accent too — same as
                   // the normal surface above — so moonstone/selenite opaque-card text tints toward the accent.
                   // Otherwise THIS surface's own composited hue, not the tint token's (see surfaceH): each
                   // adaptive material composites a different stack, so each gets ink at its own angle.
-                  huelessAccent ? accentH : surface.h,
-                  huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
-                )
-              : pickTonal(band),
+                  hue: huelessAccent ? accentH : surface.h,
+                  chroma: huelessAccent ? accentC : tintC > 0 ? cfgC : 0,
+                  // Accent path ONLY — the one case where the background CAN hold the kept chroma, so the
+                  // minChroma search does not bail to the extreme (see readableTonal).
+                  minChroma: huelessAccent ? 0.08 : 0,
+                })
+              : pickTonalInBand(ramp, surface, band),
           );
         };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
@@ -534,7 +439,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             : formatOklch(
                 // Clipped like every other solve: a PINNED hue is the one case where collapsing to the
                 // achromatic extreme is most obviously wrong — the whole point of pinning is to see it.
-                readableTonal(boost(READABLE_USAGE[usage]), typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice, 0.15),
+                readableTonal(surface, boost(READABLE_USAGE[usage]), {
+                  hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
+                  chroma: 0.15,
+                }),
               );
         root.style.setProperty(`--foreground-soft${suffix}`, tierAtHue("large", storedFg.softHue));
         // REACH-LIMITED IN LIGHT MODE, by design of the surfaces themselves: the small band floors at Lc 90,
@@ -555,7 +463,12 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const iconH = typeof iconHue === "string" ? harmonicHue(fgHarmonyH, iconHue) : typeof iconHue === "number" ? iconHue : surface.h;
         root.style.setProperty(
           `--foreground-ui${suffix}`,
-          formatOklch(readableTonal(boost(READABLE_USAGE.ui), iconH, iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0)),
+          formatOklch(
+            readableTonal(surface, boost(READABLE_USAGE.ui), {
+              hue: iconH,
+              chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
+            }),
+          ),
         );
       };
 
