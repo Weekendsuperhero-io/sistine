@@ -24,7 +24,28 @@ export const PATTERN_STYLES: PatternStyle[] = [
   "chase",
 ];
 
-/** Patterns that animate (CSS keyframes) — gates the speed control and shares the --pat-dur/--pat-play pace. */
+/**
+ * The two ways a scene stops: reduced motion, and Speed 0.
+ *
+ * Both REMOVE the animation rather than pausing it. `animation-play-state: paused`
+ * looks like it should be free — the transform never advances — but a paused
+ * animation still leaves the element in an animating state, and WebKit keeps
+ * re-rendering its layer. On `.au-curtain` that layer carries a `filter: blur()`
+ * and a two-layer `mask-composite`, six of them at full-viewport size, so "paused"
+ * was measurably NOT free (AMXSF-559). `animation: none` also drops `will-change`,
+ * releasing the promoted layer — `will-change` on a stopped animation is a
+ * promoted layer doing no work.
+ *
+ * Emitted from one helper so the two conditions cannot drift apart: a scene that
+ * respects reduced motion but not Speed 0 was exactly the bug.
+ */
+export function stopRules(...selectors: string[]): string {
+  const stop = "{ animation: none; will-change: auto; }";
+  return `@media (prefers-reduced-motion: reduce) { ${selectors.join(", ")} ${stop} }
+${selectors.map((s) => `[data-pat-static] ${s}`).join(", ")} ${stop}`;
+}
+
+/** Patterns that animate (CSS keyframes) — gates the speed control and shares the --pat-dur pace. */
 export const ANIMATED_PATTERNS = new Set<PatternStyle>([
   "synthwave",
   "moonrise",
@@ -68,7 +89,7 @@ const DENSITY_SCALE: Record<PatternDensity, number> = {
 };
 /** Tile-size scale for the geometric tiles (dots / grid) — a much airier ladder: the old sparse (1.4)
  * is the new DENSE, with medium and sparse extrapolated outward on the same ~1.4× step. */
-const TILE_SCALE: Record<PatternDensity, number> = {
+export const TILE_SCALE: Record<PatternDensity, number> = {
   sparse: 2.8,
   medium: 2,
   dense: 1.4,
@@ -588,7 +609,6 @@ const SYNTHWAVE_STYLES = `
 .sw-grid-rungs {
   background-image: linear-gradient(to bottom, var(--sw-line) 0 2px, transparent 2px);
   animation: sw-grid-scroll var(--pat-dur, 8s) linear infinite;
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform);
 }
 .sw-grid-rails {
@@ -598,9 +618,7 @@ const SYNTHWAVE_STYLES = `
   from { transform: rotateX(78deg) translateY(0); }
   to   { transform: rotateX(78deg) translateY(4vmin); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .sw-grid-rungs { animation: none; will-change: auto; }
-}`;
+${stopRules(".sw-grid-rungs")}`;
 /* The moonrise variant — a purple-blue moon over a midnight sky, no scanlines — shares every structural
    class; its [data-pattern="moonrise"] palette blocks swap the colors, and its disc is the shared
    .scene-moon from SKY_STYLES (whose placement defaults ARE moonrise's horizon-dipping moon). */
@@ -720,7 +738,6 @@ const CLOUDS_STYLES = `
   background-repeat: repeat-x;
   background-size: var(--cl-tile) 100%;
   animation: cl-drift calc(var(--pat-dur, 8s) * var(--cl-k)) linear infinite;
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform);
 }
 @keyframes cl-drift {
@@ -821,9 +838,7 @@ const CLOUDS_STYLES = `
   height: 26%;
   background: linear-gradient(to bottom, transparent 0%, var(--cl-haze) 42%, transparent 100%);
 }
-@media (prefers-reduced-motion: reduce) {
-  .cl-deck { animation: none; will-change: auto; }
-}`;
+${stopRules(".cl-deck")}`;
 
 // Dune — drawn from the aerial golden-hour references: ridges receding into haze at the shared 42%
 // horizon. The ground is the farthest sand sheet and SIX SVG-masked tiers stack in front. The scene's
@@ -1136,7 +1151,6 @@ const DUNE_STYLES = `
   background-repeat: repeat;
   background-size: var(--du-tx) var(--du-ty);
   animation: du-blow calc(var(--pat-dur, 8s) * var(--du-k)) linear infinite;
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform);
 }
 @keyframes du-blow {
@@ -1167,7 +1181,6 @@ const DUNE_STYLES = `
   background-repeat: repeat-x;
   background-size: var(--du-vt) 100%;
   animation: du-veil-drift calc(var(--pat-dur, 8s) * var(--du-vk)) linear infinite;
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform);
 }
 @keyframes du-veil-drift {
@@ -1229,9 +1242,7 @@ const DUNE_STYLES = `
     radial-gradient(1px 1px at 64% 82%, var(--du-grain), transparent),
     radial-gradient(1.1px 1px at 90% 26%, var(--du-grain), transparent);
 }
-@media (prefers-reduced-motion: reduce) {
-  .du-grain-tile, .du-veil { animation: none; will-change: auto; }
-}`;
+${stopRules(".du-grain-tile", ".du-veil")}`;
 
 // Aurora — the borealis over a MIRROR-CALM WATERLINE, no moon (a moonless sky is when the lights are
 // most vivid; the pattern shares only the stars). Three curtain layers paint slanted ray columns: each is
@@ -1379,7 +1390,6 @@ const AURORA_STYLES = `
     au-sway calc(var(--pat-dur, 8s) * var(--au-ks, 3)) ease-in-out infinite alternate,
     au-shimmer calc(var(--pat-dur, 8s) * var(--au-kp, 2)) ease-in-out infinite alternate;
   animation-delay: var(--au-delay, 0s);
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform), var(--pat-wc, opacity);
 }
 @keyframes au-sway {
@@ -1538,7 +1548,6 @@ const AURORA_STYLES = `
     repeating-linear-gradient(to bottom, var(--au-rip-hi) 0 1px, transparent 1px 8px),
     repeating-linear-gradient(to bottom, transparent 0 14px, var(--au-rip-lo) 14px 16px, transparent 16px 24px);
   animation: au-ripple-drift calc(var(--pat-dur, 8s) * 1.5) linear infinite;
-  animation-play-state: var(--pat-play, running);
   will-change: var(--pat-wc, transform);
 }
 @keyframes au-ripple-drift {
@@ -1620,9 +1629,7 @@ const AURORA_STYLES = `
   background: linear-gradient(to bottom, transparent 0%, var(--au-glow) 42%, transparent 100%);
   opacity: 0.75;
 }
-@media (prefers-reduced-motion: reduce) {
-  .au-curtain, .au-ripples { animation: none; will-change: auto; }
-}`;
+${stopRules(".au-curtain", ".au-ripples")}`;
 
 // Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
 // bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
@@ -2070,21 +2077,22 @@ const PAC_STYLES = `
   0%, 100% { transform: translateX(0); }
   50%      { transform: translateX(4px); }
 }
-.pac-runner, .pac-man, .pac-ghost-runner, .pac-ghost,
-.pac-vrunner, .pac-vman, .pac-vghost-runner, .pac-vghost {
-  animation-play-state: var(--pat-play, running);
-}
-@media (prefers-reduced-motion: reduce) {
-  .pac-runner, .pac-man, .pac-ghost-runner, .pac-ghost,
-  .pac-vrunner, .pac-vman, .pac-vghost-runner, .pac-vghost { animation: none; will-change: auto; }
-}`;
+${stopRules(".pac-runner", ".pac-man", ".pac-ghost-runner", ".pac-ghost", ".pac-vrunner", ".pac-vman", ".pac-vghost-runner", ".pac-vghost")}`;
 
-function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
+/** The geometric tiles' size at scale 1, in px: the grid's cell and the dots' spacing. Exported so a
+ *  preview can size its tiles from the same numbers the wallpaper uses (Agent Muse's PatternSwatch). */
+export const GEOMETRIC_TILE = {
+  grid: 44,
+  dots: 24,
+} as const;
+
+function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: number): CSSProperties {
   const bg = "var(--background)";
   // Ink follows the accent (fallback: tint hue) so every geometric pattern recolors with the accent knob.
   const ink = "oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h)) / 0.5)";
   // Density scales the tile size (dots/grid use the airier TILE_SCALE ladder; chase has its own cells).
-  const d = TILE_SCALE[density];
+  // `tileScale` overrides it for a preview that must fit several tiles in a small box.
+  const d = tileScale ?? TILE_SCALE[density];
   const px = (n: number) => `${Math.round(n * d)}px`;
   const sq = (n: number) => `${px(n)} ${px(n)}`;
 
@@ -2093,13 +2101,13 @@ function styleFor(style: PatternStyle, density: PatternDensity): CSSProperties {
       return {
         backgroundColor: bg,
         backgroundImage: `linear-gradient(${ink} 1px, transparent 1px), linear-gradient(90deg, ${ink} 1px, transparent 1px)`,
-        backgroundSize: sq(44),
+        backgroundSize: sq(GEOMETRIC_TILE.grid),
       };
     case "dots":
       return {
         backgroundColor: bg,
         backgroundImage: `radial-gradient(${ink} 1.6px, transparent 1.8px)`,
-        backgroundSize: sq(24),
+        backgroundSize: sq(GEOMETRIC_TILE.dots),
       };
     case "mesh": {
       // Mesh blobs center on the accent (hue + vividness) when it's on, else the tint's content hue —
@@ -2159,6 +2167,7 @@ export function PatternBackground({
   speed = 8,
   disc = "right",
   sand = "breeze",
+  tileScale,
 }: {
   style?: PatternStyle;
   density?: PatternDensity;
@@ -2166,13 +2175,16 @@ export function PatternBackground({
   disc?: "left" | "center" | "right";
   /** Blowing-sand intensity for the dune scene — drives the wind veils and the airborne specks. */
   sand?: "still" | "breeze" | "storm";
+  /** The geometric tiles' (dots, grid) scale, in place of the density's: a picker chip draws smaller
+   *  tiles than the wallpaper, or a 48px chip shows one dot of a 48px-spaced field and no grid line. */
+  tileScale?: number;
 }) {
-  // Animated patterns share one pace: --pat-dur (loop seconds) + --pat-play (paused when speed is 0/static).
+  // Animated patterns share one pace: --pat-dur (loop seconds).
   const patDur = speed > 0 ? `${speed}s` : "8s";
-  const patPlay = speed > 0 ? "running" : "paused";
-  // Static means nothing moves, so stop asking the compositor to keep a layer ready for it —
-  // `will-change` on a paused animation is a promoted layer doing no work. Reduced motion gets
-  // the same release from each scene's prefers-reduced-motion block.
+  // Static means nothing moves, so the animation is REMOVED, not paused — `data-pat-static`
+  // is what `stopRules` keys on, and it takes `will-change` down with it. This replaced a
+  // `--pat-play: paused` knob that left every scene layer live; see stopRules for why.
+  const patStatic = speed > 0 ? undefined : "";
   const patWc = speed > 0 ? "transform" : "auto";
   // Sun/moon horizontal placement for the horizon scenes (off-center clears centered page content).
   const discX = {
@@ -2187,12 +2199,12 @@ export function PatternBackground({
         style={
           {
             "--pat-dur": patDur,
-            "--pat-play": patPlay,
             "--pat-wc": patWc,
             "--pac-cell": `${Math.round(34 * DENSITY_SCALE[density])}px`,
           } as CSSProperties
         }
         data-pattern="chase"
+        data-pat-static={patStatic}
       >
         <style>{PAC_STYLES}</style>
         <div className="pac-scene">
@@ -2276,11 +2288,11 @@ export function PatternBackground({
             "--sw-disc-x": discX,
             // Grid scroll pace — one cell every --pat-dur seconds (shared pace across animated patterns).
             "--pat-dur": patDur,
-            "--pat-play": patPlay,
             "--pat-wc": patWc,
           } as CSSProperties
         }
         data-pattern={style}
+        data-pat-static={patStatic}
       >
         <style>{SKY_STYLES}</style>
         <style>{SYNTHWAVE_STYLES}</style>
@@ -2316,11 +2328,11 @@ export function PatternBackground({
             // CLOUDS_STYLES' [data-pattern] palette blocks so the .dark day/night switch can override them.
             "--sw-disc-x": discX,
             "--pat-dur": patDur,
-            "--pat-play": patPlay,
             "--pat-wc": patWc,
           } as CSSProperties
         }
         data-pattern="clouds"
+        data-pat-static={patStatic}
       >
         <style>{SKY_STYLES}</style>
         <style>{CLOUDS_STYLES}</style>
@@ -2378,11 +2390,11 @@ export function PatternBackground({
             "--du-sand-o": sandVeil,
             "--du-grain-o": sandGrain,
             "--pat-dur": patDur,
-            "--pat-play": patPlay,
             "--pat-wc": patWc,
           } as CSSProperties
         }
         data-pattern="dune"
+        data-pat-static={patStatic}
       >
         <style>{SKY_STYLES}</style>
         <style>{DUNE_STYLES}</style>
@@ -2440,11 +2452,11 @@ export function PatternBackground({
             // Sun placement (day only — the scene is moonless at night) plus the shared pace vars.
             "--sw-disc-x": discX,
             "--pat-dur": patDur,
-            "--pat-play": patPlay,
             "--pat-wc": patWc,
           } as CSSProperties
         }
         data-pattern="aurora"
+        data-pat-static={patStatic}
       >
         <style>{SKY_STYLES}</style>
         <style>{AURORA_STYLES}</style>
@@ -2506,7 +2518,7 @@ export function PatternBackground({
   return (
     <div
       className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background-color] duration-500"
-      style={styleFor(style, density)}
+      style={styleFor(style, density, tileScale)}
       data-pattern={style}
     />
   );

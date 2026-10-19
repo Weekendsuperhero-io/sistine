@@ -6,8 +6,9 @@
       engine default by SOURCE ORDER at equal specificity),
     - inside tokens.css, .dark comes after :root (same-element ties resolve by source order).
   Consumers install a FLATTENED single-file build of this graph (registry/theme/globals.css, generated
-  by scripts/build-theme.mjs) — run `pnpm registry:check` after editing any partial and commit
-  registry/theme + public/r.
+  by scripts/build-theme.mjs) — run `bun run registry:check` after editing any partial and commit
+  registry/theme + public/r. Site-only CSS (the Geist font mapping) lives in app/site.css, which imports
+  this file, so nothing the documentation site defines leaks into the shipped theme.
 */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -20,4 +21,3 @@
 @import "./theme/styles.css";
 @import "./theme/presets.css";
 @import "./theme/frescoes.css";
-@import "./theme/sonner.css";

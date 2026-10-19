@@ -1,7 +1,7 @@
 /**
  * TST-1-2 (the half that needs a DOM) — ref composition and the MutationObserver wiring.
  *
- * The pure rounding is covered without a DOM in scripts/check-units.mjs. What needs jsdom is the
+ * The pure rounding is covered without a DOM at the bottom of this file. What needs jsdom is the
  * behaviour AROUND it: that the hook finds the Radix wrapper, re-snaps when Radix rewrites the
  * transform, does not loop on its own write, and that composeRefs still hands the node to the
  * forwarded ref (drop that and every consumer's ref silently becomes null).
@@ -91,6 +91,75 @@ describe("useSnappedPopper", () => {
     }
     const { getByTestId } = render(<Bare />);
     expect(getByTestId("bare").style.transform).toBe("translate(1.5px, 1.5px)");
+  });
+
+  /* The real cause of soft popper text: at DPR >= 1.5 Floating UI writes `will-change: transform` next
+     to the transform, which composites the wrapper, and WebKit drops subpixel antialiasing on a
+     composited layer. */
+  it("resets Floating UI's will-change on mount", () => {
+    function Promoted() {
+      const snapRef = useSnappedPopper<HTMLDivElement>();
+      return (
+        <div
+          data-radix-popper-content-wrapper=""
+          data-testid="wrapper"
+          style={{
+            transform: "translate(10px, 10px)",
+            willChange: "transform",
+          }}
+        >
+          <div ref={snapRef} />
+        </div>
+      );
+    }
+    const { getByTestId } = render(<Promoted />);
+    expect(getByTestId("wrapper").style.willChange).toBe("auto");
+  });
+
+  it("resets will-change again after Radix rewrites the style", async () => {
+    let wrapper: HTMLElement | undefined;
+    render(<Popper initial="translate(10px, 10px)" onWrapper={(el) => (wrapper = el)} />);
+    const el = wrapper as HTMLElement;
+
+    el.style.willChange = "transform";
+    el.style.transform = "translate(20.5px, 20.5px)";
+    await flush();
+
+    expect(el.style.willChange).toBe("auto");
+    expect(el.style.transform).toBe("translate(21px, 21px)");
+  });
+
+  it("does not loop on its own will-change write", async () => {
+    let wrapper: HTMLElement | undefined;
+    render(<Popper initial="translate(10px, 10px)" onWrapper={(el) => (wrapper = el)} />);
+    const el = wrapper as HTMLElement;
+    /* Count style writes after the first reset: if the re-entrancy guard regressed, every pass would
+       write again and the records would keep coming. */
+    let writes = 0;
+    const counter = new MutationObserver((records) => {
+      writes += records.length;
+    });
+    counter.observe(el, {
+      attributes: true,
+      attributeFilter: [
+        "style",
+      ],
+    });
+    el.style.willChange = "transform";
+    await flush();
+    await flush();
+    await flush();
+    counter.disconnect();
+
+    expect(el.style.willChange).toBe("auto");
+    /* Ours plus the test's own: the write that set "transform" and the one reset to "auto". */
+    expect(writes).toBe(2);
+  });
+
+  it("leaves will-change unset when Floating UI did not set it (DPR < 1.5)", () => {
+    let wrapper: HTMLElement | undefined;
+    render(<Popper initial="translate(10px, 10px)" onWrapper={(el) => (wrapper = el)} />);
+    expect(wrapper?.style.willChange).toBe("");
   });
 
   it("disconnects its observer on unmount", async () => {

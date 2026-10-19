@@ -34,9 +34,12 @@
    gradient rasteriser (and its dither) to deliver zero pixels.
    The solidify floor (--glass-opacity dial) is composed HERE, at the element — never in a token
    context (the var-composition-resolves-at-declaration gotcha; see scripts/check-theme.mjs). The
-   --srf-solidify slot lets a material DROP that layer when it is provably a no-op; materials that
-   want the normal floor pin the slot back to `initial` (guaranteed-invalid → the var() fallback
-   below composes --glass-solidify at the element, exactly as before). */
+   --srf-solidify slot lets a material DROP that layer when it is provably a no-op (the opaque material,
+   and the opaque PAGE style, which sets it on its own scope so it reaches `@apply glass` surfaces that
+   carry no `.glass` class); materials that want the normal floor pin the slot back to `initial`
+   (guaranteed-invalid → the var() fallback composes --glass-solidify at the element). --veil-solidify
+   leads the chain: glass-veil sets it (non-inheriting), because a VEILED surface paints the neutral
+   veil floor in its background-colour channel, so the layer is real there whatever the slot says. */
 @utility glass {
   /* Fallback 0.7, not 0: every glass surface now sits on a 70% solidify floor unless a consumer dials
      it back. Measured before changing it, because AutoForeground does NOT read --glass-opacity — it
@@ -54,7 +57,8 @@
      what --accent was set to. No amount of tuning the token could fix that; it is a layer-order problem.
      Same no-op `none` slot pattern as --acc-gradient below it. */
   background-image:
-    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)), var(--srf-solidify, var(--glass-solidify));
+    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)),
+    var(--veil-solidify, var(--srf-solidify, var(--glass-solidify)));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
@@ -63,10 +67,11 @@
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
 }
 
-/* Border axis — the material picks the color; width resolves material pin (--srf-border-w, which
-   itself reads the --brd-w weight slot) → weight slot directly (adaptive surfaces) → 1px hairline. */
+/* Border axis — the material picks the color unless the element asks for ink (--brd-ink, the
+   borderColor axis below); width resolves material pin (--srf-border-w, which itself reads the --brd-w
+   weight slot) → weight slot directly (adaptive surfaces) → 1px hairline. */
 @utility glass-border {
-  border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--srf-border-color, var(--glass-border));
+  border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--brd-ink, var(--srf-border-color, var(--glass-border)));
 }
 /* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
    glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 2px,   frame = 4px. */
@@ -75,6 +80,15 @@
 }
 @utility glass-border-frame {
   --brd-w: 4px;
+}
+/* Border COLOUR — ink. The material edge is a near-white rim at the material's alpha: it reads as cut
+   glass on a dark page and as nothing at all on most light themes, at hairline, rim or frame weight
+   alike, so a weight axis whose colour disappears went unused. Ink is the element's own text colour
+   (--foreground, after any per-material text remap on this element), mixed toward transparent by
+   --glass-border-ink-a: a visible line anywhere text is legible. Element-composed and registered
+   non-inheriting (registrations.css), so a child border keeps its own material colour. */
+@utility glass-border-ink {
+  --brd-ink: color-mix(in oklch, var(--foreground) calc(var(--glass-border-ink-a, 0.5) * 100%), transparent);
 }
 
 /* Diffuse axis — a READABILITY BLUR FLOOR (not a blur value): every translucent material computes
@@ -99,6 +113,9 @@
 
 @utility glass-veil {
   --veil-floor: oklch(var(--glass-solid-l) 0 0 / var(--glass-solid-a));
+  /* The veil keeps the solidify layer even where the material or page dropped it (--srf-solidify: none):
+     those drops are only no-ops over the opaque floor, and a veiled surface paints the veil instead. */
+  --veil-solidify: var(--glass-solidify);
 }
 
 /* THE PAGE BACKDROP LAYER — the fixed, full-viewport ground every sheer material blurs. Put this on the
@@ -191,12 +208,18 @@
   }
 }
 
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
+/* Namespaced: a bare `shimmer` is a global name, and a consumer's own @keyframes shimmer (or another
+   library's) replaced this one for everyone, whichever stylesheet loaded last. Animates `translate`, not
+   `transform`: Tailwind v4's `-translate-x-full` (the skeleton's resting position) writes the `translate`
+   property, which COMPOSES with an animated transform rather than being replaced by it, so the sweep ran
+   from -200% to 0% and parked the highlight on top of the skeleton. Animating the same property replaces
+   the resting value while running, and with the animation off it falls back to that resting value. */
+@keyframes sistine-shimmer {
+  from {
+    translate: -100% 0;
   }
-  100% {
-    transform: translateX(100%);
+  to {
+    translate: 100% 0;
   }
 }
 
@@ -218,8 +241,8 @@
    rule outranks any layered one regardless of order, so this needs neither !important nor a specificity
    hack. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-\[shimmer_2s_infinite\],
-  .before\:animate-\[shimmer_2s_infinite\]::before {
+  .animate-\[sistine-shimmer_2s_infinite\],
+  .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
     animation: none;
   }
 

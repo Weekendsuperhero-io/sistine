@@ -132,6 +132,23 @@ const blocks = (source) => {
   return out;
 };
 
+/* The hue gloss flavor's variants (engine.css block C′) are gated on --glass-gloss-is-hue and only ever
+   render inside a [data-gloss="hue"] scope, which pins its own --glass-gloss-l. They used to live IN that
+   block, where the block-local lookup found it; now they are composed in the engine (so a scoped
+   data-gloss recomposes them) and the lightness has to be seeded from the flavor block explicitly, or the
+   sweep would score them at the tonal flavor's L97/L66 — a surface that never renders. */
+const HUE_GLOSS_L = (() => {
+  const m = css.materials.match(/\[data-gloss="hue"\]\s*\{[\s\S]*?--glass-gloss-l:\s*([\d.]+)/);
+  return m ? +m[1] : undefined;
+})();
+/** Numeric custom props a block declares (or, for the hue variants, renders under). */
+function localVars(body) {
+  const local = new Map();
+  if (body.includes("--glass-gloss-is-hue") && HUE_GLOSS_L !== undefined) local.set("glass-gloss-l", HUE_GLOSS_L);
+  for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) local.set(k, +v);
+  return local;
+}
+
 /* ── Surfaces: every declaration composing tint chroma, scraped so the table cannot drift ────── */
 function collectSurfaces(vars) {
   const surfaces = [];
@@ -157,8 +174,7 @@ function collectSurfaces(vars) {
   for (const [file, src] of Object.entries({ engine: css.engine, materials: css.materials })) {
     for (const body of blocks(src)) {
       /* Numeric custom props declared right here, which shadow the tokens.css values below. */
-      const local = new Map();
-      for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) local.set(k, +v);
+      const local = localVars(body);
       for (const m of body.matchAll(re)) {
         const g = m.groups;
       /* mk/mkdef = the BOTH shape's multiplier; k/kdef = the SCALE shape's. A pure CAP has neither and
@@ -260,8 +276,7 @@ function collectFixed(vars) {
   };
   for (const [file, src] of Object.entries({ engine: css.engine, materials: css.materials })) {
     for (const body of blocks(src)) {
-      const local = new Map();
-      for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) local.set(k, +v);
+      const local = localVars(body);
       for (const args of oklchArgs(body)) {
         const parts = topSplit(args);
         if (parts.length < 3) continue;

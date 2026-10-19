@@ -6,20 +6,23 @@ import * as React from "react";
  * Keeps text crisp on Radix popper surfaces (dropdown-menu, popover, tooltip, select, hover-card,
  * context-menu).
  *
- * THE DEFECT: Radix positions those surfaces by writing an inline `transform: translate(x, y)` onto a
- * wrapper element. Floating UI does not round x/y, so they land on fractions whenever the trigger does
- * — under browser zoom, fractional DPR, or any flex/grid trigger whose box isn't on a whole pixel. On
- * its own that would be harmless, but sistine's popper content carries `backdrop-filter` (it's glass),
- * which promotes it to its own compositing layer. A promoted layer at a fractional offset has its
- * glyphs rasterized off the device pixel grid and the text renders visibly soft.
+ * THE DEFECT: on a high-density display the text in a popper rendered visibly soft. Radix positions the
+ * surface with an inline `transform: translate(x, y)` on a wrapper element, written from Floating UI's
+ * `floatingStyles`, and at a device pixel ratio of 1.5 or more Floating UI adds `will-change: transform`
+ * to the same style (`@floating-ui/react-dom`, `floatingStyles`). `will-change` promotes the wrapper to
+ * its own compositing layer, and WebKit drops subpixel (LCD) antialiasing for text on a composited layer;
+ * sistine's popper content is glass, so a blurred backdrop sits right behind that text. Resetting
+ * `will-change` to `auto` is the fix. The cost is a repaint on reposition instead of a layer move, for a
+ * surface that is open for seconds.
  *
- * This is the same defect the dialogs had. There the fix was to stop using a transform to center; a
- * popper can't do that, because its position IS the transform. So instead: round the translate to whole
- * pixels. Sub-pixel placement is imperceptible; blurred text is not.
+ * The ROUNDING below predates that diagnosis. Its premise was that unrounded offsets put glyphs off the
+ * pixel grid, but Floating UI already rounds x/y to the device pixel grid (`roundByDPR`) before writing
+ * them. It is kept for browser zoom, where the device grid and the CSS-pixel grid diverge, which has not
+ * been verified either way; it is cheap and harmless, and removing it is a separate decision.
  *
- * Radix rewrites that transform on scroll, resize and collision flips, so a MutationObserver re-snaps
- * after each write. The observer is re-entrant — our own write retriggers it — so the write is skipped
- * when the value is already integral, which terminates the loop on the first pass.
+ * Radix rewrites the style on scroll, resize and collision flips, so a MutationObserver re-applies both
+ * after each write. The observer is re-entrant (our own write retriggers it), so each write is skipped
+ * when the value is already what we want, which terminates the loop on the second pass at the latest.
  */
 /**
  * The whole snap, as a pure string transform: given the wrapper's SPECIFIED inline `transform`, return
@@ -30,7 +33,7 @@ import * as React from "react";
  *   - the value is already integral, so there is nothing to do and the loop terminates on pass one;
  *   - the value isn't a translate we recognise (Radix hasn't positioned yet), so we must not invent one.
  *
- * Split out of the hook so it can be checked without a DOM — see scripts/check-units.mjs.
+ * Split out of the hook so it can be checked without a DOM — see tests/snap-popper.test.tsx.
  */
 export function snapTransform(specified: string): string | null {
   const parts = /^translate(?:3d)?\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px/.exec(specified);
@@ -57,6 +60,10 @@ export function useSnappedPopper<T extends HTMLElement>(): React.RefCallback<T> 
       // re-enter forever.
       const next = snapTransform(wrapper.style.transform);
       if (next !== null) wrapper.style.transform = next;
+      // Floating UI's will-change (DPR >= 1.5) is what costs the text its antialiasing. Only written when
+      // something else is set, so the pass our own write triggers sees `auto` and stops.
+      const willChange = wrapper.style.willChange;
+      if (willChange !== "" && willChange !== "auto") wrapper.style.willChange = "auto";
     };
 
     snap();

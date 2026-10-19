@@ -21,6 +21,13 @@ const newComponents = new Set([
   "date-picker-input",
   "context-menu",
   "carousel",
+  "kbd",
+  "empty",
+  "progress",
+  "item",
+  "field",
+  "menubar",
+  "combobox",
 ]);
 
 type NavItem = {

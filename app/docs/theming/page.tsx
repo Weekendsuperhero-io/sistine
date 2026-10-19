@@ -47,9 +47,9 @@ export default function ThemingPage() {
                 below).
               </li>
               <li>
-                <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC>, <IC>veil</IC> (a legible floor for menus
-                / overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash), <IC>glow</IC>, <IC>sheen</IC> (hover
-                shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
+                <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC> (and its colour, <IC>borderColor</IC>),{" "}
+                <IC>veil</IC> (a legible floor for menus / overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash),{" "}
+                <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
             <p className="text-muted-foreground">The five materials. Pin one with the prop, or on a raw element with the attribute:</p>
@@ -140,6 +140,12 @@ export default function ThemingPage() {
                       'border / "rim" / "frame"',
                       "glass-border / -rim / -frame",
                       "material edge: hairline 1px (0.5px under frosted) · rim 2px · frame 4px",
+                    ],
+                    [
+                      "border colour",
+                      'borderColor="ink"',
+                      "glass-border-ink",
+                      "draw the border in the text colour (--foreground at --glass-border-ink-a, 0.5) instead of the material's near-white edge, which disappears on light themes; pairs with border",
                     ],
                     [
                       "veil",
@@ -279,8 +285,10 @@ export default function ThemingPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
-              with <IC>material=&quot;crystal&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
+              Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on <IC>&lt;html&gt;</IC> or on any element below it (default /
+              unset = <IC>tonal</IC>). A scoped flavor recomposes the gloss for its own subtree, in the page&apos;s tint, and a nested{" "}
+              <IC>data-glass-tint</IC> keeps the flavor it inherits. It composes with <IC>material=&quot;crystal&quot;</IC>,{" "}
+              <IC>material=&quot;chakra&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
@@ -416,6 +424,17 @@ export default function ThemingPage() {
               <IC>data-material</IC> attribute directly:
             </p>
             <Code>{`<div className="glass glass-border glass-veil rounded-xl p-4">Legible overlay</div>`}</Code>
+            <p className="text-muted-foreground">
+              Wearing the material through <IC>@apply</IC> instead of the class? The page styles find surfaces by the <IC>glass</IC> class for the
+              parts they apply per element (the crystal and chakra text tiers, the opaque page&apos;s edge and text tier), and an <IC>@apply</IC>{" "}
+              leaves no class behind. Mark the element with <IC>data-surface</IC>, or <IC>data-surface=&quot;veil&quot;</IC> when it also applies{" "}
+              <IC>glass-veil</IC>. Everything else (the stacks, the blur, the solid floor the opaque page swaps in) is inherited and needs no marker.
+            </p>
+            <Code>{`.selection-pill { @apply glass glass-border; }
+.menu-panel     { @apply glass glass-border glass-veil; }
+
+<button className="selection-pill" data-surface>…</button>
+<div className="menu-panel" data-surface="veil">…</div>`}</Code>
           </CardContent>
         </Card>
 

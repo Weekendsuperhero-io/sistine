@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { FG_EVENT } from "@/components/auto-foreground";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
@@ -336,7 +337,7 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
         "--accent-c": v.accC,
       };
   window.dispatchEvent(
-    new CustomEvent("sistine-fg", {
+    new CustomEvent(FG_EVENT, {
       detail,
     }),
   );
@@ -490,7 +491,7 @@ export function GlassTintSwitcher() {
         const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
         setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 36.4 : 88);
       }
-      window.dispatchEvent(new Event("sistine-fg"));
+      window.dispatchEvent(new Event(FG_EVENT));
     };
     apply();
     const obs = new MutationObserver(apply);
@@ -543,7 +544,7 @@ export function GlassTintSwitcher() {
        from the surface you can see rather than from the preset table's light-mode value. */
     const ea = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
     if (Number.isFinite(ea)) setA(ea);
-    window.dispatchEvent(new Event("sistine-fg"));
+    window.dispatchEvent(new Event(FG_EVENT));
   };
 
   // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —

@@ -3,6 +3,15 @@
    Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
    gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling.
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
+/* Selenite — the neutral stone: no chroma and no wash, so the glass is the plain clear sheet. The tint
+   values equal the engine default's hue with the colour switched off; the block exists so a CSS-only
+   consumer (no tint switcher) gets selenite's colour-wheel anchor, which a hue-less theme needs. */
+[data-glass-tint="selenite"] {
+  --glass-tint-h: 250;
+  --glass-tint-c: 0;
+  --glass-tint-a: 0;
+  --harmony-h: 0;
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
@@ -232,33 +241,29 @@
   --muted-foreground-chakra: oklch(0.96 0.03 75);
 }
 
-/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
-   data-glass-tint="<status>", and sonner toasts hit the SAME hues via their data-type attribute
-   (destructive pairs with sonner's "error") — one block per status, joining the grouped engine
-   re-resolution above so --glass-bg / wash re-resolve at the alert/toast. */
-[data-glass-tint="info"],
-[data-sonner-toast][data-type="info"] {
+/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge; status toasts,
+   which the Toaster stamps from sonner's data-type — see TOAST_TINT in components/ui/sonner.tsx) render
+   data-glass-tint="<status>" — one block per status, joining the grouped engine re-resolution above so
+   --glass-bg / wash re-resolve at the alert/toast. */
+[data-glass-tint="info"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
   --glass-wash-l: 63%;
 }
-[data-glass-tint="success"],
-[data-sonner-toast][data-type="success"] {
+[data-glass-tint="success"] {
   --glass-tint-h: 150;
   --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
   --glass-wash-l: 87%;
 }
-[data-glass-tint="warning"],
-[data-sonner-toast][data-type="warning"] {
+[data-glass-tint="warning"] {
   --glass-tint-h: 85;
   --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
   --glass-wash-l: 84%;
 }
-[data-glass-tint="destructive"],
-[data-sonner-toast][data-type="error"] {
+[data-glass-tint="destructive"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;

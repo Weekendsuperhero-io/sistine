@@ -8,7 +8,7 @@
  */
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 function open(props: React.ComponentProps<typeof DialogContent> = {}) {
   render(
@@ -81,5 +81,90 @@ describe("DialogContent: bodyClassName", () => {
     expect(surface).toHaveClass("custom-surface");
     expect(surface).not.toHaveClass("custom-body");
     expect(wrapper).not.toHaveClass("custom-surface");
+  });
+});
+
+/**
+ * DialogBody: only the body scrolls.
+ *
+ * The layout wrapper used to be the one scroll box for everything, header and footer included, and
+ * `overflow-y: auto` clips on all four sides: a glass button's glow in the footer was sliced at the edge
+ * it touched, and the footer scrolled away with the text. With a DialogBody child the wrapper turns into
+ * a non-clipping flex column and the body alone scrolls. jsdom does not evaluate `:has()` for layout, so
+ * these pin the classes that do it and the structure they depend on.
+ */
+function openWithBody() {
+  render(
+    <Dialog open>
+      <DialogContent>
+        <DialogHeader data-testid="header">
+          <DialogTitle>Title</DialogTitle>
+        </DialogHeader>
+        <DialogBody data-testid="body" className="custom-body">
+          <p>Body</p>
+        </DialogBody>
+        <DialogFooter data-testid="footer">
+          <button type="button">OK</button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>,
+  );
+  return {
+    header: screen.getByTestId("header"),
+    body: screen.getByTestId("body"),
+    footer: screen.getByTestId("footer"),
+  };
+}
+
+describe("DialogBody", () => {
+  it("keeps the footer and header outside the scrolling body", () => {
+    const { header, body, footer } = openWithBody();
+    expect(body).toHaveAttribute("data-slot", "dialog-body");
+    expect(body).toHaveClass("overflow-y-auto", "min-h-0", "flex-1");
+    expect(body.contains(footer)).toBe(false);
+    expect(body.contains(header)).toBe(false);
+    /* Siblings in the layout wrapper, so they sit around the scroller rather than in it. */
+    expect(footer.parentElement).toBe(body.parentElement);
+    expect(header.parentElement).toBe(body.parentElement);
+  });
+
+  it("turns the layout wrapper into a non-clipping column only when a body is present", () => {
+    const { body } = openWithBody();
+    const layout = body.parentElement;
+    expect(layout).toHaveAttribute("data-slot", "dialog-layout");
+    expect(layout).toHaveClass(
+      "has-[>[data-slot=dialog-body]]:flex",
+      "has-[>[data-slot=dialog-body]]:flex-col",
+      "has-[>[data-slot=dialog-body]]:overflow-visible",
+    );
+  });
+
+  it("keeps the chrome from shrinking when the body is tall", () => {
+    const { header, footer } = openWithBody();
+    expect(header).toHaveClass("shrink-0");
+    expect(footer).toHaveClass("shrink-0");
+  });
+
+  it("runs the scroll box to the dialog's edges, with room for a glow", () => {
+    const { body } = openWithBody();
+    expect(body).toHaveClass("-mx-6", "px-6", "-my-2", "py-2");
+  });
+
+  it("lets its children shrink below their content width", () => {
+    const { body } = openWithBody();
+    expect(body).toHaveClass("[&>*]:min-w-0");
+    expect(body.parentElement).toHaveClass("min-w-0", "[&>*]:min-w-0");
+  });
+
+  it("merges a className rather than replacing the defaults", () => {
+    const { body } = openWithBody();
+    expect(body).toHaveClass("custom-body", "overflow-y-auto", "grid", "gap-4");
+  });
+
+  it("leaves a dialog without a body scrolling as one box, as before", () => {
+    const wrapper = open();
+    expect(wrapper).toHaveAttribute("data-slot", "dialog-layout");
+    expect(wrapper).toHaveClass("grid", "overflow-y-auto", "min-h-0");
+    expect(wrapper.querySelector('[data-slot="dialog-body"]')).toBeNull();
   });
 });

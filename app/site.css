@@ -1,0 +1,14 @@
+/*
+  The documentation site's own stylesheet: the Sistine theme plus what only this site defines.
+  app/globals.css is the theme a consumer installs (flattened into registry/theme/globals.css), so it
+  must not reference anything the consumer's app may not have. Geist is loaded by app/layout.tsx via
+  next/font, which defines --font-geist-sans / --font-geist-mono on <body>; mapping Tailwind's font
+  tokens to it belongs here, beside that loader. A consumer without these lines keeps Tailwind's
+  default stacks, or sets --font-sans / --font-mono in their own @theme.
+*/
+@import "./globals.css";
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}

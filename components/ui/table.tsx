@@ -9,7 +9,10 @@ const tableVariants = cva("w-full caption-bottom text-sm", {
   variants: {
     variant: {
       default: "",
-      glass: "rounded-lg overflow-hidden",
+      /* Rounded, but NOT overflow-hidden: `overflow: hidden` makes the <table> a scroll container, and a
+         sticky header binds to its nearest one, so it rode along with the rows. The container clips the
+         corners instead (see below). */
+      glass: "rounded-lg",
     },
   },
   defaultVariants: {
@@ -29,8 +32,11 @@ const Table = React.forwardRef<
     MaterialAxisProps & {
       /** When true, rows alternate in brightness and the per-row dividers are removed. */
       striped?: boolean;
+      /** Classes for the wrapping container, which is the element that scrolls: pass a height and an
+       * overflow (`max-h-96 overflow-y-auto`) and a `sticky top-0` TableHeader pins to it. */
+      containerClassName?: string;
     }
->(({ className, variant = "glass", striped = false, ...props }, ref) => {
+>(({ className, containerClassName, variant = "glass", striped = false, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
@@ -39,7 +45,11 @@ const Table = React.forwardRef<
     : "";
 
   return (
-    <div data-slot="table-container" className={m !== null ? "rounded-lg overflow-hidden" : ""}>
+    /* `overflow-clip`, not `overflow-hidden`: it clips the header and row fills to the rounded corners
+       without making the container a scroll container, so it never captures a sticky header on its own.
+       A consumer's `overflow-y-auto` (containerClassName) makes it the scroller on purpose; the x axis
+       then computes to hidden and keeps the corners clipped. */
+    <div data-slot="table-container" className={cn(m !== null && "rounded-lg overflow-clip", containerClassName)}>
       <table
         ref={ref}
         data-slot="table"

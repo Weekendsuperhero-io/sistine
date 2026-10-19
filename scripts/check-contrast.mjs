@@ -21,6 +21,9 @@
  *   1. [body]  the body tier reaches >= BODY_FLOOR Lc on the normal (wash + solidify) surface.
  *   2. [margin] it does so with at least MARGIN Lc of slack, so a preset cannot sit exactly on the line
  *               where a rounding change tips it under.
+ *   3. [ink]   the ink border (borderColor="ink": --foreground at --glass-border-ink-a over the surface)
+ *               clears INK_FLOOR Lc, APCA's floor for non-text elements a user must see, on both the sheer
+ *               surface and the opaque card. It exists because the material's own edge does not.
  *
  * It models the surface the way components/auto-foreground.tsx does — glassSolidSurface() with the
  * solidify floor, then readableForeground() for the body band — so a change to that model shows up here
@@ -34,6 +37,7 @@ import { fileURLToPath } from "node:url";
 import {
   apcaContrast,
   boostBand,
+  compositeSurface,
   foregroundRamp,
   glassSolidSurface,
   LC_AIM_KNOWN,
@@ -56,6 +60,9 @@ const read = (p) => readFileSync(join(ROOT, p), "utf8");
 
 const BODY_FLOOR = READABLE_USAGE.body.floor; // 75 — read from the source of truth, never hardcoded
 const MARGIN = 1.5; // Lc of slack required on top of the floor
+/* APCA's level for non-text elements that must be perceived (outlines, focus rings, dividers that carry
+   meaning). Well under any text floor, deliberately: a border is a shape, not glyphs. */
+const INK_FLOOR = 30;
 
 /**
  * Known, DESIGN-level exceptions: pinned at their measured value so they cannot silently get worse, and
@@ -116,6 +123,7 @@ const vars = modeVars();
 const all = presets();
 const failures = [];
 const report = [];
+const inkReport = [];
 
 for (const p of all) {
   for (const mode of ["light", "dark"]) {
@@ -123,7 +131,7 @@ for (const p of all) {
     const h = resolve(p, mode, vars, "glass-tint-h");
     const c = resolve(p, mode, vars, "glass-tint-c");
     const a = resolve(p, mode, vars, "glass-tint-a");
-    if (h === undefined || c === undefined || a === undefined) continue; // selenite has no block
+    if (h === undefined || c === undefined || a === undefined) continue; // an incomplete scrape, not a preset
 
     const washL = resolve(p, mode, vars, "glass-wash-l", dark ? 58 : 72);
     const washCMult = resolve(p, mode, vars, "glass-wash-c-mult", 2.5);
@@ -189,6 +197,24 @@ for (const p of all) {
       );
     }
 
+    /* The ink border: the same --foreground the surface's text uses, mixed toward transparent and painted
+       over that surface (a border sits on its element's own background). color-mix(…, transparent) in
+       oklch keeps the colour and scales its alpha, which the browser then blends in sRGB, as this does. */
+    const inkA = vars[mode].get("glass-border-ink-a") ?? vars.light.get("glass-border-ink-a") ?? 0.5;
+    for (const [where, ink, ground] of [
+      ["sheer", fg, surface],
+      ["opaque", opaqueInk, opaqueSurface],
+    ]) {
+      const line = compositeSurface(ground, [{ ...ink, a: inkA }]);
+      const inkLc = Math.abs(apcaContrast(line, ground));
+      if (inkLc < INK_FLOOR) {
+        failures.push(
+          `[ink] ${p.name} (${mode}, ${where}) — the ink border reaches only ${inkLc.toFixed(1)} Lc against its surface, under the ${INK_FLOOR} non-text floor. Raise --glass-border-ink-a (${inkA}).`,
+        );
+      }
+      inkReport.push({ name: p.name, mode, where, lc: inkLc });
+    }
+
     const known = KNOWN.get(`${p.name}|${mode}`);
     if (known) {
       /* Pinned: must not get WORSE than the value recorded when it was accepted. If it improves past the
@@ -225,7 +251,7 @@ if (process.argv.includes("--report")) {
 }
 
 /* Sanity floor: if the scrapers matched nothing the check is worthless. 12 jewels + moonstone +
-   4 frescoes + 4 status = 21 named blocks, x2 modes, minus selenite which has no block. */
+   4 frescoes + 4 status + selenite = 22 named blocks, x2 modes. */
 if (report.length < 30) {
   console.error(`✗ contrast guard: scored only ${report.length} preset/mode pairs — the CSS shape changed, fix the parser`);
   process.exit(1);
@@ -238,8 +264,10 @@ if (failures.length) {
    would make the summary contradict itself ("clears the floor everywhere … tightest 65.4"). */
 const scored = report.filter((r) => !KNOWN.has(`${r.name}|${r.mode}`));
 const worst = scored.reduce((a, b) => (b.lc < a.lc ? b : a));
+const inkWorst = inkReport.reduce((a, b) => (b.lc < a.lc ? b : a));
 console.log(
   `✓ preset contrast — ${scored.length} preset/mode pairs clear the ${BODY_FLOOR} Lc body floor ` +
     `(tightest ${worst.name} ${worst.mode} at ${worst.lc.toFixed(1)})` +
-    (KNOWN.size ? `; ${KNOWN.size} pinned exception${KNOWN.size > 1 ? "s" : ""}: ${[...KNOWN.keys()].join(", ")}` : ""),
+    (KNOWN.size ? `; ${KNOWN.size} pinned exception${KNOWN.size > 1 ? "s" : ""}: ${[...KNOWN.keys()].join(", ")}` : "") +
+    `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})`,
 );

@@ -49,7 +49,6 @@ function Textarea({
         textareaVariants({
           variant,
         }),
-        "transition duration-200 focus-visible:scale-[1.01]",
         icon && "pl-10",
         error && "border-destructive focus-visible:ring-destructive",
         className,

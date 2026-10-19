@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  BellIcon,
+  FolderOpenIcon,
   GearIcon,
   HouseIcon,
   TrayIcon as Inbox,
@@ -37,6 +39,7 @@ import { Carousel } from "@/components/ui/carousel";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   ContextMenu,
@@ -48,7 +51,17 @@ import {
 } from "@/components/ui/context-menu";
 import { Cropper } from "@/components/ui/cropper";
 import { DatePickerInput } from "@/components/ui/date-picker-input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -67,13 +80,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
+import { Field, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSeparator, FieldSet } from "@/components/ui/field";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import { InputGroup } from "@/components/ui/input-group";
 import { InputOTP } from "@/components/ui/input-otp";
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { MenuBar, MenuBarItem } from "@/components/ui/menu-bar";
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import {
   NavigationMenu,
@@ -93,6 +123,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -127,6 +158,25 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 function DatePickerInputPreview() {
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   return <DatePickerInput value={date} onChange={setDate} placeholder="Pick a date" />;
+}
+
+const COMBOBOX_FRUITS = [
+  "Apple",
+  "Banana",
+  "Blueberry",
+  "Cherry",
+  "Grape",
+  "Mango",
+  "Pineapple",
+];
+
+function ProgressDemo() {
+  const [value, setValue] = React.useState(13);
+  React.useEffect(() => {
+    const t = setTimeout(() => setValue(66), 500);
+    return () => clearTimeout(t);
+  }, []);
+  return <Progress value={value} className="w-[60%]" />;
 }
 
 function PaginationDemo() {
@@ -463,6 +513,15 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
                 This action cannot be undone. This will permanently delete your account and remove your data from our servers.
               </DialogDescription>
             </DialogHeader>
+            <DialogBody>
+              <p className="text-sm">Your projects, files and settings are deleted with the account.</p>
+            </DialogBody>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button variant="destructive">Delete account</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       );
@@ -955,6 +1014,41 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <Button
               className="cursor-pointer"
               onClick={() =>
+                toast.warning("Storage almost full", {
+                  description: "You have used 92% of your quota",
+                })
+              }
+            >
+              Show Warning Toast
+            </Button>
+
+            <Button
+              className="cursor-pointer"
+              onClick={() =>
+                toast.info("New version available", {
+                  description: "Reload to update",
+                })
+              }
+            >
+              Show Info Toast
+            </Button>
+
+            <Button
+              className="cursor-pointer"
+              onClick={() =>
+                toast.promise(new Promise((resolve) => setTimeout(resolve, 1500)), {
+                  loading: "Saving…",
+                  success: "Saved",
+                  error: "Could not save",
+                })
+              }
+            >
+              Show Promise Toast
+            </Button>
+
+            <Button
+              className="cursor-pointer"
+              onClick={() =>
                 toast("Event Created", {
                   description: "Your event has been scheduled",
                   className:
@@ -1099,6 +1193,137 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <CardContent>Content for slide 3</CardContent>
           </Card>
         </Carousel>
+      );
+
+    case "kbd":
+      return (
+        <div className="flex flex-col items-center gap-4 text-sm text-foreground">
+          <KbdGroup>
+            <Kbd>⌘</Kbd>
+            <Kbd>K</Kbd>
+          </KbdGroup>
+          <p className="text-muted-foreground">
+            Press <Kbd>Esc</Kbd> to close, or <Kbd>⇧</Kbd> + <Kbd>Tab</Kbd> to go back.
+          </p>
+        </div>
+      );
+
+    case "empty":
+      return (
+        <Empty variant="glass" className="max-w-md">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FolderOpenIcon />
+            </EmptyMedia>
+            <EmptyTitle>No projects yet</EmptyTitle>
+            <EmptyDescription>Create your first project to get started. Projects keep your files, settings and history together.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button>Create project</Button>
+          </EmptyContent>
+        </Empty>
+      );
+
+    case "progress":
+      return <ProgressDemo />;
+
+    case "item":
+      return (
+        <ItemGroup className="max-w-md">
+          <Item variant="outline">
+            <ItemMedia variant="icon">
+              <BellIcon />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle>Notifications</ItemTitle>
+              <ItemDescription>Mentions, replies and invitations.</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Switch defaultChecked />
+            </ItemActions>
+          </Item>
+          <Item variant="muted">
+            <ItemContent>
+              <ItemTitle>Weekly digest</ItemTitle>
+              <ItemDescription>A summary of the week, every Monday.</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Button variant="outline" size="sm">
+                Manage
+              </Button>
+            </ItemActions>
+          </Item>
+        </ItemGroup>
+      );
+
+    case "field":
+      return (
+        <div className="w-full max-w-md">
+          <FieldSet>
+            <FieldLegend>Profile</FieldLegend>
+            <FieldDescription>How you appear to others.</FieldDescription>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="field-name">Name</FieldLabel>
+                <Input id="field-name" placeholder="Ada Lovelace" />
+              </Field>
+              <FieldSeparator>or</FieldSeparator>
+              <Field orientation="horizontal">
+                <Checkbox id="field-public" defaultChecked />
+                <FieldLabel htmlFor="field-public">Show my profile publicly</FieldLabel>
+              </Field>
+            </FieldGroup>
+          </FieldSet>
+        </div>
+      );
+
+    case "menubar":
+      return (
+        <Menubar>
+          <MenubarMenu>
+            <MenubarTrigger>File</MenubarTrigger>
+            <MenubarContent>
+              <MenubarItem>
+                New tab <MenubarShortcut>⌘T</MenubarShortcut>
+              </MenubarItem>
+              <MenubarItem>
+                New window <MenubarShortcut>⌘N</MenubarShortcut>
+              </MenubarItem>
+              <MenubarSeparator />
+              <MenubarSub>
+                <MenubarSubTrigger>Share</MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarItem>Email link</MenubarItem>
+                  <MenubarItem>Messages</MenubarItem>
+                </MenubarSubContent>
+              </MenubarSub>
+            </MenubarContent>
+          </MenubarMenu>
+          <MenubarMenu>
+            <MenubarTrigger>View</MenubarTrigger>
+            <MenubarContent>
+              <MenubarCheckboxItem checked>Show bookmarks bar</MenubarCheckboxItem>
+              <MenubarCheckboxItem>Show full URLs</MenubarCheckboxItem>
+            </MenubarContent>
+          </MenubarMenu>
+        </Menubar>
+      );
+
+    case "combobox":
+      return (
+        <Combobox items={COMBOBOX_FRUITS}>
+          <ComboboxInput placeholder="Select a fruit" />
+          <ComboboxContent>
+            <ComboboxEmpty>No fruit found.</ComboboxEmpty>
+            <ComboboxList>
+              {(item: string) => (
+                <ComboboxItem key={item} value={item}>
+                  {item}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       );
 
     case "mode-toggle":

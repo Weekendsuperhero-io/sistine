@@ -20,9 +20,14 @@ import {
   type ThemeForegroundOptions,
 } from "@/lib/oklch-utils";
 
-const FG_STORAGE_KEY = "sistine-fg";
-const RAMP_KEY = "sistine-ramp";
-const FG_EVENT = "sistine-fg";
+/** localStorage key holding the persisted {@link FgConfig}. Exported so an app that reads or seeds the
+ * config (a settings screen, a pre-hydration script) never retypes the string. */
+export const FG_STORAGE_KEY = "sistine-fg";
+/** localStorage key holding the persisted {@link RampConfig}. */
+export const RAMP_KEY = "sistine-ramp";
+/** Window event AutoForeground listens for to re-band: dispatch it after changing the tint, the mode or
+ * the stored config (`window.dispatchEvent(new Event(FG_EVENT))`). */
+export const FG_EVENT = "sistine-fg";
 
 // Dev instrumentation: set localStorage["sistine-fg-debug"] = "1" (then reload) to log each update()'s
 // wall-time and how far it nudges --foreground off the CSS baseline (the "marginal bump"). Off by default.

@@ -25,8 +25,6 @@
   --color-foreground-soft: var(--foreground-soft);
   --color-foreground-strong: var(--foreground-strong);
   --color-foreground-ui: var(--foreground-ui);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -116,6 +114,10 @@
   --glass-sheet-a1: 0.04; /* the sheet's TOP-stop offset (dark tapers it to 0.03) */
   --glass-frost-boost: 0.1; /* frosted = the sheet lifted by this much */
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
+  /* Ink border alpha (borderColor="ink" / glass-border-ink): how much of --foreground the line takes.
+     Mode-invariant because --foreground already flips polarity per mode; 0.5 keeps the line clearly
+     softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]). */
+  --glass-border-ink-a: 0.5;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
      --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
@@ -368,9 +370,10 @@
      it drops to 76.0 Lc, under the floor+margin, while L93 holds 76.9. */
   --accent-bg-l: 0.93;
   --accent-bg-c-max: 0.032; /* ≤ 0.0323, the L-93 ceiling floor (lapis h268) */
-  /* Stays --foreground: this token is text on a SURFACE-lightness background, and it has two callers with
-     that shape — the accent fill here, and the bg-foreground/10 wash the menus use (dropdown, context,
-     navigation, command, menubar, select). They only share a text colour while --accent stays near the
+  /* Stays --foreground: this token is text on a SURFACE-lightness background. Its callers all have that
+     shape — the ghost button's hover, toggles, and the highlighted row of every menu (dropdown, context,
+     navigation, command, menu-bar, select), which paint bg-accent so a consumer's --accent reaches them
+     (the shadcn contract). Text and fill only stay legible together while --accent sits near the
      surface, which is precisely why the fill was moved by chroma rather than by weight. */
   --accent-foreground: var(--foreground);
 
@@ -643,10 +646,12 @@
 }
 
 /* ── Below the floor ──────────────────────────────────────────────────────────
-   package.json's browserslist is the supported floor (Safari 17.5 / Chrome 120 / Firefox 128 / Edge
-   120). It is set by what this theme actually uses, not by preference — the binding constraints are
-   text-wrap:balance (Safari 17.5), bare-`&` CSS nesting and unprefixed mask-composite (Chrome 120),
-   and @property (Firefox 128). Tailwind v4's own baseline sits just under it.
+   The supported floor is Safari 17.5 / Chrome 120 / Firefox 128 / Edge 120, declared as the browserslist
+   in SISTINE's package.json. It is set by what this theme actually uses, not by preference — the binding
+   constraints are text-wrap:balance (Safari 17.5), bare-`&` CSS nesting and unprefixed mask-composite
+   (Chrome 120), and @property (Firefox 128). Tailwind v4's own baseline sits just under it. That
+   browserslist does not ship with this file: a consuming app should declare its own, at or above the
+   floor, or its toolchain targets whatever its defaults are.
 
    Every colour in this theme is oklch(), fed through custom properties. On an engine without oklch the
    custom property still PARSES (custom props accept anything) and only fails when substituted — so
@@ -668,6 +673,7 @@
     color: #17161c;
   }
   .glass,
+  [data-surface],
   [data-material] {
     background-color: #ffffffe6;
     border: 1px solid #17161c26;

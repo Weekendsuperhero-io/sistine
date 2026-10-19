@@ -1224,6 +1224,10 @@ export const TONAL_MIN_L = 18;
  *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
  *  while near white a single 3-point step is worth 6–8 Lc. */
 export const TONAL_MAX_L = 97;
+/** How far under the body floor a tonal pick may sit and still be kept over an extreme that does not
+ *  clear the floor either. 72 Lc and 74.8 Lc are not a difference a reader can use in body text; ink-blue
+ *  versus #000002 is one they see. */
+export const TONAL_HUE_SLACK_LC = 3;
 /** Uncertainty margin at a fully-sheer floor, decaying to 0 as the floor becomes exactly modelable. */
 export const LC_MARGIN = 12;
 /** Baseline aim for a floor that IS modelled exactly, so certainty is not a reason to aim at the bare
@@ -1313,6 +1317,14 @@ export function foregroundRamp(o: ForegroundRampOptions): ForegroundRamp {
  * satisfy its FLOOR, legibility outranks hue and the full ramp comes back. Guard the FLOOR, not each
  * band's aspiration: the `small` band asks Lc 90, which no light surface reaches at all, so testing
  * against band.floor there would hand the extreme straight back on every light preset.
+ *
+ * The trade is bounded from the other side too. When the tonal pick is within {@link TONAL_HUE_SLACK_LC}
+ * of the floor and the extreme does NOT clear it either, the extreme is only "less unreadable" by under
+ * that much, and the hue stays: that was body text solving to #000002 on a dark-wash preset (lapis) over
+ * a darker backing, where black bought 1.8 Lc and still missed the floor. A fallback that DOES clear the
+ * floor always wins, so nothing that was readable becomes less so. And a tonal pick far under the floor
+ * (the mid-tone dead zone, ~43 Lc) still hands back the extreme: there the guard's job is only to take
+ * whatever contrast is left.
  */
 export function pickTonalInBand(ramp: ForegroundRamp, surface: OklchColor | string, band: ContrastBand): OklchColor {
   const best = pickInBand(ramp.tonal, surface, band);
@@ -1320,6 +1332,7 @@ export function pickTonalInBand(ramp: ForegroundRamp, surface: OklchColor | stri
   const lc = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
   if (lc(best) >= READABLE_USAGE.body.floor) return best;
   const full = pickInBand(ramp.raw, surface, band);
+  if (lc(best) >= READABLE_USAGE.body.floor - TONAL_HUE_SLACK_LC && lc(full) < READABLE_USAGE.body.floor) return best;
   return lc(full) > lc(best) ? full : best;
 }
 
