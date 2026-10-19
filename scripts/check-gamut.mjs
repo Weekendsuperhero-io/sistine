@@ -83,7 +83,8 @@ function collectPresets() {
          that no preset actually renders. Captured here and applied per row in the evaluator. */
       const vars = new Map(prev.vars ?? []);
       for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) vars.set(k, +v);
-      out.set(key, { name, dark: !!darkSel, h: h ? +h[1] : prev.h, c: c ? +c[1] : prev.c, vars });
+      /* ownVars: what THIS block declares, before a dark-only block is merged with its light base below. */
+      out.set(key, { name, dark: !!darkSel, h: h ? +h[1] : prev.h, c: c ? +c[1] : prev.c, vars, ownVars: new Map(vars) });
     }
   }
   /* A dark-only block (moonstone) inherits the hue/chroma its light block declared. */
@@ -354,6 +355,11 @@ if (!capMatch) {
 }
 const TINT_C_HI_CAP = +capMatch[1];
 
+/* Preset pins that hold for the light floor only (see the evaluator). */
+const LIGHT_ONLY_PINS = new Set([
+  "glass-opaque-c-max",
+]);
+
 for (const s of surfaces) {
   const rows = presets
     .filter((p) => (s.mode === "dark" ? true : !p.dark))
@@ -369,7 +375,11 @@ for (const s of surfaces) {
       const pinned = s.lname ? p.vars?.get(s.lname) : undefined;
       const surfaceL = pinned === undefined ? s.l : pinned <= 1 ? pinned * 100 : pinned;
       const pinnedMult = s.kname ? p.vars?.get(s.kname) : undefined;
-      const pinnedCap = s.capName ? p.vars?.get(s.capName) : undefined;
+      /* The jewels' --glass-opaque-c-max pins are their ceilings at the LIGHT floor, and tokens.css's
+         `.dark[data-glass-tint]` guard outranks them in dark. So in dark only a preset's own dark block
+         can pin that cap; scoring the light pin there models the leak the guard closed. */
+      const lightOnly = s.mode === "dark" && LIGHT_ONLY_PINS.has(s.capName);
+      const pinnedCap = s.capName ? (lightOnly ? (p.dark ? p.ownVars?.get(s.capName) : undefined) : p.vars?.get(s.capName)) : undefined;
       const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
       let want = base * (pinnedMult ?? s.mult);
       const cap = pinnedCap ?? s.hardCap;

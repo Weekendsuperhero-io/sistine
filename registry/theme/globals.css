@@ -587,8 +587,8 @@
      0.31–0.79× of its own ceiling, so nothing clips with no cap at all. 0.095 clears the largest ask
      (tourmaline 0.0901) and therefore throttles nobody, while still bounding a future preset that
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
-  /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. */
-  --glass-opaque-c-max: 0.12;
+  /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. Declared
+     in its own rule right after this block (see there for why). */
   /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
      text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
      opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
@@ -714,6 +714,21 @@
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border); /* Same divider role, same value it already carried — follow the role token */
   --sidebar-ring: oklch(0.6 0.2 250); /* Light blue ring - 3:1 contrast */
+}
+
+/* The dark opaque-floor chroma guard, in its own rule so it can OUTRANK the presets. Each jewel pins
+   --glass-opaque-c-max to its hue's sRGB ceiling at the LIGHT floor (L88, presets.css), in an unscoped
+   block. On <html> that block and `.dark` tie at (0,1,0) and presets.css loads later, so the light caps
+   used to win in dark too: amethyst's dark floor rendered C 0.065 against an ask of 0.106 and a ceiling
+   of 0.189, lapis 0.055 against 0.236, and every blue/purple/red jewel's dark opaque card came out a dull,
+   greyed version of its tint (23–53% of the chroma its hue can hold at L36.4). The light caps describe
+   the light floor only; at L36.4 every preset's ask sits well inside its own ceiling, so this guard is
+   the only cap dark needs. (0,2,0) beats a preset block; `.dark [data-glass-tint]` covers a scoped tint
+   inside a dark page, and a preset's own `.dark[data-glass-tint="x"]` block still wins by source order. */
+.dark,
+.dark[data-glass-tint],
+.dark [data-glass-tint] {
+  --glass-opaque-c-max: 0.12;
 }
 
 @layer base {

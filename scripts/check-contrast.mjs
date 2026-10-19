@@ -137,7 +137,11 @@ for (const p of all) {
     const washCMult = resolve(p, mode, vars, "glass-wash-c-mult", 2.5);
     const opaqueL = resolve(p, mode, vars, "glass-opaque-l", dark ? 36.4 : 88);
     const cScale = resolve(p, mode, vars, "glass-opaque-c-scale", dark ? 1.05 : 0.85);
-    const cMax = resolve(p, mode, vars, "glass-opaque-c-max", dark ? 0.12 : 0.055);
+    /* A preset's --glass-opaque-c-max is its ceiling at the LIGHT floor; in dark, tokens.css's
+       `.dark[data-glass-tint]` guard outranks it, so only a preset's own dark block can pin it there. */
+    const cMax = dark
+      ? (p.dark.get("glass-opaque-c-max") ?? vars.dark.get("glass-opaque-c-max") ?? 0.12)
+      : resolve(p, mode, vars, "glass-opaque-c-max", 0.055);
     const solidA = vars[mode].get("glass-solid-a") ?? 0.65;
 
     /* The backing under sheer glass is --glass-solidify-*, its own surface since the split (tokens.css)
