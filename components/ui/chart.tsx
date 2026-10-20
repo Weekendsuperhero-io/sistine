@@ -57,6 +57,62 @@ function useChart() {
   return context;
 }
 
+type PlotSize = {
+  width: number;
+  height: number;
+};
+
+/**
+ * The plot box's size, measured by ONE ResizeObserver on an element whose size comes from CSS alone.
+ *
+ * Recharts' percent-sized ResponsiveContainer observes its own div, and the container used to give that
+ * div `minHeight={150}` inside an `aspect-video` box: measure, grow to the floor, measure again — a
+ * ResizeObserver feedback loop WebKit reports as "ResizeObserver loop completed with undelivered
+ * notifications" and re-enters every frame. Here the measured box never contains the chart in flow (the
+ * chart sits in an absolute layer), so what it measures cannot change what it measures.
+ *
+ * - `null` until the first non-empty measurement: nothing renders at 0×0, which is what a chart in a
+ *   hidden (display: none) tab measures, and why recharts warned "width(0) and height(0) of chart
+ *   should be greater than 0" on every pass.
+ * - A 0×0 measurement after that is ignored, so a tab that hides keeps its last size rather than
+ *   unmounting the chart.
+ * - `"unobserved"` when there is no ResizeObserver: the caller falls back to the percent container.
+ */
+function usePlotSize(ref: React.RefObject<HTMLDivElement | null>): PlotSize | "unobserved" | null {
+  const [size, setSize] = React.useState<PlotSize | "unobserved" | null>(null);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof ResizeObserver === "undefined") {
+      setSize("unobserved");
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.contentRect;
+      if (!box) return;
+      /* Floor, not round: a chart half a pixel wider than its layer would overflow it. */
+      const width = Math.floor(box.width);
+      const height = Math.floor(box.height);
+      if (width <= 0 || height <= 0) return;
+      setSize((prev) =>
+        prev !== null && prev !== "unobserved" && prev.width === width && prev.height === height
+          ? prev
+          : {
+              width,
+              height,
+            },
+      );
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [
+    ref,
+  ]);
+
+  return size;
+}
+
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -77,6 +133,8 @@ const ChartContainer = React.forwardRef<
   };
 
   const m = materialSurface(variant === "default" ? null : SURFACE_ROLE, axes);
+  const plotRef = React.useRef<HTMLDivElement>(null);
+  const plot = usePlotSize(plotRef);
 
   return (
     <ChartContext.Provider
@@ -85,6 +143,7 @@ const ChartContainer = React.forwardRef<
       }}
     >
       <div
+        data-slot="chart"
         data-chart={chartId}
         data-material={m?.["data-material"]}
         ref={ref}
@@ -98,14 +157,29 @@ const ChartContainer = React.forwardRef<
           // modes, which is what made the axes unreadable. .recharts-cartesian-axis-tick-value sits ON the
           // <text> in both Recharts 2 and 3, so it survives the structure change. (A CSS `fill` beats the
           // fill presentation attribute Recharts sets, so no !important is needed.)
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          /* ONE size contract: the caller's height (`h-[300px]`), else the aspect. `min-h-[150px]` is the
+             floor the old `minHeight={150}` gave the chart, moved onto this box so it no longer feeds back
+             through what the observer measures; a caller's min-h-* still wins. */
+          "flex min-h-[150px] aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-hidden [&_.recharts-surface]:outline-hidden",
           variants[variant],
           className,
         )}
         {...rest}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer minHeight={150}>{children}</RechartsPrimitive.ResponsiveContainer>
+        <div ref={plotRef} data-slot="chart-plot" className="relative min-w-0 flex-1">
+          {plot === "unobserved" ? (
+            <RechartsPrimitive.ResponsiveContainer minHeight={150}>{children}</RechartsPrimitive.ResponsiveContainer>
+          ) : plot ? (
+            /* Absolute, so the chart never sizes the box being measured. Numeric width + height take
+               recharts' fixed-size path: no size-detector div and no second observer. */
+            <div className="absolute inset-0">
+              <RechartsPrimitive.ResponsiveContainer width={plot.width} height={plot.height}>
+                {children}
+              </RechartsPrimitive.ResponsiveContainer>
+            </div>
+          ) : null}
+        </div>
       </div>
     </ChartContext.Provider>
   );
@@ -283,7 +357,9 @@ const ChartTooltipContent = React.forwardRef<
 
               return (
                 <div
-                  key={item.dataKey || item.name || index}
+                  /* Rows are rebuilt from the payload, in order, on every render, so the position is the
+                     identity: `dataKey || name` collided whenever two series shared one. */
+                  key={`${index}-${String(item.dataKey ?? item.name ?? "")}`}
                   className={cn(
                     "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                     indicator === "dot" && "items-center",
@@ -389,7 +465,10 @@ const ChartLegendContent = React.forwardRef<
           const configItem = getPayloadConfigFromPayload(config, item, key);
 
           return (
-            <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
+            <div
+              key={`${index}-${String(item.value ?? "")}`}
+              className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}
+            >
               {configItem?.icon && !hideIcon ? (
                 <configItem.icon />
               ) : (

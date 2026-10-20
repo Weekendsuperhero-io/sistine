@@ -15,3 +15,10 @@ if (!("ResizeObserver" in globalThis)) {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
 }
+
+/* jsdom has no layout, so no document.elementFromPoint either; input-otp calls it on a timer to detect a
+   password manager's overlay badge, and the resulting TypeError surfaced as an unhandled error. Nothing is
+   at any point in a layout-less document. */
+if (typeof document.elementFromPoint !== "function") {
+  document.elementFromPoint = () => null;
+}

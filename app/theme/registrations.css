@@ -7,10 +7,31 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
-   folds in `var(--glow-layer, …)` so the glow rides INSIDE each style's shadow — surviving the
-   per-style `!important` box-shadow overrides instead of being replaced. inherits:false keeps a
-   glowing surface from lighting up its glass children. */
+   folds in `var(--glow-layer, …)` so the glow rides INSIDE each material's and page style's shadow
+   (they set --srf-shadow; the glow is appended after it) instead of being replaced by it. inherits:false
+   keeps a glowing surface from lighting up its glass children. */
 @property --glow-layer {
+  syntax: "*";
+  inherits: false;
+}
+
+/* The veil floor, NON-inheriting for the same reason as the glow: `glass-veil` sets it on the element
+   and `glass` paints it as that element's background-color. Inherited, a plain glass surface nested in
+   a veiled menu, popover, tooltip, select or card painted its PARENT's veil as its own floor (under the
+   Opaque page style: flat white in light, black in dark). A child without a veil of its own now falls
+   back to its material's --srf-bg-color, as it would anywhere else. */
+@property --veil-floor {
+  syntax: "*";
+  inherits: false;
+}
+/* Its twin for the solidify layer (see @utility glass-veil): a veiled parent must not restore the layer
+   on a child that dropped it. */
+@property --veil-solidify {
+  syntax: "*";
+  inherits: false;
+}
+/* The ink border colour (glass-border-ink): an inked panel must not ink the borders of the glass inside it. */
+@property --brd-ink {
   syntax: "*";
   inherits: false;
 }

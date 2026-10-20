@@ -6,8 +6,8 @@
    NOTE these are inherited custom properties — a data-material element also acts as a SCOPED default
    for adaptive `glass` descendants (the mechanism DialogContent's old data-glass hack hand-rolled).
    Pin a child back with its own data-material.
-   Import order: after engine.css (the [data-gloss] blocks must beat the engine's gloss defaults by
-   source order at equal specificity on <html>). */
+   Import order: after tokens.css — [data-gloss="hue"] re-pins --glass-gloss-l and the crystal shadows,
+   which tokens.css declares on :root/.dark at equal specificity, so source order decides on <html>. */
 
 [data-material="glass"] {
   /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
@@ -62,7 +62,7 @@
 /* Crystal text tiers — the baked gloss locally LIGHTENS the title zone (worst in dark mode), so text
    inside crystal remaps to the -crystal set AutoForeground bands against the glossed crystal surface.
    VEILED crystal is excluded: the veil floor is exactly what the normal tiers are banded for. */
-[data-material="crystal"]:not(.glass-veil) {
+[data-material="crystal"]:not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-crystal);
   --foreground-soft: var(--foreground-soft-crystal);
   --foreground-strong: var(--foreground-strong-crystal);
@@ -99,7 +99,7 @@
 /* Chakra text tiers — content sits on the body, whose lightness (--glass-chakra-l) is its own dial and
    can sit well away from the page's. Same reasoning as opaque/crystal; veiled chakra is excluded
    because the veil floor is exactly what the NORMAL tiers are banded for. */
-[data-material="chakra"]:not(.glass-veil) {
+[data-material="chakra"]:not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-chakra);
   --foreground-soft: var(--foreground-soft-chakra);
   --foreground-strong: var(--foreground-strong-chakra);
@@ -116,11 +116,19 @@
      background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
      ANY alpha. Measured across tints and both modes it moves every channel by exactly 0. So the layer was
      one full gradient rasterisation (and one dither pass) for provably zero pixels, on the one material
-     with no backdrop-filter behind it to mask that noise. Restored below when the surface is VEILED —
-     there the background-color is the neutral veil floor, not --glass-opaque-bg, so the layer is real
-     (dropping it there would shift up to 31/255 in light and 42/255 in dark). */
+     with no backdrop-filter behind it to mask that noise. Restored when the surface is VEILED (glass-veil
+     sets --veil-solidify, which `glass` reads first) — there the background-color is the neutral veil
+     floor, not --glass-opaque-bg, so the layer is real (dropping it there would shift up to 31/255 in
+     light and 42/255 in dark). */
   --srf-solidify: none;
-  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+  /* The WASH, and only the wash. Every other material's stack ends in --glass-wash-layer, the solid film
+     of the preset's colour that carries the tint over any backdrop; opaque used to drop it with the
+     sheet, so its floor had to carry the tint alone and the opaque card read as a darker, greyer cousin
+     of the glass beside it (in dark mode most of all: amethyst glass L44 C0.18, opaque L36 C0.11). With
+     the wash, opaque is the glass stack at full opacity: within 0.7 L of its glass siblings in light and
+     2–4 L above them in dark, where no darker page shows through. The wash is one flat colour (both
+     stops equal), so it rasterises without the dither the sheet's gradient caused (below).
+     NO sheet — --glass-bg is a 5-stop
      gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
      light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
      rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
@@ -129,13 +137,17 @@
      The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
      so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
      same token, so the -opaque text tiers re-band against the new floor automatically. */
-  --srf-bg-image: none;
+  /* The fresco slot leads, as in the crystal and chakra stacks: unset (`none`) on a single-hue preset, the
+     fresco's own multi-hue gradient on muse / sistine / aurora / gloaming, which opaque used to lose
+     entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
+     codes, so it rasterises without the dither the sheet was dropped for. */
+  --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
-  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  /* Outline WEIGHT: an element rim/frame class (--brd-w) beats the page-level outline weight (the
-     switcher's --glass-opaque-outline-w on <html>), which beats the 1px hairline. */
-  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  /* The material's own edge. A page outline (--glass-outline / -w) overrides it in `glass`'s --srf-edge,
+     the same as for every other material. */
+  --srf-border-color: var(--glass-border);
+  --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-shadow);
   /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
      PAGE style makes (menus/toasts must stay legible on a solid ground). */
@@ -147,26 +159,28 @@
   --muted-foreground: var(--muted-foreground-opaque);
 }
 
-/* Veiled opaque restores the solidify floor: glass-veil moves the background-COLOR channel to the
-   neutral --veil-floor, so the layer is no longer painting --glass-opaque-bg over itself and carries
-   the surface's entire tint. Mirrors crystal's `:not(.glass-veil)` carve-out. */
-[data-material="opaque"].glass-veil {
-  --srf-solidify: initial;
-}
-
 /* ── Gloss flavors ────────────────────────────────────────────────────────────
-   data-gloss on <html> (or any ancestor) swaps the crystal gloss. Default (unset) = tonal. Token
-   remaps only — they compose with [data-material="crystal"] AND the [data-glass="crystal"] page
-   style, in both modes. */
+   data-gloss on <html> or ANY element swaps the crystal (and chakra) gloss for that subtree. Default
+   (unset) = tonal. These blocks set LEAVES only — the two flavor switches, plus the hue flavor's own
+   lightness and shadows — and engine.css block C recomposes the gloss on every [data-gloss] element from
+   them. That split is what makes a scoped `<section data-gloss="white">` work: a composed value bakes
+   where it is declared, so a block here that declared one would hand its children <html>'s gloss.
+   Each block sets BOTH switches, so a nested flavor overrides an ancestor's instead of combining with it.
+   They compose with [data-material="crystal"] AND the [data-glass="crystal"] page style, in both modes.
+   Known edge: hue's pinned --glass-gloss-l and bevel-less crystal shadows are mode-twinned leaves that a
+   white/tonal section nested INSIDE a hue scope inherits (no mode-aware reset exists for them here). */
 [data-gloss="white"] {
-  --glass-gloss-ink: var(--shadow-highlight); /* 100% 0 0 — the classic flat white specular */
+  --glass-gloss-is-white: 1; /* the ink becomes the flat white specular, 100% 0 0 */
+  --glass-gloss-is-hue: initial;
 }
 [data-gloss="tonal"] {
-  /* Explicit tonal (also the default) — re-asserted so it can override a white/hue set on an ancestor. */
-  --glass-gloss-ink: calc(var(--glass-gloss-l, 94) * 1%) min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3))
-    var(--glass-tint-h);
+  /* Explicit tonal (also the default) — both switches off, so it can override a white/hue ancestor. */
+  --glass-gloss-is-white: initial;
+  --glass-gloss-is-hue: initial;
 }
 [data-gloss="hue"] {
+  --glass-gloss-is-white: initial;
+  --glass-gloss-is-hue: 1;
   /* Hue OWNS its lightness rather than sharing the tonal twin. The two flavors want opposite things
      from the same number: tonal wants the brightest value the surface allows (97 in light) so it reads
      as a specular, while hue needs chroma headroom — its stops ask --glass-gloss-c 0.16, and the sRGB
@@ -180,49 +194,10 @@
      ceiling. Measured in WebKit it CLIPS instead (see --glass-gloss-c-max in tokens.css), so 0.16 did
      not deliver 81% of itself — it drove the tightest hues to a pinned channel. 0.12 sits just under
      0.1240, the L-74 ceiling for turquoise (h190) and the tightest of the presets, so the sweep now
-     renders every hue it asks for. */
+     renders every hue it asks for. scripts/check-gamut.mjs reads this 74 to score the variants. */
   --glass-gloss-l: 74;
-  /* Iridescent — each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the
-     arc passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. */
-  --glass-gloss-top: linear-gradient(
-    to bottom in oklch,
-    oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
-        calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-      0.4
-    ),
-    transparent 35%
-  );
-  --glass-gloss-streak: linear-gradient(
-    115deg in oklch,
-    oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
-          calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-        0.32
-      )
-      0%,
-    oklch(calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12) var(--glass-tint-h) / 0.12) 45%,
-    oklch(
-        calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
-          calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-        0.32
-      )
-      85%,
-    transparent
-  );
-  --glass-gloss-glow: radial-gradient(
-    circle at 50% 120%,
-    oklch(
-      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
-        calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-      0.25
-    ),
-    transparent 70%
-  );
-  /* Kill the white: the default crystal floor is oklch(100% …) = PURE white (chroma collapses at L100), and
-     the crystal shadow carries a white inset bevel. In the iridescent flavor, replace the floor with a
-     hue-carrying one at the gloss lightness (so Light deepens it) and drop the bevel — leaving only swept hue. */
-  --glass-crystal-bg: oklch(calc(var(--glass-gloss-l, 94) * 1%) calc(var(--glass-tint-c) * 1.2) var(--glass-tint-h) / 0.4);
+  /* Kill the white bevel: the crystal shadow carries a white inset highlight, which would sit on top of
+     the swept hue. (The white floor is replaced in engine.css block C′.) */
   --glass-crystal-shadow: var(--glass-shadow);
   --glass-crystal-shadow-hover: var(--glass-shadow-lg);
 }

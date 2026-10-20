@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -125,6 +125,42 @@ export const WithForm: Story = {
         </div>
         <DialogFooter>
           <Button>Create Account</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ),
+};
+
+/* DialogBody: only the body scrolls. The header and footer stay where they are, and the footer's glass
+   buttons sit outside the scroll box, so their glow is never sliced at its edge. */
+export const ScrollingBody: Story = {
+  render: () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>Read the terms</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Terms of service</DialogTitle>
+          <DialogDescription>Scroll to the end, then accept.</DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          {Array.from(
+            {
+              length: 24,
+            },
+            (_, i) => (
+              <p key={i} className="text-sm wrap-break-word">
+                {i + 1}. These terms govern your use of the service. A long, unbroken token like
+                https://example.com/a/very/long/path/that/would/otherwise/widen/the/dialog/{i} wraps here, because the body lets its children shrink
+                below their content width.
+              </p>
+            ),
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="outline">Decline</Button>
+          <Button glow>Accept</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

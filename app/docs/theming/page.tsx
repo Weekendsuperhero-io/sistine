@@ -47,9 +47,9 @@ export default function ThemingPage() {
                 below).
               </li>
               <li>
-                <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC>, <IC>veil</IC> (a legible floor for menus
-                / overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash), <IC>glow</IC>, <IC>sheen</IC> (hover
-                shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
+                <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC> (and its colour, <IC>borderColor</IC>),{" "}
+                <IC>veil</IC> (a legible floor for menus / overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash),{" "}
+                <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
             <p className="text-muted-foreground">The five materials. Pin one with the prop, or on a raw element with the attribute:</p>
@@ -99,7 +99,7 @@ export default function ThemingPage() {
                       "opaque",
                       'material="opaque"',
                       'data-material="opaque"',
-                      "fully solid, no see-through",
+                      "fully solid, no see-through: the same tint (and a fresco's sweep) as the glass beside it, at full opacity",
                     ],
                   ].map(([m, prop, attr, look]) => (
                     <tr key={m}>
@@ -140,6 +140,12 @@ export default function ThemingPage() {
                       'border / "rim" / "frame"',
                       "glass-border / -rim / -frame",
                       "material edge: hairline 1px (0.5px under frosted) · rim 2px · frame 4px",
+                    ],
+                    [
+                      "border colour",
+                      'borderColor="ink"',
+                      "glass-border-ink",
+                      "draw the border in the text colour (--foreground at --glass-border-ink-a, 0.5) instead of the material's near-white edge, which disappears on light themes; pairs with border",
                     ],
                     [
                       "veil",
@@ -279,8 +285,10 @@ export default function ThemingPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on any ancestor (default / unset = <IC>tonal</IC>). It composes
-              with <IC>material=&quot;crystal&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
+              Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on <IC>&lt;html&gt;</IC> or on any element below it (default /
+              unset = <IC>tonal</IC>). A scoped flavor recomposes the gloss for its own subtree, in the page&apos;s tint, and a nested{" "}
+              <IC>data-glass-tint</IC> keeps the flavor it inherits. It composes with <IC>material=&quot;crystal&quot;</IC>,{" "}
+              <IC>material=&quot;chakra&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
@@ -416,6 +424,17 @@ export default function ThemingPage() {
               <IC>data-material</IC> attribute directly:
             </p>
             <Code>{`<div className="glass glass-border glass-veil rounded-xl p-4">Legible overlay</div>`}</Code>
+            <p className="text-muted-foreground">
+              Wearing the material through <IC>@apply</IC> instead of the class? The page styles find surfaces by the <IC>glass</IC> class for the
+              parts they apply per element (the crystal and chakra text tiers, the opaque page&apos;s edge and text tier), and an <IC>@apply</IC>{" "}
+              leaves no class behind. Mark the element with <IC>data-surface</IC>, or <IC>data-surface=&quot;veil&quot;</IC> when it also applies{" "}
+              <IC>glass-veil</IC>. Everything else (the stacks, the blur, the solid floor the opaque page swaps in) is inherited and needs no marker.
+            </p>
+            <Code>{`.selection-pill { @apply glass glass-border; }
+.menu-panel     { @apply glass glass-border glass-veil; }
+
+<button className="selection-pill" data-surface>…</button>
+<div className="menu-panel" data-surface="veil">…</div>`}</Code>
           </CardContent>
         </Card>
 
@@ -733,8 +752,9 @@ const onAccent = useReadableForeground(accent, "large");
                 harmonic accents together. <IC>0</IC> = neutral.
               </li>
               <li>
-                <IC>--glass-opaque-l</IC>: tint <strong>body lightness</strong> (OKLCH L); lower = a deeper tint. Mode-aware default (88 light / 36.4
-                dark), and the floor AutoForeground bands opaque-card text against.
+                <IC>--glass-opaque-l</IC>: the opaque card's <strong>floor lightness</strong> (OKLCH L); lower = a deeper tint. The card is this floor
+                under the same tint wash every material carries, so it reads as the glass stack at full opacity. Mode-aware default (93 light / 33.4
+                dark), and the surface AutoForeground bands opaque-card text against.
               </li>
               <li>
                 <IC>--glass-opacity</IC>: <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer glass,{" "}
@@ -750,10 +770,13 @@ const onAccent = useReadableForeground(accent, "large");
                 <IC>--glass-stain-amount</IC>: how completely <IC>stained</IC> strips the backdrop&apos;s color (0–1; default <IC>1</IC>).
               </li>
               <li>
-                <IC>--glass-opaque-outline</IC>: optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
-                (e.g. <IC>var(--glass-accent)</IC>) on any ancestor to give every opaque component a colored edge. <IC>--glass-opaque-outline-w</IC>{" "}
-                sets its weight (the switcher&apos;s hairline / rim / frame = 1 / 2 / 4px); an element-level <IC>border=&quot;rim&quot;</IC> /{" "}
-                <IC>&quot;frame&quot;</IC> still wins.
+                <IC>data-glass-outline</IC> + <IC>--glass-outline</IC>: an optional <strong>outline</strong> on every glass surface, whatever its
+                material. Put <IC>data-glass-outline</IC> on <IC>&lt;html&gt;</IC> (or any ancestor) and every surface below it, borderless ones
+                included, gets an edge in the theme accent; <IC>--glass-outline</IC> recolours it (on its own, without the attribute, it recolours
+                only the edges surfaces already draw). <IC>--glass-outline-w</IC> sets the weight of every glass edge (the switcher&apos;s hairline /
+                rim / frame = each material&apos;s own hairline / 2 / 4px). An element-level <IC>border=&quot;rim&quot;</IC> /{" "}
+                <IC>&quot;frame&quot;</IC> and <IC>borderColor=&quot;ink&quot;</IC> still win. The old opaque-only names,{" "}
+                <IC>--glass-opaque-outline</IC> / <IC>-w</IC>, are still read.
               </li>
               <li>
                 <IC>--glass-tint-a</IC>: the tint <strong>film</strong> alpha (per preset).

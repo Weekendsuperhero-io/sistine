@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# scripts/export-backgrounds.mjs output
+/exports/
+
 # production
 /build
 

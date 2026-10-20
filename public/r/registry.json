@@ -1393,6 +1393,7 @@
         "@phosphor-icons/react",
         "class-variance-authority",
         "clsx",
+        "next-themes",
         "sonner",
         "tailwind-merge"
       ],
@@ -1688,7 +1689,7 @@
       "name": "empty-state",
       "type": "registry:component",
       "title": "Empty State",
-      "description": "An empty state component, with the glass material system.",
+      "description": "An empty state component, with the glass material system. Legacy: prefer `empty`, which follows shadcn's anatomy (Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent).",
       "registryDependencies": [
         "@sistine/theme"
       ],
@@ -1724,7 +1725,7 @@
       "name": "menu-bar",
       "type": "registry:component",
       "title": "Menu Bar",
-      "description": "A menu bar component, with the glass material system.",
+      "description": "A row of glass buttons for app-style top bars. Legacy, and not a menu system: for File / Edit / View menus with keyboard navigation, use `menubar`.",
       "registryDependencies": [
         "@sistine/button",
         "@sistine/theme"
@@ -1905,6 +1906,274 @@
           "path": "components/ui/resizable.tsx",
           "type": "registry:component",
           "target": "components/ui/resizable.tsx"
+        }
+      ]
+    },
+    {
+      "name": "kbd",
+      "type": "registry:component",
+      "title": "Kbd",
+      "description": "A keyboard key cap for shortcuts and key combinations, drawn in the theme's text colour with the material's hairline edge.",
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/kbd.tsx",
+          "type": "registry:component",
+          "target": "components/ui/kbd.tsx"
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "type": "registry:component",
+      "title": "Empty",
+      "description": "An empty state for a list, table or panel with nothing in it yet: media, title, description and actions, as plain layout or on its own glass surface.",
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/empty.tsx",
+          "type": "registry:component",
+          "target": "components/ui/empty.tsx"
+        }
+      ]
+    },
+    {
+      "name": "progress",
+      "type": "registry:component",
+      "title": "Progress",
+      "description": "A progress bar on the theme's accent, in the same track and fill as Slider.",
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/progress.tsx",
+          "type": "registry:component",
+          "target": "components/ui/progress.tsx"
+        }
+      ]
+    },
+    {
+      "name": "item",
+      "type": "registry:component",
+      "title": "Item",
+      "description": "A versatile row for lists and settings: media, title, description and actions, plain or on bordered or borderless glass.",
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/separator",
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/item.tsx",
+          "type": "registry:component",
+          "target": "components/ui/item.tsx"
+        }
+      ]
+    },
+    {
+      "name": "field",
+      "type": "registry:component",
+      "title": "Field",
+      "description": "Form field layout (label, control, description, error) in vertical, horizontal or responsive orientation, with fieldsets, legends and separators.",
+      "dependencies": [
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/label",
+        "@sistine/separator",
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/field.tsx",
+          "type": "registry:component",
+          "target": "components/ui/field.tsx"
+        }
+      ]
+    },
+    {
+      "name": "menubar",
+      "type": "registry:component",
+      "title": "Menubar",
+      "description": "A desktop-style menu bar on Radix Menubar: a bordered glass bar whose menus and sub menus are veiled glass overlays.",
+      "dependencies": [
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "radix-ui",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "lib/snap-popper.ts",
+          "type": "registry:lib",
+          "target": "lib/snap-popper.ts"
+        },
+        {
+          "path": "components/ui/menubar.tsx",
+          "type": "registry:component",
+          "target": "components/ui/menubar.tsx"
+        }
+      ]
+    },
+    {
+      "name": "combobox",
+      "type": "registry:component",
+      "title": "Combobox",
+      "description": "An input with a filtered list of options, single or multiple with chips, on Base UI's Combobox with a veiled glass popup.",
+      "dependencies": [
+        "@base-ui/react@^1.9.0",
+        "@phosphor-icons/react",
+        "class-variance-authority",
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [
+        "@sistine/button",
+        "@sistine/input-group",
+        "@sistine/theme"
+      ],
+      "files": [
+        {
+          "path": "lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        },
+        {
+          "path": "lib/material.ts",
+          "type": "registry:lib",
+          "target": "lib/material.ts"
+        },
+        {
+          "path": "lib/hover-effects.ts",
+          "type": "registry:lib",
+          "target": "lib/hover-effects.ts"
+        },
+        {
+          "path": "components/ui/combobox.tsx",
+          "type": "registry:component",
+          "target": "components/ui/combobox.tsx"
         }
       ]
     },
@@ -2268,7 +2537,7 @@
       "name": "background-controller",
       "type": "registry:block",
       "title": "Background Controller",
-      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise/clouds/dune horizons with a placeable sun or moon, dancing aurora borealis, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
+      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise/clouds/dune horizons with a placeable sun or moon, a fogbound coastal redwood forest, dancing aurora borealis, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
       "registryDependencies": [
         "@sistine/canvas-background-utils",
         "@sistine/oklch-utils",

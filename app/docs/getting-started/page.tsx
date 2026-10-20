@@ -225,13 +225,13 @@ export function Example() {
 :root {
   --glass-sheet-a: 0.11;  /* glass sheet alpha (how much body) */
   --glass-border-a: 0.16; /* edge alpha */
-  --glass-opaque-l: 88; /* opaque floor lightness */
+  --glass-opaque-l: 93; /* opaque card floor lightness (under the tint wash) */
 }
 
 .dark {
   --glass-sheet-a: 0.05;
   --glass-border-a: 0.15;
-  --glass-opaque-l: 36.4;
+  --glass-opaque-l: 33.4;
 }`}
                   />
                 </div>

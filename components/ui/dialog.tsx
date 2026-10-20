@@ -29,11 +29,20 @@ const ROLE: MaterialProps = {
 
 const Dialog = DialogPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger;
+/* Trigger and Close stamp their data-slot (consumers style and test against it), as the content's own close
+   button already did; Root and Portal render no element of their own, so they stay plain aliases. */
+const DialogTrigger = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
+>((props, ref) => <DialogPrimitive.Trigger ref={ref} data-slot="dialog-trigger" {...props} />);
+DialogTrigger.displayName = DialogPrimitive.Trigger.displayName;
 
 const DialogPortal = DialogPrimitive.Portal;
 
-const DialogClose = DialogPrimitive.Close;
+const DialogClose = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Close>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>>(
+  (props, ref) => <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />,
+);
+DialogClose.displayName = DialogPrimitive.Close.displayName;
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -58,9 +67,9 @@ const DialogContent = React.forwardRef<
     MaterialAxisProps & {
       /** Elevated backdrop blur (folded from the glass wrapper). */
       animated?: boolean;
-      /** Styles the inner scrolling wrapper around `children`. `className` targets the OUTER surface,
-       *  so without this a consumer has no way to change the body's layout — swap the grid for flex,
-       *  drop the gap, or take the scrolling over entirely.
+      /** Styles the layout wrapper around `children` (`data-slot="dialog-layout"`). `className` targets
+       *  the OUTER surface, so without this a consumer has no way to change the body's layout — swap the
+       *  grid for flex, drop the gap, or take the scrolling over entirely.
        *  Its `-m-6 p-6` is a matched pair that cancels the dialog's padding so the scroll container
        *  stops clipping child shadows; override one and you must override the other. */
       bodyClassName?: string;
@@ -97,7 +106,10 @@ const DialogContent = React.forwardRef<
           // and happily overflows a max-height, so the wrapper never became scrollable and the dialog
           // just clipped. minmax(0,1fr) lets the row shrink, which is what hands the overflow to the
           // wrapper's overflow-y-auto.
-          "@container/dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] grid-rows-[minmax(0,1fr)] w-full max-w-lg gap-4 overflow-hidden rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          // `min(100% − 2rem, 32rem)` keeps a 1rem gutter each side on narrow screens (at `w-full
+          // max-w-lg` it ran edge to edge below 512px), and outline-hidden stops the browser outline
+          // ringing the whole panel when Radix focuses the content itself (nothing tabbable inside).
+          "@container/dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] grid-rows-[minmax(0,1fr)] w-full max-w-[min(calc(100%-2rem),32rem)] gap-4 overflow-hidden rounded-lg p-6 shadow-lg outline-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           dialogContentVariants({
             variant,
           }),
@@ -105,7 +117,17 @@ const DialogContent = React.forwardRef<
         )}
         {...rest}
       >
-        {/* min-h-0 is load-bearing: a grid item defaults to min-height:auto, which refuses to shrink
+        {/* The layout wrapper has two modes.
+            WITHOUT a DialogBody child it is the scroll box, as it always was: header, content and footer
+            scroll together.
+            WITH one (`has-[>[data-slot=dialog-body]]:`) it becomes a non-clipping flex column and only
+            the body scrolls: the header and footer are chrome, not content, and inside a scroll box a
+            glass button's glow was sliced at whichever edge it touched (overflow-y:auto clips on all
+            four sides, see below), and the footer scrolled away with the text.
+            min-w-0 + [&>*]:min-w-0: grid and flex items default to min-width:auto, so one unbreakable
+            child (a long path with `truncate`) set the track WIDER than the dialog and every line laid
+            out to that phantom width, clipped at the border. Letting the items shrink fixes wrap/truncate.
+            min-h-0 is load-bearing: a grid item defaults to min-height:auto, which refuses to shrink
             below its content, so without it this never scrolls and the dialog just clips again.
             -m-6 p-6 cancels the dialog's own p-6 so this box's edges land ON the dialog's padding box
             instead of its content box. That matters because `overflow-y: auto` is not one-axis: when
@@ -117,11 +139,20 @@ const DialogContent = React.forwardRef<
             overflow-hidden already clips, which does the same job and follows the rounded corners.
             The two utilities are a pair: overriding padding alone via bodyClassName re-offsets the
             body by the leftover negative margin. */}
-        <div className={cn("-m-6 grid min-h-0 gap-4 overflow-y-auto p-6", bodyClassName)}>{children}</div>
+        <div
+          data-slot="dialog-layout"
+          className={cn(
+            "-m-6 grid min-h-0 min-w-0 gap-4 overflow-y-auto p-6 [&>*]:min-w-0",
+            "has-[>[data-slot=dialog-body]]:flex has-[>[data-slot=dialog-body]]:flex-col has-[>[data-slot=dialog-body]]:overflow-visible",
+            bodyClassName,
+          )}
+        >
+          {children}
+        </div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -134,9 +165,30 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div data-slot="dialog-header" className={cn("flex flex-col space-y-1.5 text-center @sm/dialog-content:text-left", className)} {...props} />
+  <div
+    data-slot="dialog-header"
+    className={cn("flex shrink-0 flex-col space-y-1.5 text-center @sm/dialog-content:text-left", className)}
+    {...props}
+  />
 );
 DialogHeader.displayName = "DialogHeader";
+
+/**
+ * The scrolling region of a dialog. Optional: put it between DialogHeader and DialogFooter and only it
+ * scrolls, with the header and footer fixed around it; leave it out and the whole dialog content scrolls
+ * as one, as before.
+ * `-mx-6 px-6` runs the scroll box out to the dialog's edges (a scroll container clips at its padding
+ * box, so sitting at the content box it sheared child shadows 24px inside the edge), and `-my-2 py-2`
+ * gives a glow 8px of room above and below without moving the content.
+ */
+const DialogBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    data-slot="dialog-body"
+    className={cn("-mx-6 -my-2 grid min-h-0 flex-1 gap-4 overflow-y-auto px-6 py-2 [&>*]:min-w-0", className)}
+    {...props}
+  />
+);
+DialogBody.displayName = "DialogBody";
 
 const DialogFooter = ({
   className,
@@ -148,7 +200,7 @@ const DialogFooter = ({
 }) => (
   <div
     data-slot="dialog-footer"
-    className={cn("flex flex-col-reverse @sm/dialog-content:flex-row @sm/dialog-content:justify-end @sm/dialog-content:space-x-2", className)}
+    className={cn("flex shrink-0 flex-col-reverse gap-2 @sm/dialog-content:flex-row @sm/dialog-content:justify-end", className)}
     {...props}
   >
     {children}
@@ -181,4 +233,16 @@ const DialogDescription = React.forwardRef<
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger };
+export {
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+};

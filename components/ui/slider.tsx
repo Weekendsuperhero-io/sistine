@@ -74,7 +74,7 @@ const Slider = React.forwardRef<
             data-material={m?.["data-material"]}
             className={cn(
               m?.className,
-              "block size-4 shrink-0 rounded-full shadow-[var(--glass-shadow-sm)] transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+              "block size-4 shrink-0 rounded-full shadow-[var(--glass-shadow-sm)] transition-transform hover:scale-110 focus-visible:scale-110 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
               m === null && "border border-foreground/30 bg-foreground",
             )}
           />

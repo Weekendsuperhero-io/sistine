@@ -17,8 +17,15 @@
  *   6a.[materials] each [data-material="…"] block pins the full --srf-* set (+ opaque fg / crystal hover).
  *   6b.[recipes-dead] no retired recipe utility (glass-bg/-surface/-solid/…) is defined or class-used.
  *   6c.[material-union] lib/material.ts's Material type == the four CSS materials + "none".
- *   3. [preset] Every GlassTintSwitcher preset (except selenite) has a [data-glass-tint="x"] block.
- *   4. [status] Every status a component renders via data-glass-tint has a [data-glass-tint] block.
+ *   6g.[double-slash] no class with two "/" modifiers (Tailwind drops it silently).
+ *   6h.[surface-marker] element rules keyed on .glass / .glass-veil also accept [data-surface] / ="veil".
+ *   6i.[solidify-owner] only the opaque material/page drop the solidify layer; the veil restores it.
+ *   6j.[gloss-scope] the gloss is composed on [data-gloss] scopes too; flavor blocks set leaves only.
+ *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset.
+ *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
+ *   3. [preset] Every GlassTintSwitcher preset has a [data-glass-tint="x"] block.
+ *   4. [status] Every status a component renders via data-glass-tint (or the Toaster's TOAST_TINT) has a block.
+ *   4b.[vendor-free] No third-party component selectors (data-sonner) in the theme.
  *   5. [fresco] Every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry.
  *   6. [variants] Every glass component (has a crystal: variant) also has surface: + solid: variants.
  *   7. [sync]   public/r/theme.json embeds the CURRENT flattened theme (registry not stale).
@@ -151,11 +158,10 @@ for (const r of rules) {
   }
 }
 
-// 3. [preset] every switcher preset (except selenite) has a [data-glass-tint="x"] block
+// 3. [preset] every switcher preset has a [data-glass-tint="x"] block. Selenite included: without one, a
+//    CSS-only consumer had no colour-wheel anchor on it (--harmony-h: 0 lived only in the switcher's JS).
 const switcher = readFileSync(join(root, "components/glass-tint-switcher.tsx"), "utf8");
-const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter(
-  (v) => v !== "selenite" && v !== "custom",
-);
+const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter((v) => v !== "custom");
 for (const v of presets) {
   if (!css.includes(`[data-glass-tint="${v}"]`)) {
     fail(`[preset] switcher preset "${v}" has no [data-glass-tint="${v}"] block in globals.css.`);
@@ -171,11 +177,24 @@ for (const rel of componentFiles) {
     for (const lit of m[1].matchAll(/"([a-z-]+)"/g)) statuses.add(lit[1]);
   }
 }
+/* The Toaster stamps its tints from a map rather than a JSX attribute (sonner renders the toasts), so its
+   values are read out of TOAST_TINT. */
+{
+  const sonner = readFileSync(join(root, "components/ui/sonner.tsx"), "utf8");
+  const map = sonner.match(/export const TOAST_TINT[^=]*=\s*\{([\s\S]*?)\};/);
+  if (!map) fail("[status] components/ui/sonner.tsx has no TOAST_TINT map — if the stamping moved, update this rule rather than dropping it.");
+  else for (const lit of map[1].matchAll(/:\s*"([a-z-]+)"/g)) statuses.add(lit[1]);
+}
 for (const s of statuses) {
   if (!css.includes(`[data-glass-tint="${s}"]`)) {
     fail(`[status] a component renders data-glass-tint="${s}" but globals.css has no [data-glass-tint="${s}"] block.`);
   }
 }
+
+// 4b. [vendor-free] the theme carries no third-party component's selectors. A consumer who never renders
+//     a toast installed every [data-sonner-toast] rule anyway, and sonner's own unlayered stylesheet could
+//     only be fought with !important. Vendor styling belongs to the component that renders the vendor.
+if (/data-sonner/.test(css)) fail("[vendor-free] the flattened theme references data-sonner — style toasts in components/ui/sonner.tsx, not the theme.");
 
 // 5. [fresco] every fresco preset (sets --glass-crystal-fresco) has a FRESCO_HUES entry, so its
 //    canvas/gradient background matches it instead of collapsing to one hue.
@@ -223,7 +242,7 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
 //     bands against the wrong surface model again (the exact bug the mirror fixes).
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
-  const moonstoneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="moonstone"]');
+  const moonstoneDark = rules.find((r) => splitTop(r.selector).includes('.dark[data-glass-tint="moonstone"]'));
   if (moonstoneDark) {
     const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
@@ -349,6 +368,163 @@ for (const dir of ["components", "app"]) {
   }
 }
 
+// 6g. [double-slash] no class with a second `/` modifier (`bg-foreground/10/50`). Tailwind v4 cannot parse
+//     it and DROPS the class without a warning, so the state it styles (navigation-menu's hover, focus
+//     and open backgrounds, for a whole release) just never renders. It is what a mechanical find-replace
+//     of `bg-accent` → `bg-foreground/10` leaves behind wherever `bg-accent/50` stood.
+{
+  /* Per whitespace/quote-delimited token, so variant prefixes (`data-[active]:`) ride along; a URL in a
+     code sample is the one other thing shaped `a-b/1/2`, hence the `://` exclusion. */
+  const DOUBLE_SLASH = /[a-z]-[\w-]*\/\d+\/\d+$/;
+  const doubleSlash = (region) => region.split(/[\s"'`]+/).find((t) => DOUBLE_SLASH.test(t) && !t.includes("://"));
+  for (const dir of ["components", "app"]) {
+    for (const rel of readdirSync(join(root, dir), { recursive: true })) {
+      if (typeof rel !== "string" || !/\.(tsx|ts)$/.test(rel)) continue;
+      const src = readFileSync(join(root, dir, rel), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+      const hit = classRegions(src).map(doubleSlash).find(Boolean);
+      if (hit) fail(`[double-slash] ${dir}/${rel} uses "${hit}" — Tailwind drops a class with two "/" modifiers silently. Keep one opacity (e.g. bg-accent/50).`);
+    }
+  }
+}
+
+// 6h. [surface-marker] an ELEMENT-level rule that picks out surfaces by the `.glass` class must also
+//     accept the documented `[data-surface]` marker, and every `.glass-veil` carve-out must also accept
+//     `[data-surface="veil"]`. An element that wears the material through `@apply glass` has no class,
+//     so a rule keyed on the class alone silently skips it (the opaque page left such surfaces with the
+//     sheer backing and the wrong text tier). Vendor fixes that target a class combination by design
+//     (react-day-picker's `.glass .rdp`) are not surface pickers and are exempt.
+/** Split a selector list on its TOP-LEVEL commas only — `selectors()` also splits inside :not()/:where(). */
+function splitTop(sel) {
+  const out = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < sel.length; i++) {
+    if (sel[i] === "(") depth++;
+    else if (sel[i] === ")") depth--;
+    else if (sel[i] === "," && depth === 0) {
+      out.push(sel.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  out.push(sel.slice(start).trim());
+  return out.filter(Boolean);
+}
+{
+  const VENDOR = /\brdp\b/;
+  for (const r of rules) {
+    for (const sel of splitTop(r.selector)) {
+      if (VENDOR.test(sel) || sel.startsWith("@")) continue;
+      if (/:where\(\.glass\)|(^|[\s>+~])\.glass(?![-\w])/.test(sel) && !sel.includes("[data-surface]")) {
+        fail(`[surface-marker] "${sel}" picks surfaces by the .glass class only — use :where(.glass, [data-surface]) so @apply glass surfaces match too.`);
+      }
+      if (/\.glass-veil\b/.test(sel) && !/\.glass-veil,\s*\[data-surface="veil"\]/.test(sel)) {
+        fail(`[surface-marker] "${sel}" carves out .glass-veil only — add [data-surface="veil"] (e.g. :not(.glass-veil, [data-surface="veil"])).`);
+      }
+    }
+  }
+}
+
+// 6i. [solidify-owner] who may drop the solidify layer. `--srf-solidify: none` is a provable no-op only
+//     over the opaque floor, so it may appear ONLY in the opaque material and the opaque PAGE scope (a
+//     token, so `@apply glass` surfaces inherit it — never an element rule keyed on `.glass`). The veil
+//     restores the layer through --veil-solidify, which `glass` must read first and which must not
+//     inherit (a veiled parent would otherwise restore it on a child that dropped it).
+{
+  for (const r of rules) {
+    for (const d of decls(r.body)) {
+      if (d.name !== "--srf-solidify" || d.value !== "none") continue;
+      const sels = splitTop(r.selector);
+      const opaqueMaterial = sels.length === 1 && sels[0] === '[data-material="opaque"]';
+      const whereArgs = sels.length === 1 && /^:where\(([\s\S]*)\)$/.exec(sels[0])?.[1];
+      const opaquePage = !!whereArgs && splitTop(whereArgs).every((x) => x.startsWith('[data-glass="opaque"]'));
+      if (!opaqueMaterial && !opaquePage) {
+        fail(`[solidify-owner] "${r.selector.replace(/\s+/g, " ")}" drops the solidify layer — only [data-material="opaque"] and the opaque page's :where() token block may.`);
+      }
+    }
+  }
+  const glassUtil = rules.find((r) => r.selector === "@utility glass");
+  if (!glassUtil || !/var\(--veil-solidify,\s*var\(--srf-solidify,\s*var\(--glass-solidify\)\)\)/.test(glassUtil.body)) {
+    fail(`[solidify-owner] @utility glass must paint var(--veil-solidify, var(--srf-solidify, var(--glass-solidify))) — the veil restores the layer first.`);
+  }
+  const veilUtil = rules.find((r) => r.selector === "@utility glass-veil");
+  if (!veilUtil || !/--veil-solidify:\s*var\(--glass-solidify\)/.test(veilUtil.body)) {
+    fail(`[solidify-owner] @utility glass-veil must set --veil-solidify: var(--glass-solidify).`);
+  }
+  for (const prop of ["--veil-floor", "--veil-solidify"]) {
+    const reg = rules.find((r) => r.selector === `@property ${prop}`);
+    if (!reg || !/inherits:\s*false/.test(reg.body)) fail(`[solidify-owner] ${prop} must be registered with @property … inherits: false.`);
+  }
+}
+
+// 6j. [gloss-scope] `data-gloss` works below <html> only if every token that COMPOSES the gloss is
+//     declared on a rule that includes [data-gloss] (with :root/.dark/[data-glass-tint]), so it
+//     recomposes in each flavor scope; and the [data-gloss="…"] blocks set LEAVES only, both switches
+//     each, so a nested flavor overrides its ancestor's. The old blocks re-pinned the ink alone and the
+//     pre-composed gradients and stacks rode in from <html>: every scoped flavor painted the page's.
+{
+  const GLOSS = /^--(glass-gloss-(ink|top|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg)$/;
+  const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]"];
+  for (const r of rules) {
+    const sels = splitTop(r.selector);
+    for (const d of decls(r.body)) {
+      if (!GLOSS.test(d.name)) continue;
+      if (!SCOPE.every((x) => sels.includes(x))) {
+        fail(`[gloss-scope] ${d.name} is declared on "${r.selector.replace(/\s+/g, " ")}" — compose it in engine.css block C (${SCOPE.join(", ")}) so a scoped data-gloss recomposes it.`);
+      }
+    }
+  }
+  for (const flavor of ["white", "tonal", "hue"]) {
+    const block = rules.find((r) => r.selector === `[data-gloss="${flavor}"]`);
+    if (!block) {
+      fail(`[gloss-scope] no [data-gloss="${flavor}"] block.`);
+      continue;
+    }
+    const names = new Set(decls(block.body).map((d) => d.name));
+    for (const sw of ["--glass-gloss-is-white", "--glass-gloss-is-hue"]) {
+      if (!names.has(sw)) fail(`[gloss-scope] [data-gloss="${flavor}"] does not set ${sw} — a nested flavor would combine with its ancestor's instead of replacing it.`);
+    }
+  }
+}
+
+// 6k. [night-scope] a preset's night block must match a SCOPED preset too. `.dark[data-glass-tint="x"]`
+//     needs the class and the attribute on one element (normally <html>); a preset set on an element
+//     inside a dark page (`<section data-glass-tint="lapis">`) only matches the descendant form
+//     `.dark [data-glass-tint="x"]`. Without it the section rendered its DAY values in dark mode: lapis's
+//     wash at a quarter of its night alpha, moonstone's cream day floor under light night text.
+for (const r of rules) {
+  const sels = splitTop(r.selector);
+  for (const sel of sels) {
+    const m = /^\.dark\[data-glass-tint="([a-z-]+)"\]$/.exec(sel);
+    if (m && !sels.includes(`.dark [data-glass-tint="${m[1]}"]`)) {
+      fail(`[night-scope] "${sel}" has no ".dark [data-glass-tint=\"${m[1]}\"]" twin — a ${m[1]} preset scoped inside a dark page would render its day values.`);
+    }
+  }
+}
+
+// 6l. [outline-all] the page outline reaches every material. The edge is resolved ONCE per surface in
+//     @utility glass (--srf-edge / --srf-edge-w, page outline before the material's own edge), and every
+//     edge painter reads that; no material block may wire the outline into its own tokens (that is how it
+//     used to reach opaque and nothing else).
+{
+  const glassUtil = rules.find((r) => r.selector === "@utility glass");
+  if (!glassUtil || !/--srf-edge:[^;]*--glass-outline[^;]*--srf-border-color/.test(glassUtil.body) || !/--srf-edge-w:[^;]*--glass-outline-w[^;]*--srf-border-w/.test(glassUtil.body)) {
+    fail("[outline-all] @utility glass must compose --srf-edge / --srf-edge-w with the page outline ahead of the material's own edge.");
+  }
+  const borderUtil = rules.find((r) => r.selector === "@utility glass-border");
+  if (!borderUtil || !/var\(--srf-edge-w/.test(borderUtil.body) || !/var\(--srf-edge[,)]/.test(borderUtil.body)) {
+    fail("[outline-all] @utility glass-border must paint var(--srf-edge-w) / var(--srf-edge).");
+  }
+  if (!rules.some((r) => r.selector.startsWith("[data-glass-outline]") && /border:/.test(r.body))) {
+    fail("[outline-all] no [data-glass-outline] rule paints the outline on borderless surfaces.");
+  }
+  for (const r of rules) {
+    if (!/\[data-material=/.test(r.selector)) continue;
+    if (/--glass-(?:opaque-)?outline/.test(r.body)) fail(`[outline-all] "${r.selector}" wires the outline into its own tokens — leave it to --srf-edge so every material gets it.`);
+  }
+}
+
 // 6c. [material-union] lib/material.ts's Material union == the four CSS materials (+ "none").
 const matSrc = readFileSync(join(root, "lib/material.ts"), "utf8");
 const union = [...(matSrc.match(/type Material =([^;]+);/)?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
@@ -434,7 +610,7 @@ const presetTint = new Map(
 );
 for (const [value, tint] of presetTint) {
   const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
-  if (blocks.length === 0) continue; // selenite has no block — invariant 3 already flags missing blocks
+  if (blocks.length === 0) continue; // invariant 3 already flags a missing block
   for (const b of blocks) {
     /* --glass-tint-a is MODE-SPLIT now (a wash near that mode's floor tolerates far more alpha), and the
        switcher no longer inlines it for a named preset — CSS is the only source, so there is nothing to
@@ -476,7 +652,7 @@ for (const [value, tint] of presetTint) {
     const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
     return m ? Number(m[1]) : null;
   };
-  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max"]) {
+  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max", "glass-opaque-cap-scale"]) {
     /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
     const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
     if (!m) {

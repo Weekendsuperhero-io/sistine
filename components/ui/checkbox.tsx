@@ -33,7 +33,7 @@ const Checkbox = React.forwardRef<
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
-        "peer h-4 w-4 shrink-0 rounded-sm border shadow transition-shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+        "peer h-4 w-4 shrink-0 rounded-sm border shadow transition-shadow focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
         m === null && "border-primary",
         m !== null && "data-[state=checked]:glass data-[state=checked]:border-[var(--glass-border)]",
         axes.glow && "data-[state=checked]:glass-glow transition duration-200",

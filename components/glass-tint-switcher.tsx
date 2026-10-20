@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { FG_EVENT } from "@/components/auto-foreground";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
@@ -36,11 +37,12 @@ function applyDiffuse(floor: number) {
   }
 }
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
+/* Storage keys keep their opaque-era names so a saved outline survives the move to all materials. */
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
 const OUTLINE_W_KEY = "sistine-glass-opaque-outline-w";
 const ACCENT_KEY = "sistine-accent";
 
-/** Opaque-outline weight → the --glass-opaque-outline-w page var (hairline = unset → 1px default).
+/** Outline weight → the --glass-outline-w page var (hairline = unset → each material's own hairline).
  * Same ladder as the border axis (glass-border-rim/-frame); an element-level rim/frame beats this. */
 const OUTLINE_WEIGHTS = {
   hairline: null,
@@ -121,7 +123,7 @@ const PRESETS = [
     label: "Muse",
     h: 230,
     c: 0.056,
-    a: 0.16,
+    a: 0.1,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(85% 0.1 222), oklch(78% 0.2 326), oklch(84% 0.12 74))",
   },
@@ -139,7 +141,7 @@ const PRESETS = [
     label: "Gloaming",
     h: 32,
     c: 0.089,
-    a: 0.16,
+    a: 0.12,
     bespoke: true,
     swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
   },
@@ -336,14 +338,14 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
         "--accent-c": v.accC,
       };
   window.dispatchEvent(
-    new CustomEvent("sistine-fg", {
+    new CustomEvent(FG_EVENT, {
       detail,
     }),
   );
 }
 
 /** Per-mode tint-body lightness override ({light?, dark?}), stored as JSON under OPAQUE_L_KEY. Because
- *  --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), L must be tracked separately per mode — a
+ *  --glass-opaque-l is mode-aware in CSS (93 light / 33.4 dark), L must be tracked separately per mode — a
  *  single global value would wash out the other mode. Old plain-number values parse to a non-object and are
  *  ignored, self-healing to the mode default. */
 function readLmap(): {
@@ -451,11 +453,11 @@ export function GlassTintSwitcher() {
     if (df > 0) applyDiffuse(df);
     const storedOutline = localStorage.getItem(OUTLINE_KEY) === "1";
     setOutline(storedOutline);
-    if (storedOutline) document.documentElement.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
+    if (storedOutline) document.documentElement.dataset.glassOutline = "";
     const storedOutlineW = localStorage.getItem(OUTLINE_W_KEY) as OutlineWeight | null;
     if (storedOutlineW && OUTLINE_WEIGHTS[storedOutlineW]) {
       setOutlineW(storedOutlineW);
-      document.documentElement.style.setProperty("--glass-opaque-outline-w", OUTLINE_WEIGHTS[storedOutlineW]);
+      document.documentElement.style.setProperty("--glass-outline-w", OUTLINE_WEIGHTS[storedOutlineW]);
     }
     try {
       const acc = JSON.parse(localStorage.getItem(ACCENT_KEY) ?? "null");
@@ -473,7 +475,7 @@ export function GlassTintSwitcher() {
     }
   }, []);
 
-  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (88 light / 36.4 dark), so a single
+  // Tint-body LIGHTNESS is PER-MODE: --glass-opaque-l is mode-aware in CSS (93 light / 33.4 dark), so a single
   // global override would clobber the other mode (dark opaque surfaces would render light). (Re-)apply the
   // current mode's stored L on mount + on every light/dark toggle; with no stored L for a mode, clear the
   // inline override so the CSS default wins. Fires the fg event so AutoForeground re-bands the opaque floor.
@@ -488,9 +490,9 @@ export function GlassTintSwitcher() {
       } else {
         root.style.removeProperty("--glass-opaque-l");
         const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
-        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 36.4 : 88);
+        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 33.4 : 93);
       }
-      window.dispatchEvent(new Event("sistine-fg"));
+      window.dispatchEvent(new Event(FG_EVENT));
     };
     apply();
     const obs = new MutationObserver(apply);
@@ -543,7 +545,7 @@ export function GlassTintSwitcher() {
        from the surface you can see rather than from the preset table's light-mode value. */
     const ea = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
     if (Number.isFinite(ea)) setA(ea);
-    window.dispatchEvent(new Event("sistine-fg"));
+    window.dispatchEvent(new Event(FG_EVENT));
   };
 
   // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —
@@ -606,16 +608,17 @@ export function GlassTintSwitcher() {
     }
   };
 
-  // Optional accent outline for opaque surfaces — sets --glass-opaque-outline to the theme accent so opaque
-  // components gain a colored outline (flair) instead of the flat default border. Applies site-wide.
-  // Outline WEIGHT — page-wide width for the same borders the outline toggle colors (opaque material
-  // cards + adaptive surfaces on the opaque page style). hairline clears the var (1px default).
+  // Optional accent OUTLINE on every glass surface, whatever its material: sets data-glass-outline on <html>,
+  // which draws an edge in the theme accent around glass, frosted, crystal, chakra and opaque surfaces,
+  // borderless ones included (styles.css). Applies site-wide.
+  // Outline WEIGHT — page-wide width for every glass edge (the outline's, and the borders surfaces already
+  // draw). hairline clears the var, so each material keeps its own hairline (0.5px under frosted).
   const changeOutlineW = (w: OutlineWeight) => {
     setOutlineW(w);
     const root = document.documentElement;
     const px = OUTLINE_WEIGHTS[w];
-    if (px) root.style.setProperty("--glass-opaque-outline-w", px);
-    else root.style.removeProperty("--glass-opaque-outline-w");
+    if (px) root.style.setProperty("--glass-outline-w", px);
+    else root.style.removeProperty("--glass-outline-w");
     try {
       localStorage.setItem(OUTLINE_W_KEY, w);
     } catch {
@@ -626,8 +629,8 @@ export function GlassTintSwitcher() {
   const changeOutline = (on: boolean) => {
     setOutline(on);
     const root = document.documentElement;
-    if (on) root.style.setProperty("--glass-opaque-outline", "var(--glass-accent)");
-    else root.style.removeProperty("--glass-opaque-outline");
+    if (on) root.dataset.glassOutline = "";
+    else delete root.dataset.glassOutline;
     try {
       localStorage.setItem(OUTLINE_KEY, on ? "1" : "0");
     } catch {
@@ -811,7 +814,7 @@ export function GlassTintSwitcher() {
           />
         </SliderRow>
         <div className="flex items-center justify-between text-muted-foreground text-xs">
-          <span>Opaque outline</span>
+          <span>Outline</span>
           <button
             type="button"
             onClick={() => changeOutline(!outline)}

@@ -176,3 +176,35 @@ export const Simple: Story = {
     </Table>
   ),
 };
+
+/* The container is the scroller: `containerClassName` gives it a height and `overflow-y-auto`, and the
+   sticky header pins to it while the rows scroll underneath. The header takes the opaque floor so the
+   rows passing beneath it do not read through its translucent default fill. */
+export const StickyHeader: Story = {
+  render: () => (
+    <Table containerClassName="max-h-72 overflow-y-auto">
+      <TableHeader className="sticky top-0 z-10 bg-(--glass-opaque-bg) dark:bg-(--glass-opaque-bg)">
+        <TableRow>
+          <TableHead className="w-[100px]">Invoice</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Method</TableHead>
+          <TableHead className="text-right">Amount</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[
+          ...invoices,
+          ...invoices,
+          ...invoices,
+        ].map((invoice, i) => (
+          <TableRow key={`${invoice.invoice}-${i}`}>
+            <TableCell className="font-medium">{invoice.invoice}</TableCell>
+            <TableCell>{invoice.paymentStatus}</TableCell>
+            <TableCell>{invoice.paymentMethod}</TableCell>
+            <TableCell className="text-right">{invoice.totalAmount}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  ),
+};

@@ -4,67 +4,47 @@
    Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
    --glass-fg-h are CSS-only — no preset counterpart.) */
 
-/* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in
-   dark, so it tracks the day/night background. Pick the look with the light/dark/system toggle. */
-/* Muse is now ONE palette in both modes: the neon city — cyan → violet → magenta → pink → amber. The
-   old day sweep (a pale blue → cyan → teal cityscape) is gone; its hues live on in Aurora, which took
-   them over.
+/* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
+   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
+   twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
 
-   What differs between the modes is ALPHA, not colour. A day surface sits on a light page and needs
-   more of the gradient to register; night sits on a dark one and needs less before the neon blows out.
-   Lightness is shared because these stops are already bright (L 78–85), so they read on either page.
+   Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
+   Stop 2's chroma is 0.095 because h290 at L80 has an sRGB ceiling of 0.1052; the 0.17 it once shipped
+   with was browser-gamut-mapped (and rendered differently in Safari than in Chrome). 0.095 is 90% of
+   its own ceiling, the rule every stop follows.
 
-   Stop 2's chroma is 0.095, not the 0.17 night shipped with: h290 at L80 has an sRGB ceiling of 0.1052,
-   so 0.17 was 162% over and has been browser-gamut-mapped this whole time — which also means it
-   rendered differently in Safari (per-channel clamp toward grey) than in Chrome (hue-preserving map).
-   0.095 is 90% of its own ceiling, the same rule the rest of the stops follow. */
+   One alpha has to hold on BOTH pages, and the dark opaque card is the bind: there the sheet's bright
+   stops lift an L33 floor toward the text, and at the old day alphas (0.28–0.32) light text needed pure
+   white, past the tonal clip, so the ink lost the theme's hue. The sheet sits at 3/4 of the way from
+   the old night alphas to the old day ones, and the wash makes the room: L66 at 0.10 (was L76 at 0.16)
+   lands a light surface where it was (≈ L90) and a dark one 3.5 L darker. Measured: body 86.6 Lc light,
+   92.4 dark; the dark opaque ink stays tinted.
+
+   No pinned --glass-opaque-bg: the opaque floor DERIVES from --glass-opaque-l like every jewel, so the
+   switcher's Lightness slider moves a Muse card and AutoForeground models the floor it actually paints
+   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4). */
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
-  --glass-fg-h: 290; /* text/accent anchor: violet, matching night so the two modes share one identity */
+  --glass-fg-h: 290; /* text/accent anchor: violet, the sheet's second stop */
   --glass-tint-c: 0.056;
-  --glass-tint-a: 0.16;
-  --glass-wash-l: 76%;
+  --glass-tint-a: 0.1;
+  --glass-wash-l: 66%;
   --glass-bg: linear-gradient(
     135deg in oklch,
-    oklch(85% 0.1 222 / 0.32) 0%,
-    oklch(80% 0.095 290 / 0.3) 22%,
-    oklch(78% 0.2 326 / 0.28) 45%,
-    oklch(79% 0.12 350 / 0.28) 70%,
-    oklch(84% 0.12 74 / 0.3) 100%
+    oklch(85% 0.1 222 / 0.3) 0%,
+    oklch(80% 0.095 290 / 0.28) 22%,
+    oklch(78% 0.2 326 / 0.26) 45%,
+    oklch(79% 0.12 350 / 0.26) 70%,
+    oklch(84% 0.12 74 / 0.28) 100%
   );
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
-    oklch(85% 0.1 222 / 0.46) 0%,
-    oklch(80% 0.095 290 / 0.44) 22%,
-    oklch(78% 0.2 326 / 0.42) 45%,
-    oklch(79% 0.12 350 / 0.42) 70%,
-    oklch(84% 0.12 74 / 0.44) 100%
+    oklch(85% 0.1 222 / 0.42) 0%,
+    oklch(80% 0.095 290 / 0.4) 22%,
+    oklch(78% 0.2 326 / 0.38) 45%,
+    oklch(79% 0.12 350 / 0.38) 70%,
+    oklch(84% 0.12 74 / 0.4) 100%
   );
-  /* Light-mode body: the night anchor's hue (288) at a day-legible lightness. Chroma is 90% of the
-     ceiling at L91 h288 (0.0446), because a light surface has very little chroma headroom. */
-  --glass-opaque-bg: oklch(91% 0.04 288);
-  --glass-crystal-fresco: var(--glass-bg);
-}
-.dark[data-glass-tint="muse"] {
-  /* Night: the same neon palette as day, at night's lower alphas (a dark page needs less of the
-     gradient before the neon blows out). Only alpha and the solid body differ from the block above. */
-  --glass-bg: linear-gradient(
-    135deg in oklch,
-    oklch(85% 0.1 222 / 0.24) 0%,
-    oklch(80% 0.095 290 / 0.22) 22%,
-    oklch(78% 0.2 326 / 0.2) 45%,
-    oklch(79% 0.12 350 / 0.2) 70%,
-    oklch(84% 0.12 74 / 0.22) 100%
-  );
-  --glass-frosted-bg: linear-gradient(
-    135deg in oklch,
-    oklch(85% 0.1 222 / 0.36) 0%,
-    oklch(80% 0.095 290 / 0.34) 22%,
-    oklch(78% 0.2 326 / 0.32) 45%,
-    oklch(79% 0.12 350 / 0.32) 70%,
-    oklch(84% 0.12 74 / 0.34) 100%
-  );
-  --glass-opaque-bg: oklch(34% 0.12 288);
   --glass-crystal-fresco: var(--glass-bg);
 }
 
@@ -94,7 +74,8 @@
   /* Crystal composes its own background (not --glass-bg), so hand it the fresco explicitly. */
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="sistine"] {
+.dark[data-glass-tint="sistine"],
+.dark [data-glass-tint="sistine"] {
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(86% 0.11 75 / 0.22) 0%,
@@ -130,9 +111,9 @@
    Frosted gets its OWN alphas rather than the old ~1.37x boost over --glass-bg: with stops this much
    darker, that multiplier drove the violet composite to L 83.4 and soft to 58.4. These land all three
    near L 86.4 instead. The authored shape is unchanged — green, then teal, then violet darkest. */
-/* Aurora now sweeps Muse Day's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
+/* Aurora now sweeps the retired Muse day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
    green → cyan → violet. LIGHTNESS is untouched, because it is not a style choice here: the day stops
-   sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and Muse Day's own
+   sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and that sweep's own
    L 91–94 is precisely the band these were moved away from when day read as haze.
 
    CHROMA had to be re-derived, it could not travel with the hues. Each stop is 90% of that hue's OWN
@@ -162,7 +143,8 @@
   );
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="aurora"] {
+.dark[data-glass-tint="aurora"],
+.dark [data-glass-tint="aurora"] {
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
@@ -178,13 +160,17 @@
 [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.089;
-  --glass-tint-a: 0.16;
+  /* 0.12, down from 0.16: with text solved against the gradient's hardest stop (the L78 violet, over a
+     dusk-rose wash that already sits dark), the light opaque card could not reach the 75 Lc body floor
+     even in pure black (74.6). 0.14 reached it only in black; 0.12 keeps the ink tinted. */
+  --glass-tint-a: 0.12;
   --glass-wash-l: 64%;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="gloaming"] {
+.dark[data-glass-tint="gloaming"],
+.dark [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);

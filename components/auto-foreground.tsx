@@ -14,15 +14,22 @@ import {
   harmonicHue,
   LC_AIM_KNOWN,
   LC_MARGIN,
+  limitingSurface,
+  parseGradientStops,
   pickTonalInBand,
   READABLE_USAGE,
   readableTonal,
   type ThemeForegroundOptions,
 } from "@/lib/oklch-utils";
 
-const FG_STORAGE_KEY = "sistine-fg";
-const RAMP_KEY = "sistine-ramp";
-const FG_EVENT = "sistine-fg";
+/** localStorage key holding the persisted {@link FgConfig}. Exported so an app that reads or seeds the
+ * config (a settings screen, a pre-hydration script) never retypes the string. */
+export const FG_STORAGE_KEY = "sistine-fg";
+/** localStorage key holding the persisted {@link RampConfig}. */
+export const RAMP_KEY = "sistine-ramp";
+/** Window event AutoForeground listens for to re-band: dispatch it after changing the tint, the mode or
+ * the stored config (`window.dispatchEvent(new Event(FG_EVENT))`). */
+export const FG_EVENT = "sistine-fg";
 
 // Dev instrumentation: set localStorage["sistine-fg-debug"] = "1" (then reload) to log each update()'s
 // wall-time and how far it nudges --foreground off the CSS baseline (the "marginal bump"). Off by default.
@@ -202,6 +209,10 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         const v = inputs ? inputs[name] : cs ? Number.parseFloat(cs.getPropertyValue(name)) : Number.NaN;
         return v == null || Number.isNaN(v) ? fb : v;
       };
+      /* A fresco's multi-hue sheet, if one is active (--glass-crystal-fresco is unset on every other preset).
+         Every material paints it over its surface, so every tier set bands against the hardest stop of it
+         (see applyTiers). Frescoes always take the DOM path, so the snapshot never has to carry it. */
+      const frescoStops = cs ? parseGradientStops(cs.getPropertyValue("--glass-crystal-fresco")) : [];
       // Foregrounds FOLLOW THE CHOSEN FOREGROUND HUE: the ramp's hue is --glass-fg-h (which defaults to
       // the glass tint --glass-tint-h, but frescoes set it apart so text anchors off their surface).
       // Lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
@@ -276,7 +287,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          Fallbacks mirror tokens.css: the derived cap is --glass-opaque-c-max × 0.65 in light. */
       const solidifyFloor = {
         l: num("--glass-solidify-l", dark ? 36.4 : 92),
-        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), num("--glass-solidify-c-max", dark ? opaqueCMax : opaqueCMax * 0.65)),
+        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 0.98 : 0.85), num("--glass-solidify-c-max", dark ? opaqueCMax : opaqueCMax * 0.65)),
         a: glassOpacity,
       };
       /** The solidify floor as a compositable layer — the layer order `glass` paints. */
@@ -390,6 +401,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         // Lift the band's TARGET toward its ceiling by the uncertainty boost + the baseline aim. Floors and
         // ceilings stay — the margin aims higher, it never legalizes a harsher pick than the band allowed.
         const boost = (band: ContrastBand) => boostBand(band, lcBoost, lcAim);
+        /* What the text is SOLVED against: the surface itself, or, under a fresco, the composite at the
+           gradient stop that leaves the least contrast (lib/oklch-utils limitingSurface). Text sized for the
+           plain surface dipped to 66–74 Lc at the stops. The HUE still comes from `surface`: ink follows the
+           material it sits on, not whichever stop of the sweep happens to be hardest. */
+        const bg = limitingSurface(surface, frescoStops);
         /* Pick from the TONAL ramp, never at the cost of the band's floor — see pickTonalInBand in
            lib/oklch-utils. Today no band needs the fallback (light body bottoms out at 75.4 Lc on the
            clipped ramp), but /colors lets a consumer re-base the ramp entirely, so the guard exists so
@@ -405,7 +421,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           const band = boost(rawBand);
           return formatOklch(
             adaptive
-              ? readableTonal(surface, band, {
+              ? readableTonal(bg, band, {
                   // Opaque cards on the hue-less themes (selenite + moonstone) follow the chosen accent too — same as
                   // the normal surface above — so moonstone/selenite opaque-card text tints toward the accent.
                   // Otherwise THIS surface's own composited hue, not the tint token's (see surfaceH): each
@@ -416,7 +432,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
                   // minChroma search does not bail to the extreme (see readableTonal).
                   minChroma: huelessAccent ? 0.08 : 0,
                 })
-              : pickTonalInBand(ramp, surface, band),
+              : pickTonalInBand(ramp, bg, band),
           );
         };
         root.style.setProperty(`--foreground${suffix}`, tier(READABLE_USAGE.body));
@@ -439,7 +455,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             : formatOklch(
                 // Clipped like every other solve: a PINNED hue is the one case where collapsing to the
                 // achromatic extreme is most obviously wrong — the whole point of pinning is to see it.
-                readableTonal(surface, boost(READABLE_USAGE[usage]), {
+                readableTonal(bg, boost(READABLE_USAGE[usage]), {
                   hue: typeof choice === "string" ? harmonicHue(fgHarmonyH, choice) : choice,
                   chroma: 0.15,
                 }),
@@ -464,7 +480,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         root.style.setProperty(
           `--foreground-ui${suffix}`,
           formatOklch(
-            readableTonal(surface, boost(READABLE_USAGE.ui), {
+            readableTonal(bg, boost(READABLE_USAGE.ui), {
               hue: iconH,
               chroma: iconHue != null ? 0.15 : tintC > 0 ? cfgC : 0,
             }),
@@ -476,7 +492,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // show-through margin lifting each band target as the floor gets sheerer. Derived above the ramp
       // (see normalSurface) because the ramp's hue is read off it.
       applyTiers(normalSurface, "", false, normalLcBoost);
-      /* Opaque cards paint --glass-opaque-bg, so band a second set against THAT — derived here from
+      /* Opaque cards paint --glass-opaque-bg (under the wash), so band a second set against THAT — derived here from
          --glass-opaque-l / -c-max rather than reused from solidifyFloor. Those two used to be the same
          colour, and this call read `solidifyFloor` on exactly that basis; they are separate surfaces now
          (tokens.css), so sharing would band opaque-card text against the sheer backing instead of the
@@ -485,12 +501,23 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          carrying its own `* 0.9` multiplier (matching neither mode) and no chroma cap at all.
          `adaptive` so a LIGHT floor (moonstone cream) gets DARK text — the theme ramp only spans the
          readable half and can't. */
+      /* The opaque card is its floor PLUS the tint wash (materials.css: the glass stack at full opacity),
+         so the tier bands against the composite. The floor's cap is the preset cap times
+         --glass-opaque-cap-scale (the light floor sits at L93, where the L88 caps would overshoot). */
+      const opaqueFloor = {
+        l: num("--glass-opaque-l", dark ? 33.4 : 93),
+        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 0.98 : 0.85), opaqueCMax * num("--glass-opaque-cap-scale", dark ? 1 : 0.55)),
+        h: tintH,
+      };
       applyTiers(
-        {
-          l: num("--glass-opaque-l", dark ? 36.4 : 88),
-          c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 1.05 : 0.85), opaqueCMax),
-          h: tintH,
-        },
+        compositeSurface(opaqueFloor, [
+          {
+            l: washL,
+            c: tintC * washCMult,
+            h: tintH,
+            a: tintA,
+          },
+        ]),
         "-opaque",
         true,
         0, // no uncertainty — --glass-opaque-l models this floor exactly

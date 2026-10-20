@@ -1,0 +1,12 @@
+# The HOISTED layout this project has always installed with. Bun 1.4 installs a fresh checkout ISOLATED
+# instead (each package sees only its own declared deps), and in that layout the stories lose
+# `@storybook/react` (never declared; it comes with @storybook/nextjs) and a dozen components lose their
+# React prop types: ~190 type errors on a clean clone that the dev machine never sees.
+[install]
+linker = "hoisted"
+
+# `bun test` is Bun's built-in runner, not this project's. It ignores vitest.config.mts (no jsdom, no
+# setup file, no jest-dom matchers), so it fails most of the DOM tests with errors like
+# "localStorage is not defined". The preload below stops it with the right commands instead.
+[test]
+preload = ["./scripts/bun-test-guard.ts"]

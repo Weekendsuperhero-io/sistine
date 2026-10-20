@@ -4,6 +4,9 @@ import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
+/* Legacy: prefer `empty` (components/ui/empty.tsx), which follows shadcn's anatomy. Kept so existing
+   imports keep working. */
+
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
 const emptyStateVariants = cva("", {
   variants: {

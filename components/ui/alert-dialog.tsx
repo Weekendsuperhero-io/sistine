@@ -5,7 +5,7 @@ import { AlertDialog as AlertDialogPrimitive } from "radix-ui";
 import * as React from "react";
 import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "./button";
+import { Button, type buttonVariants } from "./button";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface.
    Centered WITHOUT a transform — see the matching note in dialog.tsx: `left-1/2 top-1/2 -translate-1/2`
@@ -13,11 +13,12 @@ import { buttonVariants } from "./button";
    surface, so this centers through layout (`inset-0 m-auto h-fit`) and the slide-* utilities that only
    existed to offset that translate are gone. Fade + zoom end at identity. */
 const alertDialogContentVariants = cva(
-  // Capped like dialog.tsx so over-tall content can't run off the bottom unreachable. This one scrolls
+  // A 1rem gutter each side on narrow screens (`min(100% − 2rem, …)`): at `w-full max-w-lg` it ran edge to
+  // edge below 512px. Capped like dialog.tsx so over-tall content can't run off the bottom unreachable. This one scrolls
   // the whole surface rather than an inner wrapper — AlertDialogContent hands children straight to
   // Radix, so there is nothing to wrap. Its actions scroll with the content; acceptable, because an
   // alert dialog that tall is already a design smell.
-  "group/alert-dialog-content @container/alert-dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] w-full max-w-lg gap-4 overflow-y-auto rounded-lg p-6 shadow-lg duration-200 data-[size=sm]:max-w-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+  "group/alert-dialog-content @container/alert-dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] w-full max-w-[min(calc(100%-2rem),32rem)] gap-4 overflow-y-auto rounded-lg p-6 shadow-lg duration-200 data-[size=sm]:max-w-[min(calc(100%-2rem),20rem)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
   {
     variants: {
       variant: {
@@ -165,43 +166,39 @@ const AlertDialogMedia = ({ className, ...props }: React.HTMLAttributes<HTMLDivE
 );
 AlertDialogMedia.displayName = "AlertDialogMedia";
 
+/* Action and Cancel ARE Buttons (asChild onto the Radix primitive), as upstream composes them. They used to
+   put buttonVariants on the bare primitive, but in Sistine buttonVariants carries behaviour only: the
+   SURFACE comes from materialSurface inside Button. So the default (glass) action rendered with no glass at
+   all, a destructive one without its tint, and neither carried data-variant / data-size / data-material
+   or accepted the material axes. */
+type AlertDialogButtonProps<T extends typeof AlertDialogPrimitive.Action | typeof AlertDialogPrimitive.Cancel> = React.ComponentPropsWithoutRef<T> &
+  Pick<VariantProps<typeof buttonVariants>, "variant" | "size"> &
+  MaterialAxisProps;
+
 const AlertDialogAction = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Action>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action> & Pick<VariantProps<typeof buttonVariants>, "variant" | "size">
->(({ className, variant = "glass", size = "default", ...props }, ref) => (
-  <AlertDialogPrimitive.Action
-    ref={ref}
-    data-slot="alert-dialog-action"
-    className={cn(
-      buttonVariants({
-        variant,
-        size,
-      }),
-      className,
-    )}
-    {...props}
-  />
-));
+  AlertDialogButtonProps<typeof AlertDialogPrimitive.Action>
+>(({ className, variant = "glass", size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  return (
+    <Button variant={variant} size={size} {...axes} asChild>
+      <AlertDialogPrimitive.Action ref={ref} data-slot="alert-dialog-action" className={className} {...rest} />
+    </Button>
+  );
+});
 AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName;
 
 const AlertDialogCancel = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Cancel>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel> & Pick<VariantProps<typeof buttonVariants>, "variant" | "size">
->(({ className, variant = "outline", size = "default", ...props }, ref) => (
-  <AlertDialogPrimitive.Cancel
-    ref={ref}
-    data-slot="alert-dialog-cancel"
-    className={cn(
-      buttonVariants({
-        variant,
-        size,
-      }),
-      "mt-2 sm:mt-0",
-      className,
-    )}
-    {...props}
-  />
-));
+  AlertDialogButtonProps<typeof AlertDialogPrimitive.Cancel>
+>(({ className, variant = "outline", size = "default", ...props }, ref) => {
+  const [axes, rest] = splitAxisProps(props);
+  return (
+    <Button variant={variant} size={size} {...axes} asChild>
+      <AlertDialogPrimitive.Cancel ref={ref} data-slot="alert-dialog-cancel" className={className} {...rest} />
+    </Button>
+  );
+});
 AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName;
 
 export {

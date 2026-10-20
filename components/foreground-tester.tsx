@@ -2,7 +2,7 @@
 
 import { BellIcon, GearIcon, HeartIcon, MagnifyingGlassIcon, StarIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
+import { FG_EVENT, type FgPalette, readFgConfig, readRampConfig, writeFgConfig } from "@/components/auto-foreground";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -224,10 +224,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         "style",
       ],
     });
-    window.addEventListener("sistine-fg", read);
+    window.addEventListener(FG_EVENT, read);
     return () => {
       obs.disconnect();
-      window.removeEventListener("sistine-fg", read);
+      window.removeEventListener(FG_EVENT, read);
     };
   }, []);
 

@@ -778,6 +778,77 @@ function apcaLuminance([r, g, b]: [
 }
 
 /**
+ * The colour stops of a fresco gradient (`linear-gradient(135deg in oklch, oklch(85% 0.1 222 / 0.32) 0%, …)`)
+ * as compositable layers. Reads the computed value of `--glass-crystal-fresco`, which the four fresco presets
+ * point at their multi-hue sheet and every other preset leaves unset (empty string → no stops).
+ */
+export function parseGradientStops(gradient: string): Array<
+  OklchColor & {
+    a: number;
+  }
+> {
+  const out: Array<
+    OklchColor & {
+      a: number;
+    }
+  > = [];
+  for (const m of gradient.matchAll(/oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*([\d.]+)(%?))?\s*\)/g)) {
+    out.push({
+      l: m[2] ? Number(m[1]) : Number(m[1]) * 100,
+      c: Number(m[3]),
+      h: Number(m[4]),
+      a: m[5] === undefined ? 1 : m[6] ? Number(m[5]) / 100 : Number(m[5]),
+    });
+  }
+  return out;
+}
+
+/**
+ * The hardest place on a surface to read text, once a fresco's multi-hue gradient is painted over it.
+ *
+ * A fresco sheet is bold (stops at L78–89, chroma up to 0.2, alpha 0.2–0.46), and nothing modelled it:
+ * every material banded its text against the plain surface, so text sized for the average dipped to
+ * 66–74 Lc where a gradient stop pulled the surface toward it. A linear gradient's extremes are its
+ * stops, so the worst point is the surface with one stop composited over it. Which stop is worst depends
+ * on the text's polarity, so that is decided first, by which of black or white reaches further on the
+ * plain surface. Returns the plain surface when there are no stops.
+ */
+export function limitingSurface(
+  surface: OklchColor,
+  stops: Array<
+    OklchColor & {
+      a: number;
+    }
+  >,
+): OklchColor {
+  if (stops.length === 0) return surface;
+  const black = {
+    l: 0,
+    c: 0,
+    h: 0,
+  };
+  const white = {
+    l: 100,
+    c: 0,
+    h: 0,
+  };
+  const ink = Math.abs(apcaContrast(black, surface)) >= Math.abs(apcaContrast(white, surface)) ? black : white;
+  let worst = surface;
+  let worstLc = Math.abs(apcaContrast(ink, surface));
+  for (const stop of stops) {
+    const lit = compositeSurface(surface, [
+      stop,
+    ]);
+    const lc = Math.abs(apcaContrast(ink, lit));
+    if (lc < worstLc) {
+      worst = lit;
+      worstLc = lc;
+    }
+  }
+  return worst;
+}
+
+/**
  * APCA lightness contrast (Lc) between a text color and a background color. Signed: positive = dark
  * text on a light bg, negative = light text on a dark bg; use |Lc| for the level (~60 headings,
  * ~75 body text). A dependency-free port of APCA-W3 0.1.9.
@@ -1224,6 +1295,10 @@ export const TONAL_MIN_L = 18;
  *  dark twin: near black a whole 18 points of lightness read as one colour and cost ~1.5 Lc to give up,
  *  while near white a single 3-point step is worth 6–8 Lc. */
 export const TONAL_MAX_L = 97;
+/** How far under the body floor a tonal pick may sit and still be kept over an extreme that does not
+ *  clear the floor either. 72 Lc and 74.8 Lc are not a difference a reader can use in body text; ink-blue
+ *  versus #000002 is one they see. */
+export const TONAL_HUE_SLACK_LC = 3;
 /** Uncertainty margin at a fully-sheer floor, decaying to 0 as the floor becomes exactly modelable. */
 export const LC_MARGIN = 12;
 /** Baseline aim for a floor that IS modelled exactly, so certainty is not a reason to aim at the bare
@@ -1313,6 +1388,14 @@ export function foregroundRamp(o: ForegroundRampOptions): ForegroundRamp {
  * satisfy its FLOOR, legibility outranks hue and the full ramp comes back. Guard the FLOOR, not each
  * band's aspiration: the `small` band asks Lc 90, which no light surface reaches at all, so testing
  * against band.floor there would hand the extreme straight back on every light preset.
+ *
+ * The trade is bounded from the other side too. When the tonal pick is within {@link TONAL_HUE_SLACK_LC}
+ * of the floor and the extreme does NOT clear it either, the extreme is only "less unreadable" by under
+ * that much, and the hue stays: that was body text solving to #000002 on a dark-wash preset (lapis) over
+ * a darker backing, where black bought 1.8 Lc and still missed the floor. A fallback that DOES clear the
+ * floor always wins, so nothing that was readable becomes less so. And a tonal pick far under the floor
+ * (the mid-tone dead zone, ~43 Lc) still hands back the extreme: there the guard's job is only to take
+ * whatever contrast is left.
  */
 export function pickTonalInBand(ramp: ForegroundRamp, surface: OklchColor | string, band: ContrastBand): OklchColor {
   const best = pickInBand(ramp.tonal, surface, band);
@@ -1320,6 +1403,7 @@ export function pickTonalInBand(ramp: ForegroundRamp, surface: OklchColor | stri
   const lc = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
   if (lc(best) >= READABLE_USAGE.body.floor) return best;
   const full = pickInBand(ramp.raw, surface, band);
+  if (lc(best) >= READABLE_USAGE.body.floor - TONAL_HUE_SLACK_LC && lc(full) < READABLE_USAGE.body.floor) return best;
   return lc(full) > lc(best) ? full : best;
 }
 

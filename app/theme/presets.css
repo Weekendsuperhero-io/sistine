@@ -3,6 +3,15 @@
    Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
    gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling.
    Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
+/* Selenite — the neutral stone: no chroma and no wash, so the glass is the plain clear sheet. The tint
+   values equal the engine default's hue with the colour switched off; the block exists so a CSS-only
+   consumer (no tint switcher) gets selenite's colour-wheel anchor, which a hue-less theme needs. */
+[data-glass-tint="selenite"] {
+  --glass-tint-h: 250;
+  --glass-tint-c: 0;
+  --glass-tint-a: 0;
+  --harmony-h: 0;
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
@@ -110,41 +119,57 @@
    modes with room to spare. A single shared alpha cannot serve both ends: at 0.55 everywhere, five
    presets lose dark-mode text and lapis/amethyst lose light-mode text.
    The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
-   values that render — nothing shadows them. */
-.dark[data-glass-tint="rose"] {
+   values that render — nothing shadows them.
+   Every night block carries two selectors: `.dark[data-glass-tint="x"]` for a preset on the same element
+   as `.dark` (normally <html>), and `.dark [data-glass-tint="x"]` for a preset scoped to an element INSIDE
+   a dark page (`<section data-glass-tint="lapis">`), which the compound form never matched, so a scoped
+   preset in dark mode used to render its DAY values. check-theme's [night-scope] keeps them paired. */
+.dark[data-glass-tint="rose"],
+.dark [data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
 }
-.dark[data-glass-tint="goldstone"] {
+.dark[data-glass-tint="goldstone"],
+.dark [data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
 }
-.dark[data-glass-tint="carnelian"] {
+.dark[data-glass-tint="carnelian"],
+.dark [data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
 }
-.dark[data-glass-tint="amber"] {
+.dark[data-glass-tint="amber"],
+.dark [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
 }
-.dark[data-glass-tint="peridot"] {
+.dark[data-glass-tint="peridot"],
+.dark [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
 }
-.dark[data-glass-tint="aventurine"] {
+.dark[data-glass-tint="aventurine"],
+.dark [data-glass-tint="aventurine"] {
   --glass-tint-a: 0.29;
 }
-.dark[data-glass-tint="turquoise"] {
+.dark[data-glass-tint="turquoise"],
+.dark [data-glass-tint="turquoise"] {
   --glass-tint-a: 0.28;
 }
-.dark[data-glass-tint="aquamarine"] {
+.dark[data-glass-tint="aquamarine"],
+.dark [data-glass-tint="aquamarine"] {
   --glass-tint-a: 0.31;
 }
-.dark[data-glass-tint="sapphire"] {
+.dark[data-glass-tint="sapphire"],
+.dark [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
 }
-.dark[data-glass-tint="lapis"] {
+.dark[data-glass-tint="lapis"],
+.dark [data-glass-tint="lapis"] {
   --glass-tint-a: 0.54;
 }
-.dark[data-glass-tint="amethyst"] {
+.dark[data-glass-tint="amethyst"],
+.dark [data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
 }
-.dark[data-glass-tint="tourmaline"] {
+.dark[data-glass-tint="tourmaline"],
+.dark [data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
 }
 [data-glass-tint="moonstone"] {
@@ -176,7 +201,8 @@
      well as lightened, so both knobs carry part of it). */
   --glass-opaque-c-scale: 0.92;
 }
-.dark[data-glass-tint="moonstone"] {
+.dark[data-glass-tint="moonstone"],
+.dark [data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
      carries more real luminance per OKLCH point than the cool tints, so pale-warm washes read brighter
      than their numbers). AutoForeground reads BOTH wash knobs live (+ the [moonstone-sync] mirrored
@@ -204,8 +230,12 @@
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
-     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
-  --glass-opaque-l: 52;
+     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
+     The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the
+     same reason every dark opaque card does (tokens.css): it carries the wash now, with no page showing
+     through it. */
+  --glass-solidify-l: 52;
+  --glass-opaque-l: 49;
   --glass-opaque-c-scale: 0.44;
   /* Static -opaque tier baselines. These flipped polarity with the floor: on the old cream L84.9 they were
      dark warm literals, and on an L52 stone they have to be light or SSR's first paint is dark-on-dark.
@@ -232,33 +262,29 @@
   --muted-foreground-chakra: oklch(0.96 0.03 75);
 }
 
-/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge) render
-   data-glass-tint="<status>", and sonner toasts hit the SAME hues via their data-type attribute
-   (destructive pairs with sonner's "error") — one block per status, joining the grouped engine
-   re-resolution above so --glass-bg / wash re-resolve at the alert/toast. */
-[data-glass-tint="info"],
-[data-sonner-toast][data-type="info"] {
+/* Semantic surfaces (Alert info/success/warning/destructive; destructive Button/Badge; status toasts,
+   which the Toaster stamps from sonner's data-type — see TOAST_TINT in components/ui/sonner.tsx) render
+   data-glass-tint="<status>" — one block per status, joining the grouped engine re-resolution above so
+   --glass-bg / wash re-resolve at the alert/toast. */
+[data-glass-tint="info"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
   --glass-wash-l: 63%;
 }
-[data-glass-tint="success"],
-[data-sonner-toast][data-type="success"] {
+[data-glass-tint="success"] {
   --glass-tint-h: 150;
   --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
   --glass-wash-l: 87%;
 }
-[data-glass-tint="warning"],
-[data-sonner-toast][data-type="warning"] {
+[data-glass-tint="warning"] {
   --glass-tint-h: 85;
   --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
   --glass-wash-l: 84%;
 }
-[data-glass-tint="destructive"],
-[data-sonner-toast][data-type="error"] {
+[data-glass-tint="destructive"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;

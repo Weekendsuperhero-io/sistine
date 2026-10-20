@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +12,7 @@ function Skeleton({
   variant = "glass",
   shimmer = true,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> &
+}: React.ComponentProps<"div"> &
   MaterialAxisProps & {
     variant?: "default" | "glass";
     /** Moving shimmer highlight (folded from the glass wrapper). */
@@ -35,7 +36,7 @@ function Skeleton({
         "rounded-md",
         variants[variant],
         shimmer &&
-          "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-[shimmer_2s_infinite]",
+          "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:animate-[sistine-shimmer_2s_infinite]",
         className,
       )}
       {...rest}

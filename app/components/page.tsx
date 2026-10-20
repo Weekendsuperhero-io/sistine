@@ -24,6 +24,13 @@ const newComponents = new Set([
   "date-picker-input",
   "context-menu",
   "carousel",
+  "kbd",
+  "empty",
+  "progress",
+  "item",
+  "field",
+  "menubar",
+  "combobox",
 ]);
 
 // Semantic Button variants (behavior styles), shown side-by-side.

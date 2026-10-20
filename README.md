@@ -119,7 +119,7 @@ Visit `http://localhost:6006` after starting Storybook.
 Every component lives in a single tree (`components/ui/[name].tsx`, published under `registry/ui/`) and draws its surface from the **material system** in `lib/material.ts`:
 
 - **Five materials** (`glass`, `frosted`, `crystal`, `chakra`, `opaque`) via the `material` prop. Leave it off and the surface is **adaptive**: it follows the page's `data-glass` style; an explicit material pins the element under any page style.
-- **Orthogonal axes** (`border`, `veil`, `diffuse`, `gradient`, `glow`, `sheen`) layered on top of any material. Booleans with typed refinements: `border="rim" | "frame"` (2px / 4px), `diffuse="stained"` (dyed glass), `glow="lg"`.
+- **Orthogonal axes** (`border`, `veil`, `diffuse`, `gradient`, `glow`, `sheen`) layered on top of any material. Booleans with typed refinements: `border="rim" | "frame"` (2px / 4px), `borderColor="ink"` (the border in the text colour rather than the material's near-white edge, which reads as nothing on light themes), `diffuse="stained"` (dyed glass), `glow="lg"`.
 - **Hover effects**: `effect="glow | shimmer | ripple | lift | scale"` from `lib/hover-effects.ts`.
 - Accessibility from Radix UI primitives, fully typed, and themed through CSS tokens.
 
@@ -140,6 +140,8 @@ This floor is derived from what the theme actually uses, not chosen. The binding
 | `oklch()` / `color-mix()` | Safari 16.2 · Chrome 111 | every colour in the theme |
 
 Tailwind v4's own baseline (Safari 16.4 / Chrome 111 / Firefox 128) sits just under this, so the floor is set by Sistine's CSS rather than by Tailwind.
+
+That `browserslist` belongs to this repository: it is what Sistine's own build targets and what the floor above was measured against. It does not travel with the registry items, so a consuming app is not covered by it. Declare your own `browserslist` at or above this floor; without one, your CSS toolchain falls back to its defaults, which may target engines the theme does not render in.
 
 Below the floor there is **one safety net, not a polyfill**: `app/theme/tokens.css` ends with an `@supports not (color: oklch(…))` block that restores a legible background, foreground and panel fill. Because every colour is an oklch value passed through a custom property, an engine without oklch resolves those properties to invalid at substitution time and computes them to `unset`, so surfaces go transparent rather than falling back. The block prevents that; it does not reproduce the palette.
 

@@ -335,7 +335,17 @@ export function Example() {
 }`;
 
     case "dialog":
-      return `import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+      return `import {
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 export function Example() {
@@ -352,6 +362,17 @@ export function Example() {
             and remove your data from our servers.
           </DialogDescription>
         </DialogHeader>
+        {/* Optional. With a DialogBody only the body scrolls; the header and
+            footer stay put around it. Without one, everything scrolls together. */}
+        <DialogBody>
+          <p>Your projects, files and settings are deleted with the account.</p>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button variant="destructive">Delete account</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -985,6 +1006,158 @@ export function Example() {
         <CardContent>Content for slide 3</CardContent>
       </Card>
     </Carousel>
+  )
+}`;
+
+    case "kbd":
+      return `import { Kbd, KbdGroup } from "@/components/ui/kbd"
+
+export function Example() {
+  return (
+    <p>
+      Search with{" "}
+      <KbdGroup>
+        <Kbd>⌘</Kbd>
+        <Kbd>K</Kbd>
+      </KbdGroup>
+    </p>
+  )
+}`;
+
+    case "empty":
+      return `import { FolderOpenIcon } from "@phosphor-icons/react"
+import { Button } from "@/components/ui/button"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+
+export function Example() {
+  return (
+    // Plain layout by default (it usually sits inside a card); variant="glass" gives it its own surface.
+    <Empty variant="glass">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <FolderOpenIcon />
+        </EmptyMedia>
+        <EmptyTitle>No projects yet</EmptyTitle>
+        <EmptyDescription>Create your first project to get started.</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button>Create project</Button>
+      </EmptyContent>
+    </Empty>
+  )
+}`;
+
+    case "progress":
+      return `import { Progress } from "@/components/ui/progress"
+
+export function Example() {
+  return <Progress value={66} />
+}`;
+
+    case "item":
+      return `import { BellIcon } from "@phosphor-icons/react"
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
+import { Switch } from "@/components/ui/switch"
+
+export function Example() {
+  return (
+    // variant: "default" (plain row) · "outline" (bordered glass) · "muted" (borderless glass)
+    <Item variant="outline">
+      <ItemMedia variant="icon">
+        <BellIcon />
+      </ItemMedia>
+      <ItemContent>
+        <ItemTitle>Notifications</ItemTitle>
+        <ItemDescription>Mentions, replies and invitations.</ItemDescription>
+      </ItemContent>
+      <ItemActions>
+        <Switch defaultChecked />
+      </ItemActions>
+    </Item>
+  )
+}`;
+
+    case "field":
+      return `import { Checkbox } from "@/components/ui/checkbox"
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
+export function Example() {
+  return (
+    <FieldSet>
+      <FieldLegend>Profile</FieldLegend>
+      <FieldDescription>How you appear to others.</FieldDescription>
+      <FieldGroup>
+        <Field data-invalid>
+          <FieldLabel htmlFor="name">Name</FieldLabel>
+          <Input id="name" aria-invalid />
+          <FieldError errors={[{ message: "Name is required" }]} />
+        </Field>
+        <Field orientation="horizontal">
+          <Checkbox id="public" />
+          <FieldLabel htmlFor="public">Show my profile publicly</FieldLabel>
+        </Field>
+      </FieldGroup>
+    </FieldSet>
+  )
+}`;
+
+    case "menubar":
+      return `import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
+
+export function Example() {
+  return (
+    <Menubar>
+      <MenubarMenu>
+        <MenubarTrigger>File</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>
+            New tab <MenubarShortcut>⌘T</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarSub>
+            <MenubarSubTrigger>Share</MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarItem>Email link</MenubarItem>
+            </MenubarSubContent>
+          </MenubarSub>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  )
+}`;
+
+    case "combobox":
+      return `import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox"
+
+const fruits = ["Apple", "Banana", "Blueberry", "Cherry", "Grape"]
+
+export function Example() {
+  return (
+    <Combobox items={fruits}>
+      <ComboboxInput placeholder="Select a fruit" />
+      <ComboboxContent>
+        <ComboboxEmpty>No fruit found.</ComboboxEmpty>
+        <ComboboxList>
+          {(item: string) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   )
 }`;
 

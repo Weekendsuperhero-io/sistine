@@ -4,7 +4,7 @@ import type * as React from "react";
  * The Sistine material system — the single source of the material → markup mapping.
  *
  * FIVE materials (glass, frosted, crystal, chakra, opaque), each a `[data-material]` token set in
- * app/theme/materials.css, composed with orthogonal AXES (border, veil, size, gradient, glow, sheen)
+ * app/theme/materials.css, composed with orthogonal AXES (border + its colour, veil, size, gradient, glow, sheen)
  * over the one structural `glass` utility. Components call `glassMaterial()` instead of hardcoding
  * recipe class strings (check-theme bans the legacy `glass-bg`/`glass-surface`/… classes).
  *
@@ -25,6 +25,11 @@ export interface MaterialProps {
   /** Material border. Three weights: `true`/"hairline" = the material's edge (1px; 0.5px under
    *  frosted), "rim" = 2px, "frame" = 4px. */
   border?: boolean | "hairline" | "rim" | "frame";
+  /** The border's COLOUR. "glass" (the default) = the material's own edge, a near-white rim at the
+   *  material's alpha, which reads as glass but disappears on light themes at any weight. "ink" = the
+   *  page's text colour (--foreground, at --glass-border-ink-a), a visible line wherever text is legible.
+   *  Pairs with `border`; under the opaque page style it also colours the uniform panel edge. */
+  borderColor?: "glass" | "ink";
   /** Element-composed legibility floor for read-through overlays (menus, tooltips, toasts). */
   veil?: boolean;
   /** Blur/elevation tier — INTERNAL: set by a component's ROLE (glass-sm/-lg), not a public prop
@@ -60,11 +65,12 @@ export function splitAxisProps<P extends MaterialAxisProps>(
   MaterialAxisProps,
   SplitAxisRest<P>,
 ] {
-  const { material, border, veil, diffuse, gradient, glow, sheen, ...rest } = props;
+  const { material, border, borderColor, veil, diffuse, gradient, glow, sheen, ...rest } = props;
   return [
     {
       material,
       border,
+      borderColor,
       veil,
       diffuse,
       gradient,
@@ -85,7 +91,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, veil, size, diffuse, gradient, glow, sheen } = props;
+  const { material, border, borderColor, veil, size, diffuse, gradient, glow, sheen } = props;
   if (material === "none") {
     return {
       className: "",
@@ -98,6 +104,7 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       border && "glass-border",
       border === "rim" && "glass-border-rim",
       border === "frame" && "glass-border-frame",
+      borderColor === "ink" && "glass-border-ink",
       veil && "glass-veil",
       size === "sm" && "glass-sm",
       size === "lg" && "glass-lg",
@@ -127,6 +134,7 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
   return glassMaterial({
     material: props.material,
     border: props.border ?? role.border,
+    borderColor: props.borderColor ?? role.borderColor,
     veil: props.veil ?? role.veil,
     size: props.size ?? role.size,
     diffuse: props.diffuse ?? role.diffuse,

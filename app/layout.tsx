@@ -6,7 +6,7 @@ import { BackgroundProvider } from "@/components/background-provider";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
-import "./globals.css";
+import "./site.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +34,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning data-glass-tint="amethyst" data-glass="crystal">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    /* The font variables go on <html>, not <body>: site.css maps --font-sans to --font-geist-sans in the
+       theme layer, which resolves on :root, so a variable defined lower down leaves it unresolved and
+       the page on the UA's system stack. */
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-glass-tint="amethyst"
+      data-glass="crystal"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
+      <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
           <BackgroundProvider>
             <AutoForeground />
