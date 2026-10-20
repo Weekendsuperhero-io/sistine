@@ -1,7 +1,8 @@
 name: Setup
 description: Install bun and the project dependencies (frozen lockfile).
 
-# Mirrors the toolchain pinned in refresh-registry.yml so every workflow installs identically.
+# Bun's version comes from .bun-version, as in refresh-registry.yml, so every workflow and every dev
+# machine runs the same one. It must be at least 1.4.3: `bun run typecheck` is `bun check`, new in 1.4.3.
 # Node is still installed because the theme checks run under `node --experimental-strip-types`,
 # which is what type-strips the .ts files they import.
 runs:
@@ -9,7 +10,7 @@ runs:
   steps:
     - uses: oven-sh/setup-bun@v2
       with:
-        bun-version: 1.3.14
+        bun-version-file: .bun-version
 
     - uses: actions/setup-node@v4
       with:
