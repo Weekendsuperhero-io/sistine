@@ -9,7 +9,18 @@
  */
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Combobox, ComboboxContent, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
 
 const fruits = [
   "Apple",
@@ -56,5 +67,83 @@ describe("Combobox", () => {
     renderOpen();
     await waitFor(() => expect(document.querySelector('[data-slot="combobox-content"]')).not.toBeNull());
     expect(document.querySelector('[data-slot="combobox-content"]')).toHaveClass("glass", "glass-border", "glass-veil", "rounded-xl");
+  });
+});
+
+/* Multiple selection: each chosen value is a chip, and each chip's remove button (named "Remove <value>",
+   since it is an icon) takes that value back out. Composed as the Combobox story does. */
+function Chips({ onValueChange, defaultOpen }: { onValueChange?: (v: string[]) => void; defaultOpen?: boolean }) {
+  const anchor = useComboboxAnchor();
+  return (
+    <Combobox
+      items={fruits}
+      multiple
+      defaultValue={[
+        "Apple",
+        "Banana",
+      ]}
+      onValueChange={onValueChange}
+      defaultOpen={defaultOpen}
+    >
+      <ComboboxChips ref={anchor}>
+        <ComboboxValue>{(values: string[]) => values.map((value) => <ComboboxChip key={value}>{value}</ComboboxChip>)}</ComboboxValue>
+        <ComboboxChipsInput placeholder="Add fruit" />
+      </ComboboxChips>
+      <ComboboxContent anchor={anchor}>
+        <ComboboxList>
+          {(item: string) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+const chips = () =>
+  [
+    ...document.querySelectorAll('[data-slot="combobox-chip"]'),
+  ].map((c) => c.textContent);
+
+describe("Combobox with multiple selection", () => {
+  it("shows a chip for each selected value", () => {
+    render(<Chips />);
+    expect(chips()).toEqual([
+      "Apple",
+      "Banana",
+    ]);
+  });
+
+  it("removes a value through its chip's named remove button", async () => {
+    const changes: string[][] = [];
+    render(<Chips onValueChange={(v) => changes.push(v)} />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Remove Apple",
+      }),
+    );
+    await waitFor(() =>
+      expect(chips()).toEqual([
+        "Banana",
+      ]),
+    );
+    expect(changes.at(-1)).toEqual([
+      "Banana",
+    ]);
+  });
+
+  it("adds a chip when another option is chosen", async () => {
+    render(<Chips defaultOpen />);
+    await waitFor(() => expect(screen.getByText("Cherry")).toBeInTheDocument());
+    fireEvent.click(option("Cherry"));
+    await waitFor(() =>
+      expect(chips()).toEqual([
+        "Apple",
+        "Banana",
+        "Cherry",
+      ]),
+    );
   });
 });

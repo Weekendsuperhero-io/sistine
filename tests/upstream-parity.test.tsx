@@ -10,7 +10,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider } from "next-themes";
 import { toast } from "sonner";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Carousel } from "@/components/ui/carousel";
@@ -202,6 +202,64 @@ describe("carousel", () => {
         name: "Play slideshow",
       }),
     ).toBeTruthy();
+  });
+});
+
+describe("carousel autoplay and reduced motion", () => {
+  // Captured per test, not at collection: the file's beforeAll installs the jsdom stub after collection.
+  let original: typeof window.matchMedia;
+  beforeEach(() => {
+    original = window.matchMedia;
+  });
+  afterEach(() => {
+    window.matchMedia = original;
+    vi.useRealTimers();
+  });
+  const prefersReducedMotion = (reduce: boolean) => {
+    window.matchMedia = ((query: string) => ({
+      matches: reduce && query.includes("prefers-reduced-motion: reduce"),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as unknown as typeof window.matchMedia;
+  };
+  const autoplay = () =>
+    render(
+      <Carousel autoPlay interval={100}>
+        <div>One</div>
+        <div>Two</div>
+        <div>Three</div>
+      </Carousel>,
+    );
+  const current = () => document.querySelector('[aria-current="true"]')?.getAttribute("aria-label");
+
+  it("advances on its own when motion is allowed (the control)", () => {
+    prefersReducedMotion(false);
+    vi.useFakeTimers();
+    autoplay();
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+    expect(current()).toBe("Go to slide 3");
+  });
+
+  it("never advances, and offers no pause control, under prefers-reduced-motion", () => {
+    prefersReducedMotion(true);
+    vi.useFakeTimers();
+    autoplay();
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(current()).toBe("Go to slide 1");
+    expect(
+      screen.queryByRole("button", {
+        name: /slideshow/,
+      }),
+    ).toBeNull();
   });
 });
 

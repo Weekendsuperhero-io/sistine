@@ -223,13 +223,19 @@ function ComboboxChips({
   );
 }
 
+/* The remove button is an icon, so it carries its name: "Remove <chip text>" when the chip's content is
+   plain text, else `removeLabel` (as in Base UI's own example). Base UI sets none, so it read as an
+   unnamed button to a screen reader. */
 function ComboboxChip({
   className,
   children,
   showRemove = true,
+  removeLabel,
   ...props
 }: ComboboxPrimitive.Chip.Props & {
   showRemove?: boolean;
+  /** Accessible name for the remove button; defaults to `Remove <children>` when the chip's content is text. */
+  removeLabel?: string;
 }) {
   return (
     <ComboboxPrimitive.Chip
@@ -246,6 +252,7 @@ function ComboboxChip({
           render={<Button variant="ghost" size="icon-xs" />}
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
+          aria-label={removeLabel ?? (typeof children === "string" || typeof children === "number" ? `Remove ${children}` : "Remove")}
         >
           <XIcon className="pointer-events-none" />
         </ComboboxPrimitive.ChipRemove>
