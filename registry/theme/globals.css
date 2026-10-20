@@ -216,8 +216,9 @@
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
   /* Ink border alpha (borderColor="ink" / glass-border-ink): how much of --foreground the line takes.
      Mode-invariant because --foreground already flips polarity per mode; 0.5 keeps the line clearly
-     softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]). */
-  --glass-border-ink-a: 0.5;
+     softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]); 0.55 since
+     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc. */
+  --glass-border-ink-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
      --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
@@ -282,12 +283,15 @@
      inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
      order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
      Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
-  /* L88, not 90.9. Near-white is where the sRGB chroma ceiling collapses, so an opaque card at 90.9 had
-     two problems at once: it read as washed-toward-white, and it could not hold enough chroma to carry
-     its own tint (lapis and sapphire were at 97–99% of a ceiling worth only 0.043). Dropping 2.9 L
-     roughly doubles every hue's ceiling while keeping body text at Lc 80.0 — the floor is still firmly
-     on the light side, so text polarity never changes. */
-  --glass-opaque-l: 88;
+  /* L93. The opaque card is the glass stack at full opacity: this floor plus the same tint WASH every
+     other material carries (materials.css). It used to be L88 with no wash, which made the floor carry
+     the tint on its own, and near white that cannot work: the sRGB ceiling collapses, so the jewels sat
+     at 97% of it and still read pastel, while greens and teals got half the chroma of their glass
+     siblings. With the wash doing the tinting, the floor's job is the one the backing under sheer glass
+     does (L92, --glass-solidify-l), and 93 is where floor + wash lands within 0.7 L of each preset's
+     glass surface (it has no lighter page showing through to make up the last point) while body text
+     keeps the 76.5 margin on every preset (tightest: destructive 76.6). */
+  --glass-opaque-l: 93;
   /* 0.85, down from 1.26. The old value only looked large: it was immediately clipped to the shared
      0.042 cap, so every preset rendered the SAME chroma regardless of its tint. Presets now pin their
      own --glass-opaque-c-max (their hue's real ceiling at L88), and 0.85 is the multiplier that lets
@@ -303,6 +307,12 @@
      deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
      against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
+  /* The share of that cap the opaque FLOOR may use. The caps above are each hue's ceiling at L88 (the
+     solidify backing derives its own from them too), and at the floor's L93 the ceiling is 55–90% of
+     that depending on hue; 0.55 keeps the tightest (tourmaline) at 0.96 of its ceiling. The floor
+     needs little chroma now that the wash carries the tint. Dark sets 1: its floor sits mid-dark, where
+     every preset's ask is far inside its ceiling. */
+  --glass-opaque-cap-scale: 0.55;
   /* ── Solidify floor — the opaque backing UNDER sheer glass ───────────────────
      `glass` paints --glass-solidify (this colour at --glass-opacity) as the bottom background-image
      layer of every SHEER material, so it is ~70% of what page/crystal/chakra text actually sits on.
@@ -431,7 +441,7 @@
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
      gamut-maps and the delivered colour stops tracking the authored one.
      Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
-     Muse/Gloaming frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
+     Muse/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
      shows up as out-of-gamut once you check the fg hue. */
   --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
   --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */
@@ -572,12 +582,22 @@
   --glass-solid-l: 18%;
   /* The retired sheet's compensation, dark twin (see :root). Much the larger move of the two modes: a
      near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
-     two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
-  --glass-opaque-l: 36.4;
-  /* 1.05, up from 0.85. The dark floor was never cap-limited — every preset sat at 31–79% of its own
-     ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. 1.05 is the most
-     the tightest hue (turquoise) can take without clipping; it lifts every preset +24% at Lc 80.0. */
-  --glass-opaque-c-scale: 1.05;
+     two-knob fit, worst OKLab dE 0.0045 across the 14 presets.
+     33.4 since opaque carries the tint wash (materials.css). The wash lifts the card, and unlike sheer
+     glass no dark page shows through it, so at the backing's own 36.4 an opaque card sat 3–5 L above its
+     glass siblings, and on the light-wash presets (aventurine, peridot, turquoise) only pure white text
+     still reached the body floor. Three points down puts it within ~2 L of the glass beside it and keeps
+     tinted text above the 76.5 margin everywhere (tightest: moonstone 76.6). The light floor makes the
+     mirror-image move (L93 over a L92 backing) for the mirror-image reason. */
+  --glass-opaque-l: 33.4;
+  /* 0.98. Was 1.05 (up from 0.85): the dark floor was never cap-limited — every preset sat at 31–79% of
+     its own ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. It is
+     still the most the tightest hue (turquoise, ×0.984) can take without clipping, now at the floor's
+     L33.4, where the ceilings are lower than at L36.4. The wash carries most of the colour on top of it.
+     The sheer backing shares this scale (engine.css), so dark glass gives up 7% of its backing chroma
+     with it, under a wash that dominates it. */
+  --glass-opaque-c-scale: 0.98;
+  --glass-opaque-cap-scale: 1;
   /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
      and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
      which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
@@ -589,11 +609,12 @@
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
   /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. Declared
      in its own rule right after this block (see there for why). */
-  /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
-     text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
-     opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
-     change: a lighter backing under dark glass would wash the whole mode out. */
-  --glass-solidify-l: var(--glass-opaque-l);
+  /* The dark backing under sheer glass, at the lightness the opaque floor had before opaque gained the
+     wash: dark glass is unchanged by that move. It is its own value now, as light's L92 is, so the tint
+     switcher's Lightness slider (which writes --glass-opaque-l) moves the opaque card in both modes and
+     the sheer backing in neither. The cap stays the opaque one: dark already clears the body floor on
+     every preset with margin, and a lighter or greyer backing would wash the whole mode out. */
+  --glass-solidify-l: 36.4;
   --glass-solidify-c-max: var(--glass-opaque-c-max);
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28
@@ -847,8 +868,8 @@
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
-     == surface); frescoes override it to anchor text off their multi-hue surface (Muse night: surface
-     222, text 310). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
+     == surface); frescoes override it to anchor text off their multi-hue surface (Muse: surface
+     230, text 290). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
   --glass-fg-h: var(--glass-tint-h);
   /* ── Harmonic color system ────────────────────────────────────────────────────────────────────
      Color-wheel relationships derived from the CONTENT hue (--glass-fg-h) — the same hue --glass-accent
@@ -914,6 +935,11 @@
      renders what it asks for. */
   --glass-gloss-c: 0.12;
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
+  /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
+     order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
+     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a muse page)
+     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
+  --glass-crystal-fresco: none;
   --blur-crystal: 2px;
 }
 
@@ -972,8 +998,13 @@
      for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping
      it is what let the tints below be normalised to their hue's real capacity rather than to this
      floor's. Multiply-THEN-cap, matching --glass-gloss-ink. */
+  /* The cap is scaled per mode (--glass-opaque-cap-scale): the per-preset caps are L88 ceilings, and the
+     light floor now sits at L93, where they would overshoot. Composed here, not on :root, so a scoped
+     preset's own cap is the one scaled. */
   --glass-opaque-bg: oklch(
-    calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
+    calc(var(--glass-opaque-l) * 1%)
+      min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), calc(var(--glass-opaque-c-max, 0.3) * var(--glass-opaque-cap-scale, 1)))
+      var(--glass-tint-h)
   );
   /* The same floor at the SOLIDIFY lightness/cap — the backing `glass` paints under every sheer
      material (see --glass-solidify in utilities.css). Split from --glass-opaque-bg because an opaque
@@ -1021,8 +1052,8 @@
      scrapes engine.css for both the calc() and min() chroma shapes — the suite went 20 → 24 surface/mode
      pairs when these landed, so a later retune of the caps is measured, not asserted.
      SURFACE hue (--glass-tint-h), not --glass-fg-h: an edge belongs to the surface it bounds, matching
-     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse night: surface 222,
-     text 310) the border follows the panel, not the type. */
+     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse: surface 230,
+     text 290) the border follows the panel, not the type. */
   --border: oklch(var(--border-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   --input: oklch(var(--input-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   /* The remaining shadcn SURFACE tokens — the last chroma-0 values in the theme. Same shape as --border
@@ -1294,13 +1325,21 @@
      The max() composes the diffuse FLOOR for adaptive surfaces. */
   backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
   box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-layer, 0 0 0 0 transparent);
+  /* THE EDGE, resolved once per surface for everything that draws one (glass-border, the opaque page's
+     uniform edge, the page outline). Precedence, strongest first: the element's own ink colour or
+     rim/frame weight, then the PAGE OUTLINE (--glass-outline / --glass-outline-w, set on any ancestor;
+     --glass-opaque-outline[-w] are the old opaque-only names, still read), then the material's own edge
+     (--srf-border-color / --srf-border-w), then the plain glass hairline. Element-composed, so an outline
+     set on a subtree resolves where it is read. */
+  --srf-edge: var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--srf-border-color, var(--glass-border)))));
+  --srf-edge-w: var(--brd-w, var(--glass-outline-w, var(--glass-opaque-outline-w, var(--srf-border-w, 1px))));
 }
 
 /* Border axis — the material picks the color unless the element asks for ink (--brd-ink, the
    borderColor axis below); width resolves material pin (--srf-border-w, which itself reads the --brd-w
    weight slot) → weight slot directly (adaptive surfaces) → 1px hairline. */
 @utility glass-border {
-  border: var(--srf-border-w, var(--brd-w, 1px)) solid var(--brd-ink, var(--srf-border-color, var(--glass-border)));
+  border: var(--srf-edge-w, 1px) solid var(--srf-edge, var(--glass-border));
 }
 /* Border WEIGHTS — token setters for the --brd-w slot (order-safe; same-element composition, like
    glass-sm's --srf-blur). Hairline is the unmarked default (1px; 0.5px under frosted); rim = 2px,   frame = 4px. */
@@ -1602,7 +1641,14 @@
      floor, not --glass-opaque-bg, so the layer is real (dropping it there would shift up to 31/255 in
      light and 42/255 in dark). */
   --srf-solidify: none;
-  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+  /* The WASH, and only the wash. Every other material's stack ends in --glass-wash-layer, the solid film
+     of the preset's colour that carries the tint over any backdrop; opaque used to drop it with the
+     sheet, so its floor had to carry the tint alone and the opaque card read as a darker, greyer cousin
+     of the glass beside it (in dark mode most of all: amethyst glass L44 C0.18, opaque L36 C0.11). With
+     the wash, opaque is the glass stack at full opacity: within 0.7 L of its glass siblings in light and
+     2–4 L above them in dark, where no darker page shows through. The wash is one flat colour (both
+     stops equal), so it rasterises without the dither the sheet's gradient caused (below).
+     NO sheet — --glass-bg is a 5-stop
      gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
      light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
      rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
@@ -1611,13 +1657,17 @@
      The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
      so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
      same token, so the -opaque text tiers re-band against the new floor automatically. */
-  --srf-bg-image: none;
+  /* The fresco slot leads, as in the crystal and chakra stacks: unset (`none`) on a single-hue preset, the
+     fresco's own multi-hue gradient on muse / sistine / aurora / gloaming, which opaque used to lose
+     entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
+     codes, so it rasterises without the dither the sheet was dropped for. */
+  --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
-  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  /* Outline WEIGHT: an element rim/frame class (--brd-w) beats the page-level outline weight (the
-     switcher's --glass-opaque-outline-w on <html>), which beats the 1px hairline. */
-  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  /* The material's own edge. A page outline (--glass-outline / -w) overrides it in `glass`'s --srf-edge,
+     the same as for every other material. */
+  --srf-border-color: var(--glass-border);
+  --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-shadow);
   /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
      PAGE style makes (menus/toasts must stay legible on a solid ground). */
@@ -1743,10 +1793,10 @@
 /* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
 :where([data-glass="opaque"], [data-glass="opaque"] [data-glass-tint], [data-glass="opaque"][data-glass-tint]) {
-  /* Flat floor, no sheet — same reasoning as [data-material="opaque"] in materials.css: with
-     --srf-filter: none there is no blurred backdrop to mask the dither of a 2–7 code gradient, and the
-     sheet's uniform lift is folded into --glass-opaque-l instead. */
-  --srf-bg-image: none;
+  /* Floor + the tint wash, no sheet — same as [data-material="opaque"] in materials.css: the wash is what
+     makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
+     out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
+  --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
@@ -1773,18 +1823,30 @@
 }
 /* Opaque page: element-level touches for ADAPTIVE surfaces only (a `.glass` or `[data-surface]` element
    with no explicit material — an explicit frosted/crystal card keeps its translucency AND its normal
-   foreground). Declared ON the element because (a) --glass-opaque-outline is settable on any ancestor
-   and must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
+   foreground). Declared ON the element because (a) the page outline is settable on any ancestor and
+   must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
    The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
    still reads as a solid panel and needs the same outline. */
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]) {
-  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  --srf-border-color: var(--glass-border);
+  --srf-border-w: var(--brd-w, 1px);
   /* Paint the border HERE, not just the tokens: borderless roles (Card default) never render
      glass-border, so without this only bordered roles showed the outline — "some cards get it,
      some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
      resolve the same vars, so nothing double-draws. */
-  border: var(--srf-border-w) solid var(--brd-ink, var(--srf-border-color));
+  border: var(--srf-edge-w, 1px) solid var(--srf-edge, var(--glass-border));
+}
+
+/* ── The page OUTLINE — every material ───────────────────────────────────────
+   data-glass-outline on <html> (or any ancestor) gives every glass surface below it an edge in the
+   theme accent: glass, frosted, crystal, chakra and opaque alike, bordered roles and borderless ones,
+   which is what the opaque page already does for its own panels. --glass-outline recolours it (on its
+   own, without the attribute, it recolours only the edges surfaces already draw) and --glass-outline-w
+   sets the weight (1 / 2 / 4px = hairline / rim / frame); an element's own border="rim" or "frame" and
+   borderColor="ink" still win. :is(), not :where(), so this ties the opaque page's edge rule on
+   specificity and wins by coming after it. */
+[data-glass-outline] :is(.glass, [data-surface]) {
+  border: var(--srf-edge-w, 1px) solid var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--glass-accent))));
 }
 /* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
    one --veil-solidify makes for the solidify layer on this page style. A veiled card does not paint
@@ -1922,41 +1984,57 @@
    modes with room to spare. A single shared alpha cannot serve both ends: at 0.55 everywhere, five
    presets lose dark-mode text and lapis/amethyst lose light-mode text.
    The switcher no longer inlines --glass-tint-a for a named preset (see applyTint), so THESE are the
-   values that render — nothing shadows them. */
-.dark[data-glass-tint="rose"] {
+   values that render — nothing shadows them.
+   Every night block carries two selectors: `.dark[data-glass-tint="x"]` for a preset on the same element
+   as `.dark` (normally <html>), and `.dark [data-glass-tint="x"]` for a preset scoped to an element INSIDE
+   a dark page (`<section data-glass-tint="lapis">`), which the compound form never matched, so a scoped
+   preset in dark mode used to render its DAY values. check-theme's [night-scope] keeps them paired. */
+.dark[data-glass-tint="rose"],
+.dark [data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
 }
-.dark[data-glass-tint="goldstone"] {
+.dark[data-glass-tint="goldstone"],
+.dark [data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
 }
-.dark[data-glass-tint="carnelian"] {
+.dark[data-glass-tint="carnelian"],
+.dark [data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
 }
-.dark[data-glass-tint="amber"] {
+.dark[data-glass-tint="amber"],
+.dark [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
 }
-.dark[data-glass-tint="peridot"] {
+.dark[data-glass-tint="peridot"],
+.dark [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
 }
-.dark[data-glass-tint="aventurine"] {
+.dark[data-glass-tint="aventurine"],
+.dark [data-glass-tint="aventurine"] {
   --glass-tint-a: 0.29;
 }
-.dark[data-glass-tint="turquoise"] {
+.dark[data-glass-tint="turquoise"],
+.dark [data-glass-tint="turquoise"] {
   --glass-tint-a: 0.28;
 }
-.dark[data-glass-tint="aquamarine"] {
+.dark[data-glass-tint="aquamarine"],
+.dark [data-glass-tint="aquamarine"] {
   --glass-tint-a: 0.31;
 }
-.dark[data-glass-tint="sapphire"] {
+.dark[data-glass-tint="sapphire"],
+.dark [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
 }
-.dark[data-glass-tint="lapis"] {
+.dark[data-glass-tint="lapis"],
+.dark [data-glass-tint="lapis"] {
   --glass-tint-a: 0.54;
 }
-.dark[data-glass-tint="amethyst"] {
+.dark[data-glass-tint="amethyst"],
+.dark [data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
 }
-.dark[data-glass-tint="tourmaline"] {
+.dark[data-glass-tint="tourmaline"],
+.dark [data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
 }
 [data-glass-tint="moonstone"] {
@@ -1988,7 +2066,8 @@
      well as lightened, so both knobs carry part of it). */
   --glass-opaque-c-scale: 0.92;
 }
-.dark[data-glass-tint="moonstone"] {
+.dark[data-glass-tint="moonstone"],
+.dark [data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
      carries more real luminance per OKLCH point than the cool tints, so pale-warm washes read brighter
      than their numbers). AutoForeground reads BOTH wash knobs live (+ the [moonstone-sync] mirrored
@@ -2016,8 +2095,12 @@
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
-     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002. */
-  --glass-opaque-l: 52;
+     pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
+     The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the
+     same reason every dark opaque card does (tokens.css): it carries the wash now, with no page showing
+     through it. */
+  --glass-solidify-l: 52;
+  --glass-opaque-l: 49;
   --glass-opaque-c-scale: 0.44;
   /* Static -opaque tier baselines. These flipped polarity with the floor: on the old cream L84.9 they were
      dark warm literals, and on an L52 stone they have to be light or SSR's first paint is dark-on-dark.
@@ -2078,67 +2161,47 @@
    Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
    --glass-fg-h are CSS-only — no preset counterpart.) */
 
-/* Muse — the cityscape signature, mode-aware: cool daytime blues in light, the neon night sweep in
-   dark, so it tracks the day/night background. Pick the look with the light/dark/system toggle. */
-/* Muse is now ONE palette in both modes: the neon city — cyan → violet → magenta → pink → amber. The
-   old day sweep (a pale blue → cyan → teal cityscape) is gone; its hues live on in Aurora, which took
-   them over.
+/* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
+   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
+   twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
 
-   What differs between the modes is ALPHA, not colour. A day surface sits on a light page and needs
-   more of the gradient to register; night sits on a dark one and needs less before the neon blows out.
-   Lightness is shared because these stops are already bright (L 78–85), so they read on either page.
+   Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
+   Stop 2's chroma is 0.095 because h290 at L80 has an sRGB ceiling of 0.1052; the 0.17 it once shipped
+   with was browser-gamut-mapped (and rendered differently in Safari than in Chrome). 0.095 is 90% of
+   its own ceiling, the rule every stop follows.
 
-   Stop 2's chroma is 0.095, not the 0.17 night shipped with: h290 at L80 has an sRGB ceiling of 0.1052,
-   so 0.17 was 162% over and has been browser-gamut-mapped this whole time — which also means it
-   rendered differently in Safari (per-channel clamp toward grey) than in Chrome (hue-preserving map).
-   0.095 is 90% of its own ceiling, the same rule the rest of the stops follow. */
+   One alpha has to hold on BOTH pages, and the dark opaque card is the bind: there the sheet's bright
+   stops lift an L33 floor toward the text, and at the old day alphas (0.28–0.32) light text needed pure
+   white, past the tonal clip, so the ink lost the theme's hue. The sheet sits at 3/4 of the way from
+   the old night alphas to the old day ones, and the wash makes the room: L66 at 0.10 (was L76 at 0.16)
+   lands a light surface where it was (≈ L90) and a dark one 3.5 L darker. Measured: body 86.6 Lc light,
+   92.4 dark; the dark opaque ink stays tinted.
+
+   No pinned --glass-opaque-bg: the opaque floor DERIVES from --glass-opaque-l like every jewel, so the
+   switcher's Lightness slider moves a Muse card and AutoForeground models the floor it actually paints
+   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4). */
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
-  --glass-fg-h: 290; /* text/accent anchor: violet, matching night so the two modes share one identity */
+  --glass-fg-h: 290; /* text/accent anchor: violet, the sheet's second stop */
   --glass-tint-c: 0.056;
-  --glass-tint-a: 0.16;
-  --glass-wash-l: 76%;
+  --glass-tint-a: 0.1;
+  --glass-wash-l: 66%;
   --glass-bg: linear-gradient(
     135deg in oklch,
-    oklch(85% 0.1 222 / 0.32) 0%,
-    oklch(80% 0.095 290 / 0.3) 22%,
-    oklch(78% 0.2 326 / 0.28) 45%,
-    oklch(79% 0.12 350 / 0.28) 70%,
-    oklch(84% 0.12 74 / 0.3) 100%
+    oklch(85% 0.1 222 / 0.3) 0%,
+    oklch(80% 0.095 290 / 0.28) 22%,
+    oklch(78% 0.2 326 / 0.26) 45%,
+    oklch(79% 0.12 350 / 0.26) 70%,
+    oklch(84% 0.12 74 / 0.28) 100%
   );
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
-    oklch(85% 0.1 222 / 0.46) 0%,
-    oklch(80% 0.095 290 / 0.44) 22%,
-    oklch(78% 0.2 326 / 0.42) 45%,
-    oklch(79% 0.12 350 / 0.42) 70%,
-    oklch(84% 0.12 74 / 0.44) 100%
+    oklch(85% 0.1 222 / 0.42) 0%,
+    oklch(80% 0.095 290 / 0.4) 22%,
+    oklch(78% 0.2 326 / 0.38) 45%,
+    oklch(79% 0.12 350 / 0.38) 70%,
+    oklch(84% 0.12 74 / 0.4) 100%
   );
-  /* Light-mode body: the night anchor's hue (288) at a day-legible lightness. Chroma is 90% of the
-     ceiling at L91 h288 (0.0446), because a light surface has very little chroma headroom. */
-  --glass-opaque-bg: oklch(91% 0.04 288);
-  --glass-crystal-fresco: var(--glass-bg);
-}
-.dark[data-glass-tint="muse"] {
-  /* Night: the same neon palette as day, at night's lower alphas (a dark page needs less of the
-     gradient before the neon blows out). Only alpha and the solid body differ from the block above. */
-  --glass-bg: linear-gradient(
-    135deg in oklch,
-    oklch(85% 0.1 222 / 0.24) 0%,
-    oklch(80% 0.095 290 / 0.22) 22%,
-    oklch(78% 0.2 326 / 0.2) 45%,
-    oklch(79% 0.12 350 / 0.2) 70%,
-    oklch(84% 0.12 74 / 0.22) 100%
-  );
-  --glass-frosted-bg: linear-gradient(
-    135deg in oklch,
-    oklch(85% 0.1 222 / 0.36) 0%,
-    oklch(80% 0.095 290 / 0.34) 22%,
-    oklch(78% 0.2 326 / 0.32) 45%,
-    oklch(79% 0.12 350 / 0.32) 70%,
-    oklch(84% 0.12 74 / 0.34) 100%
-  );
-  --glass-opaque-bg: oklch(34% 0.12 288);
   --glass-crystal-fresco: var(--glass-bg);
 }
 
@@ -2168,7 +2231,8 @@
   /* Crystal composes its own background (not --glass-bg), so hand it the fresco explicitly. */
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="sistine"] {
+.dark[data-glass-tint="sistine"],
+.dark [data-glass-tint="sistine"] {
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(86% 0.11 75 / 0.22) 0%,
@@ -2204,9 +2268,9 @@
    Frosted gets its OWN alphas rather than the old ~1.37x boost over --glass-bg: with stops this much
    darker, that multiplier drove the violet composite to L 83.4 and soft to 58.4. These land all three
    near L 86.4 instead. The authored shape is unchanged — green, then teal, then violet darkest. */
-/* Aurora now sweeps Muse Day's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
+/* Aurora now sweeps the retired Muse day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
    green → cyan → violet. LIGHTNESS is untouched, because it is not a style choice here: the day stops
-   sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and Muse Day's own
+   sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and that sweep's own
    L 91–94 is precisely the band these were moved away from when day read as haze.
 
    CHROMA had to be re-derived, it could not travel with the hues. Each stop is 90% of that hue's OWN
@@ -2236,7 +2300,8 @@
   );
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="aurora"] {
+.dark[data-glass-tint="aurora"],
+.dark [data-glass-tint="aurora"] {
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
@@ -2252,13 +2317,17 @@
 [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.089;
-  --glass-tint-a: 0.16;
+  /* 0.12, down from 0.16: with text solved against the gradient's hardest stop (the L78 violet, over a
+     dusk-rose wash that already sits dark), the light opaque card could not reach the 75 Lc body floor
+     even in pure black (74.6). 0.14 reached it only in black; 0.12 keeps the ink tinted. */
+  --glass-tint-a: 0.12;
   --glass-wash-l: 64%;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
   --glass-crystal-fresco: var(--glass-bg);
 }
-.dark[data-glass-tint="gloaming"] {
+.dark[data-glass-tint="gloaming"],
+.dark [data-glass-tint="gloaming"] {
   --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);

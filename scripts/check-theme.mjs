@@ -21,6 +21,8 @@
  *   6h.[surface-marker] element rules keyed on .glass / .glass-veil also accept [data-surface] / ="veil".
  *   6i.[solidify-owner] only the opaque material/page drop the solidify layer; the veil restores it.
  *   6j.[gloss-scope] the gloss is composed on [data-gloss] scopes too; flavor blocks set leaves only.
+ *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset.
+ *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
  *   3. [preset] Every GlassTintSwitcher preset has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint (or the Toaster's TOAST_TINT) has a block.
  *   4b.[vendor-free] No third-party component selectors (data-sonner) in the theme.
@@ -240,7 +242,7 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
 //     bands against the wrong surface model again (the exact bug the mirror fixes).
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
-  const moonstoneDark = rules.find((r) => r.selector.replace(/\s+/g, "") === '.dark[data-glass-tint="moonstone"]');
+  const moonstoneDark = rules.find((r) => splitTop(r.selector).includes('.dark[data-glass-tint="moonstone"]'));
   if (moonstoneDark) {
     const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
@@ -486,6 +488,43 @@ function splitTop(sel) {
   }
 }
 
+// 6k. [night-scope] a preset's night block must match a SCOPED preset too. `.dark[data-glass-tint="x"]`
+//     needs the class and the attribute on one element (normally <html>); a preset set on an element
+//     inside a dark page (`<section data-glass-tint="lapis">`) only matches the descendant form
+//     `.dark [data-glass-tint="x"]`. Without it the section rendered its DAY values in dark mode: lapis's
+//     wash at a quarter of its night alpha, moonstone's cream day floor under light night text.
+for (const r of rules) {
+  const sels = splitTop(r.selector);
+  for (const sel of sels) {
+    const m = /^\.dark\[data-glass-tint="([a-z-]+)"\]$/.exec(sel);
+    if (m && !sels.includes(`.dark [data-glass-tint="${m[1]}"]`)) {
+      fail(`[night-scope] "${sel}" has no ".dark [data-glass-tint=\"${m[1]}\"]" twin — a ${m[1]} preset scoped inside a dark page would render its day values.`);
+    }
+  }
+}
+
+// 6l. [outline-all] the page outline reaches every material. The edge is resolved ONCE per surface in
+//     @utility glass (--srf-edge / --srf-edge-w, page outline before the material's own edge), and every
+//     edge painter reads that; no material block may wire the outline into its own tokens (that is how it
+//     used to reach opaque and nothing else).
+{
+  const glassUtil = rules.find((r) => r.selector === "@utility glass");
+  if (!glassUtil || !/--srf-edge:[^;]*--glass-outline[^;]*--srf-border-color/.test(glassUtil.body) || !/--srf-edge-w:[^;]*--glass-outline-w[^;]*--srf-border-w/.test(glassUtil.body)) {
+    fail("[outline-all] @utility glass must compose --srf-edge / --srf-edge-w with the page outline ahead of the material's own edge.");
+  }
+  const borderUtil = rules.find((r) => r.selector === "@utility glass-border");
+  if (!borderUtil || !/var\(--srf-edge-w/.test(borderUtil.body) || !/var\(--srf-edge[,)]/.test(borderUtil.body)) {
+    fail("[outline-all] @utility glass-border must paint var(--srf-edge-w) / var(--srf-edge).");
+  }
+  if (!rules.some((r) => r.selector.startsWith("[data-glass-outline]") && /border:/.test(r.body))) {
+    fail("[outline-all] no [data-glass-outline] rule paints the outline on borderless surfaces.");
+  }
+  for (const r of rules) {
+    if (!/\[data-material=/.test(r.selector)) continue;
+    if (/--glass-(?:opaque-)?outline/.test(r.body)) fail(`[outline-all] "${r.selector}" wires the outline into its own tokens — leave it to --srf-edge so every material gets it.`);
+  }
+}
+
 // 6c. [material-union] lib/material.ts's Material union == the four CSS materials (+ "none").
 const matSrc = readFileSync(join(root, "lib/material.ts"), "utf8");
 const union = [...(matSrc.match(/type Material =([^;]+);/)?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
@@ -613,7 +652,7 @@ for (const [value, tint] of presetTint) {
     const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
     return m ? Number(m[1]) : null;
   };
-  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max"]) {
+  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max", "glass-opaque-cap-scale"]) {
     /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
     const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
     if (!m) {

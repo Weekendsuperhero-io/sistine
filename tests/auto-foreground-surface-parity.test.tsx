@@ -57,20 +57,22 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   const glossL = dark ? 66 : 97;
   const GLOSS_TOP_A = 0.2;
   const opacity = 0.7;
-  const opaqueL = dark ? 36.4 : 88;
+  /* The opaque card floor (tokens.css): L93 light / L33.4 dark, its cap scaled by
+     --glass-opaque-cap-scale (0.55 light). It sits under the tint wash, below. */
+  const opaqueL = dark ? 33.4 : 93;
   /* Each cap, mirroring tokens.css / engine.css exactly. Written out per layer rather than shared,
      because they genuinely differ: opaque SCALES then caps, chakra caps the raw chroma, crystal uses the
      near-white -c-hi budget, and the gloss multiplies by --glass-gloss-tint before its own cap. */
-  const opaqueC = Math.min(TINT_C * (dark ? 1.05 : 0.85), dark ? 0.12 : 0.055);
+  const opaqueC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.55);
   // --glass-solidify-c-max: the opaque cap × 0.65 in light, pinned back to the opaque cap in dark.
-  const solidifyC = Math.min(TINT_C * (dark ? 1.05 : 0.85), dark ? 0.12 : 0.055 * 0.65);
+  const solidifyC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.65);
   const tintCHi = Math.min(TINT_C, 0.017); // --glass-tint-c-hi
   const glossC = Math.min(TINT_C * 4.25, dark ? 0.109 : 0.013); // --glass-gloss-tint × cap
   const chakraC = Math.min(TINT_C, dark ? 0.046 : 0.055); // --glass-chakra-c-max
-  /* The backing under SHEER glass is --glass-solidify-l, split from the opaque card floor: light lifts
-     it to 92, dark pins it back to --glass-opaque-l. */
+  /* The backing under SHEER glass is --glass-solidify-l, its own value in both modes (92 light, 36.4
+     dark), split from the opaque card floor. */
   const solidify = {
-    l: dark ? opaqueL : 92,
+    l: dark ? 36.4 : 92,
     c: solidifyC,
     h,
     a: opacity,
@@ -107,11 +109,17 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       2.5,
       solidify,
     ),
-    "-opaque": {
-      l: opaqueL,
-      c: opaqueC,
-      h,
-    },
+    // The opaque card: its floor under the same tint wash every material carries (materials.css).
+    "-opaque": compositeSurface(
+      {
+        l: opaqueL,
+        c: opaqueC,
+        h,
+      },
+      [
+        wash,
+      ],
+    ),
     // --glass-crystal-bg over the page, then solidify → wash → gloss. Composited in sRGB, the way the
     // browser paints it; the crystal floor is --glass-crystal-l (96) at --glass-tint-c-hi × 0.6, NOT a
     // flat L100 at the raw tint chroma.
@@ -224,29 +232,19 @@ describe.each([
    * uncertainty margin — without a separate baseline aim it lands on the bare band target. Body aims
    * 80 + 4, muted 72 + 4.
    *
-   * LIGHT is reach-limited on the body tier, and that is a real property of the floor rather than a
-   * slack expectation: dark text on a light surface gets more contrast the lighter the surface is, and
-   * dropping the opaque floor from L90.9 to L88 (tokens.css — near-white is where the sRGB chroma
-   * ceiling collapses, so the old floor could not hold its own tint) took the ceiling with it. At L88
-   * the floor reaches only 82.99 Lc even at pure black, so the 84 aim is unreachable and the solve
-   * saturates at the lightness extreme.
-   *
-   * Which is exactly where readableTonal now catches it: saturating means #000000, so the pick is
-   * clipped back to TONAL_MIN_L and delivers 82.08 rather than 82.99. That ~0.9 Lc is the whole cost of
-   * keeping the ink tinted, and it is what this number pins. (The floor's own chroma is NOT the cause —
-   * carrying it actually lifts the reach a touch, 82.83 → 82.99.) Still above the bare 80 band target
-   * and well clear of the 75 body floor, which is what has to hold.
+   * Both modes reach the aim exactly. LIGHT used to be reach-limited: the opaque floor sat at L88 with
+   * nothing over it, where even pure black reached only 82.99 Lc, so the solve saturated and the tonal
+   * clip pulled it back to 82.08. The card is its floor plus the tint wash now (L93 floor, landing near
+   * L89 with the wash: the glass stack at full opacity), which leaves dark ink room to hit 84.
    */
   it("aims -opaque above the bare band target", async () => {
     await mount(dark);
 
     const s = surfaces(dark);
     const body = lcOn("--foreground-opaque", s["-opaque"]);
-    /* Dark has the headroom and must hit the aim exactly; light saturates and is then pulled back by the
-       tonal clip. Asserting to 1dp keeps this honest — if the floor or the clip bound moves, the number
-       moves and this test says so rather than passing on a loose ">= 80". */
-    if (dark) expect(body).toBeCloseTo(84, 0);
-    else expect(body).toBeCloseTo(82.1, 1);
+    /* Exact in both modes: if the floor or the wash moves enough to cost reach, the number moves and this
+       test says so rather than passing on a loose ">= 80". */
+    expect(body).toBeCloseTo(84, 0);
     expect(body).toBeGreaterThan(80);
 
     // Muted aims 72 + 4 and stays reachable in both modes, so it is exact either way.
@@ -273,10 +271,10 @@ describe.each([
  */
 describe("AutoForeground: opaque floor honours --glass-opaque-c-max", () => {
   const H = 255;
-  const L = 36.4; // the dark opaque floor
-  const SCALE = 1.05; // tokens.css, .dark
+  const L = 33.4; // the dark opaque floor
+  const SCALE = 0.98; // tokens.css, .dark
   const CAP = 0.12; // tokens.css, .dark
-  const TINT_C = 0.3; // well past the cap: 0.3 * 1.05 = 0.315
+  const TINT_C = 0.3; // well past the cap: 0.3 * 0.98 = 0.294
 
   it("bands -opaque text against the CAPPED floor, not the raw scaled chroma", async () => {
     root().classList.add("dark");
@@ -311,7 +309,7 @@ describe("AutoForeground: opaque floor honours --glass-opaque-c-max", () => {
   it("leaves the floor alone when the scaled chroma is already under the cap", async () => {
     /* The clamp must not become a floor of its own: under the cap the raw product has to pass through,
        or every low-chroma preset would be pushed UP to the cap and moonstone would read as tan again. */
-    const lowC = 0.05; // 0.05 * 1.05 = 0.0525, comfortably under 0.12
+    const lowC = 0.05; // 0.05 * 0.98 = 0.049, comfortably under 0.12
     root().classList.add("dark");
     root().style.setProperty("--glass-tint-h", String(H));
     root().style.setProperty("--glass-tint-c", String(lowC));

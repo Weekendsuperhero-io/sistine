@@ -70,10 +70,10 @@
 /* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
 :where([data-glass="opaque"], [data-glass="opaque"] [data-glass-tint], [data-glass="opaque"][data-glass-tint]) {
-  /* Flat floor, no sheet — same reasoning as [data-material="opaque"] in materials.css: with
-     --srf-filter: none there is no blurred backdrop to mask the dither of a 2–7 code gradient, and the
-     sheet's uniform lift is folded into --glass-opaque-l instead. */
-  --srf-bg-image: none;
+  /* Floor + the tint wash, no sheet — same as [data-material="opaque"] in materials.css: the wash is what
+     makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
+     out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
+  --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
@@ -100,18 +100,30 @@
 }
 /* Opaque page: element-level touches for ADAPTIVE surfaces only (a `.glass` or `[data-surface]` element
    with no explicit material — an explicit frosted/crystal card keeps its translucency AND its normal
-   foreground). Declared ON the element because (a) --glass-opaque-outline is settable on any ancestor
-   and must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
+   foreground). Declared ON the element because (a) the page outline is settable on any ancestor and
+   must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
    The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
    still reads as a solid panel and needs the same outline. */
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]) {
-  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  --srf-border-color: var(--glass-border);
+  --srf-border-w: var(--brd-w, 1px);
   /* Paint the border HERE, not just the tokens: borderless roles (Card default) never render
      glass-border, so without this only bordered roles showed the outline — "some cards get it,
      some don't". Under the opaque page every solid panel takes the uniform edge; bordered elements
      resolve the same vars, so nothing double-draws. */
-  border: var(--srf-border-w) solid var(--brd-ink, var(--srf-border-color));
+  border: var(--srf-edge-w, 1px) solid var(--srf-edge, var(--glass-border));
+}
+
+/* ── The page OUTLINE — every material ───────────────────────────────────────
+   data-glass-outline on <html> (or any ancestor) gives every glass surface below it an edge in the
+   theme accent: glass, frosted, crystal, chakra and opaque alike, bordered roles and borderless ones,
+   which is what the opaque page already does for its own panels. --glass-outline recolours it (on its
+   own, without the attribute, it recolours only the edges surfaces already draw) and --glass-outline-w
+   sets the weight (1 / 2 / 4px = hairline / rim / frame); an element's own border="rim" or "frame" and
+   borderColor="ink" still win. :is(), not :where(), so this ties the opaque page's edge rule on
+   specificity and wins by coming after it. */
+[data-glass-outline] :is(.glass, [data-surface]) {
+  border: var(--srf-edge-w, 1px) solid var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--glass-accent))));
 }
 /* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
    one --veil-solidify makes for the solidify layer on this page style. A veiled card does not paint

@@ -778,6 +778,77 @@ function apcaLuminance([r, g, b]: [
 }
 
 /**
+ * The colour stops of a fresco gradient (`linear-gradient(135deg in oklch, oklch(85% 0.1 222 / 0.32) 0%, …)`)
+ * as compositable layers. Reads the computed value of `--glass-crystal-fresco`, which the four fresco presets
+ * point at their multi-hue sheet and every other preset leaves unset (empty string → no stops).
+ */
+export function parseGradientStops(gradient: string): Array<
+  OklchColor & {
+    a: number;
+  }
+> {
+  const out: Array<
+    OklchColor & {
+      a: number;
+    }
+  > = [];
+  for (const m of gradient.matchAll(/oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*([\d.]+)(%?))?\s*\)/g)) {
+    out.push({
+      l: m[2] ? Number(m[1]) : Number(m[1]) * 100,
+      c: Number(m[3]),
+      h: Number(m[4]),
+      a: m[5] === undefined ? 1 : m[6] ? Number(m[5]) / 100 : Number(m[5]),
+    });
+  }
+  return out;
+}
+
+/**
+ * The hardest place on a surface to read text, once a fresco's multi-hue gradient is painted over it.
+ *
+ * A fresco sheet is bold (stops at L78–89, chroma up to 0.2, alpha 0.2–0.46), and nothing modelled it:
+ * every material banded its text against the plain surface, so text sized for the average dipped to
+ * 66–74 Lc where a gradient stop pulled the surface toward it. A linear gradient's extremes are its
+ * stops, so the worst point is the surface with one stop composited over it. Which stop is worst depends
+ * on the text's polarity, so that is decided first, by which of black or white reaches further on the
+ * plain surface. Returns the plain surface when there are no stops.
+ */
+export function limitingSurface(
+  surface: OklchColor,
+  stops: Array<
+    OklchColor & {
+      a: number;
+    }
+  >,
+): OklchColor {
+  if (stops.length === 0) return surface;
+  const black = {
+    l: 0,
+    c: 0,
+    h: 0,
+  };
+  const white = {
+    l: 100,
+    c: 0,
+    h: 0,
+  };
+  const ink = Math.abs(apcaContrast(black, surface)) >= Math.abs(apcaContrast(white, surface)) ? black : white;
+  let worst = surface;
+  let worstLc = Math.abs(apcaContrast(ink, surface));
+  for (const stop of stops) {
+    const lit = compositeSurface(surface, [
+      stop,
+    ]);
+    const lc = Math.abs(apcaContrast(ink, lit));
+    if (lc < worstLc) {
+      worst = lit;
+      worstLc = lc;
+    }
+  }
+  return worst;
+}
+
+/**
  * APCA lightness contrast (Lc) between a text color and a background color. Signed: positive = dark
  * text on a light bg, negative = light text on a dark bg; use |Lc| for the level (~60 headings,
  * ~75 body text). A dependency-free port of APCA-W3 0.1.9.

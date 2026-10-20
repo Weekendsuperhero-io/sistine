@@ -2536,7 +2536,7 @@
       "name": "background-controller",
       "type": "registry:block",
       "title": "Background Controller",
-      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise/clouds/dune horizons with a placeable sun or moon, dancing aurora borealis, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
+      "description": "Site-wide animated background system — a provider + segmented switcher driving CSS gradient, JS canvas, and pure-CSS pattern backdrops (dots, grid, mesh, starfield, synthwave/moonrise/clouds/dune horizons with a placeable sun or moon, a fogbound coastal redwood forest, dancing aurora borealis, Pac-Man chase, and more) that recolor with the live glass tint and accent. Exposes density, speed, accent, and a themed \"none\" base-color.",
       "registryDependencies": [
         "@sistine/canvas-background-utils",
         "@sistine/oklch-utils",

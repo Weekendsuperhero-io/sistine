@@ -12,13 +12,14 @@
  * is invisible in a screenshot and silent in every other suite, but it is the difference between "tonal
  * text, same hue as its surface" and "text near the surface's hue".
  *
- * OPAQUE is the control. It is a solid painted colour with nothing composited over it, so its hue IS
- * `--glass-tint-h`; if a change ever blanket-rotated every tier, this is the assertion that would catch it.
+ * OPAQUE composites too: its card is the floor under the same tint wash (materials.css), so its ink must
+ * sit at THAT composite's hue. It is the check that each tier follows its own surface rather than one
+ * shared rotation: the opaque stack lands at a different angle from the sheer one.
  */
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -53,6 +54,24 @@ const normalSurface = (h: number) =>
       c: Math.min(TINT_C * 0.85, 0.055 * 0.65),
       a: 0.7,
     },
+  );
+
+/** The opaque card: its L93 floor (cap = opaque-c-max × --glass-opaque-cap-scale 0.55) under the wash. */
+const opaqueSurface = (h: number) =>
+  compositeSurface(
+    {
+      l: 93,
+      c: Math.min(TINT_C * 0.85, 0.055 * 0.55),
+      h,
+    },
+    [
+      {
+        l: 72,
+        c: TINT_C * 2.5,
+        h,
+        a: TINT_A,
+      },
+    ],
   );
 
 async function mountTinted(hue: number) {
@@ -118,13 +137,15 @@ describe("AutoForeground: ink follows its surface's hue", () => {
     expect(Math.abs(hueGap(fg("--foreground").h, hue))).toBeGreaterThan(2);
   });
 
-  it("keeps the OPAQUE tier at the tint hue, since nothing composites over it", async () => {
-    /* --glass-opaque-bg is painted solid: no wash above it, so no drift. This is the control that a fix
-       for the sheer surfaces did not blanket-rotate every tier. */
+  it("puts the OPAQUE tier at its own composite's hue (floor + wash)", async () => {
+    /* The opaque card carries the wash like every other material, so its ink follows that composite,
+       not the declared tint hue and not the sheer surface's angle. */
     const hue = 8;
     await mountTinted(hue);
 
-    expect(Math.abs(hueGap(fg("--foreground-opaque").h, hue))).toBeLessThan(1);
+    const surface = opaqueSurface(hue);
+    expect(Math.abs(hueGap(surface.h, hue)), "the opaque composite must drift off the tint hue for this to test anything").toBeGreaterThan(2);
+    expect(Math.abs(hueGap(fg("--foreground-opaque").h, surface.h))).toBeLessThan(1);
   });
 
   it("puts --foreground-ui at the composited surface hue too", async () => {
@@ -156,8 +177,8 @@ describe("AutoForeground: ink follows its surface's hue", () => {
     ]) {
       expect(Math.abs(hueGap(fg(tier).h, hue)), `${tier} sat back at the tint hue`).toBeGreaterThan(1);
     }
-    // Opaque is the control here as well: nothing composites over it, so its icon stays at the tint hue.
-    expect(Math.abs(hueGap(fg("--foreground-ui-opaque").h, hue))).toBeLessThan(1);
+    // Opaque's icon follows its own composite as well.
+    expect(Math.abs(hueGap(fg("--foreground-ui-opaque").h, opaqueSurface(hue).h))).toBeLessThan(1);
   });
 
   it("matches ink to surface on the crystal and chakra stacks too", async () => {

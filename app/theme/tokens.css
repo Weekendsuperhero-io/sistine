@@ -116,8 +116,9 @@
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
   /* Ink border alpha (borderColor="ink" / glass-border-ink): how much of --foreground the line takes.
      Mode-invariant because --foreground already flips polarity per mode; 0.5 keeps the line clearly
-     softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]). */
-  --glass-border-ink-a: 0.5;
+     softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]); 0.55 since
+     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc. */
+  --glass-border-ink-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
      --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
@@ -182,12 +183,15 @@
      inside the budget at 4.47×. Fitted across the 14 presets: worst OKLab dE 0.0021, mean 0.0009 — an
      order of magnitude under a just-noticeable difference, so the surface is unchanged to the eye.
      Moonstone pins its own pair (presets.css); its floor is near-white, where the sheet did far less. */
-  /* L88, not 90.9. Near-white is where the sRGB chroma ceiling collapses, so an opaque card at 90.9 had
-     two problems at once: it read as washed-toward-white, and it could not hold enough chroma to carry
-     its own tint (lapis and sapphire were at 97–99% of a ceiling worth only 0.043). Dropping 2.9 L
-     roughly doubles every hue's ceiling while keeping body text at Lc 80.0 — the floor is still firmly
-     on the light side, so text polarity never changes. */
-  --glass-opaque-l: 88;
+  /* L93. The opaque card is the glass stack at full opacity: this floor plus the same tint WASH every
+     other material carries (materials.css). It used to be L88 with no wash, which made the floor carry
+     the tint on its own, and near white that cannot work: the sRGB ceiling collapses, so the jewels sat
+     at 97% of it and still read pastel, while greens and teals got half the chroma of their glass
+     siblings. With the wash doing the tinting, the floor's job is the one the backing under sheer glass
+     does (L92, --glass-solidify-l), and 93 is where floor + wash lands within 0.7 L of each preset's
+     glass surface (it has no lighter page showing through to make up the last point) while body text
+     keeps the 76.5 margin on every preset (tightest: destructive 76.6). */
+  --glass-opaque-l: 93;
   /* 0.85, down from 1.26. The old value only looked large: it was immediately clipped to the shared
      0.042 cap, so every preset rendered the SAME chroma regardless of its tint. Presets now pin their
      own --glass-opaque-c-max (their hue's real ceiling at L88), and 0.85 is the multiplier that lets
@@ -203,6 +207,12 @@
      deliberately not the tightest — per-hue pins are, and scripts/check-gamut.mjs sweeps every scope
      against its real ceiling rather than trusting this number. */
   --glass-opaque-c-max: 0.055;
+  /* The share of that cap the opaque FLOOR may use. The caps above are each hue's ceiling at L88 (the
+     solidify backing derives its own from them too), and at the floor's L93 the ceiling is 55–90% of
+     that depending on hue; 0.55 keeps the tightest (tourmaline) at 0.96 of its ceiling. The floor
+     needs little chroma now that the wash carries the tint. Dark sets 1: its floor sits mid-dark, where
+     every preset's ask is far inside its ceiling. */
+  --glass-opaque-cap-scale: 0.55;
   /* ── Solidify floor — the opaque backing UNDER sheer glass ───────────────────
      `glass` paints --glass-solidify (this colour at --glass-opacity) as the bottom background-image
      layer of every SHEER material, so it is ~70% of what page/crystal/chakra text actually sits on.
@@ -331,7 +341,7 @@
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
      gamut-maps and the delivered colour stops tracking the authored one.
      Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
-     Muse/Gloaming frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
+     Muse/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
      shows up as out-of-gamut once you check the fg hue. */
   --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
   --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */
@@ -472,12 +482,22 @@
   --glass-solid-l: 18%;
   /* The retired sheet's compensation, dark twin (see :root). Much the larger move of the two modes: a
      near-white sheet over a DARK floor lifts it ~12 codes where over the light floor it lifts ~2–5. Same
-     two-knob fit, worst OKLab dE 0.0045 across the 14 presets. */
-  --glass-opaque-l: 36.4;
-  /* 1.05, up from 0.85. The dark floor was never cap-limited — every preset sat at 31–79% of its own
-     ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. 1.05 is the most
-     the tightest hue (turquoise) can take without clipping; it lifts every preset +24% at Lc 80.0. */
-  --glass-opaque-c-scale: 1.05;
+     two-knob fit, worst OKLab dE 0.0045 across the 14 presets.
+     33.4 since opaque carries the tint wash (materials.css). The wash lifts the card, and unlike sheer
+     glass no dark page shows through it, so at the backing's own 36.4 an opaque card sat 3–5 L above its
+     glass siblings, and on the light-wash presets (aventurine, peridot, turquoise) only pure white text
+     still reached the body floor. Three points down puts it within ~2 L of the glass beside it and keeps
+     tinted text above the 76.5 margin everywhere (tightest: moonstone 76.6). The light floor makes the
+     mirror-image move (L93 over a L92 backing) for the mirror-image reason. */
+  --glass-opaque-l: 33.4;
+  /* 0.98. Was 1.05 (up from 0.85): the dark floor was never cap-limited — every preset sat at 31–79% of
+     its own ceiling, so the MULTIPLIER was the throttle and dark opaque cards lost their tint. It is
+     still the most the tightest hue (turquoise, ×0.984) can take without clipping, now at the floor's
+     L33.4, where the ceilings are lower than at L36.4. The wash carries most of the colour on top of it.
+     The sheer backing shares this scale (engine.css), so dark glass gives up 7% of its backing chroma
+     with it, under a wash that dominates it. */
+  --glass-opaque-c-scale: 0.98;
+  --glass-opaque-cap-scale: 1;
   /* Opaque floor chroma cap, dark twin (see :root). A GUARD, not a throttle — the distinction matters
      and this value used to get it wrong. It was 0.06, the tightest ceiling across the preset scopes,
      which was correct while every jewel shared --glass-tint-c: 0.07 and the floor multiplied it blind.
@@ -489,11 +509,12 @@
      pushes chroma far past today's values. check-gamut scores each preset against its own ceiling. */
   /* Guard, not a throttle: the largest dark ask is tourmaline at 0.111, so this binds nobody. Declared
      in its own rule right after this block (see there for why). */
-  /* Dark keeps the solidify floor IDENTICAL to the opaque floor — the split exists to buy LIGHT-mode
-     text contrast, and dark already clears the body floor on every preset with margin. Pinning to the
-     opaque values (rather than leaving :root's L92 / ×0.65 to inherit) is what makes this a light-only
-     change: a lighter backing under dark glass would wash the whole mode out. */
-  --glass-solidify-l: var(--glass-opaque-l);
+  /* The dark backing under sheer glass, at the lightness the opaque floor had before opaque gained the
+     wash: dark glass is unchanged by that move. It is its own value now, as light's L92 is, so the tint
+     switcher's Lightness slider (which writes --glass-opaque-l) moves the opaque card in both modes and
+     the sheer backing in neither. The cap stays the opaque one: dark already clears the body floor on
+     every preset with margin, and a lighter or greyer backing would wash the whole mode out. */
+  --glass-solidify-l: 36.4;
   --glass-solidify-c-max: var(--glass-opaque-c-max);
   /* ── Chakra dark twins (see :root for what each dial does + how the alphas were solved).
      The facet alphas invert in character: over an L28 body there is 72 L of headroom UP and only 28

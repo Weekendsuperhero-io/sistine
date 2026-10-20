@@ -104,7 +104,7 @@ export const CANVAS_SPEEDS = [
 ] as const;
 
 /** Animated-pattern pace: loop/scroll duration in SECONDS (2s fastest … 16s slowest); 0 = static.
- * Shared by every animated pattern (synthwave, moonrise, clouds, dune, aurora, chase) via the --pat-dur CSS var. */
+ * Shared by every animated pattern (synthwave, moonrise, clouds, dune, aurora, forest, chase) via the --pat-dur CSS var. */
 export const PATTERN_SPEEDS = [
   2,
   4,
@@ -114,7 +114,7 @@ export const PATTERN_SPEEDS = [
   0,
 ] as const;
 
-/** Sun/moon horizontal placement for the horizon scenes (synthwave / moonrise / clouds / dune) — off-center
+/** Sun/moon horizontal placement for the horizon scenes (synthwave / moonrise / clouds / dune / aurora / forest) — off-center
  * clears the page's centered content. */
 export const PATTERN_DISCS = [
   "right",

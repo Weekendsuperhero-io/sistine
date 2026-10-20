@@ -121,7 +121,14 @@
      floor, not --glass-opaque-bg, so the layer is real (dropping it there would shift up to 31/255 in
      light and 42/255 in dark). */
   --srf-solidify: none;
-  /* NO sheet either — opaque now paints a FLAT background-color and nothing else. --glass-bg is a 5-stop
+  /* The WASH, and only the wash. Every other material's stack ends in --glass-wash-layer, the solid film
+     of the preset's colour that carries the tint over any backdrop; opaque used to drop it with the
+     sheet, so its floor had to carry the tint alone and the opaque card read as a darker, greyer cousin
+     of the glass beside it (in dark mode most of all: amethyst glass L44 C0.18, opaque L36 C0.11). With
+     the wash, opaque is the glass stack at full opacity: within 0.7 L of its glass siblings in light and
+     2–4 L above them in dark, where no darker page shows through. The wash is one flat colour (both
+     stops equal), so it rasterises without the dither the sheet's gradient caused (below).
+     NO sheet — --glass-bg is a 5-stop
      gradient whose total range, composited over this floor, is 2–4 sRGB codes across an entire card in
      light and 5–7 in dark: one code per ~100–200px, far too shallow to draw cleanly in 8-bit, so the
      rasteriser dithers rather than bands. On every other material a real backdrop-filter supplies blurred
@@ -130,13 +137,17 @@
      The sheet's GRADIENT was therefore invisible, but its uniform LIFT was not (+1.7 L light, +4.8 L dark),
      so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
      same token, so the -opaque text tiers re-band against the new floor automatically. */
-  --srf-bg-image: none;
+  /* The fresco slot leads, as in the crystal and chakra stacks: unset (`none`) on a single-hue preset, the
+     fresco's own multi-hue gradient on muse / sistine / aurora / gloaming, which opaque used to lose
+     entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
+     codes, so it rasterises without the dither the sheet was dropped for. */
+  --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
-  --srf-border-color: var(--glass-opaque-outline, var(--glass-border));
-  /* Outline WEIGHT: an element rim/frame class (--brd-w) beats the page-level outline weight (the
-     switcher's --glass-opaque-outline-w on <html>), which beats the 1px hairline. */
-  --srf-border-w: var(--brd-w, var(--glass-opaque-outline-w, 1px));
+  /* The material's own edge. A page outline (--glass-outline / -w) overrides it in `glass`'s --srf-edge,
+     the same as for every other material. */
+  --srf-border-color: var(--glass-border);
+  --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-shadow);
   /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
      PAGE style makes (menus/toasts must stay legible on a solid ground). */

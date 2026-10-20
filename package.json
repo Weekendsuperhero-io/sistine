@@ -20,6 +20,7 @@
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build -o storybook-static",
     "storybook:export": "node scripts/export-storybook.js",
+    "export:backgrounds": "node scripts/export-backgrounds.mjs",
     "test:contrast": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-contrast.mjs"
   },
   "browserslist": [
@@ -36,7 +37,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
-    "framer-motion": "^13.5.1",
+    "framer-motion": "^14.4.0",
     "input-otp": "^1.5.0",
     "next": "^16.4.2",
     "next-themes": "^0.4.6",
@@ -45,7 +46,7 @@
     "react-day-picker": "^10.0.2",
     "react-dom": "^19.3.1",
     "react-easy-crop": "^6.2.4",
-    "react-resizable-panels": "^4.14.6",
+    "react-resizable-panels": "^4.14.7",
     "recharts": "^3.10.1",
     "shadcn": "^4.22.1",
     "sonner": "^2.0.8",
@@ -75,7 +76,7 @@
     "storybook": "^10.6.2",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.12"
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "@types/react": "^19.2.18",

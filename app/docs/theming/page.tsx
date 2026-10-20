@@ -99,7 +99,7 @@ export default function ThemingPage() {
                       "opaque",
                       'material="opaque"',
                       'data-material="opaque"',
-                      "fully solid, no see-through",
+                      "fully solid, no see-through: the same tint (and a fresco's sweep) as the glass beside it, at full opacity",
                     ],
                   ].map(([m, prop, attr, look]) => (
                     <tr key={m}>
@@ -752,8 +752,9 @@ const onAccent = useReadableForeground(accent, "large");
                 harmonic accents together. <IC>0</IC> = neutral.
               </li>
               <li>
-                <IC>--glass-opaque-l</IC>: tint <strong>body lightness</strong> (OKLCH L); lower = a deeper tint. Mode-aware default (88 light / 36.4
-                dark), and the floor AutoForeground bands opaque-card text against.
+                <IC>--glass-opaque-l</IC>: the opaque card's <strong>floor lightness</strong> (OKLCH L); lower = a deeper tint. The card is this floor
+                under the same tint wash every material carries, so it reads as the glass stack at full opacity. Mode-aware default (93 light / 33.4
+                dark), and the surface AutoForeground bands opaque-card text against.
               </li>
               <li>
                 <IC>--glass-opacity</IC>: <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer glass,{" "}
@@ -769,10 +770,13 @@ const onAccent = useReadableForeground(accent, "large");
                 <IC>--glass-stain-amount</IC>: how completely <IC>stained</IC> strips the backdrop&apos;s color (0–1; default <IC>1</IC>).
               </li>
               <li>
-                <IC>--glass-opaque-outline</IC>: optional <strong>accent outline</strong> for opaque surfaces. Unset → the plain glass border; set it
-                (e.g. <IC>var(--glass-accent)</IC>) on any ancestor to give every opaque component a colored edge. <IC>--glass-opaque-outline-w</IC>{" "}
-                sets its weight (the switcher&apos;s hairline / rim / frame = 1 / 2 / 4px); an element-level <IC>border=&quot;rim&quot;</IC> /{" "}
-                <IC>&quot;frame&quot;</IC> still wins.
+                <IC>data-glass-outline</IC> + <IC>--glass-outline</IC>: an optional <strong>outline</strong> on every glass surface, whatever its
+                material. Put <IC>data-glass-outline</IC> on <IC>&lt;html&gt;</IC> (or any ancestor) and every surface below it, borderless ones
+                included, gets an edge in the theme accent; <IC>--glass-outline</IC> recolours it (on its own, without the attribute, it recolours
+                only the edges surfaces already draw). <IC>--glass-outline-w</IC> sets the weight of every glass edge (the switcher&apos;s hairline /
+                rim / frame = each material&apos;s own hairline / 2 / 4px). An element-level <IC>border=&quot;rim&quot;</IC> /{" "}
+                <IC>&quot;frame&quot;</IC> and <IC>borderColor=&quot;ink&quot;</IC> still win. The old opaque-only names,{" "}
+                <IC>--glass-opaque-outline</IC> / <IC>-w</IC>, are still read.
               </li>
               <li>
                 <IC>--glass-tint-a</IC>: the tint <strong>film</strong> alpha (per preset).

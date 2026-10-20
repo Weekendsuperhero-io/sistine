@@ -1,0 +1,5 @@
+# `bun test` is Bun's built-in runner, not this project's. It ignores vitest.config.mts (no jsdom, no
+# setup file, no jest-dom matchers), so it fails most of the DOM tests with errors like
+# "localStorage is not defined". The preload below stops it with the right commands instead.
+[test]
+preload = ["./scripts/bun-test-guard.ts"]

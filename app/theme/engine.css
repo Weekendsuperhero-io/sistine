@@ -50,8 +50,8 @@
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
-     == surface); frescoes override it to anchor text off their multi-hue surface (Muse night: surface
-     222, text 310). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
+     == surface); frescoes override it to anchor text off their multi-hue surface (Muse: surface
+     230, text 290). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
   --glass-fg-h: var(--glass-tint-h);
   /* ── Harmonic color system ────────────────────────────────────────────────────────────────────
      Color-wheel relationships derived from the CONTENT hue (--glass-fg-h) — the same hue --glass-accent
@@ -117,6 +117,11 @@
      renders what it asks for. */
   --glass-gloss-c: 0.12;
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
+  /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
+     order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
+     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a muse page)
+     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
+  --glass-crystal-fresco: none;
   --blur-crystal: 2px;
 }
 
@@ -175,8 +180,13 @@
      for 7 of the 12 jewels: it clipped first, and every preset's chroma budget was set by it. Capping
      it is what let the tints below be normalised to their hue's real capacity rather than to this
      floor's. Multiply-THEN-cap, matching --glass-gloss-ink. */
+  /* The cap is scaled per mode (--glass-opaque-cap-scale): the per-preset caps are L88 ceilings, and the
+     light floor now sits at L93, where they would overshoot. Composed here, not on :root, so a scoped
+     preset's own cap is the one scaled. */
   --glass-opaque-bg: oklch(
-    calc(var(--glass-opaque-l) * 1%) min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), var(--glass-opaque-c-max, 0.3)) var(--glass-tint-h)
+    calc(var(--glass-opaque-l) * 1%)
+      min(calc(var(--glass-tint-c) * var(--glass-opaque-c-scale)), calc(var(--glass-opaque-c-max, 0.3) * var(--glass-opaque-cap-scale, 1)))
+      var(--glass-tint-h)
   );
   /* The same floor at the SOLIDIFY lightness/cap — the backing `glass` paints under every sheer
      material (see --glass-solidify in utilities.css). Split from --glass-opaque-bg because an opaque
@@ -224,8 +234,8 @@
      scrapes engine.css for both the calc() and min() chroma shapes — the suite went 20 → 24 surface/mode
      pairs when these landed, so a later retune of the caps is measured, not asserted.
      SURFACE hue (--glass-tint-h), not --glass-fg-h: an edge belongs to the surface it bounds, matching
-     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse night: surface 222,
-     text 310) the border follows the panel, not the type. */
+     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse: surface 230,
+     text 290) the border follows the panel, not the type. */
   --border: oklch(var(--border-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   --input: oklch(var(--input-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   /* The remaining shadcn SURFACE tokens — the last chroma-0 values in the theme. Same shape as --border

@@ -72,7 +72,9 @@ function collectPresets() {
   const out = new Map();
   for (const src of [css.presets, css.frescoes]) {
     const re = /((?:\.dark)?)(?:\[data-glass-tint="([^"]+)"\][^{]*)\{([^}]*)\}/g;
-    for (const [, darkSel, name, body] of src.matchAll(re)) {
+    /* Comments stripped first: a comment that quotes a selector (`[data-glass-tint="x"]`) would otherwise
+       open a match that runs on to the next block's brace and steal that block. */
+    for (const [, darkSel, name, body] of src.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(re)) {
       const h = body.match(/--glass-tint-h:\s*([\d.]+)/);
       const c = body.match(/--glass-tint-c:\s*([\d.]+)/);
       const key = `${name}${darkSel ? " (dark)" : ""}`;
@@ -171,7 +173,7 @@ function collectSurfaces(vars) {
      match and the gloss was never swept in either mode. Any var slot here must therefore tolerate a
      default; the two ", default" groups exist for exactly that. */
   const re =
-    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\))\s*(?:min\(\s*calc\(\s*var\(--glass-tint-c(?<mhi>-hi)?\)\s*\*\s*(?:(?<mk>[\d.]+)|var\(--(?<mkvar>[a-z0-9-]+)(?:,\s*(?<mkdef>[\d.]+))?\))\s*\)\s*,\s*(?:(?<mcaplit>[\d.]+)|var\(--(?<mcapvar>[a-z0-9-]+)(?:,\s*(?<mcapdef>[\d.]+))?\))\s*\)|calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)|min\(\s*var\(--glass-tint-c\)\s*,\s*(?:(?<caplit>[\d.]+)|var\(--(?<capvar>[a-z0-9-]+)(?:,\s*(?<capdef>[\d.]+))?\))\s*\))/g;
+    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\))\s*(?:min\(\s*calc\(\s*var\(--glass-tint-c(?<mhi>-hi)?\)\s*\*\s*(?:(?<mk>[\d.]+)|var\(--(?<mkvar>[a-z0-9-]+)(?:,\s*(?<mkdef>[\d.]+))?\))\s*\)\s*,\s*(?:(?<mcaplit>[\d.]+)|var\(--(?<mcapvar>[a-z0-9-]+)(?:,\s*(?<mcapdef>[\d.]+))?\)|calc\(\s*var\(--(?<scapvar>[a-z0-9-]+)(?:,\s*(?<scapdef>[\d.]+))?\)\s*\*\s*var\(--(?<capk>[a-z0-9-]+)(?:,\s*(?<capkdef>[\d.]+))?\)\s*\))\s*\)|calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)|min\(\s*var\(--glass-tint-c\)\s*,\s*(?:(?<caplit>[\d.]+)|var\(--(?<capvar>[a-z0-9-]+)(?:,\s*(?<capdef>[\d.]+))?\))\s*\))/g;
   for (const [file, src] of Object.entries({ engine: css.engine, materials: css.materials })) {
     for (const body of blocks(src)) {
       /* Numeric custom props declared right here, which shadow the tokens.css values below. */
@@ -184,9 +186,11 @@ function collectSurfaces(vars) {
       const k = g.mk ?? g.k ?? g.mkdef ?? g.kdef;
       const lname = g.lvar ?? g.lcalc ?? null;
       const kname = g.kvar ?? g.mkvar ?? null;
-      const capName = g.mcapvar ?? g.capvar ?? null;
+      /* A SCALED cap, calc(var(--cap) * var(--k)): the opaque floor's per-preset cap times a per-mode
+         share (--glass-opaque-cap-scale). The share is applied to whichever cap wins, global or pinned. */
+      const capName = g.mcapvar ?? g.scapvar ?? g.capvar ?? null;
       const capLit = g.mcaplit ?? g.caplit;
-      const capDef = g.mcapdef ?? g.capdef;
+      const capDef = g.mcapdef ?? g.scapdef ?? g.capdef;
       const nearWhiteCap = !!(g.hi || g.mhi);
       for (const mode of ["light", "dark"]) {
         let l;
@@ -217,12 +221,17 @@ function collectSurfaces(vars) {
           hardCap = vars[mode].get(capName) ?? vars.light.get(capName) ?? (capDef !== undefined ? +capDef : undefined);
           if (hardCap === undefined) continue; /* unresolvable cap — counted by the sanity floor */
         }
+        let capScale = 1;
+        if (g.capk) {
+          capScale = vars[mode].get(g.capk) ?? vars.light.get(g.capk) ?? (g.capkdef !== undefined ? +g.capkdef : 1);
+          if (hardCap !== undefined) hardCap *= capScale;
+        }
         const shape = hardCap !== undefined ? (mult === 1 ? `≤${hardCap}` : `×${mult} ≤${hardCap}`) : `×${mult}`;
         const label = `${file}:${lname ?? `L${g.lit}`} ${shape}${nearWhiteCap ? " (capped)" : ""}`;
         const id = `${label}|${mode}|${l}`;
         if (seen.has(id)) continue;
         seen.add(id);
-        surfaces.push({ label, mode, l, lname, kname, capName, mult, capped: nearWhiteCap, hardCap });
+        surfaces.push({ label, mode, l, lname, kname, capName, mult, capped: nearWhiteCap, hardCap, capScale });
         }
       }
     }
@@ -355,6 +364,8 @@ if (!capMatch) {
 }
 const TINT_C_HI_CAP = +capMatch[1];
 
+const darkNames = new Set(presets.filter((p) => p.dark).map((p) => p.name));
+
 /* Preset pins that hold for the light floor only (see the evaluator). */
 const LIGHT_ONLY_PINS = new Set([
   "glass-opaque-c-max",
@@ -362,7 +373,10 @@ const LIGHT_ONLY_PINS = new Set([
 
 for (const s of surfaces) {
   const rows = presets
-    .filter((p) => (s.mode === "dark" ? true : !p.dark))
+    /* In dark, a preset with its own dark block is scored by THAT entry (which carries its light base
+       merged in); scoring the light entry too would ignore what the dark block pins (turquoise's dark
+       opaque cap). Light never sees dark entries. */
+    .filter((p) => (s.mode === "dark" ? p.dark || !darkNames.has(p.name) : !p.dark))
     .map((p) => {
       /* Effective authored chroma, in the order CSS evaluates it: the near-white cap on the tint
          chroma, then the multiplier, then the surface's own hard cap. Capping before the multiplier
@@ -382,7 +396,7 @@ for (const s of surfaces) {
       const pinnedCap = s.capName ? (lightOnly ? (p.dark ? p.ownVars?.get(s.capName) : undefined) : p.vars?.get(s.capName)) : undefined;
       const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
       let want = base * (pinnedMult ?? s.mult);
-      const cap = pinnedCap ?? s.hardCap;
+      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : s.hardCap;
       if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
