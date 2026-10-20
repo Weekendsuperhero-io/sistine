@@ -5,14 +5,11 @@ import * as React from "react";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ComponentType<{
-      className?: string;
-    }>;
-  }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" data-slot="breadcrumb" {...props} />);
+/* No `separator` prop: it was declared, never used, and spread onto the <nav> as an unknown attribute. Put
+   a custom glyph inside BreadcrumbSeparator instead, as in shadcn. */
+const Breadcrumb = React.forwardRef<HTMLElement, React.ComponentPropsWithoutRef<"nav">>(({ ...props }, ref) => (
+  <nav ref={ref} aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
+));
 Breadcrumb.displayName = "Breadcrumb";
 
 /* Role: bordered adaptive glass. */

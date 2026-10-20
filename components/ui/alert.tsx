@@ -83,8 +83,10 @@ const Alert = React.forwardRef<
 });
 Alert.displayName = "Alert";
 
-const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-  <h5 ref={ref} data-slot="alert-title" className={cn("mb-1 font-medium leading-none tracking-tight", className)} {...props} />
+/* A div, as in shadcn: an <h5> put a fixed-level heading into the document outline of every page that showed
+   an alert. Wrap it in a heading of the right level where the alert IS a section heading. */
+const AlertTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+  <div ref={ref} data-slot="alert-title" className={cn("mb-1 font-medium leading-none tracking-tight", className)} {...props} />
 ));
 AlertTitle.displayName = "AlertTitle";
 

@@ -35,8 +35,13 @@ const Table = React.forwardRef<
       /** Classes for the wrapping container, which is the element that scrolls: pass a height and an
        * overflow (`max-h-96 overflow-y-auto`) and a `sticky top-0` TableHeader pins to it. */
       containerClassName?: string;
+      /** Let a table wider than its container scroll sideways instead of being clipped (shadcn's table
+       * always does). Opt-in because it makes the container a scroll container: a `sticky top-0` header
+       * then pins to the container rather than the page, so pair it with a max height when the header
+       * should stay visible as the rows scroll. */
+      scrollX?: boolean;
     }
->(({ className, containerClassName, variant = "glass", striped = false, ...props }, ref) => {
+>(({ className, containerClassName, variant = "glass", striped = false, scrollX = false, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
@@ -49,7 +54,7 @@ const Table = React.forwardRef<
        without making the container a scroll container, so it never captures a sticky header on its own.
        A consumer's `overflow-y-auto` (containerClassName) makes it the scroller on purpose; the x axis
        then computes to hidden and keeps the corners clipped. */
-    <div data-slot="table-container" className={cn(m !== null && "rounded-lg overflow-clip", containerClassName)}>
+    <div data-slot="table-container" className={cn(m !== null && "rounded-lg overflow-clip", scrollX && "overflow-x-auto", containerClassName)}>
       <table
         ref={ref}
         data-slot="table"

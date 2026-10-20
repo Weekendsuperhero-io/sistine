@@ -6,17 +6,25 @@ import * as React from "react";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-type ToggleGroupVariant = "default" | "glass";
+type ToggleGroupVariant = "default" | "glass" | "outline";
+type ToggleGroupSize = "default" | "sm" | "lg";
 
+/* What the GROUP set, undefined where it set nothing: an item's own variant / size applies unless the group
+   sets one, as in shadcn. The root used to default both, so a per-item override could never take effect. */
 const ToggleGroupContext = React.createContext<{
   variant?: ToggleGroupVariant;
-  size?: "default" | "sm" | "lg";
+  size?: ToggleGroupSize;
   spacing?: number;
 }>({
-  variant: "glass",
-  size: "default",
   spacing: 0,
 });
+
+/* Item sizes, on the same steps as the standalone Toggle; `size` used to set data-size and nothing else. */
+const ITEM_SIZE: Record<ToggleGroupSize, string> = {
+  sm: "px-2 py-0.5 text-xs",
+  default: "px-3 py-1",
+  lg: "px-4 py-2",
+};
 
 /* Role: bordered adaptive glass. */
 const ROLE = {
@@ -28,28 +36,43 @@ const ToggleGroup = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
     MaterialAxisProps & {
       variant?: ToggleGroupVariant;
-      size?: "default" | "sm" | "lg";
+      size?: ToggleGroupSize;
+      /** Gap between items, in Tailwind spacing steps (0 = touching). */
       spacing?: number;
     }
->(({ className, variant = "glass", size = "default", spacing = 0, children, ...props }, ref) => {
-  const [axes, rest] = splitAxisProps(props);
+>(({ className, variant, size, spacing = 0, children, ...props }, ref) => {
+  const [axes, { style, ...rest }] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
   const variants = {
     default: "",
     glass: "rounded-md p-1",
+    outline: "",
   };
+  const resolved = variant ?? "glass";
 
-  const m = materialSurface(variant === "default" ? null : ROLE, axes);
+  const m = materialSurface(resolved === "glass" ? ROLE : null, axes);
 
   return (
     <ToggleGroupPrimitive.Root
       ref={ref}
       data-slot="toggle-group"
-      data-variant={variant}
-      data-size={size}
+      data-variant={resolved}
+      data-size={size ?? "default"}
       data-spacing={spacing}
       data-material={m?.["data-material"]}
-      className={cn(m?.className, "group/toggle-group inline-flex items-center justify-center rounded-md", variants[variant], className)}
+      /* `spacing` is a real gap now (it was written to data-spacing and nothing read it). */
+      style={
+        {
+          "--gap": spacing,
+          ...style,
+        } as React.CSSProperties
+      }
+      className={cn(
+        m?.className,
+        "group/toggle-group inline-flex items-center justify-center gap-[--spacing(var(--gap))] rounded-md",
+        variants[resolved],
+        className,
+      )}
       {...rest}
     >
       <ToggleGroupContext.Provider
@@ -71,20 +94,25 @@ const ToggleGroupItem = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> & {
     variant?: ToggleGroupVariant;
-    size?: "default" | "sm" | "lg";
+    size?: ToggleGroupSize;
   }
 >(({ className, variant, size, ...props }, ref) => {
   const context = React.useContext(ToggleGroupContext);
+  const itemVariant = context.variant || variant || "glass";
+  const itemSize = context.size || size || "default";
 
   return (
     <ToggleGroupPrimitive.Item
       ref={ref}
       data-slot="toggle-group-item"
-      data-variant={context.variant || variant}
-      data-size={context.size || size}
+      data-variant={itemVariant}
+      data-size={itemSize}
       data-spacing={context.spacing}
       className={cn(
-        "inline-flex items-center justify-center rounded-sm px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        // focus:z-10 lifts the focused item's ring above its neighbours, which would otherwise paint over it.
+        "inline-flex items-center justify-center gap-2 rounded-sm text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus:z-10 focus-visible:z-10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        ITEM_SIZE[itemSize],
+        itemVariant === "outline" && "border border-input",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
         // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (same as tabs)

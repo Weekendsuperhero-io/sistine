@@ -143,6 +143,7 @@ const ChartContainer = React.forwardRef<
       }}
     >
       <div
+        data-slot="chart"
         data-chart={chartId}
         data-material={m?.["data-material"]}
         ref={ref}
@@ -159,7 +160,7 @@ const ChartContainer = React.forwardRef<
           /* ONE size contract: the caller's height (`h-[300px]`), else the aspect. `min-h-[150px]` is the
              floor the old `minHeight={150}` gave the chart, moved onto this box so it no longer feeds back
              through what the observer measures; a caller's min-h-* still wins. */
-          "flex min-h-[150px] aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+          "flex min-h-[150px] aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-hidden [&_.recharts-surface]:outline-hidden",
           variants[variant],
           className,
         )}
@@ -356,7 +357,9 @@ const ChartTooltipContent = React.forwardRef<
 
               return (
                 <div
-                  key={item.dataKey || item.name || index}
+                  /* Rows are rebuilt from the payload, in order, on every render, so the position is the
+                     identity: `dataKey || name` collided whenever two series shared one. */
+                  key={`${index}-${String(item.dataKey ?? item.name ?? "")}`}
                   className={cn(
                     "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
                     indicator === "dot" && "items-center",
@@ -462,7 +465,10 @@ const ChartLegendContent = React.forwardRef<
           const configItem = getPayloadConfigFromPayload(config, item, key);
 
           return (
-            <div key={item.value || index} className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}>
+            <div
+              key={`${index}-${String(item.value ?? "")}`}
+              className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}
+            >
               {configItem?.icon && !hideIcon ? (
                 <configItem.icon />
               ) : (

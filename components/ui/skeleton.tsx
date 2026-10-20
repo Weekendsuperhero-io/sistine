@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +12,7 @@ function Skeleton({
   variant = "glass",
   shimmer = true,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> &
+}: React.ComponentProps<"div"> &
   MaterialAxisProps & {
     variant?: "default" | "glass";
     /** Moving shimmer highlight (folded from the glass wrapper). */

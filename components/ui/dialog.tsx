@@ -29,11 +29,20 @@ const ROLE: MaterialProps = {
 
 const Dialog = DialogPrimitive.Root;
 
-const DialogTrigger = DialogPrimitive.Trigger;
+/* Trigger and Close stamp their data-slot (consumers style and test against it), as the content's own close
+   button already did; Root and Portal render no element of their own, so they stay plain aliases. */
+const DialogTrigger = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
+>((props, ref) => <DialogPrimitive.Trigger ref={ref} data-slot="dialog-trigger" {...props} />);
+DialogTrigger.displayName = DialogPrimitive.Trigger.displayName;
 
 const DialogPortal = DialogPrimitive.Portal;
 
-const DialogClose = DialogPrimitive.Close;
+const DialogClose = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Close>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>>(
+  (props, ref) => <DialogPrimitive.Close ref={ref} data-slot="dialog-close" {...props} />,
+);
+DialogClose.displayName = DialogPrimitive.Close.displayName;
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -97,7 +106,10 @@ const DialogContent = React.forwardRef<
           // and happily overflows a max-height, so the wrapper never became scrollable and the dialog
           // just clipped. minmax(0,1fr) lets the row shrink, which is what hands the overflow to the
           // wrapper's overflow-y-auto.
-          "@container/dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] grid-rows-[minmax(0,1fr)] w-full max-w-lg gap-4 overflow-hidden rounded-lg p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          // `min(100% − 2rem, 32rem)` keeps a 1rem gutter each side on narrow screens (at `w-full
+          // max-w-lg` it ran edge to edge below 512px), and outline-hidden stops the browser outline
+          // ringing the whole panel when Radix focuses the content itself (nothing tabbable inside).
+          "@container/dialog-content fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh_-_2rem)] grid-rows-[minmax(0,1fr)] w-full max-w-[min(calc(100%-2rem),32rem)] gap-4 overflow-hidden rounded-lg p-6 shadow-lg outline-hidden duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           dialogContentVariants({
             variant,
           }),
@@ -140,7 +152,7 @@ const DialogContent = React.forwardRef<
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -188,10 +200,7 @@ const DialogFooter = ({
 }) => (
   <div
     data-slot="dialog-footer"
-    className={cn(
-      "flex shrink-0 flex-col-reverse @sm/dialog-content:flex-row @sm/dialog-content:justify-end @sm/dialog-content:space-x-2",
-      className,
-    )}
+    className={cn("flex shrink-0 flex-col-reverse gap-2 @sm/dialog-content:flex-row @sm/dialog-content:justify-end", className)}
     {...props}
   >
     {children}

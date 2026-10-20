@@ -35,7 +35,7 @@ function InputGroup({ className, variant = "glass", effect, ...props }: InputGro
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
-        "group/input-group relative flex w-full items-center rounded-md transition-[color,box-shadow] outline-none",
+        "group/input-group relative flex w-full items-center rounded-md transition-[color,box-shadow] outline-hidden",
         "h-9 min-w-0 has-[>textarea]:h-auto",
         // Variants based on alignment.
         "has-[>[data-align=inline-start]]:[&>input]:pl-2",

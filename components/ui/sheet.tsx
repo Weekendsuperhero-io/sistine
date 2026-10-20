@@ -16,9 +16,18 @@ const ROLE: MaterialProps = {
 
 const Sheet = DialogPrimitive.Root;
 
-const SheetTrigger = DialogPrimitive.Trigger;
+/* Trigger and Close stamp their data-slot (the content's own close button already did); Root and Portal
+   render no element of their own, so they stay plain aliases. */
+const SheetTrigger = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
+>((props, ref) => <DialogPrimitive.Trigger ref={ref} data-slot="sheet-trigger" {...props} />);
+SheetTrigger.displayName = DialogPrimitive.Trigger.displayName;
 
-const SheetClose = DialogPrimitive.Close;
+const SheetClose = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Close>, React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>>(
+  (props, ref) => <DialogPrimitive.Close ref={ref} data-slot="sheet-close" {...props} />,
+);
+SheetClose.displayName = DialogPrimitive.Close.displayName;
 
 const SheetPortal = DialogPrimitive.Portal;
 
@@ -38,8 +47,10 @@ const SheetOverlay = React.forwardRef<
 ));
 SheetOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+/* A flex column: `gap-4` spaced nothing on a plain block, so header, body and footer sat flush, and the
+   footer's mt-auto can now pin it to the bottom of a side sheet. */
 const sheetVariants = cva(
-  "@container/sheet-content fixed z-50 gap-4 bg-background p-6 shadow-lg transition-[transform,opacity] ease-drawer data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
+  "@container/sheet-content fixed z-50 flex flex-col gap-4 bg-background p-6 shadow-lg transition-[transform,opacity] ease-drawer data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=open]:animate-in data-[state=closed]:animate-out",
   {
     variants: {
       side: {
@@ -93,7 +104,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
           {showCloseButton && (
             <DialogPrimitive.Close
               data-slot="sheet-close"
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
@@ -114,7 +125,7 @@ SheetHeader.displayName = "SheetHeader";
 const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     data-slot="sheet-footer"
-    className={cn("flex flex-col-reverse @xs/sheet-content:flex-row @xs/sheet-content:justify-end @xs/sheet-content:space-x-2", className)}
+    className={cn("mt-auto flex flex-col-reverse gap-2 @xs/sheet-content:flex-row @xs/sheet-content:justify-end", className)}
     {...props}
   />
 );

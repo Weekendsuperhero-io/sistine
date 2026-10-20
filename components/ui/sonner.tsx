@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircleIcon, CircleNotchIcon, InfoIcon, WarningIcon, WarningOctagonIcon } from "@phosphor-icons/react";
+import { useTheme } from "next-themes";
 import * as React from "react";
 import { Toaster as Sonner, type ToastClassnames } from "sonner";
 import { glassMaterial } from "@/lib/material";
@@ -55,11 +56,11 @@ const CLASS_NAMES: ToastClassnames = {
   description: "font-normal leading-[1.4] text-muted-foreground!",
   actionButton: cn(
     BUTTON.className,
-    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-foreground transition-opacity outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
   ),
   cancelButton: cn(
     BUTTON.className,
-    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-opacity outline-none hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
   ),
   closeButton: cn(
     BUTTON.className,
@@ -117,7 +118,15 @@ function stampTints(root: ParentNode) {
  * toast.success('Success!', { description: 'Your action completed' })
  * ```
  */
-const Toaster = ({ theme = "system", toastOptions, ref, ...props }: ToasterProps) => {
+/* The toaster follows the APP's theme (next-themes, which the site's light / dark toggle drives), as
+   shadcn's does; an explicit `theme` prop still wins, and without a ThemeProvider it falls back to the OS
+   ("system"). It used to default to "system" outright, so sonner's data-sonner-theme tracked the OS and
+   ignored the toggle: a light-mode page on a dark-mode OS got dark-theme toasts. */
+const Toaster = ({ theme, toastOptions, ref, ...props }: ToasterProps) => {
+  // A forced theme (next-themes' forcedTheme, e.g. a page pinned dark) wins over the stored choice, as it
+  // does for the page itself; a stored "system" is resolved by sonner exactly as next-themes resolves it.
+  const { theme: chosenTheme, forcedTheme } = useTheme();
+  const appTheme = forcedTheme ?? chosenTheme;
   const sectionRef = React.useRef<HTMLElement | null>(null);
   const setRef = React.useCallback(
     (node: HTMLElement | null) => {
@@ -150,7 +159,7 @@ const Toaster = ({ theme = "system", toastOptions, ref, ...props }: ToasterProps
   return (
     <Sonner
       ref={setRef}
-      theme={theme as ToasterProps["theme"]}
+      theme={(theme ?? appTheme ?? "system") as ToasterProps["theme"]}
       className="toaster group"
       icons={{
         success: <CheckCircleIcon className="size-4" />,

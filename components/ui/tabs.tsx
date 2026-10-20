@@ -8,18 +8,24 @@ import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-const tabsListVariants = cva("inline-flex h-9 items-center justify-center rounded-lg p-1 text-muted-foreground", {
-  variants: {
-    variant: {
-      default: "bg-muted",
-      glass: "",
+/* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. The list follows the Tabs
+   root's orientation (a vertical column at fit height, rather than the fixed 36px row every orientation
+   used to get), and `line` is shadcn's underline style: no surface, the active trigger marked by a bar. */
+const tabsListVariants = cva(
+  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-1 text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none",
+  {
+    variants: {
+      variant: {
+        default: "bg-muted",
+        glass: "",
+        line: "gap-1 bg-transparent",
+      },
+    },
+    defaultVariants: {
+      variant: "glass",
     },
   },
-  defaultVariants: {
-    variant: "glass",
-  },
-});
+);
 
 /* Role: bordered adaptive glass. */
 const ROLE = {
@@ -49,12 +55,13 @@ const TabsList = React.forwardRef<
     }
 >(({ className, variant = "glass", effect, ...props }, ref) => {
   const [axes, rest] = splitAxisProps(props);
-  const m = materialSurface(variant === "default" ? null : ROLE, axes);
+  const m = materialSurface(variant === "glass" ? ROLE : null, axes);
 
   return (
     <TabsPrimitive.List
       ref={ref}
       data-slot="tabs-list"
+      data-variant={variant}
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
@@ -80,7 +87,9 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
       ref={ref}
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "relative inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        // Vertical tabs: full-width, start-aligned rows. Icons sized and spaced like every other control.
+        "group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
         // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (the old
@@ -88,6 +97,9 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
         // survived, so the theme hue never came through).
         "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-foreground",
         "data-[state=active]:shadow-[var(--active-shadow)]",
+        // `line` lists: no active fill, a bar under (or beside, when vertical) the active trigger instead.
+        "group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none",
+        "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100",
         className,
       )}
       {...props}
@@ -102,7 +114,7 @@ const TabsContent = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Conte
       ref={ref}
       data-slot="tabs-content"
       className={cn(
-        "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "flex-1 ring-offset-background group-data-[orientation=horizontal]/tabs:mt-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className,
       )}
       {...props}
@@ -111,4 +123,4 @@ const TabsContent = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Conte
 );
 TabsContent.displayName = TabsPrimitive.Content.displayName;
 
-export { Tabs, TabsContent, TabsList, TabsTrigger };
+export { Tabs, TabsContent, TabsList, TabsTrigger, tabsListVariants };

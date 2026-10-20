@@ -20,9 +20,19 @@ const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(({ className, siz
   return (
     <div
       ref={ref}
+      data-slot="spinner"
       role="status"
       aria-label="Loading"
-      className={cn("inline-block rounded-full animate-spin", sizeClasses[size], borderColor, "border-t-transparent border-r-transparent", className)}
+      className={cn(
+        "inline-block rounded-full animate-spin",
+        sizeClasses[size],
+        borderColor,
+        "border-t-transparent border-r-transparent",
+        /* Icon-sized inside a control, as shadcn's svg spinner is by the controls' [&_svg] rules: a bare
+           <Spinner /> in a Button was the standalone 32px ring. */
+        "in-data-[slot=button]:size-4 in-data-[slot=input-group-addon]:size-4 in-data-[slot=item-media]:size-4",
+        className,
+      )}
       {...props}
     />
   );
