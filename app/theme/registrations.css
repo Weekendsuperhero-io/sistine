@@ -36,6 +36,19 @@
   inherits: false;
 }
 
+/* Prebaked-frost offsets (hooks/use-glass-backdrop.ts writes these per bubble). Non-inheriting so a
+   nested bubble never samples its parent's screen position for a frame before its own sync. */
+@property --gx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --gy {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
    rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as
    the harmonic tokens below). Registered here to pin them. DO NOT REMOVE. */

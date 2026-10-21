@@ -4,6 +4,7 @@ import * as React from "react";
 import { CanvasBackground } from "@/components/canvas-background";
 import { GradientBackground } from "@/components/gradient-background";
 import { PATTERN_DENSITIES, PATTERN_STYLES, PatternBackground, type PatternDensity, type PatternStyle } from "@/components/pattern-background";
+import { usePublishAppBackground } from "@/hooks/use-glass-backdrop";
 import type { CanvasStyle } from "@/lib/canvas-background-utils";
 import type { GradientGeometry, GradientShape, RampGradientAxis } from "@/lib/oklch-utils";
 
@@ -289,6 +290,30 @@ interface RenderArgs {
   baseColor: string | null;
 }
 
+/** The solid "none" backdrop. One pair so the painted floor and the prebaked slice cannot drift. */
+const NONE_LIGHT = "oklch(0.98 0.006 var(--glass-tint-h))";
+const NONE_DARK = "oklch(0.15 0.014 var(--glass-tint-h))";
+
+function PublishNoneBackground({ baseColor }: { baseColor: string | null }) {
+  const [dark, setDark] = React.useState(false);
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const read = () => setDark(root.classList.contains("dark"));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+      ],
+    });
+    return () => mo.disconnect();
+  }, []);
+  // A flat color is already its own blur. filter: none keeps the slice from paying for a no-op.
+  usePublishAppBackground(baseColor ?? (dark ? NONE_DARK : NONE_LIGHT), "none");
+  return null;
+}
+
 function renderBackground(background: BackgroundType, args: RenderArgs) {
   switch (background) {
     case "canvas":
@@ -320,7 +345,8 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
       // default, overridable by the user's chosen base color.
       return (
         <>
-          <style>{`[data-bg-none]{background:oklch(0.98 0.006 var(--glass-tint-h))}.dark [data-bg-none]{background:oklch(0.15 0.014 var(--glass-tint-h))}`}</style>
+          <style>{`[data-bg-none]{background:${NONE_LIGHT}}.dark [data-bg-none]{background:${NONE_DARK}}`}</style>
+          <PublishNoneBackground baseColor={args.baseColor} />
           <div
             className="fixed inset-0 -z-10 glass-backdrop-layer transition-[background-color] duration-500"
             data-bg-none=""

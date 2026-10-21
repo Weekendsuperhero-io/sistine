@@ -50,6 +50,19 @@
   inherits: false;
 }
 
+/* Prebaked-frost offsets (hooks/use-glass-backdrop.ts writes these per bubble). Non-inheriting so a
+   nested bubble never samples its parent's screen position for a frame before its own sync. */
+@property --gx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --gy {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 /* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
    rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as
    the harmonic tokens below). Registered here to pin them. DO NOT REMOVE. */
@@ -1862,6 +1875,59 @@
   --foreground-strong: var(--foreground-strong-opaque);
   --foreground-ui: var(--foreground-ui-opaque);
   --muted-foreground: var(--muted-foreground-opaque);
+}
+
+/* ── Prebaked frost ───────────────────────────────────────────────────────────
+   A stand-in for backdrop-filter when many surfaces are on screen at once (a message list). Each
+   `.glass-prebaked` paints a viewport-sized copy of the page background, shifted by its own screen
+   position (--gx / --gy, written by useGlassBackdrop), and clips that copy to its box. A plain
+   `filter` on that copy blurs pixels the element already owns. backdrop-filter would re-sample
+   whatever is painted behind every bubble, every frame.
+
+   UNLAYERED on purpose, and it MUST stay that way:
+   - `@utility` rules live in `@layer utilities`. An unlayered [data-material] / [data-glass] rule
+     beats a layered custom property no matter the specificity, so `--srf-filter: none` inside an
+     @utility would lose and the live blur would stay on.
+   - `backdrop-filter: none` here replaces the property `glass` sets, including the --srf-stain
+     appendix. Stained optics are a backdrop-filter color matrix; they do not carry over.
+   - `position: relative` and `overflow: hidden` are part of the trick (the slice is 100vw × 100vh
+     and has to be clipped, and the bubble has to be the slice's containing block). Unlayered, they
+     beat `absolute` / `fixed` / `sticky` / `overflow-*` utilities on the same element. Keep this
+     class on in-flow bubbles. It does not belong on a sticky bar, a popover, or a scrolling panel.
+   - No `isolation: isolate`. A stacking context paints its own background FIRST and negative
+     z-index children AFTER it, so the slice would cover the glass fill and the tint would vanish.
+     Without one, z-index -1 sits behind this element's background and in front of the page
+     backdrop (z-index -10). A transform, filter, or opacity on the bubble itself re-traps the
+     slice above the fill — same failure — so don't put those on the bubble.
+   - `glass-sheen` paints its own ::before / ::after highlights. This slice owns ::before; the two
+     classes do not combine.
+
+   The app supplies the pixels:
+   - `--app-bg-blurred`: a pre-blurred image (`url(bg.webp) center / cover`) or the same CSS
+     background the page paints. GradientBackground and the solid "none" backdrop publish it.
+   - `--app-bg-filter`: `blur(12px) saturate(180%)` when that background is NOT already blurred.
+     Defaults to none, so a pre-blurred image is not blurred a second time.
+   Pattern scenes and the canvas are many layers, not one background, so they do not publish the
+   variable. A bubble with this class and no variable loses the live blur and shows only its fill. */
+.glass-prebaked {
+  --srf-filter: none;
+  backdrop-filter: none;
+  position: relative;
+  overflow: hidden;
+}
+.glass-prebaked::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  left: calc(var(--gx, 0px) * -1);
+  top: calc(var(--gy, 0px) * -1);
+  background: var(--app-bg-blurred);
+  background-repeat: no-repeat;
+  filter: var(--app-bg-filter, none);
+  border-radius: inherit;
+  pointer-events: none;
 }
 /* ── Glass tint presets ─────────────────────────────────────────────────────
    Set data-glass-tint on any element (commonly <html>) to recolor the glass in that subtree.

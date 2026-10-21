@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_BG_FROST_FILTER, usePublishAppBackground } from "@/hooks/use-glass-backdrop";
 import { backdropPalette, useBackdropTint } from "@/lib/canvas-background-utils";
 import {
   bandedFrescoStops,
@@ -15,7 +16,14 @@ import {
  * A ramp-driven gradient wallpaper. The gradient is one of our oklch ramps (hue / lightness / tonal
  * / chroma) centered on the live glass-tint color (so it recolors with the theme) with the center as a
  * slightly wider plateau, painted as a `linear`, `radial`, or `conic` gradient. Pure CSS — crisp at any DPI.
+ *
+ * The highlight veil is a background LAYER on this element, not a child: one background string is the
+ * whole backdrop, and prebaked glass (`usePublishAppBackground`) samples that same string. A child
+ * overlay would frost the gradient and leave the highlights out of every bubble's slice.
  */
+const BACKDROP_HIGHLIGHTS =
+  "radial-gradient(circle at 20% 25%, oklch(var(--shadow-highlight) / 0.1) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(var(--shadow-ink) / 0.1) 0%, transparent 45%)";
+
 export function GradientBackground({
   axis = "tonal",
   hue,
@@ -56,23 +64,17 @@ export function GradientBackground({
         radialSize,
       });
 
+  /* First layer paints on top. Same highlights the old child overlay drew, still plain alpha — no
+     mix-blend-mode, which can disable backdrop-filter rendering in Chromium. */
+  const stack = `${BACKDROP_HIGHLIGHTS}, ${gradient}`;
+  usePublishAppBackground(stack, APP_BG_FROST_FILTER);
+
   return (
     <div
       className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background] duration-500"
       style={{
-        background: gradient,
+        background: stack,
       }}
-    >
-      {/* Subtle organic highlight/shadow for depth — plain alpha layers, NO mix-blend-mode: a
-          blend-mode element on the page can disable backdrop-filter RENDERING in Chromium, killing
-          every glass blur above it (computed styles stay correct, paint silently fails). */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(circle at 20% 25%, oklch(var(--shadow-highlight) / 0.1) 0%, transparent 45%), radial-gradient(circle at 80% 75%, oklch(var(--shadow-ink) / 0.1) 0%, transparent 45%)",
-        }}
-      />
-    </div>
+    />
   );
 }

@@ -114,6 +114,17 @@ describe("splitAxisProps", () => {
     });
   });
 
+  it("takes prebaked with the other axes", () => {
+    const [axes, rest] = splitAxisProps({
+      prebaked: true,
+      id: "bubble",
+    });
+    expect(axes.prebaked).toBe(true);
+    expect(rest).toEqual({
+      id: "bubble",
+    });
+  });
+
   it("does not leak borderColor onto the DOM through a component", () => {
     const { container } = render(
       <Card border borderColor="ink" data-testid="card">
