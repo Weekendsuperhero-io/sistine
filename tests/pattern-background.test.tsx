@@ -1,14 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ANIMATED_PATTERNS, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
 
 /**
  * A scene stops for two reasons — `prefers-reduced-motion` and Speed 0 — and the
  * bug these tests pin is the two DRIFTING APART: every scene honoured reduced
  * motion while Speed 0 only set `animation-play-state: paused`, which leaves the
  * element in an animating state and keeps WebKit re-rendering its layer
- * (`.au-curtain` carries a `filter: blur()` and a two-layer `mask-composite`, six
- * of them at full-viewport size). See AMXSF-562.
+ * (`.au-curtain` carried a `filter: blur()` and a two-layer `mask-composite`, six
+ * of them at full-viewport size; its `.au-paint` child draws them now). See AMXSF-562.
  *
  * `stopRules` is the single source both conditions are emitted from, so these
  * assert the property that makes drift impossible rather than the CSS text.
@@ -96,6 +96,78 @@ describe("PatternBackground data-pat-static", () => {
     const stopped = markup("aurora", 0);
     expect(stopped).toContain("au-curtain");
     expect(stopped).toContain('data-pattern="aurora"');
+  });
+});
+
+/**
+ * How many compositing layers a scene costs. A disc is its own layer (`.sw-sun`), and WebKit gives every
+ * later sibling that overlaps a composited layer a layer of its own, so the z-order holds. Loose, dune drew
+ * 52 masked full-viewport layers while static, and the window server re-applied every mask and blur on any
+ * frame where the page above them changed. Two structures keep it to a handful, and these pin both: all
+ * that a scene draws in front of its disc sits in ONE `.scene-group` (a stacking context, painted as one
+ * layer), and a box that is a layer of its own (a swaying curtain, the sun path that moves with the disc)
+ * draws its blur and masks on a child, never on itself.
+ */
+describe("scene compositing", () => {
+  const scene = (style: (typeof PATTERN_STYLES)[number]) => {
+    const host = document.createElement("div");
+    host.innerHTML = renderToStaticMarkup(<PatternBackground style={style} speed={8} />);
+    return host;
+  };
+
+  it.each([
+    ...DISC_PATTERNS,
+  ])("%s draws everything in front of its disc inside one .scene-group", (style) => {
+    const discs = scene(style).querySelectorAll(".sw-sun, .scene-moon");
+    const after: Element[] = [];
+    for (let el = discs[discs.length - 1]?.nextElementSibling; el; el = el.nextElementSibling) after.push(el);
+    expect(discs.length).toBeGreaterThan(0);
+    expect(after.map((el) => el.className)).toEqual([
+      "scene-group",
+    ]);
+  });
+
+  // Three curtains in the sky, and the reflection's two sets of three: the night gradient mirror and the
+  // day streaks. One sun path.
+  it.each([
+    [
+      "au-curtain",
+      "au-paint",
+      9,
+    ],
+    [
+      "au-sunpath",
+      "au-sunpath-paint",
+      1,
+    ],
+  ] as const)("draws .%s's blur, masks and clip on its .%s child, not on the layer itself", (box, paint, count) => {
+    const root = scene("aurora");
+    const boxes = [
+      ...root.querySelectorAll(`.${box}`),
+    ];
+    expect(boxes).toHaveLength(count);
+    for (const el of boxes) {
+      expect(
+        [
+          ...el.children,
+        ].map((child) => child.className),
+      ).toEqual([
+        paint,
+      ]);
+    }
+    const css = [
+      ...root.querySelectorAll("style"),
+    ]
+      .map((s) => s.textContent ?? "")
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const rules = [
+      ...css.matchAll(/([^{}]*)\{([^{}]*)\}/g),
+    ].filter(([, selector]) => selector.includes(`.${box}`) && !selector.includes(`.${paint}`));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const [, selector, body] of rules) {
+      expect(body, selector.trim()).not.toMatch(/filter|mask|clip-path/);
+    }
   });
 });
 
