@@ -2366,6 +2366,21 @@
       "dependencies": []
     },
     {
+      "name": "use-glass-backdrop",
+      "type": "registry:hook",
+      "title": "use-glass-backdrop",
+      "description": "Keeps prebaked glass slices aligned to a fixed background. Writes --gx and --gy on each .glass-prebaked surface from one animation frame, and publishes --app-bg-blurred for a CSS backdrop.",
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "hooks/use-glass-backdrop.ts",
+          "type": "registry:hook",
+          "target": "hooks/use-glass-backdrop.ts"
+        }
+      ],
+      "dependencies": []
+    },
+    {
       "name": "oklch-utils",
       "type": "registry:lib",
       "title": "OKLCH Utils",
@@ -2522,7 +2537,8 @@
       "registryDependencies": [
         "@sistine/canvas-background-utils",
         "@sistine/oklch-utils",
-        "@sistine/theme"
+        "@sistine/theme",
+        "@sistine/use-glass-backdrop"
       ],
       "files": [
         {
@@ -2541,7 +2557,8 @@
       "registryDependencies": [
         "@sistine/canvas-background-utils",
         "@sistine/oklch-utils",
-        "@sistine/theme"
+        "@sistine/theme",
+        "@sistine/use-glass-backdrop"
       ],
       "files": [
         {

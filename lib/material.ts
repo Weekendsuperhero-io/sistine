@@ -4,8 +4,8 @@ import type * as React from "react";
  * The Sistine material system — the single source of the material → markup mapping.
  *
  * FIVE materials (glass, frosted, crystal, chakra, opaque), each a `[data-material]` token set in
- * app/theme/materials.css, composed with orthogonal AXES (border + its colour, veil, size, gradient, glow, sheen)
- * over the one structural `glass` utility. Components call `glassMaterial()` instead of hardcoding
+ * app/theme/materials.css, composed with orthogonal AXES (border + its colour, veil, size, gradient, glow,
+ * sheen, prebaked) over the one structural `glass` utility. Components call `glassMaterial()` instead of hardcoding
  * recipe class strings (check-theme bans the legacy `glass-bg`/`glass-surface`/… classes).
  *
  * Semantics:
@@ -45,6 +45,10 @@ export interface MaterialProps {
   glow?: boolean | "lg";
   /** Opt-in hover shimmer (pseudo-element based — avoid on sticky/fixed surfaces). */
   sheen?: boolean;
+  /** Fake the backdrop blur from a fixed background (`--app-bg-blurred`) instead of backdrop-filter.
+   *  Needs `useGlassBackdrop` on the scroll container. In-flow bubbles only — the class forces
+   *  `position: relative` and `overflow: hidden`, and it does not combine with `sheen`. */
+  prebaked?: boolean;
 }
 
 /** The PUBLIC per-instance axis props a component spreads onto its type. Excludes `size` (the material
@@ -65,7 +69,7 @@ export function splitAxisProps<P extends MaterialAxisProps>(
   MaterialAxisProps,
   SplitAxisRest<P>,
 ] {
-  const { material, border, borderColor, veil, diffuse, gradient, glow, sheen, ...rest } = props;
+  const { material, border, borderColor, veil, diffuse, gradient, glow, sheen, prebaked, ...rest } = props;
   return [
     {
       material,
@@ -76,6 +80,7 @@ export function splitAxisProps<P extends MaterialAxisProps>(
       gradient,
       glow,
       sheen,
+      prebaked,
     },
     /* The conditional (distributive) rest type can't be proven for an unresolved P — safe by
      * construction: rest is exactly P minus the axis keys. */
@@ -91,7 +96,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, borderColor, veil, size, diffuse, gradient, glow, sheen } = props;
+  const { material, border, borderColor, veil, size, diffuse, gradient, glow, sheen, prebaked } = props;
   if (material === "none") {
     return {
       className: "",
@@ -114,6 +119,7 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       gradient && "glass-gradient",
       glow === "lg" ? "glass-glow-lg" : glow ? "glass-glow" : false,
       sheen && "glass-sheen",
+      prebaked && "glass-prebaked",
     ]
       .filter(Boolean)
       .join(" "),
@@ -141,6 +147,7 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
     gradient: props.gradient ?? role.gradient,
     glow: props.glow ?? role.glow,
     sheen: props.sheen ?? role.sheen,
+    prebaked: props.prebaked ?? role.prebaked,
   });
 }
 

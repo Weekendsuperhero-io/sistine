@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { DiffuseComparisonDemo } from "@/components/diffuse-comparison-demo";
 import { ForegroundTester } from "@/components/foreground-tester";
+import { GlassPrebakedDemo } from "@/components/glass-prebaked-demo";
 import { StainedComparisonDemo } from "@/components/stained-comparison-demo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { VeilComparisonDemo } from "@/components/veil-comparison-demo";
@@ -835,6 +836,25 @@ npx shadcn@latest add @sistine/gradient-background  # pure-CSS gradient wallpape
               prop, with <IC>angle</IC>, <IC>position</IC>, and (radial) <IC>radialShape</IC> / <IC>radialSize</IC> geometry, e.g.{" "}
               <IC>&lt;GradientBackground shape=&quot;conic&quot; position=&quot;30% 70%&quot; /&gt;</IC>.
             </p>
+            <p className="text-muted-foreground">
+              A list of glass surfaces can skip the live <IC>backdrop-filter</IC>. <IC>glass-prebaked</IC> (the <IC>prebaked</IC> axis) paints a
+              viewport-sized copy of <IC>--app-bg-blurred</IC> behind each surface, shifted by that surface&apos;s screen position.{" "}
+              <IC>useGlassBackdrop</IC> writes the offsets from one animation frame. <IC>&lt;GradientBackground&gt;</IC> and the solid backdrop
+              publish the variable and set <IC>--app-bg-filter</IC> to <IC>blur(12px) saturate(180%)</IC>. A pre-blurred image is the cheaper source:
+              set <IC>--app-bg-blurred: url(bg.webp) center / cover</IC> and leave the filter unset. Pattern scenes and the canvas are not a single
+              image, so they stay on the live filter. Keep the bubble in normal flow. A transform, a filter, an opacity, or{" "}
+              <IC>isolation</IC> on it paints the slice in front of the glass fill.
+            </p>
+            <Code>{`import { useGlassBackdrop } from "@/hooks/use-glass-backdrop"
+import { glassMaterial } from "@/lib/material"
+
+const scrollRef = useRef<HTMLDivElement>(null)
+useGlassBackdrop(scrollRef)
+
+<div ref={scrollRef}>
+  <div className={glassMaterial({ border: true, prebaked: true }).className}>…</div>
+</div>`}</Code>
+            <GlassPrebakedDemo />
           </CardContent>
         </Card>
       </div>
