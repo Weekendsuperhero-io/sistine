@@ -5,7 +5,9 @@ import { type CSSProperties, useId } from "react";
  * (multiple backgrounds + gradients) and SVG `mask-image` silhouettes, all colored off the live
  * OKLCH tint tokens so they recolor with the theme. No canvas, no rAF loop: each static style is a
  * single GPU paint; the animated scenes (synthwave / moonrise grid scroll, the clouds / dune / aurora /
- * forest drifts, the Pac-Man chase) move on compositor-only transforms. Sibling of GradientBackground
+ * forest drifts, the Pac-Man chase) move on compositor-only transforms. The cost to watch is LAYERS:
+ * `.scene-group` keeps what a scene draws in front of its disc to one, and a moving part draws its blur
+ * and masks on a still child (`.au-paint`), never on the box that moves. Sibling of GradientBackground
  * (CSS gradient) and CanvasBackground (JS canvas).
  */
 
@@ -31,11 +33,11 @@ export const PATTERN_STYLES: PatternStyle[] = [
  * Both REMOVE the animation rather than pausing it. `animation-play-state: paused`
  * looks like it should be free — the transform never advances — but a paused
  * animation still leaves the element in an animating state, and WebKit keeps
- * re-rendering its layer. On `.au-curtain` that layer carries a `filter: blur()`
- * and a two-layer `mask-composite`, six of them at full-viewport size, so "paused"
- * was measurably NOT free (AMXSF-559). `animation: none` also drops `will-change`,
- * releasing the promoted layer — `will-change` on a stopped animation is a
- * promoted layer doing no work.
+ * re-rendering its layer. On `.au-curtain` that layer carried a `filter: blur()`
+ * and a two-layer `mask-composite` (its `.au-paint` child draws them now), six of
+ * them at full-viewport size, so "paused" was measurably NOT free (AMXSF-559).
+ * `animation: none` also drops `will-change`, releasing the promoted layer —
+ * `will-change` on a stopped animation is a promoted layer doing no work.
  *
  * Emitted from one helper so the two conditions cannot drift apart: a scene that
  * respects reduced motion but not Speed 0 was exactly the bug.
@@ -441,6 +443,19 @@ const SKY_STYLES = `
      filter AND a mask it repainted only part of each: the old sun's top stayed painted at the old spot
      and the new one showed only its lower half. As a layer, the move just repositions it. */
   will-change: transform;
+}
+/* Paints its children as ONE compositing layer. WebKit gives every element that overlaps an earlier
+   composited one a layer of its own, so the z-order holds, and a disc is a layer (above), so loose, every
+   ridge, twin, deck and veil drawn after it became a full-viewport layer: dune had 52 of them while
+   static, and the window server re-applied each one's mask and blur whenever anything on the page above
+   them changed. Inside one stacking context they paint into a single backing store instead, masks and
+   blurs drawn once. Each scene wraps everything in front of its disc in one, and, inside it, any still
+   run that sits over a MOVING part (a fog bank, the water), so only what moves gets layers of its own.
+   Same box as the scene (inset 0), so the children's percentages and insets resolve unchanged. */
+.scene-group {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
 }
 /* Whole-pixel discs. WebKit sizes a filtered element's buffer from its box, and at a fractional width
    (30vh is 275.4px on a 918px viewport) it clips a sliver off the disc's left edge, which flattens a
@@ -1429,75 +1444,77 @@ function AuroraStreaks({ layer }: { layer: AuLayer }) {
   const tiles = Math.ceil(700 / vh) + 1;
   return (
     <div className={`au-curtain au-${layer} au-streaks`}>
-      <svg
-        viewBox={`0 0 ${width * tiles} 100`}
-        preserveAspectRatio="none"
-        style={{
-          width: `${vh * tiles}vh`,
-        }}
-        aria-hidden="true"
-      >
-        <defs>
-          {AU_COLORS.map((c) => (
-            <linearGradient key={c} id={`${id}${c}`} gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="0">
-              <stop
-                offset="0"
-                style={{
-                  stopColor: `var(${c})`,
-                }}
-              />
-              <stop
-                offset="0.5"
-                style={{
-                  stopColor: `var(${c})`,
-                  stopOpacity: 0.75,
-                }}
-              />
-              <stop
-                offset="1"
-                style={{
-                  stopColor: `var(${c})`,
-                  stopOpacity: 0.25,
-                }}
-              />
-            </linearGradient>
-          ))}
-          {AU_COLORS.map((c) => (
-            <linearGradient key={c} id={`${id}${c}-core`} gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="0">
-              <stop
-                offset="0"
-                style={{
-                  stopColor: `color-mix(in oklch, var(${c}), white 55%)`,
-                  stopOpacity: 0.85,
-                }}
-              />
-              <stop
-                offset="0.6"
-                style={{
-                  stopColor: `color-mix(in oklch, var(${c}), white 55%)`,
-                  stopOpacity: 0,
-                }}
-              />
-            </linearGradient>
-          ))}
-          <g id={id}>
-            {streaks.map((st) => (
-              <path key={st.body} d={st.body} fill={`url(#${id}${st.color})`} />
+      <div className="au-paint">
+        <svg
+          viewBox={`0 0 ${width * tiles} 100`}
+          preserveAspectRatio="none"
+          style={{
+            width: `${vh * tiles}vh`,
+          }}
+          aria-hidden="true"
+        >
+          <defs>
+            {AU_COLORS.map((c) => (
+              <linearGradient key={c} id={`${id}${c}`} gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="0">
+                <stop
+                  offset="0"
+                  style={{
+                    stopColor: `var(${c})`,
+                  }}
+                />
+                <stop
+                  offset="0.5"
+                  style={{
+                    stopColor: `var(${c})`,
+                    stopOpacity: 0.75,
+                  }}
+                />
+                <stop
+                  offset="1"
+                  style={{
+                    stopColor: `var(${c})`,
+                    stopOpacity: 0.25,
+                  }}
+                />
+              </linearGradient>
             ))}
-            {streaks.map((st) => (
-              <path key={st.core} d={st.core} fill={`url(#${id}${st.color}-core)`} />
+            {AU_COLORS.map((c) => (
+              <linearGradient key={c} id={`${id}${c}-core`} gradientUnits="userSpaceOnUse" x1="0" y1="100" x2="0" y2="0">
+                <stop
+                  offset="0"
+                  style={{
+                    stopColor: `color-mix(in oklch, var(${c}), white 55%)`,
+                    stopOpacity: 0.85,
+                  }}
+                />
+                <stop
+                  offset="0.6"
+                  style={{
+                    stopColor: `color-mix(in oklch, var(${c}), white 55%)`,
+                    stopOpacity: 0,
+                  }}
+                />
+              </linearGradient>
             ))}
-          </g>
-        </defs>
-        {Array.from(
-          {
-            length: tiles,
-          },
-          (_, k) => (
-            <use key={k} href={`#${id}`} x={k * width} />
-          ),
-        )}
-      </svg>
+            <g id={id}>
+              {streaks.map((st) => (
+                <path key={st.body} d={st.body} fill={`url(#${id}${st.color})`} />
+              ))}
+              {streaks.map((st) => (
+                <path key={st.core} d={st.core} fill={`url(#${id}${st.color}-core)`} />
+              ))}
+            </g>
+          </defs>
+          {Array.from(
+            {
+              length: tiles,
+            },
+            (_, k) => (
+              <use key={k} href={`#${id}`} x={k * width} />
+            ),
+          )}
+        </svg>
+      </div>
     </div>
   );
 }
@@ -1642,34 +1659,43 @@ const AURORA_STYLES = `
     var(--au-water-a) 65%
   );
 }
+/* A curtain is two boxes: this one MOVES (sway, shimmer: transform and opacity only), and its .au-paint
+   child carries everything it draws. A moving element is a compositing layer, and on a layer its own
+   blur, masks and clip are re-applied by the window server on every frame; on a child they are drawn into
+   the layer once and then just carried along. Same picture, since all three apply before the transform. */
 .au-curtain {
   position: absolute;
   top: -6%;
+  bottom: 39%;
+  left: -20vw;
+  right: -20vw;
+  transform-origin: 50% 100%;
+  transform: skewX(var(--au-lean, -6deg));
+  opacity: calc(var(--au-lo, 1) * var(--au-dim, 1));
+  animation:
+    au-sway calc(var(--pat-dur, 8s) * var(--au-ks, 3)) ease-in-out infinite alternate,
+    au-shimmer calc(var(--pat-dur, 8s) * var(--au-kp, 2)) ease-in-out infinite alternate;
+  animation-delay: var(--au-delay, 0s);
+  will-change: var(--pat-wc, transform), var(--pat-wc, opacity);
+}
+.au-paint {
+  position: absolute;
+  inset: 0;
   /* The box runs 3vh PAST the waterline and is CLIPPED exactly on it. Ending the box at 58% let the blur
      eat its last few px, a dark bar of bare scene gradient along the horizon; running it past and leaving
      it visible stacked it under the reflection, a bright strip; feathering it under the water sheet
      crossfaded three layers at once, a dark one. Clipped, the blurred lip runs at full strength right to
      the line and the reflection takes over there. (The clip is pre-transform, but sway is a skewX and a
      translateX, neither of which moves a horizontal edge.) */
-  bottom: 39%;
   clip-path: inset(0 0 3vh 0);
-  left: -20vw;
-  right: -20vw;
+  background-image: var(--au-rays);
   background-repeat: repeat-x;
   background-size: var(--au-tile) 100%;
-  transform-origin: 50% 100%;
-  transform: skewX(var(--au-lean, -6deg));
-  opacity: calc(var(--au-lo, 1) * var(--au-dim, 1));
   filter: blur(calc(var(--au-blur, 1.2vh) * var(--au-blur-m, 1) * var(--au-crisp, 1)));
   -webkit-mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
   mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
-  animation:
-    au-sway calc(var(--pat-dur, 8s) * var(--au-ks, 3)) ease-in-out infinite alternate,
-    au-shimmer calc(var(--pat-dur, 8s) * var(--au-kp, 2)) ease-in-out infinite alternate;
-  animation-delay: var(--au-delay, 0s);
-  will-change: var(--pat-wc, transform), var(--pat-wc, opacity);
 }
 @keyframes au-sway {
   from { transform: translateX(calc(-1 * var(--au-amp, 3vw))) skewX(var(--au-lean, -6deg)); }
@@ -1688,7 +1714,7 @@ const AURORA_STYLES = `
   --au-sway-to: 3deg;
   --au-blur: 1.2vh;
   --au-lo: 1;
-  background-image: ${rays(AU_TILES.a.tile)};
+  --au-rays: ${rays(AU_TILES.a.tile)};
 }
 .au-b {
   --au-tile: ${AU_TILES.b.vh}vh;
@@ -1700,7 +1726,7 @@ const AURORA_STYLES = `
   --au-blur: 2vh;
   --au-lo: 0.75;
   --au-delay: -7s;
-  background-image: ${rays(AU_TILES.b.tile)};
+  --au-rays: ${rays(AU_TILES.b.tile)};
 }
 .au-c {
   --au-tile: ${AU_TILES.c.vh}vh;
@@ -1712,7 +1738,7 @@ const AURORA_STYLES = `
   --au-blur: 0.7vh;
   --au-lo: 0.85;
   --au-delay: -13s;
-  background-image: ${rays(AU_TILES.c.tile)};
+  --au-rays: ${rays(AU_TILES.c.tile)};
 }
 /* By day the wide violet-pink veil layer (B) all but steps back: it filled every gap between the other
    two layers' rays, so no clear sky showed anywhere and the lights read as a haze, not as rays. */
@@ -1759,9 +1785,11 @@ const AURORA_STYLES = `
   /* Past the waterline by the same 3vh as the sky curtains (the water box clips it there), so the blur
      cannot eat the reflection's lip at the line, and its skew pivot mirrors theirs through it. */
   bottom: -3vh;
-  clip-path: none;
   --au-dim: 1;
   --au-blur-m: var(--au-mirror-blur-m, 1.5);
+}
+.au-mirror .au-paint {
+  clip-path: none;
   /* Same lip fade + side feathers as the sky curtains, INTERSECTED with a GENTLE wavelet ripple —
      The mirror runs at --au-dim 1 with a brighter vertical falloff to hold the reflection at full
      strength while the SKY curtains were thinned to let stars and sky through — same colours feed both,
@@ -1777,7 +1805,7 @@ const AURORA_STYLES = `
 /* By day AuroraStreaks' streaks stand in for the gradient mirror: with crisp day rays, a plain mirror of them
    read as identical bars ruled down the water. Night keeps the soft gradient mirror, where the blur
    already hides the edges. */
-.au-curtain.au-streaks {
+.au-streaks .au-paint {
   background-image: none;
   overflow: hidden;
 }
@@ -1829,7 +1857,10 @@ const AURORA_STYLES = `
    (the curtains are literally mirrored), so a sun with no reflection was the one element that looked
    pasted on. Not a mirrored disc: on real water the reflection smears into a vertical column that
    widens with distance, so this is a tapered gradient broken up by the same ripple rhythm as the
-   mirror. Gated on --sw-sun-o, so it appears and disappears with the sun itself. */
+   mirror. Gated on --sw-sun-o, so it appears and disappears with the sun itself.
+   Its own compositing layer, like the disc it reflects (see .sw-sun): it moves with the disc, and moving a
+   masked, blurred element painted on a shared layer is what left half a disc behind. The glints are drawn
+   by the child (.au-sunpath-paint), so their blur and masks go into the layer once, as a curtain's do. */
 .au-sunpath {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -1838,6 +1869,11 @@ const AURORA_STYLES = `
   width: calc(var(--sun-size, 38vh) * 2.4);
   transform: translateX(-50%);
   opacity: calc(0.62 * var(--sw-sun-o, 0));
+  will-change: transform;
+}
+.au-sunpath-paint {
+  position: absolute;
+  inset: 0;
   /* Built from STACKED GLINTS, not a clipped wedge. clip-path gave dead-straight diagonals that read as
      an engineered triangle; real glitter is a scatter of broken highlights that widens with distance.
      Each ellipse is one band of glints — progressively wider going down, nudged off the centre line so
@@ -3903,13 +3939,15 @@ export function PatternBackground({
           />
           <MuseConstellation />
           <div className={moon ? "scene-moon" : "sw-sun"} />
-          <div className="sw-ground" />
-          <div className="sw-glow" />
-          <div className="sw-floor sw-floor-rungs">
-            <div className="sw-grid sw-grid-rungs" />
-          </div>
-          <div className="sw-floor sw-floor-rails">
-            <div className="sw-grid sw-grid-rails" />
+          <div className="scene-group">
+            <div className="sw-ground" />
+            <div className="sw-glow" />
+            <div className="sw-floor sw-floor-rungs">
+              <div className="sw-grid sw-grid-rungs" />
+            </div>
+            <div className="sw-floor sw-floor-rails">
+              <div className="sw-grid sw-grid-rails" />
+            </div>
           </div>
         </div>
       </div>
@@ -3944,11 +3982,13 @@ export function PatternBackground({
           <MuseConstellation />
           <div className="sw-sun" />
           <div className="scene-moon" />
-          <div className="cl-sea" />
-          <div className="cl-deck cl-deck-far" />
-          <div className="cl-deck cl-deck-mid" />
-          <div className="cl-deck cl-deck-near" />
-          <div className="cl-haze" />
+          <div className="scene-group">
+            <div className="cl-sea" />
+            <div className="cl-deck cl-deck-far" />
+            <div className="cl-deck cl-deck-mid" />
+            <div className="cl-deck cl-deck-near" />
+            <div className="cl-haze" />
+          </div>
         </div>
       </div>
     );
@@ -4006,35 +4046,37 @@ export function PatternBackground({
           <MuseConstellation />
           <div className="sw-sun" />
           <div className="scene-moon" />
-          <div className="du-ground" />
-          <div className="du-dune du-pos-aa du-fill-aa" />
-          <div className="du-dune du-pos-a du-sh" />
-          <div className="du-dune du-pos-a du-rim" />
-          <div className="du-dune du-pos-a du-fill-a" />
-          <div className="du-dune du-pos-b du-sh" />
-          <div className="du-dune du-pos-b du-rim" />
-          <div className="du-dune du-pos-b du-fill-b" />
-          <div className="du-dune du-pos-c du-sh" />
-          <div className="du-dune du-pos-c du-rim" />
-          <div className="du-dune du-pos-c du-fill-c" />
-          <div className="du-dune du-pos-d du-sh" />
-          <div className="du-dune du-pos-d du-rim" />
-          <div className="du-dune du-pos-d du-fill-d" />
-          <div className="du-dune du-pos-e du-sh" />
-          <div className="du-dune du-pos-e du-rim" />
-          <div className="du-dune du-pos-e du-fill-e" />
-          {/* Wind veils ride ABOVE the ridges and BELOW the haze — sand in the air, not on the ground. */}
-          <div className="du-veils">
-            <div className="du-veil du-veil-a" />
-            <div className="du-veil du-veil-b" />
-          </div>
-          {/* Haze LAST-but-one: it must wash over the far ridges, not sit behind them. */}
-          <div className="du-glow" />
-          <div className="du-grains du-grains-a">
-            <div className="du-grain-tile" />
-          </div>
-          <div className="du-grains du-grains-b">
-            <div className="du-grain-tile" />
+          <div className="scene-group">
+            <div className="du-ground" />
+            <div className="du-dune du-pos-aa du-fill-aa" />
+            <div className="du-dune du-pos-a du-sh" />
+            <div className="du-dune du-pos-a du-rim" />
+            <div className="du-dune du-pos-a du-fill-a" />
+            <div className="du-dune du-pos-b du-sh" />
+            <div className="du-dune du-pos-b du-rim" />
+            <div className="du-dune du-pos-b du-fill-b" />
+            <div className="du-dune du-pos-c du-sh" />
+            <div className="du-dune du-pos-c du-rim" />
+            <div className="du-dune du-pos-c du-fill-c" />
+            <div className="du-dune du-pos-d du-sh" />
+            <div className="du-dune du-pos-d du-rim" />
+            <div className="du-dune du-pos-d du-fill-d" />
+            <div className="du-dune du-pos-e du-sh" />
+            <div className="du-dune du-pos-e du-rim" />
+            <div className="du-dune du-pos-e du-fill-e" />
+            {/* Wind veils ride ABOVE the ridges and BELOW the haze — sand in the air, not on the ground. */}
+            <div className="du-veils">
+              <div className="du-veil du-veil-a" />
+              <div className="du-veil du-veil-b" />
+            </div>
+            {/* Haze LAST-but-one: it must wash over the far ridges, not sit behind them. */}
+            <div className="du-glow" />
+            <div className="du-grains du-grains-a">
+              <div className="du-grain-tile" />
+            </div>
+            <div className="du-grains du-grains-b">
+              <div className="du-grain-tile" />
+            </div>
           </div>
         </div>
       </div>
@@ -4067,30 +4109,53 @@ export function PatternBackground({
           />
           <MuseConstellation />
           <div className="au-cirrus" />
-          <div className="au-curtain au-b" />
-          <div className="au-curtain au-a" />
-          <div className="au-curtain au-c" />
+          <div className="au-curtain au-b">
+            <div className="au-paint" />
+          </div>
+          <div className="au-curtain au-a">
+            <div className="au-paint" />
+          </div>
+          <div className="au-curtain au-c">
+            <div className="au-paint" />
+          </div>
           {/* AFTER the curtains: behind them, three layers of translucent light wash the disc green and
               it stops reading as a sun. Still before the glow and water, so the haze and waterline
-              cover it the way they cover everything else at the horizon. */}
-          <div className="au-sunsky" />
+              cover it the way they cover everything else at the horizon. The sky patch is grouped
+              because the curtains under it move: as a layer of its own, its mask would be re-applied on
+              every frame (see .scene-group). */}
+          <div className="scene-group">
+            <div className="au-sunsky" />
+          </div>
           <div className="sw-sun" />
-          <div className="au-water-base" />
-          <div className="au-water">
-            <div className="au-mirror">
-              <div className="au-curtain au-b au-flat" />
-              <div className="au-curtain au-a au-flat" />
-              <div className="au-curtain au-c au-flat" />
-              <AuroraStreaks layer="b" />
-              <AuroraStreaks layer="a" />
-              <AuroraStreaks layer="c" />
+          <div className="scene-group">
+            <div className="au-water-base" />
+            <div className="au-water">
+              <div className="au-mirror">
+                <div className="au-curtain au-b au-flat">
+                  <div className="au-paint" />
+                </div>
+                <div className="au-curtain au-a au-flat">
+                  <div className="au-paint" />
+                </div>
+                <div className="au-curtain au-c au-flat">
+                  <div className="au-paint" />
+                </div>
+                <AuroraStreaks layer="b" />
+                <AuroraStreaks layer="a" />
+                <AuroraStreaks layer="c" />
+              </div>
+              <div className="au-ripple-fade">
+                <div className="au-ripples" />
+              </div>
             </div>
-            <div className="au-ripple-fade">
-              <div className="au-ripples" />
+            {/* Still, over the moving reflection. */}
+            <div className="scene-group">
+              <div className="au-sunpath">
+                <div className="au-sunpath-paint" />
+              </div>
+              <div className="au-haze" />
             </div>
           </div>
-          <div className="au-sunpath" />
-          <div className="au-haze" />
         </div>
       </div>
     );
@@ -4142,17 +4207,22 @@ export function PatternBackground({
           {/* The disc goes down first: every ridge stands in front of it. */}
           <div className="sw-sun" />
           <div className="scene-moon" />
-          {ridge(0)}
-          {ridge(1)}
-          <div className="fo-glow" />
-          <div className="fo-fog fo-fog-a" />
-          {ridge(2)}
-          <div className="fo-fog fo-fog-b" />
-          {/* Rays between the middle ridges: in front of the far ranks, behind the near trees. */}
-          <div className="fo-rays" />
-          {ridge(3)}
-          <div className="fo-fog fo-fog-c" />
-          {ridge(4)}
+          <div className="scene-group">
+            {ridge(0)}
+            {ridge(1)}
+            <div className="fo-glow" />
+            <div className="fo-fog fo-fog-a" />
+            {ridge(2)}
+            <div className="fo-fog fo-fog-b" />
+            {/* Still, over a drifting fog bank: grouped so the rays' mask is drawn once (see .scene-group).
+                Rays between the middle ridges: in front of the far ranks, behind the near trees. */}
+            <div className="scene-group">
+              <div className="fo-rays" />
+              {ridge(3)}
+            </div>
+            <div className="fo-fog fo-fog-c" />
+            {ridge(4)}
+          </div>
         </div>
       </div>
     );
