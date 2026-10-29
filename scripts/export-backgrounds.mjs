@@ -115,7 +115,7 @@ const ANIMATED_SCENES = names(
   "ANIMATED_PATTERNS",
 );
 const DISC_SCENES = names("components/pattern-background.tsx", /export const DISC_PATTERNS = new Set<PatternStyle>\(\[([\s\S]*?)\]\)/, "DISC_PATTERNS");
-const TINTS = names("components/glass-tint-switcher.tsx", /const PRESETS = \[([\s\S]*?)\n\] as const;/, "PRESETS", /value: "([a-z-]+)"/g);
+const TINTS = names("lib/glass-presets.ts", /const GLASS_TINT_PRESETS = \[([\s\S]*?)\n\] as const;/, "GLASS_TINT_PRESETS", /value: "([a-z-]+)"/g);
 
 const SIZES = {
   desktop: "1920x1080@2",

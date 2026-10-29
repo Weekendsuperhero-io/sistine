@@ -49,7 +49,7 @@ const buttonMaterialNames = [
   "frosted",
   "crystal",
   "chakra",
-  "opaque",
+  "lucite",
 ] as const;
 
 // gradient fill strengths to compare — the engine's --gradient construction (--gradient-l/-c envelope,
@@ -85,7 +85,7 @@ const glassTypes = [
   "frosted",
   "crystal",
   "chakra",
-  "opaque",
+  "lucite",
 ] as const;
 
 // The four ramp axes the gradient can follow — computed in JS from the real lib/oklch-utils ramps.

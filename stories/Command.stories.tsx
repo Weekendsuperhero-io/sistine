@@ -33,7 +33,7 @@ const meta = {
         "glass",
         "frosted",
         "crystal",
-        "opaque",
+        "lucite",
       ],
     },
     border: {

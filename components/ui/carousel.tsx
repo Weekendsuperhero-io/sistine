@@ -60,13 +60,14 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     const reducedMotion = useReducedMotion();
     const items = React.Children.toArray(children);
     const totalItems = items.length;
+    const activeIndex = Math.min(currentIndex, Math.max(totalItems - 1, 0));
     const playing = autoPlay && !paused && !hovered && !focused && !reducedMotion && totalItems > 1;
 
     React.useEffect(() => {
       if (!playing) return;
 
       const timer = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % totalItems);
+        setCurrentIndex((prev) => (totalItems === 0 ? prev : (Math.min(prev, totalItems - 1) + 1) % totalItems));
       }, interval);
 
       return () => clearInterval(timer);
@@ -81,14 +82,22 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     };
 
     const goToPrevious = () => {
-      setCurrentIndex((prev) => (prev - 1 + totalItems) % totalItems);
+      if (totalItems === 0) return;
+      setCurrentIndex((prev) => (Math.min(prev, totalItems - 1) - 1 + totalItems) % totalItems);
     };
 
     const goToNext = () => {
-      setCurrentIndex((prev) => (prev + 1) % totalItems);
+      if (totalItems === 0) return;
+      setCurrentIndex((prev) => (Math.min(prev, totalItems - 1) + 1) % totalItems);
     };
 
     const onKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
+      if (
+        event.defaultPrevented ||
+        target.closest('input, textarea, select, [contenteditable="true"], [role="slider"], [role="combobox"], [role="spinbutton"]')
+      )
+        return;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         goToPrevious();
@@ -135,7 +144,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
           aria-live={playing ? "off" : "polite"}
           className="flex transition-transform duration-500 ease-in-out motion-reduce:transition-none"
           style={{
-            transform: `translateX(-${currentIndex * 100}%)`,
+            transform: `translateX(-${activeIndex * 100}%)`,
           }}
         >
           {items.map((item, index) => (
@@ -145,7 +154,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               role="group"
               aria-roledescription="slide"
               aria-label={`${index + 1} of ${totalItems}`}
-              inert={index !== currentIndex}
+              inert={index !== activeIndex}
               className="min-w-full flex-shrink-0"
             >
               {item}
@@ -185,11 +194,11 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
                   type="button"
                   className={cn(
                     "h-2 w-2 rounded-full transition-[width,background-color]",
-                    index === currentIndex ? "bg-primary w-6" : "bg-muted-foreground/50 hover:bg-muted-foreground",
+                    index === activeIndex ? "bg-primary w-6" : "bg-muted-foreground/50 hover:bg-muted-foreground",
                   )}
                   onClick={() => goToSlide(index)}
                   aria-label={`Go to slide ${index + 1}`}
-                  aria-current={index === currentIndex ? "true" : undefined}
+                  aria-current={index === activeIndex ? "true" : undefined}
                 />
               ))}
             </div>

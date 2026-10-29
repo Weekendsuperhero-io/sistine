@@ -62,7 +62,7 @@ export const OnGlassSurfaces: Story = {
           "frosted",
           "crystal",
           "chakra",
-          "opaque",
+          "lucite",
         ] as const
       ).map((material) => (
         <div key={material} className="glass glass-border rounded-xl p-6" data-material={material}>

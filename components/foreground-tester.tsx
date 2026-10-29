@@ -150,6 +150,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     c: 0,
     a: 0,
     dark: true,
+    onyx: false,
     harmonyH: 255,
     base: {
       l: 60,
@@ -168,6 +169,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     solidifyC: 0,
     glassOpacity: 0.7,
     pageSolidA: 0.65,
+    solidL: 18,
   });
 
   React.useEffect(() => {
@@ -189,6 +191,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         c: tintC,
         a: num("--glass-tint-a", 0),
         dark: isDark,
+        onyx: root.dataset.glassTint === "onyx",
         washL: num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72),
         washCMult: num("--glass-wash-c-mult", moonstone && isDark ? 2 : 2.5),
         solidifyL: num("--glass-solidify-l", isDark ? 36.4 : 92),
@@ -198,6 +201,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         ),
         glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
         pageSolidA: Math.min(Math.max(num("--glass-solid-a", 0.65), 0), 1),
+        solidL: num("--glass-solid-l", isDark ? 18 : 99),
         // Harmony anchor: matches CSS --harmony-h (content hue, or 0 for selenite/moonstone), so the chip hues here
         // land on the same angle as the --hue-* swatches. Falls back to the content hue when unset (jewels).
         harmonyH: num("--harmony-h", num("--glass-fg-h", num("--glass-tint-h", r.h))),
@@ -262,6 +266,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       c: env.solidifyC,
       a: env.glassOpacity,
     },
+    env.solidL,
   );
   // neutral → achromatic base; an active tint adds (gamut-clamped) color. Text uses Tonal / Linear only.
   const baseChroma = env.c > 0 ? env.base.c : 0;
@@ -287,7 +292,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         level,
         count: env.count,
         base,
-        dark: env.dark,
+        dark: env.dark || env.onyx,
       }),
   );
   const lcOf = (c: OklchColor) => Math.abs(apcaContrast(c, surface));
@@ -300,14 +305,14 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
     palette,
     count: env.count,
     base,
-    dark: env.dark,
+    dark: env.dark || env.onyx,
   });
   const lcBoost = LC_MARGIN * showThrough(solidA, env.a, env.glassOpacity);
   /** Solve a tier and map the chosen colour back to its index in the DISPLAY ramp, for the markers. */
   const pickIdx = (rawBand: { floor: number; target: number; ceiling: number }) => {
     const pick = pickTonalInBand(solved, surface, boostBand(rawBand, lcBoost));
     const i = solved.raw.indexOf(pick);
-    return i >= 0 ? i : 0;
+    return Math.max(i, 0);
   };
 
   const tiers = TIERS.map((t) => {

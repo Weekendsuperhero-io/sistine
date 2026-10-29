@@ -1,9 +1,9 @@
 "use client";
 
 import { Check, Copy } from "@phosphor-icons/react";
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
 interface InstallationInstructionsProps {
   componentName: string;
@@ -14,7 +14,7 @@ export function InstallationInstructions({
   componentName,
   packageName: _packageName = "@weekendsuperhero-io/sistine",
 }: InstallationInstructionsProps) {
-  const [copied, setCopied] = React.useState<string | null>(null);
+  const { copied, copy } = useCopyToClipboard();
 
   /* Consumer-facing: these are the READER's package manager, not the project's, so every one of them
      stays. Bun leads because it is what the docs and the hero snippet use. */
@@ -25,11 +25,7 @@ export function InstallationInstructions({
     npm: `npx shadcn@latest add @sistine/${componentName}`,
   };
 
-  const copyToClipboard = (command: string, key: string) => {
-    navigator.clipboard.writeText(command);
-    setCopied(key);
-    setTimeout(() => setCopied(null), 2000);
-  };
+  const copyToClipboard = (command: string, key: string) => copy(command, key);
 
   return (
     <Tabs defaultValue="bun" className="w-full">
@@ -49,6 +45,7 @@ export function InstallationInstructions({
               variant="ghost"
               size="icon"
               className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
+              aria-label={copied === key ? "Command copied" : `Copy ${key} install command`}
               onClick={() => copyToClipboard(command, key)}
             >
               {copied === key ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

@@ -113,7 +113,7 @@ export function ChartBlock() {
       </div>
 
       <Tabs defaultValue="bar" className="w-full">
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 h-auto max-w-full flex-wrap">
           <TabsTrigger value="bar">Bar Chart</TabsTrigger>
           <TabsTrigger value="line">Line Chart</TabsTrigger>
           <TabsTrigger value="area">Area Chart</TabsTrigger>

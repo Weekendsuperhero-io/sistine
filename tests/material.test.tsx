@@ -12,6 +12,33 @@ import { Card } from "@/components/ui/card";
 import { glassMaterial, materialSurface, splitAxisProps } from "@/lib/material";
 
 describe("glassMaterial", () => {
+  it("uses Lucite for both the canonical material and the legacy opaque alias", () => {
+    expect(
+      glassMaterial({
+        material: "lucite",
+        border: true,
+      }),
+    ).toEqual(
+      glassMaterial({
+        material: "opaque",
+        border: true,
+      }),
+    );
+    const { container } = render(<Card material="opaque">Legacy consumer</Card>);
+    expect(container.querySelector('[data-slot="card"]')).toHaveAttribute("data-material", "lucite");
+  });
+  it("pins Lustre and composes the existing axes", () => {
+    const { container } = render(
+      <Card material="lustre" border="rim" diffuse="stained" veil>
+        Body
+      </Card>,
+    );
+    const card = container.querySelector('[data-slot="card"]');
+    expect(card).toHaveAttribute("data-material", "lustre");
+    expect(card).toHaveClass("glass", "glass-border-rim", "glass-diffuse", "glass-stained", "glass-veil");
+    expect(card).not.toHaveAttribute("diffuse");
+    expect(card).not.toHaveAttribute("veil");
+  });
   it("emits the structural class plus one class per axis", () => {
     const { className } = glassMaterial({
       border: "rim",

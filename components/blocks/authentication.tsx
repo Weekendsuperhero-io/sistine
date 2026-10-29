@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-export function AuthenticationBlock() {
+export function AuthenticationBlock({ forgotPasswordHref = "/blocks/forgot-password" }: { forgotPasswordHref?: string } = {}) {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <Card className="w-full max-w-md text-foreground">
@@ -35,8 +35,8 @@ export function AuthenticationBlock() {
                 Remember me
               </Label>
             </div>
-            <Button variant="link" className="text-muted-foreground text-sm p-0">
-              Forgot password?
+            <Button variant="link" className="text-muted-foreground text-sm p-0" asChild>
+              <a href={forgotPasswordHref}>Forgot password?</a>
             </Button>
           </div>
           <Button className="w-full text-foreground">Sign In</Button>

@@ -24,7 +24,7 @@ const meta = {
         "glass",
         "frosted",
         "crystal",
-        "opaque",
+        "lucite",
       ],
     },
     effect: {

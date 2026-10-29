@@ -2,7 +2,7 @@
 
 import { CaretDownIcon, CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import * as React from "react";
-import { type DayButton, DayPicker, getDefaultClassNames, type Locale } from "react-day-picker";
+import { type Chevron, type DayButton, DayPicker, getDefaultClassNames, type Locale, useDayPicker, type WeekNumber } from "react-day-picker";
 import { type MaterialAxisProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "./button";
@@ -41,6 +41,8 @@ function Calendar({
 
   return (
     <DayPicker
+      data-slot="calendar"
+      data-material={m?.["data-material"]}
       showOutsideDays={showOutsideDays}
       className={cn(
         m?.className,
@@ -123,26 +125,9 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
-          return <div data-slot="calendar" data-material={m?.["data-material"]} ref={rootRef} className={cn(className)} {...props} />;
-        },
-        Chevron: ({ className, orientation, ...props }) => {
-          if (orientation === "left") {
-            return <CaretLeftIcon className={cn("size-4", className)} {...props} />;
-          }
-          if (orientation === "right") {
-            return <CaretRightIcon className={cn("size-4", className)} {...props} />;
-          }
-          return <CaretDownIcon className={cn("size-4", className)} {...props} />;
-        },
-        DayButton: ({ ...props }) => <CalendarDayButton locale={locale} {...props} />,
-        WeekNumber: ({ children, ...props }) => {
-          return (
-            <td {...props}>
-              <div className="flex size-(--cell-size) items-center justify-center text-center">{children}</div>
-            </td>
-          );
-        },
+        Chevron: CalendarChevron,
+        DayButton: CalendarDayButton,
+        WeekNumber: CalendarWeekNumber,
         ...components,
       }}
       {...rest}
@@ -150,6 +135,21 @@ function Calendar({
   );
 }
 Calendar.displayName = "Calendar";
+
+// Stable component identities preserve the focused day when a controlled selection rerenders.
+function CalendarChevron({ className, orientation, disabled: _disabled, ...props }: React.ComponentProps<typeof Chevron>) {
+  if (orientation === "left") return <CaretLeftIcon className={cn("size-4", className)} {...props} />;
+  if (orientation === "right") return <CaretRightIcon className={cn("size-4", className)} {...props} />;
+  return <CaretDownIcon className={cn("size-4", className)} {...props} />;
+}
+
+function CalendarWeekNumber({ children, week: _week, ...props }: React.ComponentProps<typeof WeekNumber>) {
+  return (
+    <td {...props}>
+      <div className="flex size-(--cell-size) items-center justify-center text-center">{children}</div>
+    </td>
+  );
+}
 
 function CalendarDayButton({
   className,
@@ -161,6 +161,8 @@ function CalendarDayButton({
   locale?: Partial<Locale>;
 }) {
   const defaultClassNames = getDefaultClassNames();
+  const { dayPickerProps } = useDayPicker();
+  const resolvedLocale = locale ?? dayPickerProps.locale;
 
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
@@ -174,7 +176,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString(locale?.code)}
+      data-day={day.date.toLocaleDateString(resolvedLocale?.code)}
       data-selected-single={modifiers.selected && !modifiers.range_start && !modifiers.range_end && !modifiers.range_middle}
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}

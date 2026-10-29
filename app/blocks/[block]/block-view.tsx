@@ -3,10 +3,10 @@
 import { ArrowLeft, Check, Copy } from "@phosphor-icons/react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { blocks, REGISTRY_NAMES } from "./blocks";
 
 /**
@@ -19,13 +19,9 @@ import { blocks, REGISTRY_NAMES } from "./blocks";
  * serialisable as a prop.
  */
 function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = React.useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const { copied: copiedText, copy } = useCopyToClipboard();
+  const copied = copiedText === code;
+  const copyToClipboard = () => copy(code);
 
   return (
     <div className="relative">
@@ -36,6 +32,7 @@ function CodeBlock({ code }: { code: string }) {
         variant="ghost"
         size="icon"
         className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
+        aria-label={copied ? "Code copied" : "Copy code"}
         onClick={copyToClipboard}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

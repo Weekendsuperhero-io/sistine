@@ -70,6 +70,28 @@
   --muted-foreground: var(--muted-foreground-crystal);
 }
 
+/* Lustre — the pricing-card polish, baked into the background for sticky/fixed surfaces too. */
+[data-material="lustre"] {
+  --srf-solidify: initial;
+  --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-bg-color: transparent;
+  --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
+  --srf-border-color: var(--glass-lustre-border);
+  --srf-border-w: var(--brd-w, 1px);
+  --srf-shadow: var(--glass-lustre-shadow);
+  transition: box-shadow 0.2s ease-out;
+}
+[data-material="lustre"]:hover {
+  --srf-shadow: var(--glass-lustre-shadow-hover);
+}
+[data-material="lustre"]:not(.glass-veil, [data-surface="veil"]) {
+  --foreground: var(--foreground-lustre);
+  --foreground-soft: var(--foreground-soft-lustre);
+  --foreground-strong: var(--foreground-strong-lustre);
+  --foreground-ui: var(--foreground-ui-lustre);
+  --muted-foreground: var(--muted-foreground-lustre);
+}
+
 /* Chakra — the step-cut gem: a translucent tinted body with a two-step facet frame on all four edges,
    sitting between crystal (near-clear) and opaque (solid). Like crystal it bakes everything into the
    background stack and the shadow — no pseudo-elements, so it is safe on sticky/fixed surfaces, and it
@@ -107,10 +129,11 @@
   --muted-foreground: var(--muted-foreground-chakra);
 }
 
-/* Opaque — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
+/* Lucite — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
    ancestor: it's composed HERE, on the element, so it resolves where it's read. The floor can be
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
    bands against that floor (inherits into the card's content). */
+[data-material="lucite"],
 [data-material="opaque"] {
   /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
      background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for

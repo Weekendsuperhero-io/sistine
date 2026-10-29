@@ -12,7 +12,7 @@
  */
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { useBackdropTint } from "@/lib/canvas-background-utils";
+import { backdropPalette, backdropReadableBand, useBackdropTint } from "@/lib/canvas-background-utils";
 
 const root = () => document.documentElement;
 
@@ -32,6 +32,70 @@ afterEach(() => {
 });
 
 describe("useBackdropTint hue resolution", () => {
+  it("keeps the day backdrop while Onyx is selected and the page stays light", async () => {
+    root().classList.remove("dark");
+    setTheme(
+      {
+        "--glass-tint-h": "250",
+        "--glass-tint-c": "0",
+      },
+      "onyx",
+    );
+    const { result } = renderHook(() => useBackdropTint());
+    await waitFor(() => expect(result.current.dark).toBe(false));
+    root().classList.add("dark");
+    await waitFor(() => expect(result.current.dark).toBe(true));
+    root().classList.remove("dark");
+  });
+  it("gives Onyx the same day and night backdrop as every other tint", () => {
+    expect(
+      backdropPalette({
+        hue: 250,
+        dark: false,
+        preset: "onyx",
+      }).base,
+    ).toEqual({
+      l: 72,
+      c: 0.15,
+      h: 250,
+    });
+    expect(
+      backdropPalette({
+        hue: 250,
+        dark: true,
+        preset: "onyx",
+      }).base,
+    ).toEqual({
+      l: 52,
+      c: 0.15,
+      h: 250,
+    });
+    expect(
+      backdropPalette(
+        {
+          hue: 250,
+          dark: true,
+          preset: "onyx",
+        },
+        75,
+      ).base,
+    ).toEqual({
+      l: 52,
+      c: 0.15,
+      h: 75,
+    });
+  });
+  it("bands an Onyx day backdrop to the light side even though its text stays light", () => {
+    const base = backdropPalette({
+      hue: 250,
+      dark: false,
+      preset: "onyx",
+    }).base;
+    const day = backdropReadableBand("oklch(0.94 0 0)", false, base);
+    const night = backdropReadableBand("oklch(0.94 0 0)", true, base);
+    expect(day?.lMin).toBeGreaterThan(50);
+    expect(night?.lMax).toBeLessThan(day?.lMin ?? 0);
+  });
   it("keeps a jewel's own hue", async () => {
     setTheme({
       "--glass-tint-h": "255",

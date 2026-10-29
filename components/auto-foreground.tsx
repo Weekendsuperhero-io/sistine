@@ -197,16 +197,17 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const dbg = fgDebug();
       const t0 = dbg ? performance.now() : 0;
       const dark = root.classList.contains("dark");
+      const onyx = root.dataset.glassTint === "onyx";
       const storedFg = readFgConfig();
       const storedRamp = readRampConfig();
       const palette = paletteProp ?? storedFg.palette;
       const count = rcount ?? storedRamp.count;
       // A snapshot from the switcher (the drag hot path) lets us skip getComputedStyle — the read-after-write
       // forced reflow measured at 7–22ms. Fall back to the DOM for mount / mode toggle / frescoes (no snapshot).
-      const cs = inputs ? null : getComputedStyle(root);
+      const cs = inputs && !onyx ? null : getComputedStyle(root);
       const fgBefore = dbg ? (cs ? cs.getPropertyValue("--foreground").trim() : root.style.getPropertyValue("--foreground").trim()) : "";
       const num = (name: string, fb: number) => {
-        const v = inputs ? inputs[name] : cs ? Number.parseFloat(cs.getPropertyValue(name)) : Number.NaN;
+        const v = cs ? Number.parseFloat(cs.getPropertyValue(name)) : inputs?.[name];
         return v == null || Number.isNaN(v) ? fb : v;
       };
       /* A fresco's multi-hue sheet, if one is active (--glass-crystal-fresco is unset on every other preset).
@@ -338,6 +339,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         washL,
         washCMult,
         solidifyFloor,
+        num("--glass-solid-l", dark ? 18 : 99),
       );
       /* TEXT FOLLOWS THE SURFACE'S HUE, NOT THE TINT TOKEN'S. --glass-tint-h is what the WASH declares;
          what a reader sees is the wash composited over the solid/solidify floor, and that mix does not
@@ -491,7 +493,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // Normal surface: the veiled floor body text sits on (page + translucent/veiled cards), with the
       // show-through margin lifting each band target as the floor gets sheerer. Derived above the ramp
       // (see normalSurface) because the ramp's hue is read off it.
-      applyTiers(normalSurface, "", false, normalLcBoost);
+      applyTiers(normalSurface, "", onyx, normalLcBoost);
       /* Opaque cards paint --glass-opaque-bg (under the wash), so band a second set against THAT — derived here from
          --glass-opaque-l / -c-max rather than reused from solidifyFloor. Those two used to be the same
          colour, and this call read `solidifyFloor` on exactly that basis; they are separate surfaces now
@@ -568,6 +570,43 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
           true,
           LC_MARGIN * uCrystal,
         );
+      }
+      // Lustre's dense body paints above the backing, then the day-mode pigment and the specular.
+      {
+        const bodyA = num("--glass-lustre-a", 0.8);
+        const washA = tintA * num("--glass-lustre-wash-strength", dark ? 0 : 1);
+        const white = root.dataset.gloss === "white";
+        const hue = root.dataset.gloss === "hue";
+        const glossA = hue ? 0.2 : 0.21; // mean of the top highlight across the title zone
+        const surface = compositeSurface(
+          {
+            l: dark ? 20 : 95,
+            c: 0,
+            h: tintH,
+          },
+          [
+            solidifyLayer,
+            {
+              l: num("--glass-lustre-l", dark ? 22 : 93),
+              c: Math.min(tintC * 1.4, num("--glass-lustre-c-max", dark ? 0.035 : 0.025)),
+              h: tintH,
+              a: bodyA,
+            },
+            {
+              l: washL,
+              c: tintC * washCMult,
+              h: tintH,
+              a: washA,
+            },
+            {
+              l: white ? 100 : hue ? num("--glass-gloss-l", 74) : num("--glass-lustre-gloss-l", dark ? 68 : 97),
+              c: white ? 0 : hue ? num("--glass-gloss-c", 0.12) : Math.min(tintC * 4.5, num("--glass-lustre-gloss-c-max", dark ? 0.1 : 0.013)),
+              h: tintH,
+              a: glossA,
+            },
+          ],
+        );
+        applyTiers(surface, "-lustre", true, LC_MARGIN * (1 - bodyA) * (1 - washA) * (1 - glossA) * (1 - glassOpacity));
       }
       // Chakra cards: content sits on the translucent body, banded against the whole stack it paints.
       // The facet bands need no term — they live in box-shadow, ride the outer few px of the edge, and
@@ -654,7 +693,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     ];
     const observer = new MutationObserver((muts) => {
       for (const m of muts) {
-        if (m.attributeName === "class") {
+        if (m.attributeName === "class" || m.attributeName === "data-gloss" || m.attributeName === "data-glass-tint") {
           update();
           return;
         }
@@ -674,6 +713,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       attributeFilter: [
         "class",
         "style",
+        "data-gloss",
+        "data-glass-tint",
       ],
     });
     const onFg = (e: Event) => update((e as CustomEvent<Record<string, number>>).detail ?? undefined);

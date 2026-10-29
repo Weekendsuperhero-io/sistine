@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const initialEvents = [
   {
@@ -14,28 +15,45 @@ const initialEvents = [
     title: "Team Meeting",
     time: "10:00 AM",
     location: "Conference Room A",
-    date: new Date(),
   },
   {
     id: 2,
     title: "Client Call",
     time: "2:00 PM",
     location: "Zoom",
-    date: new Date(),
   },
   {
     id: 3,
     title: "Project Review",
     time: "4:00 PM",
     location: "Office",
-    date: new Date(),
   },
 ];
 
 export function CalendarBlock() {
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  const [events, setEvents] = React.useState(initialEvents);
+  const [ready, setReady] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
+  const [events, setEvents] = React.useState<
+    Array<
+      (typeof initialEvents)[number] & {
+        date: Date;
+      }
+    >
+  >([]);
   const nextId = React.useRef(initialEvents.length + 1);
+
+  // Static exports can be served months after build time; seed the calendar from the visitor's day.
+  React.useEffect(() => {
+    const today = new Date();
+    setSelectedDate(today);
+    setEvents(
+      initialEvents.map((event) => ({
+        ...event,
+        date: today,
+      })),
+    );
+    setReady(true);
+  }, []);
 
   const isSameDay = (a?: Date, b?: Date) => !!a && !!b && a.toDateString() === b.toDateString();
   const dayEvents = events.filter((event) => isSameDay(event.date, selectedDate));
@@ -63,7 +81,7 @@ export function CalendarBlock() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-foreground">Calendar</h2>
@@ -80,8 +98,12 @@ export function CalendarBlock() {
             <CardTitle className="text-foreground">Calendar View</CardTitle>
             <CardDescription className="text-muted-foreground">Select a date to view events</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} className="rounded-md border" />
+          <CardContent className="px-0 sm:px-6">
+            {ready ? (
+              <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} className="mx-auto rounded-md border p-1 sm:p-4" />
+            ) : (
+              <Skeleton className="h-80 w-full max-w-72" aria-label="Loading calendar" />
+            )}
           </CardContent>
         </Card>
 

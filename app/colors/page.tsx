@@ -2,6 +2,7 @@ import { CrystalGlossDemo } from "@/components/crystal-gloss-demo";
 import { ForegroundTester } from "@/components/foreground-tester";
 import { GradientSchemesDemo } from "@/components/gradient-schemes-demo";
 import { HarmonicSwatchesDemo } from "@/components/harmonic-swatches-demo";
+import { LustreComparisonDemo } from "@/components/lustre-comparison-demo";
 import { OklchRampDemo } from "@/components/oklch-ramp-demo";
 
 export const metadata = {
@@ -16,6 +17,7 @@ export default function ColorsPage() {
       <GradientSchemesDemo />
       <HarmonicSwatchesDemo />
       <CrystalGlossDemo />
+      <LustreComparisonDemo />
       {/* No glass card wrapper on purpose: the preview panel must sit DIRECTLY on the page background
           (one glass-solid card on the canvas) so its modeled Lc matches what ships — not a card
           blurring another card. */}

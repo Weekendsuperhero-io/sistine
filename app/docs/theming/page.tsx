@@ -41,10 +41,10 @@ export default function ThemingPage() {
           <CardContent className="space-y-4">
             <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
               <li>
-                <strong>Material</strong> (the substance): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>chakra</IC> · <IC>opaque</IC>.
-                Set it with the <IC>material</IC> prop, or leave it off for <strong>adaptive</strong> glass, the default, which follows the
-                page&apos;s <IC>data-glass</IC> style. Crystal has three <strong>flavors</strong>: <IC>data-gloss</IC> white / tonal / hue (see
-                below).
+                <strong>Material</strong> (the substance): <IC>glass</IC> · <IC>frosted</IC> · <IC>crystal</IC> · <IC>lustre</IC> · <IC>chakra</IC> ·{" "}
+                <IC>lucite</IC>. Set it with the <IC>material</IC> prop, or leave it off for <strong>adaptive</strong> glass, the default, which
+                follows the page&apos;s <IC>data-glass</IC> style. Crystal has three <strong>flavors</strong>: <IC>data-gloss</IC> white / tonal / hue
+                (see below).
               </li>
               <li>
                 <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC> (and its colour, <IC>borderColor</IC>),{" "}
@@ -52,7 +52,7 @@ export default function ThemingPage() {
                 <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
-            <p className="text-muted-foreground">The five materials. Pin one with the prop, or on a raw element with the attribute:</p>
+            <p className="text-muted-foreground">The six materials. Pin one with the prop, or on a raw element with the attribute:</p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
                 <thead>
@@ -90,15 +90,21 @@ export default function ThemingPage() {
                       "bright specular gloss",
                     ],
                     [
+                      "lustre",
+                      'material="lustre"',
+                      'data-material="lustre"',
+                      "polished tinted body, diagonal reflection, and a soft halo; deep in dark mode, pale in light",
+                    ],
+                    [
                       "chakra",
                       'material="chakra"',
                       'data-material="chakra"',
                       "step-cut gem: all four edges faceted",
                     ],
                     [
-                      "opaque",
-                      'material="opaque"',
-                      'data-material="opaque"',
+                      "lucite",
+                      'material="lucite"',
+                      'data-material="lucite"',
                       "fully solid, no see-through: the same tint (and a fresco's sweep) as the glass beside it, at full opacity",
                     ],
                   ].map(([m, prop, attr, look]) => (
@@ -221,8 +227,12 @@ export default function ThemingPage() {
             <div>
               <h3 className="mb-2 font-semibold">Presets</h3>
               <p className="mb-2 text-muted-foreground">
-                <strong>Jewels</strong> (single hue): selenite, rose, goldstone, carnelian, amber, moonstone, peridot, aventurine, turquoise,
+                <strong>Jewels</strong> (single hue): selenite, onyx, rose, goldstone, carnelian, amber, moonstone, peridot, aventurine, turquoise,
                 aquamarine, sapphire, lapis, amethyst, tourmaline.
+              </p>
+              <p className="mb-2 text-muted-foreground">
+                <strong>Onyx</strong> keeps every material near-black with light text in both page modes. Set <IC>data-glass-tint="onyx"</IC> on the
+                page or a panel; pair it with <IC>material="lustre"</IC> for a polished silver reflection.
               </p>
               <p className="mb-2 text-muted-foreground">
                 <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
@@ -255,7 +265,7 @@ export default function ThemingPage() {
             <CardTitle className="text-foreground">
               Glass material: the <IC>material</IC> prop &amp; <IC>data-glass</IC>
             </CardTitle>
-            <CardDescription className="text-muted-foreground">Switch the material: glass, frosted, crystal, chakra, opaque.</CardDescription>
+            <CardDescription className="text-muted-foreground">Switch the material: glass, frosted, crystal, lustre, chakra, lucite.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
@@ -288,7 +298,7 @@ export default function ThemingPage() {
               Crystal&apos;s shine has three flavors, set with <IC>data-gloss</IC> on <IC>&lt;html&gt;</IC> or on any element below it (default /
               unset = <IC>tonal</IC>). A scoped flavor recomposes the gloss for its own subtree, in the page&apos;s tint, and a nested{" "}
               <IC>data-glass-tint</IC> keeps the flavor it inherits. It composes with <IC>material=&quot;crystal&quot;</IC>,{" "}
-              <IC>material=&quot;chakra&quot;</IC> and the <IC>data-glass=&quot;crystal&quot;</IC> page style:
+              <IC>material=&quot;chakra&quot;</IC>, <IC>material=&quot;lustre&quot;</IC> and their page styles:
             </p>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-sm">
@@ -416,7 +426,7 @@ export default function ThemingPage() {
                 <IC>glass-veil</IC>: a mostly-opaque, legible floor for read-through overlays (menus / tooltips).
               </li>
               <li>
-                <IC>material=&quot;opaque&quot;</IC> (or <IC>data-material=&quot;opaque&quot;</IC>): fully solid, no see-through.
+                <IC>material=&quot;lucite&quot;</IC> (or <IC>data-material=&quot;lucite&quot;</IC>): fully solid, no see-through.
               </li>
             </ul>
             <p className="text-muted-foreground">
@@ -426,9 +436,9 @@ export default function ThemingPage() {
             <Code>{`<div className="glass glass-border glass-veil rounded-xl p-4">Legible overlay</div>`}</Code>
             <p className="text-muted-foreground">
               Wearing the material through <IC>@apply</IC> instead of the class? The page styles find surfaces by the <IC>glass</IC> class for the
-              parts they apply per element (the crystal and chakra text tiers, the opaque page&apos;s edge and text tier), and an <IC>@apply</IC>{" "}
+              parts they apply per element (the crystal and chakra text tiers, the Lucite page&apos;s edge and text tier), and an <IC>@apply</IC>{" "}
               leaves no class behind. Mark the element with <IC>data-surface</IC>, or <IC>data-surface=&quot;veil&quot;</IC> when it also applies{" "}
-              <IC>glass-veil</IC>. Everything else (the stacks, the blur, the solid floor the opaque page swaps in) is inherited and needs no marker.
+              <IC>glass-veil</IC>. Everything else (the stacks, the blur, the solid floor the Lucite page swaps in) is inherited and needs no marker.
             </p>
             <Code>{`.selection-pill { @apply glass glass-border; }
 .menu-panel     { @apply glass glass-border glass-veil; }
@@ -752,9 +762,9 @@ const onAccent = useReadableForeground(accent, "large");
                 harmonic accents together. <IC>0</IC> = neutral.
               </li>
               <li>
-                <IC>--glass-opaque-l</IC>: the opaque card's <strong>floor lightness</strong> (OKLCH L); lower = a deeper tint. The card is this floor
+                <IC>--glass-opaque-l</IC>: the Lucite card's <strong>floor lightness</strong> (OKLCH L); lower = a deeper tint. The card is this floor
                 under the same tint wash every material carries, so it reads as the glass stack at full opacity. Mode-aware default (93 light / 33.4
-                dark), and the surface AutoForeground bands opaque-card text against.
+                dark), and the surface AutoForeground bands Lucite-card text against.
               </li>
               <li>
                 <IC>--glass-opacity</IC>: <strong>solidity floor</strong> for any glass element: <IC>0</IC> = the material&apos;s natural sheer glass,{" "}
@@ -802,7 +812,7 @@ const onAccent = useReadableForeground(accent, "large");
             <p className="text-muted-foreground">
               <IC>veil</IC> is the default readability contract: an alpha floor under the text, free of any blur cost, and how menus, tooltips, and
               toasts ship. <IC>diffuse</IC> is the opt-in blur floor (≥ <IC>--glass-diffuse</IC>, 12px) for text-dense surfaces that must stay
-              translucent: crystal keeps its 2px identity until a surface opts in, and opaque ignores it. <IC>diffuse=&quot;stained&quot;</IC> is the
+              translucent: crystal keeps its 2px identity until a surface opts in, and Lucite ignores it. <IC>diffuse=&quot;stained&quot;</IC> is the
               dyed mode: the backdrop collapses to pure luminance, and the glass&apos;s own tint supplies all the color.
             </p>
             <p className="text-muted-foreground">Drag the floor: the veiled card holds while plain glass rides the backdrop:</p>

@@ -475,7 +475,7 @@ const SKY_STYLES = `
 
 // Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
 // each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
-// --sw-* custom property: day values sit on [data-pattern="…"], night values on `.dark [data-pattern="…"]`
+// --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
 // (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
 // rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
 // (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the

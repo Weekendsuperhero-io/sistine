@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-export function SignupBlock() {
+export function SignupBlock({ signInHref = "/blocks/authentication" }: { signInHref?: string } = {}) {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <Card className="w-full max-w-md text-foreground">
@@ -73,8 +73,8 @@ export function SignupBlock() {
           </div>
           <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Button variant="link" className="text-foreground p-0 h-auto">
-              Sign in
+            <Button variant="link" className="text-foreground p-0 h-auto" asChild>
+              <a href={signInHref}>Sign in</a>
             </Button>
           </div>
         </CardContent>

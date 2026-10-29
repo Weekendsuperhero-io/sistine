@@ -70,7 +70,7 @@ export function DashboardBlock() {
             <CardDescription className="text-muted-foreground">Latest transactions and events</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table scrollX>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-foreground">User</TableHead>

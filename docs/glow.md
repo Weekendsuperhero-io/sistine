@@ -26,7 +26,7 @@ Each material swaps the surface shadow by setting a **token** (`--srf-shadow`) t
 [data-material="crystal"] { --srf-shadow: var(--glass-crystal-shadow); }
 ```
 
-A plain `shadow-lg shadow-(color:--glass-glow)` glow would be **replaced** the moment a material swaps that shadow, so it wouldn't survive frosted / crystal / opaque. Folding `--glow-layer` into the single `box-shadow` the `glass` utility composes means the glow rides **alongside** whatever shadow the material set, and survives every material:
+A plain `shadow-lg shadow-(color:--glass-glow)` glow would be **replaced** the moment a material swaps that shadow, so it wouldn't survive frosted / crystal / Lucite. Folding `--glow-layer` into the single `box-shadow` the `glass` utility composes means the glow rides **alongside** whatever shadow the material set, and survives every material:
 
 ```css
 /* @utility glass */

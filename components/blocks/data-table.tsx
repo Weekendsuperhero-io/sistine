@@ -260,6 +260,7 @@ export function DataTableBlock() {
       <div className="relative max-w-sm">
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
+          aria-label="Filter members by name"
           placeholder="Filter by name…"
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
@@ -267,7 +268,7 @@ export function DataTableBlock() {
         />
       </div>
 
-      <Table>
+      <Table scrollX>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -298,7 +299,7 @@ export function DataTableBlock() {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()} · {table.getFilteredRowModel().rows.length} members
+          Page {table.state.pagination.pageIndex + 1} of {Math.max(1, table.getPageCount())} · {table.getFilteredRowModel().rows.length} members
         </p>
         <div className="flex gap-2">
           <Button size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>

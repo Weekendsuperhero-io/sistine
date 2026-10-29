@@ -2,13 +2,13 @@
 
 import { BookOpen, Check, Copy } from "@phosphor-icons/react";
 import { notFound } from "next/navigation";
-import * as React from "react";
 import { ComponentPreview } from "@/components/component-preview";
 import { InstallationInstructions } from "@/components/installation-instructions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { getComponentExampleCode } from "@/lib/component-examples";
 import { getComponent } from "@/lib/registry";
 import { getStorybookUrl } from "@/lib/storybook-url";
@@ -22,13 +22,9 @@ import { getStorybookUrl } from "@/lib/storybook-url";
  * to cross the server/client boundary.
  */
 function CodeBlock({ code }: { code: string }) {
-  const [copied, setCopied] = React.useState(false);
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const { copied: copiedText, copy } = useCopyToClipboard();
+  const copied = copiedText === code;
+  const copyToClipboard = () => copy(code);
 
   return (
     <div className="relative">
@@ -39,6 +35,7 @@ function CodeBlock({ code }: { code: string }) {
         variant="ghost"
         size="icon"
         className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground"
+        aria-label={copied ? "Code copied" : "Copy code"}
         onClick={copyToClipboard}
       >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

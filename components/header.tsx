@@ -13,7 +13,7 @@ import { ReadableText } from "@/components/readable-text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 const navigation = [
@@ -36,6 +36,10 @@ const navigation = [
   {
     name: "Colors",
     href: "/colors",
+  },
+  {
+    name: "Compare",
+    href: "/comparison",
   },
 ];
 
@@ -67,8 +71,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-transparent">
       <div className="container mx-auto px-4 pt-4">
-        <div className="glass glass-border flex h-16 items-center justify-between px-4 md:px-6 rounded-xl">
-          <div className="flex items-center gap-4 md:gap-8">
+        <div className="glass glass-border grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-3 sm:px-4 2xl:grid-cols-[auto_minmax(0,1fr)_auto] 2xl:gap-x-6">
+          <div className="flex min-h-16 min-w-0 items-center gap-4 xl:gap-6">
             <Link href="/" className="flex items-center gap-2">
               {mounted && (
                 <Image
@@ -86,7 +90,7 @@ export function Header() {
                 Sistine
               </ReadableText>
             </Link>
-            <nav className="hidden md:flex items-center gap-6">
+            <nav className="hidden xl:flex items-center gap-4">
               {navigation.map((item) => (
                 <Link
                   key={item.href}
@@ -100,17 +104,14 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            {/* Left-anchored (not in the right, justify-between cluster) so its sub-controls grow RIGHT into
-                the center gap as it widens — even the wide gradient control row — instead of pushing left. */}
-            <BackgroundSwitcher />
           </div>
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex min-h-16 items-center gap-1 sm:gap-2 2xl:col-start-3">
             {starCount !== null && (
               <Link
                 href="https://github.com/Weekendsuperhero-io/sistine"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:flex items-center"
+                className="hidden lg:flex items-center"
               >
                 <Badge className="flex items-center gap-1.5 h-9 px-3">
                   <GithubLogoIcon className="h-4 w-4" />
@@ -123,11 +124,15 @@ export function Header() {
             <ModeToggle />
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-9 w-9" aria-label="Toggle menu">
+                <Button variant="ghost" size="icon" className="xl:hidden" aria-label="Toggle menu">
                   <ListIcon className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Navigation</SheetTitle>
+                  <SheetDescription>Browse the Sistine demo site.</SheetDescription>
+                </SheetHeader>
                 <div className="flex flex-col gap-6 mt-8">
                   <div className="flex items-center gap-2 pb-4 border-b border-border">
                     {mounted && (
@@ -175,6 +180,9 @@ export function Header() {
                 </div>
               </SheetContent>
             </Sheet>
+          </div>
+          <div className="col-span-2 min-w-0 overflow-x-auto border-t border-border py-2 2xl:col-span-1 2xl:col-start-2 2xl:row-start-1 2xl:border-0 2xl:py-0">
+            <BackgroundSwitcher />
           </div>
         </div>
       </div>
