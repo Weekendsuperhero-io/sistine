@@ -12,6 +12,12 @@ beforeEach(() =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe("Carousel changing content", () => {
+  it("renders nothing when it has no slides", () => {
+    const view = render(<Carousel autoPlay />);
+    expect(view.container.querySelector('[data-slot="carousel"]')).toBeNull();
+    expect(view.container.innerHTML).not.toContain("NaN");
+  });
+
   it("keeps a remaining slide visible when the active slide is removed", () => {
     const view = render(
       <Carousel>

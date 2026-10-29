@@ -5,7 +5,7 @@ A glassmorphic component library built on filtered light: colour cast through ti
 ![Sistine](https://img.shields.io/badge/Sistine-v0.1.0-blue)
 ![Next.js](https://img.shields.io/badge/Next.js-16.0-black)
 ![React](https://img.shields.io/badge/React-19.1-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-7.0-blue)
 
 ## ✨ Features
 

@@ -67,7 +67,7 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
       if (!playing) return;
 
       const timer = setInterval(() => {
-        setCurrentIndex((prev) => (Math.min(prev, totalItems - 1) + 1) % totalItems);
+        setCurrentIndex((prev) => (totalItems === 0 ? prev : (Math.min(prev, totalItems - 1) + 1) % totalItems));
       }, interval);
 
       return () => clearInterval(timer);
@@ -82,10 +82,12 @@ const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     };
 
     const goToPrevious = () => {
+      if (totalItems === 0) return;
       setCurrentIndex((prev) => (Math.min(prev, totalItems - 1) - 1 + totalItems) % totalItems);
     };
 
     const goToNext = () => {
+      if (totalItems === 0) return;
       setCurrentIndex((prev) => (Math.min(prev, totalItems - 1) + 1) % totalItems);
     };
 

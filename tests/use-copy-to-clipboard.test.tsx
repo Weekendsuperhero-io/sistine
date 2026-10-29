@@ -44,6 +44,20 @@ describe("Clipboard feedback", () => {
     expect(error).not.toHaveBeenCalled();
   });
 
+  it("records a control key separately from the copied text", async () => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+    const { result } = renderHook(useCopyToClipboard);
+    await act(async () => {
+      expect(await result.current.copy("bunx shadcn@latest add @sistine/button", "bun")).toBe(true);
+    });
+    expect(result.current.copied).toBe("bun");
+  });
+
   it("reports rejected clipboard writes without claiming success or leaking a rejection", async () => {
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
