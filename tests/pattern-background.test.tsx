@@ -71,7 +71,7 @@ describe("stopRules", () => {
  * not having effects.
  */
 describe("PatternBackground data-pat-static", () => {
-  it("uses the night palette for Onyx even when the page mode is light", () => {
+  it("uses the day palette for Onyx while the page is light, and the night palette in dark mode", () => {
     const root = document.documentElement;
     const previousClass = root.className;
     const previousTint = root.getAttribute("data-glass-tint");
@@ -82,9 +82,10 @@ describe("PatternBackground data-pat-static", () => {
       host.innerHTML = renderToStaticMarkup(<PatternBackground style="moonrise" speed={0} />);
       document.body.append(host);
       const scene = host.querySelector('[data-pattern="moonrise"]')!;
-      expect(getComputedStyle(scene).getPropertyValue("--sw-stars-o").trim()).toBe("1");
-      delete root.dataset.glassTint;
-      expect(getComputedStyle(scene).getPropertyValue("--sw-stars-o").trim()).toBe("0");
+      const stars = () => getComputedStyle(scene).getPropertyValue("--sw-stars-o").trim();
+      expect(stars()).toBe("0");
+      root.classList.add("dark");
+      expect(stars()).toBe("1");
     } finally {
       host.remove();
       root.className = previousClass;

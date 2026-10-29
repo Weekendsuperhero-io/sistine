@@ -1,8 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { backdropPalette, type CanvasRamp, type CanvasStyle, createCanvas, useBackdropTint } from "@/lib/canvas-background-utils";
-import { readableLightnessBand } from "@/lib/oklch-utils";
+import {
+  backdropPalette,
+  backdropReadableBand,
+  type CanvasRamp,
+  type CanvasStyle,
+  createCanvas,
+  useBackdropTint,
+} from "@/lib/canvas-background-utils";
 
 interface CanvasBackgroundProps {
   /** Canvas style: gradient | lava | circle. */
@@ -89,7 +95,7 @@ export function CanvasBackground({
       ramp,
       steps,
       // Same readable band the CSS gradient backdrop uses, so switching backgrounds keeps text legible.
-      band: tint.fg ? readableLightnessBand(tint.fg, base) : undefined,
+      band: backdropReadableBand(tint.fg, tint.dark, base),
       angle,
       speed,
       p3: tint.p3,

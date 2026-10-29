@@ -15,7 +15,7 @@
  */
 
 import * as React from "react";
-import { fitToBand, formatOklch, type OklchColor, parseOklch, type RampGradientAxis, rampAxisColors } from "./oklch-utils";
+import { fitToBand, formatOklch, type OklchColor, parseOklch, type RampGradientAxis, rampAxisColors, readableLightnessBand } from "./oklch-utils";
 
 export type CanvasStyle = "gradient" | "lava" | "circle";
 /** Ramp axis the canvas colors follow. `lightness` is the "linear" ramp. */
@@ -98,7 +98,7 @@ export function useBackdropTint() {
       const v = Number.isFinite(acc) ? acc : hueless ? NEUTRAL_CANVAS_HUE : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const next = {
         hue: Number.isFinite(v) ? v : NEUTRAL_CANVAS_HUE,
-        dark: root.classList.contains("dark") || root.dataset.glassTint === "onyx",
+        dark: root.classList.contains("dark"),
         p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
         preset: root.dataset.glassTint,
         /* The live solved foreground — backdrops band their lightness against it so text stays
@@ -134,18 +134,36 @@ export function backdropPalette(
   },
   hue?: number,
 ) {
-  // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light.
-  const onyx = tint.preset === "onyx" && hue == null;
-  const l = onyx ? 18 : tint.dark ? 52 : 72;
+  // Center lightness tracks the page mode. Onyx does not get its own backdrop: its materials stay
+  // near-black, and the wallpaper behind them follows day and night like every other tint.
+  const l = tint.dark ? 52 : 72;
   const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
   return {
     base: {
       l,
-      c: onyx ? 0 : 0.15,
+      c: 0.15,
       h: hue ?? tint.hue,
     } as OklchColor,
     frescoColors: frescoHues?.map((h) => `oklch(${l}% 0.15 ${h})`),
   };
+}
+
+/** The wallpaper's readability band follows the page mode. Onyx keeps light text in day mode, and
+ *  banding the backdrop against that text would paint the night wallpaper behind it. */
+export function backdropReadableBand(
+  fg: string | undefined,
+  dark: boolean,
+  base: OklchColor,
+):
+  | {
+      lMin: number;
+      lMax: number;
+    }
+  | undefined {
+  if (!fg) return undefined;
+  const text = parseOklch(fg);
+  const standIn = !dark && text && text.l >= 50 ? "oklch(0.2 0 0)" : fg;
+  return readableLightnessBand(standIn, base);
 }
 
 export interface CanvasConfig {

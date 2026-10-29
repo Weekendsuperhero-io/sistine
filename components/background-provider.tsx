@@ -320,7 +320,7 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
       // default, overridable by the user's chosen base color.
       return (
         <>
-          <style>{`[data-bg-none]{background:oklch(0.98 0.006 var(--glass-tint-h))}.dark [data-bg-none]{background:oklch(0.15 0.014 var(--glass-tint-h))}[data-glass-tint="onyx"] [data-bg-none]{background:oklch(0.12 0 0)}`}</style>
+          <style>{`[data-bg-none]{background:oklch(0.98 0.006 var(--glass-tint-h))}.dark [data-bg-none]{background:oklch(0.15 0.014 var(--glass-tint-h))}`}</style>
           <div
             className="fixed inset-0 -z-10 glass-backdrop-layer transition-[background-color] duration-500"
             data-bg-none=""

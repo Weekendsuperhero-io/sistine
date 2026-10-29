@@ -475,7 +475,7 @@ const SKY_STYLES = `
 
 // Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
 // each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
-// --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark or Onyx
+// --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
 // (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
 // rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
 // (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the
@@ -510,7 +510,7 @@ const SYNTHWAVE_STYLES = `
   --sw-disc-glow: oklch(0.7 0.19 20 / 0.35);
   --sw-stars-o: 0; /* stars hidden by day (also gates the Muse constellation) */
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="synthwave"] {
+.dark [data-pattern="synthwave"] {
   /* NIGHT — the original neon scene, verbatim */
   --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-line-h)));
   --sw-sky-a: oklch(0.12 0.085 285);
@@ -551,7 +551,7 @@ const SYNTHWAVE_STYLES = `
   --sw-disc-glow: oklch(0.85 0.05 280 / 0.35);
   --sw-stars-o: 0;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="moonrise"] {
+.dark [data-pattern="moonrise"] {
   /* NIGHT — the original midnight scene, verbatim */
   --sw-line: oklch(0.72 0.16 var(--accent-h, var(--sw-line-h)));
   --sw-sky-a: oklch(0.09 0.05 265);
@@ -722,7 +722,7 @@ const CLOUDS_STYLES = `
   --sw-disc-glow: oklch(0.82 0.16 var(--sun-h) / 0.4);
   --sw-stars-o: 0;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="clouds"] {
+.dark [data-pattern="clouds"] {
   /* NIGHT — a moonlit slate deck under deep navy, and the moon comes forward */
   /* The same theme cast as the day sky (--sw-cast, from the tint's chroma): the night sky ignored the tint
      entirely, the one horizon scene that looked the same in every theme after dark. */
@@ -1003,7 +1003,7 @@ const DUNE_STYLES = `
   --sw-disc-glow: oklch(0.8 0.17 var(--sun-h) / 0.45);
   --sw-stars-o: 0;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="dune"] {
+.dark [data-pattern="dune"] {
   /* NIGHT — cool indigo dunes under a warm desert moon, on the same aerial-perspective ladder: the
      farthest ridge sits at the horizon sky's value and the near ones fall away to near-black. */
   --du-sky-a: oklch(0.09 0.04 270);
@@ -1599,7 +1599,7 @@ const AURORA_STYLES = `
   --sw-disc-glow: oklch(0.8 0.17 var(--au-h) / 0.4);
   --sw-stars-o: 0;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="aurora"] {
+.dark [data-pattern="aurora"] {
   /* NIGHT — vivid curtains over dark water, on the same photographic falloff: deep at the zenith,
      opening toward the horizon rather than staying flat. */
   --au-sky-a: oklch(0.07 0.025 268);
@@ -1745,7 +1745,7 @@ const AURORA_STYLES = `
 [data-pattern="aurora"] .au-b {
   --au-lo: 0.3;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="aurora"] .au-b {
+.dark [data-pattern="aurora"] .au-b {
   --au-lo: 0.75;
 }
 /* The water sheet. Like the cloud sea and the sand ground, its top edge is masked to nothing so the
@@ -1817,10 +1817,10 @@ const AURORA_STYLES = `
   display: block;
 }
 [data-pattern="aurora"] .au-flat,
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="aurora"] .au-streaks {
+.dark [data-pattern="aurora"] .au-streaks {
   display: none;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="aurora"] .au-flat {
+.dark [data-pattern="aurora"] .au-flat {
   display: block;
 }
 /* The ripples FADE IN below the waterline, from nothing at the line to full 6vh down: real ripple lines
@@ -2941,7 +2941,7 @@ const FOREST_STYLES = `
   --sw-disc-glow: oklch(0.82 0.16 var(--sun-h) / 0.45);
   --sw-stars-o: 0;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="forest"] {
+.dark [data-pattern="forest"] {
   /* NIGHT — the same ridges under a cold moon: navy sky, silver fog, and the ladder compressed toward
      black so the far ridges still sit just under the sky's value. */
   --fo-sky-a: oklch(0.09 0.035 262);
@@ -3155,7 +3155,7 @@ const STARFIELD_STYLES = `
      across the dot goes 0.333 -> 0.655, i.e. an effective +14.4 L over the L-0.78 sky instead of +7.3. */
   --star-core: 60%;
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="starfield"] {
+.dark [data-pattern="starfield"] {
   /* NIGHT — the original deep field, verbatim */
   --sf-bg: oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)));
   --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
@@ -3424,7 +3424,7 @@ const PAC_STYLES = `
   --pac-wall-stripe: oklch(0.62 0.11 var(--glass-tint-h));
   --pac-wall-edge: oklch(0.52 0.13 var(--glass-tint-h));
 }
-:is(.dark, [data-glass-tint="onyx"]) [data-pattern="chase"] {
+.dark [data-pattern="chase"] {
   /* NIGHT — the original CRT palette (pellets now hue-track the tint like the walls always did). */
   --pac-bg: oklch(0.12 0.025 var(--glass-tint-h));
   --pac-pellet: oklch(0.82 0.05 var(--glass-tint-h));
