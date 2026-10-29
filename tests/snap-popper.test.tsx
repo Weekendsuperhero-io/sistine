@@ -33,6 +33,50 @@ function Popper({ initial, onWrapper }: { initial: string; onWrapper?: (el: HTML
   );
 }
 
+function Bare() {
+  const snapRef = useSnappedPopper<HTMLDivElement>();
+  return (
+    <div
+      ref={snapRef}
+      data-testid="bare"
+      style={{
+        transform: "translate(1.5px, 1.5px)",
+      }}
+    />
+  );
+}
+
+function Promoted() {
+  const snapRef = useSnappedPopper<HTMLDivElement>();
+  return (
+    <div
+      data-radix-popper-content-wrapper=""
+      data-testid="wrapper"
+      style={{
+        transform: "translate(10px, 10px)",
+        willChange: "transform",
+      }}
+    >
+      <div ref={snapRef} />
+    </div>
+  );
+}
+
+function Surface({ memoized, tick }: { memoized: boolean; tick: number }) {
+  const snapRef = useSnappedPopper<HTMLDivElement>();
+  const composed = useComposedRefs<HTMLDivElement>(snapRef);
+  return (
+    <div
+      data-radix-popper-content-wrapper=""
+      style={{
+        transform: "translate(1.5px, 1.5px)",
+      }}
+    >
+      <div ref={memoized ? composed : composeRefs<HTMLDivElement>(snapRef)} data-tick={tick} />
+    </div>
+  );
+}
+
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 describe("useSnappedPopper", () => {
@@ -77,18 +121,6 @@ describe("useSnappedPopper", () => {
   });
 
   it("is inert when there is no popper wrapper (inline/anchored render)", () => {
-    function Bare() {
-      const snapRef = useSnappedPopper<HTMLDivElement>();
-      return (
-        <div
-          ref={snapRef}
-          data-testid="bare"
-          style={{
-            transform: "translate(1.5px, 1.5px)",
-          }}
-        />
-      );
-    }
     const { getByTestId } = render(<Bare />);
     expect(getByTestId("bare").style.transform).toBe("translate(1.5px, 1.5px)");
   });
@@ -97,21 +129,6 @@ describe("useSnappedPopper", () => {
      to the transform, which composites the wrapper, and WebKit drops subpixel antialiasing on a
      composited layer. */
   it("resets Floating UI's will-change on mount", () => {
-    function Promoted() {
-      const snapRef = useSnappedPopper<HTMLDivElement>();
-      return (
-        <div
-          data-radix-popper-content-wrapper=""
-          data-testid="wrapper"
-          style={{
-            transform: "translate(10px, 10px)",
-            willChange: "transform",
-          }}
-        >
-          <div ref={snapRef} />
-        </div>
-      );
-    }
     const { getByTestId } = render(<Promoted />);
     expect(getByTestId("wrapper").style.willChange).toBe("auto");
   });
@@ -179,17 +196,14 @@ describe("composeRefs", () => {
   it("gives the node to both a callback ref and an object ref", () => {
     const seen: (HTMLDivElement | null)[] = [];
     const objectRef = React.createRef<HTMLDivElement>();
-    function Both() {
-      return (
-        <div
-          ref={composeRefs<HTMLDivElement>((n) => {
-            seen.push(n);
-          }, objectRef)}
-          data-testid="both"
-        />
-      );
-    }
-    const { getByTestId, unmount } = render(<Both />);
+    const { getByTestId, unmount } = render(
+      <div
+        ref={composeRefs<HTMLDivElement>((n) => {
+          seen.push(n);
+        }, objectRef)}
+        data-testid="both"
+      />,
+    );
     const node = getByTestId("both");
 
     expect(seen[0]).toBe(node);
@@ -201,10 +215,7 @@ describe("composeRefs", () => {
 
   it("tolerates undefined refs", () => {
     const objectRef = React.createRef<HTMLDivElement>();
-    function WithGap() {
-      return <div ref={composeRefs<HTMLDivElement>(undefined, objectRef, undefined)} data-testid="gap" />;
-    }
-    const { getByTestId } = render(<WithGap />);
+    const { getByTestId } = render(<div ref={composeRefs<HTMLDivElement>(undefined, objectRef, undefined)} data-testid="gap" />);
     expect(objectRef.current).toBe(getByTestId("gap"));
   });
 });
@@ -214,21 +225,6 @@ describe("useComposedRefs: REV-3-1", () => {
      (calls it with null) and attaches the new one. That detach runs useSnappedPopper's cleanup, which
      disconnects the MutationObserver — so an inline composeRefs rebuilt the observer on EVERY render
      of every popper surface. These two tests are the before/after of that. */
-
-  function Surface({ memoized, tick }: { memoized: boolean; tick: number }) {
-    const snapRef = useSnappedPopper<HTMLDivElement>();
-    const composed = useComposedRefs<HTMLDivElement>(snapRef);
-    return (
-      <div
-        data-radix-popper-content-wrapper=""
-        style={{
-          transform: "translate(1.5px, 1.5px)",
-        }}
-      >
-        <div ref={memoized ? composed : composeRefs<HTMLDivElement>(snapRef)} data-tick={tick} />
-      </div>
-    );
-  }
 
   it("keeps one observer across re-renders when memoized", () => {
     /* Spy the PROTOTYPE, not the constructor — replacing the constructor hands back a mock with no

@@ -312,7 +312,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
   const pickIdx = (rawBand: { floor: number; target: number; ceiling: number }) => {
     const pick = pickTonalInBand(solved, surface, boostBand(rawBand, lcBoost));
     const i = solved.raw.indexOf(pick);
-    return i >= 0 ? i : 0;
+    return Math.max(i, 0);
   };
 
   const tiers = TIERS.map((t) => {
