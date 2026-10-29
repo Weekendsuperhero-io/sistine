@@ -12,6 +12,74 @@
   --glass-tint-a: 0;
   --harmony-h: 0;
 }
+/* Onyx is a dark neutral palette in either page mode. The wash and backing carry the dark pigment;
+   lowering the white sheet keeps glass/frosted from turning it gray. No .dark class is required. */
+[data-glass-tint="onyx"] {
+  color-scheme: dark;
+  --glass-tint-h: 250;
+  --glass-tint-c: 0;
+  --glass-tint-a: 0.94;
+  --harmony-h: 0;
+  --glass-wash-l: 16%;
+  --glass-sheet-a: 0;
+  --glass-sheet-a1: 0;
+  --glass-frost-boost: 0;
+  --glass-solid-a: 0.9;
+  --glass-solid-l: 18%;
+  --glass-opaque-l: 16;
+  --glass-solidify-l: 18;
+  --glass-crystal-l: 18;
+  --glass-crystal-bg-a: 0.85;
+  --glass-chakra-l: 20;
+  --glass-chakra-a: 0.8;
+  --glass-gloss-l: 52;
+  --glass-gloss-c-max: 0;
+  --glass-lustre-l: 18;
+  --glass-lustre-gloss-l: 52;
+  --glass-lustre-edge-l: 70;
+  --primary-l: 0.82;
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary-l: 0.24;
+  --muted-l: 0.2;
+  --accent-bg-l: 0.28;
+  --border-l: 0.38;
+  --input-l: 0.3;
+  --active-l: 100%;
+  --active-c-max: 0;
+  --active-a: 0.12;
+  --glass-accent-l: 0.75;
+  --glass-accent-c: 0;
+  --glass-glow-lc: 0.75 0;
+  --glass-glow-a: 0.2;
+  --ring: oklch(0.75 0 0);
+  --sidebar-l: 0.18;
+  /* Literal, achromatic tiers also cover scoped/CSS-only use before AutoForeground mounts. */
+  --foreground: oklch(0.94 0 0);
+  --foreground-soft: oklch(0.84 0 0);
+  --foreground-strong: oklch(0.98 0 0);
+  --foreground-ui: oklch(0.86 0 0);
+  --muted-foreground: oklch(0.9 0 0);
+  --foreground-opaque: oklch(0.94 0 0);
+  --foreground-soft-opaque: oklch(0.84 0 0);
+  --foreground-strong-opaque: oklch(0.98 0 0);
+  --foreground-ui-opaque: oklch(0.86 0 0);
+  --muted-foreground-opaque: oklch(0.9 0 0);
+  --foreground-crystal: oklch(0.94 0 0);
+  --foreground-soft-crystal: oklch(0.84 0 0);
+  --foreground-strong-crystal: oklch(0.98 0 0);
+  --foreground-ui-crystal: oklch(0.86 0 0);
+  --muted-foreground-crystal: oklch(0.9 0 0);
+  --foreground-chakra: oklch(0.94 0 0);
+  --foreground-soft-chakra: oklch(0.84 0 0);
+  --foreground-strong-chakra: oklch(0.98 0 0);
+  --foreground-ui-chakra: oklch(0.86 0 0);
+  --muted-foreground-chakra: oklch(0.9 0 0);
+  --foreground-lustre: oklch(0.94 0 0);
+  --foreground-soft-lustre: oklch(0.84 0 0);
+  --foreground-strong-lustre: oklch(0.98 0 0);
+  --foreground-ui-lustre: oklch(0.86 0 0);
+  --muted-foreground-lustre: oklch(0.9 0 0);
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;

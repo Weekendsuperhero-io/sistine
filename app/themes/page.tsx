@@ -8,7 +8,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { oklchToSrgb, parseOklch } from "@/lib/oklch-utils";
 import { defaultTheme, generateThemeCSS, type ThemeColors } from "@/lib/theme-generator";
+
+/** Native color controls need an sRGB hex value; keep the authored CSS in the adjacent text field. */
+function colorPickerValue(value: string) {
+  if (/^#[\da-f]{6}$/i.test(value)) return value;
+  if (/^#[\da-f]{3}$/i.test(value))
+    return `#${[
+      ...value.slice(1),
+    ]
+      .map((channel) => channel + channel)
+      .join("")}`;
+  const color = parseOklch(value);
+  if (!color) return "#000000";
+  return `#${oklchToSrgb(color.l, color.c, color.h)
+    .map((channel) =>
+      Math.round(Math.min(1, Math.max(0, channel)) * 255)
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+}
 
 const presetThemes = [
   {
@@ -76,7 +98,7 @@ const presetThemes = [
 export default function ThemesPage() {
   const [selectedTheme, setSelectedTheme] = React.useState(presetThemes[0]);
   const [customColors, setCustomColors] = React.useState<ThemeColors>(defaultTheme);
-  const [copied, setCopied] = React.useState(false);
+  const { copied: copiedText, copy } = useCopyToClipboard();
   const [activeTab, setActiveTab] = React.useState<"presets" | "custom">("presets");
 
   const currentCSS = React.useMemo(() => {
@@ -90,11 +112,8 @@ export default function ThemesPage() {
     activeTab,
   ]);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(currentCSS);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const copied = copiedText === currentCSS;
+  const copyToClipboard = () => copy(currentCSS);
 
   const updateColor = (key: keyof ThemeColors, value: string) => {
     setCustomColors((prev) => ({
@@ -173,15 +192,19 @@ export default function ThemesPage() {
                       if (key === "radius" || key.startsWith("glass") || key.startsWith("blur") || key.startsWith("dark")) return null;
                       return (
                         <div key={key} className="space-y-2">
-                          <Label className="text-foreground capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</Label>
+                          <Label htmlFor={`theme-${key}`} className="text-foreground capitalize">
+                            {key.replace(/([A-Z])/g, " $1").trim()}
+                          </Label>
                           <div className="flex gap-2">
                             <input
                               type="color"
-                              value={customColors[key as keyof ThemeColors] || "#000000"}
+                              value={colorPickerValue(customColors[key as keyof ThemeColors] || "")}
+                              aria-label={`${key} color picker`}
                               onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
                               className="h-10 w-20 cursor-pointer rounded border border-border"
                             />
                             <Input
+                              id={`theme-${key}`}
                               type="text"
                               value={customColors[key as keyof ThemeColors] || ""}
                               onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
@@ -208,8 +231,11 @@ export default function ThemesPage() {
                       "blurLg",
                     ].map((key) => (
                       <div key={key} className="space-y-2">
-                        <Label className="text-foreground capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</Label>
+                        <Label htmlFor={`theme-${key}`} className="text-foreground capitalize">
+                          {key.replace(/([A-Z])/g, " $1").trim()}
+                        </Label>
                         <Input
+                          id={`theme-${key}`}
                           type="text"
                           value={customColors[key as keyof ThemeColors] || ""}
                           onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}
@@ -240,13 +266,14 @@ export default function ThemesPage() {
                       "darkGlassShadowSm",
                     ].map((key) => (
                       <div key={key} className="space-y-2">
-                        <Label className="text-foreground capitalize">
+                        <Label htmlFor={`theme-${key}`} className="text-foreground capitalize">
                           {key
                             .replace(/([A-Z])/g, " $1")
                             .replace("dark ", "")
                             .trim()}
                         </Label>
                         <Input
+                          id={`theme-${key}`}
                           type="text"
                           value={customColors[key as keyof ThemeColors] || ""}
                           onChange={(e) => updateColor(key as keyof ThemeColors, e.target.value)}

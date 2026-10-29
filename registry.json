@@ -2276,7 +2276,8 @@
         "@sistine/button",
         "@sistine/calendar",
         "@sistine/card",
-        "@sistine/scroll-area"
+        "@sistine/scroll-area",
+        "@sistine/skeleton"
       ],
       "files": [
         {

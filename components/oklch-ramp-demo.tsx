@@ -65,14 +65,16 @@ export function OklchRampDemo() {
   // it, so picking a tint from the top menu immediately re-rolls the foreground-source ramps below.
   const [h, setH] = React.useState(255);
   const [tintActive, setTintActive] = React.useState(false);
+  const [onyx, setOnyx] = React.useState(false);
   React.useEffect(() => {
     const root = document.documentElement;
     const read = () => {
       const cs = getComputedStyle(root);
       const hv = Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       if (!Number.isNaN(hv)) setH(hv);
-      const av = Number.parseFloat(cs.getPropertyValue("--glass-tint-a"));
-      setTintActive(!Number.isNaN(av) && av > 0);
+      const chroma = Number.parseFloat(cs.getPropertyValue("--glass-tint-c"));
+      setTintActive(Number.isFinite(chroma) && chroma > 0);
+      setOnyx(root.dataset.glassTint === "onyx");
     };
     read();
     const obs = new MutationObserver(read);
@@ -100,7 +102,7 @@ export function OklchRampDemo() {
     h,
     count,
   ]);
-  const dark = !mounted || resolvedTheme === "dark";
+  const dark = !mounted || resolvedTheme === "dark" || onyx;
 
   const gamut = wideGamut ? "p3" : "srgb";
   // Cap chroma at the in-gamut max for this L+hue (sRGB, or P3 when the wide-gamut toggle is on), so the

@@ -80,6 +80,67 @@ describe("GlassTintSwitcher: --glass-opacity persistence", () => {
   });
 });
 
+describe("GlassTintSwitcher: Onyx", () => {
+  it("restores neutral Onyx without a saved bright lightness leaking into it", async () => {
+    localStorage.setItem("sistine-glass-tint", "onyx");
+    localStorage.setItem(
+      "sistine-glass-opaque-l",
+      JSON.stringify({
+        light: 95,
+        dark: 70,
+      }),
+    );
+    await mounted();
+    expect(root().dataset.glassTint).toBe("onyx");
+    expect(root().style.getPropertyValue("--glass-tint-c")).toBe("0");
+    expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("");
+    expect(inlineAlpha()).toBe("");
+  });
+
+  it("restores Onyx's own per-mode lightness preferences", async () => {
+    localStorage.setItem("sistine-glass-tint", "onyx");
+    localStorage.setItem(
+      "sistine-glass-onyx-l",
+      JSON.stringify({
+        light: 21,
+        dark: 19,
+      }),
+    );
+    localStorage.setItem(
+      "sistine-glass-opaque-l",
+      JSON.stringify({
+        light: 95,
+      }),
+    );
+    await mounted();
+    expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("21");
+    root().classList.add("dark");
+    await waitFor(() => expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("19"));
+    expect(JSON.parse(localStorage.getItem("sistine-glass-opaque-l") ?? "null")).toEqual({
+      light: 95,
+    });
+  });
+
+  it("switches to Onyx and restores the previous palette's lightness when switching back", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem(
+      "sistine-glass-opaque-l",
+      JSON.stringify({
+        light: 91,
+      }),
+    );
+    await mounted();
+    expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("91");
+    await user.click(screen.getByLabelText("Glass color"));
+    await user.click(await screen.findByLabelText("Onyx"));
+    expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("");
+    expect(localStorage.getItem("sistine-glass-tint")).toBe("onyx");
+    await user.click(screen.getByLabelText("Sapphire"));
+    expect(root().dataset.glassTint).toBe("sapphire");
+    expect(root().style.getPropertyValue("--glass-opaque-l")).toBe("91");
+  });
+});
+
 /**
  * TST-2-1 — a named preset must hand `--glass-tint-a` back to CSS rather than inline it.
  *

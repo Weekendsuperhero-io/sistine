@@ -24,7 +24,9 @@ const meta = {
         "glass",
         "frosted",
         "crystal",
-        "opaque",
+        "lustre",
+        "chakra",
+        "lucite",
       ],
     },
     border: {
@@ -62,6 +64,42 @@ export const Glass: Story = {
         <CardFooter>
           <p className="text-sm text-muted-foreground">Card footer</p>
         </CardFooter>
+      </>
+    ),
+  },
+};
+
+export const Lustre: Story = {
+  args: {
+    material: "lustre",
+    border: true,
+    children: (
+      <>
+        <CardHeader>
+          <CardTitle>Lustre glass</CardTitle>
+          <CardDescription>A polished reflection and a soft halo.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>Deep tinted glass in dark mode, with a lighter finish in light mode.</p>
+        </CardContent>
+      </>
+    ),
+  },
+};
+
+export const Onyx: Story = {
+  render: (args) => <Card {...args} data-glass-tint="onyx" />,
+  args: {
+    ...Lustre.args,
+    children: (
+      <>
+        <CardHeader>
+          <CardTitle>Onyx</CardTitle>
+          <CardDescription>Near-black in either page mode.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p>Neutral charcoal glass with a silver reflection.</p>
+        </CardContent>
       </>
     ),
   },

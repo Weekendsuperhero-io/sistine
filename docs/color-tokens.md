@@ -66,14 +66,14 @@ The recolor controls: the tint presets (`[data-glass-tint="…"]`) and the live 
 | `--glass-tint-h` | `250` | *(shared)* | Tint **hue** (0–360) |
 | `--glass-tint-c` | `0` | *(shared)* | Tint **chroma**: the single "how colorful" master (surfaces + text + harmonic accents); `0` = neutral |
 | `--glass-tint-a` | `0` | *(shared)* | Tint **film** alpha, per preset. The former "Wash" slider is retired: chroma is the colorfulness dial |
-| `--glass-opaque-l` | `90` | `32` | Tint **body lightness** (OKLCH L, plain number → %); lower = a deeper tint. The opaque floor color + AutoForeground's opaque-card banding both read it |
+| `--glass-opaque-l` | `90` | `32` | Tint **body lightness** (OKLCH L, plain number → %); lower = a deeper tint. The Lucite floor color + AutoForeground's Lucite-card banding both read it |
 | `--glass-opacity` | `0.7` | *(shared)* | Component **solidity floor**: `0` = the material's sheer glass, `1` = reads fully opaque. Default 0.7; set inline or via `glassVars({ opacity })`. Note AutoForeground does NOT read this, so text is banded against the sheer floor — measured safe at 0.7 (body 86.5 Lc light / 85.8 dark, floor 75) |
 | `--glass-outline` | *(unset)* | *(shared)* | Optional **outline colour** for every glass surface, any material; falls back to each material's own edge. With `data-glass-outline` on an ancestor, every surface below it (borderless ones included) draws the outline, in the theme accent unless this is set. `--glass-outline-w` sets the weight of every glass edge. The old `--glass-opaque-outline` / `-w` names are still read |
 | `--glass-tint-wash` | `oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a))` | *(knobs: L 72%→58%)* | Solid colored floor; lighter in light mode, deeper in dark (via `--glass-wash-l`) |
 | `--glass-accent` | `oklch(var(--glass-accent-l) var(--accent-c, var(--glass-accent-c)) var(--accent-h, var(--glass-fg-h)))` | *(knobs: 0.6 0.15 → 0.68 0.14)* | Vivid solid accent in the **foreground** hue (accent knob overrides apply in both modes), switch/slider fill |
 | `--glass-glow` | `oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a))` | *(knobs: 0.62 0.2/0.45 → 0.7 0.18/0.5)* | Glow color in the foreground hue, drives the `glow` hover effect + the `glow` prop |
 | `--glass-solid-bg` | `oklch(99% 0 0 / 0.65)` | `oklch(18% 0 0 / 0.65)` | Near-opaque **neutral** floor **with blur** for read-through overlays (menus/tooltips/toasts) |
-| `--glass-opaque-bg` | `oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h))` | `oklch(… calc(… * 0.9) …)` | Fully-opaque **tinted** panel floor, **no blur**, L driven by `--glass-opaque-l`; the `opaque` material (`material="opaque"` / `data-material="opaque"`) and the global `data-glass="opaque"` mode |
+| `--glass-opaque-bg` | `oklch(calc(var(--glass-opaque-l) * 1%) calc(var(--glass-tint-c) * 1.4) var(--glass-tint-h))` | `oklch(… calc(… * 0.9) …)` | Fully-opaque **tinted** panel floor, **no blur**, L driven by `--glass-opaque-l`; the Lucite material (`material="lucite"` / `data-material="lucite"`) and the global `data-glass="lucite"` mode |
 
 *(`--glass-tint-h/c/a` are set once and shared across light/dark; `--glass-opaque-l`, `-wash`, and `-solid-bg` differ per mode.)*
 
@@ -95,7 +95,7 @@ The glassmorphism recipe values consumed by the `@utility glass-*` family. Each 
 
 ## Chakra (the step-cut material)
 
-Every other material is lit from ONE direction, `--glass-shadow` carries a bright top bevel and a dark bottom shade, so surfaces read as a lit dome. Chakra lights all **four** edges, two steps deep, reading as a step-cut gem. Its body sits between crystal (floor alpha `0.3`) and opaque (`1`).
+Every other material is lit from ONE direction, `--glass-shadow` carries a bright top bevel and a dark bottom shade, so surfaces read as a lit dome. Chakra lights all **four** edges, two steps deep, reading as a step-cut gem. Its body sits between crystal (floor alpha `0.3`) and Lucite (`1`).
 
 **The cut lives in `box-shadow`, not in the background.** A background layer is always a rectangle: `background-size` shrinks it but gives it no radius of its own, so an inset gradient paints square corners on a rounded surface. An inset shadow is the border box's own rounded rect, offset, so every band follows `--radius` at whatever value the element carries, at any size, for free. The trade is that adjacent bands composite at the corners rather than mitering to a hard 45° line; on a gem that reads as the corner facet catching both neighbours, and it is what `--glass-shadow` already does at top and bottom.
 
@@ -115,7 +115,7 @@ Because the stack is plain full-bleed layers, the sheer-glass axes work untouche
 | Knob | Light | Dark | Drives |
 |---|---|---|---|
 | `--glass-chakra-l` | `88` | `28` | Body lightness (the banding lightness AutoForeground reads) |
-| `--glass-chakra-a` | `0.62` | `0.58` | Body alpha, **the crystal↔opaque dial**, now governing the whole surface |
+| `--glass-chakra-a` | `0.62` | `0.58` | Body alpha, **the crystal↔Lucite dial**, now governing the whole surface |
 | `--glass-chakra-c-max` | `0.055` | `0.046` | Body chroma cap; each sits just under the tightest ceiling at that lightness (`0.0564` lapis h268 / `0.0471` turquoise h190) |
 | `--glass-chakra-step` | `3px` | *(shared)* | Width of ONE bevel step; the frame is two |
 | `--glass-chakra-facet-t-a` / `-l-a` / `-r-a` / `-b-a` | `0.5` / `0.208` / `0.057` / `0.136` | `0.139` / `0.056` / `0.143` / `0.286` | Facet alphas. Irregular mode twins: the same alpha buys a very different step over an L88 body than an L28 one |
@@ -167,6 +167,24 @@ Color-wheel relationships off `--harmony-h` (the content hue, or `0` for the hue
 
 ## Mode knobs
 
+### Lustre and Onyx
+
+`material="lustre"` (or `data-glass="lustre"` for adaptive surfaces) adds a dense tinted body, a top highlight, a diagonal reflection, and a soft halo. The layers are baked into the background, so they work on sticky and fixed surfaces. It supports the existing material axes and `data-gloss` flavors.
+
+| Token | Light | Dark |
+|---|---|---|
+| `--glass-lustre-l` / `--glass-lustre-a` | `93` / `0.8` | `22` / `0.8` |
+| `--glass-lustre-c-max` | `0.025` | `0.035` |
+| `--glass-lustre-wash-strength` | `1` | `0` |
+| `--glass-lustre-gloss-l` / `--glass-lustre-gloss-c-max` | `97` / `0.013` | `68` / `0.1` |
+| `--glass-lustre-edge-l` | `55` | `80` |
+
+The `--foreground*-lustre` tiers are solved against Lustre's body, tint wash, and specular. Its body paints above the opacity backing. Day mode adds the same preset wash as the other materials, preserving each stone's color; night mode omits that wash to retain the deep finish. `--glass-lustre-wash-strength` controls this mode split.
+
+`data-glass-tint="onyx"` is an achromatic preset that remains dark in either mode: an L16 wash and opaque floor, L18 backing and crystal body, L20 chakra body, and L18 Lustre body. L52 neutral gloss supplies silver reflections. It includes light foregrounds and matching control fills for CSS-only and scoped use. The color switcher stores Onyx lightness separately under `sistine-glass-onyx-l`, preserving other presets' lightness preferences.
+
+### Shared mode knobs
+
 The dials the engine composes: leaf values (never composing tint vars) on bare `:root`/`.dark` in `tokens.css`, so they inherit into tint scopes where the engine re-resolves the derived tokens. Retune a mode by touching a knob, not a gradient body.
 
 | Knob | Light | Dark | Drives |
@@ -188,4 +206,8 @@ The dials the engine composes: leaf values (never composing tint vars) on bare `
 | `--active-l` / `--active-c-max` / `--active-a` | `87%` / `0.055` / `0.9` | `100%` / `0` / `0.2` | Selected-control fill (`--active-bg`: active tab, pressed toggle). The two modes reach the theme by **different routes**: dark is chroma `0` at alpha `0.2`, so 100% of its hue is the tinted surface showing through; light's surface only measures ~`0.018` chroma, so its fill must carry the tint itself at alpha `0.9`. That makes light's *lightness* the binding constraint, the near-white ceiling is `0.0323` at L 93 but `0.061` at L 87, which is why the fill sits at 87 and delivers RGB spread **37** instead of 20 |
 | `--border-c-max` | `0.07` | `0.041` | Chrome-edge chroma **ceiling**. Each value sits just under the tightest sRGB ceiling across all 17 presets at that lightness (`0.0714` at L 0.85 / `0.0422` at L 0.25), so every preset delivers 100% of its declared chroma with nothing gamut-mapped. Retune only with a re-measure: `check-gamut` covers it |
 | `--glass-solid-l` (+ `--glass-solid-a`, shared `0.65`) | `99%` | `18%` | `glass-veil` overlay floor |
-| `--glass-opaque-l` / `--glass-opaque-c-scale` | `90` / `1.4` | `32` / `0.9` | Opaque floor lightness / chroma scale |
+| `--glass-opaque-l` / `--glass-opaque-c-scale` | `90` / `1.4` | `32` / `0.9` | Lucite floor lightness / chroma scale |
+
+### Lucite naming compatibility
+
+Lucite is the fully solid material: `material="lucite"` or `data-glass="lucite"`. The former `opaque` material and data-attribute values remain aliases. Existing `--glass-opaque-*`, `--foreground*-opaque`, and saved lightness/outline settings keep their names and behavior.

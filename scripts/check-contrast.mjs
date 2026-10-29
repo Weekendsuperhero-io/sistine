@@ -163,7 +163,7 @@ for (const p of all) {
       l: solidifyL,
       c: Math.min(c * cScale, solidifyCMax),
       a: 0.7,
-    });
+    }, resolve(p, mode, vars, "glass-solid-l", dark ? 18 : 99));
     /* Measure THE TOKEN THAT SHIPS, not a parallel solve. The normal surface does NOT use
        readableForeground — that is the `adaptive` path, for the opaque/crystal/chakra floors. Body text on
        the page draws from the discrete tonal RAMP via pickInBand, whose darkest surviving step is L20.
@@ -180,7 +180,7 @@ for (const p of all) {
        surface AutoForeground now solves against too, rather than at the plain surface it used to assume. */
     const stops = parseGradientStops(dark ? p.fresco?.dark || p.fresco?.light || "" : p.fresco?.light || "");
     const textSurface = limitingSurface(surface, stops);
-    const fg = pickTonalInBand(ramp, textSurface, band);
+    const fg = p.name === "onyx" ? readableTonal(textSurface, band, { hue: h, chroma: 0 }) : pickTonalInBand(ramp, textSurface, band);
     /* Two readings under a fresco: the FLOOR has to hold at the hardest stop (worstLc), and the rounding
        MARGIN is judged on the modelled surface as it always was (lc). A stop is the extreme corner of
        the sweep, not the surface a paragraph mostly sits on; holding it to the floor is the guarantee,
@@ -205,6 +205,31 @@ for (const p of all) {
     const opaqueText = limitingSurface(opaqueSurface, stops);
     const opaqueInk = readableTonal(opaqueText, opaqueBand, { hue: opaqueSurface.h, chroma: RAMP_CHROMA });
     const opaqueLc = Math.abs(apcaContrast(opaqueInk, opaqueText));
+    /* Lustre's paint order: page → adjustable backing → body → day tint wash → specular. */
+    const lustreBodyA = resolve(p, mode, vars, "glass-lustre-a", 0.8);
+    const lustreWashA = a * resolve(p, mode, vars, "glass-lustre-wash-strength", dark ? 0 : 1);
+    const lustreSurface = compositeSurface({ l: dark ? 20 : 95, c: 0, h }, [
+      { l: solidifyL, c: Math.min(c * cScale, solidifyCMax), h, a: 0.7 },
+      {
+        l: resolve(p, mode, vars, "glass-lustre-l", dark ? 22 : 93),
+        c: Math.min(c * 1.4, resolve(p, mode, vars, "glass-lustre-c-max", dark ? 0.035 : 0.025)),
+        h,
+        a: lustreBodyA,
+      },
+      { l: washL, c: c * washCMult, h, a: lustreWashA },
+      {
+        l: resolve(p, mode, vars, "glass-lustre-gloss-l", dark ? 68 : 97),
+        c: Math.min(c * 4.5, resolve(p, mode, vars, "glass-lustre-gloss-c-max", dark ? 0.1 : 0.013)),
+        h,
+        a: 0.21,
+      },
+    ]);
+    const lustreText = limitingSurface(lustreSurface, stops);
+    const lustreInk = readableTonal(lustreText, boostBand(READABLE_USAGE.body, LC_MARGIN * (1 - lustreBodyA) * (1 - lustreWashA) * 0.79 * 0.3), { hue: lustreSurface.h, chroma: c > 0 ? RAMP_CHROMA : 0 });
+    const lustreLc = Math.abs(apcaContrast(lustreInk, lustreText));
+    if (lustreLc < BODY_FLOOR + MARGIN) {
+      failures.push(`[lustre] ${p.name} (${mode}) — body text reaches only ${lustreLc.toFixed(1)} Lc on its polished surface.`);
+    }
     /* Assert LIGHTNESS, not chroma. At L≈0 the shared gamut test is eps-tolerant and reports PHANTOM
        chroma — #000000 comes back carrying c 0.067 at the warm hues — so a chroma assertion silently
        passes the exact colour it is meant to catch (lib/oklch-utils documents this inside

@@ -32,9 +32,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 
 /** The material system's composable surfaces, sheerest → most solid — the showcase cards below swap
@@ -63,15 +63,16 @@ const SURFACES = [
     material: undefined,
   },
   {
-    value: "opaque",
-    label: "Opaque",
+    value: "lucite",
+    label: "Lucite",
     className: "glass glass-border",
-    material: "opaque",
+    material: "lucite",
   },
 ] as const;
 
 export default function Home() {
-  const [copied, setCopied] = React.useState(false);
+  const { copied: copiedText, copy } = useCopyToClipboard();
+  const copied = copiedText === INSTALL_COMMAND;
   const [surface, setSurface] = React.useState<(typeof SURFACES)[number]["value"]>("glass");
   const [solidAlpha, setSolidAlpha] = React.useState(0.5);
   const activeSurface = SURFACES.find((s) => s.value === surface) ?? SURFACES[0];
@@ -90,18 +91,10 @@ export default function Home() {
     solidAlpha,
   ]);
 
-  const handleCopy = () => {
-    /* Copy what the box actually SHOWS. It used to write a different command entirely —
-       `npx shadcn@latest add <site>/r/styles/glass` — pointing at a /r/styles/ path the registry has
-       never produced, so anyone using the button got a 404 instead of the namespaced install below. */
-    navigator.clipboard.writeText(INSTALL_COMMAND);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopy = () => copy(INSTALL_COMMAND);
 
   return (
     <div className="min-h-screen transition-colors duration-300 relative">
-      <Toaster />
       <div className="relative z-10">
         {/* ───────────────────── Hero ───────────────────── */}
         <section className="container mx-auto px-4 pt-24 pb-32 md:pt-32 md:pb-40">
@@ -134,8 +127,10 @@ export default function Home() {
               </Button>
             </div>
 
-            <div
-              className="glass max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
+            <button
+              type="button"
+              aria-label={copied ? "Install command copied" : "Copy install command"}
+              className="glass w-full max-w-xl mx-auto flex items-center justify-between gap-3 px-5 py-3 font-mono text-sm rounded-xl cursor-pointer transition active:scale-[0.98]"
               onClick={handleCopy}
             >
               <code className="text-foreground/70 truncate select-all">{INSTALL_COMMAND}</code>
@@ -144,7 +139,7 @@ export default function Home() {
               ) : (
                 <Copy className="h-4 w-4 shrink-0 text-muted-foreground hover:text-foreground transition-colors" />
               )}
-            </div>
+            </button>
           </div>
         </section>
 
@@ -402,7 +397,7 @@ export default function Home() {
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Five distinct materials</h2>
-            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, Chakra, and Opaque materials.</p>
+            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, Chakra, and Lucite materials.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
@@ -412,7 +407,7 @@ export default function Home() {
                 <TabsTrigger value="frosted">Frosted</TabsTrigger>
                 <TabsTrigger value="crystal">Crystal</TabsTrigger>
                 <TabsTrigger value="chakra">Chakra</TabsTrigger>
-                <TabsTrigger value="opaque">Opaque</TabsTrigger>
+                <TabsTrigger value="lucite">Lucite</TabsTrigger>
               </TabsList>
 
               {(
@@ -421,7 +416,7 @@ export default function Home() {
                   "frosted",
                   "crystal",
                   "chakra",
-                  "opaque",
+                  "lucite",
                 ] as const
               ).map((v) => (
                 <TabsContent key={v} value={v}>
@@ -544,7 +539,7 @@ export default function Home() {
               {
                 icon: Palette,
                 title: "5 Materials",
-                desc: "Glass, Frosted, Crystal, Chakra, and Opaque. Each component adapts to every material automatically.",
+                desc: "Glass, Frosted, Crystal, Chakra, and Lucite. Each component adapts to every material automatically.",
               },
               {
                 icon: Layers,

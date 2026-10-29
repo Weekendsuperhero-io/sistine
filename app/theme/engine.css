@@ -123,6 +123,7 @@
      inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
   --glass-crystal-fresco: none;
   --blur-crystal: 2px;
+  --blur-lustre: 2px;
 }
 
 /* B. MODE-DERIVED SURFACES — see the engine header above. Each tint-composing token is declared ONCE,
@@ -133,6 +134,11 @@
 [data-glass-tint] {
   /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult. */
   --glass-tint-wash: oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Lustre shares the preset's pigment in day mode. Night keeps its deep body and colored reflection. */
+  --glass-lustre-tint-wash: oklch(
+    var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) /
+    calc(var(--glass-tint-a) * var(--glass-lustre-wash-strength))
+  );
   /* Solid accent that tracks the FOREGROUND hue at a fixed vivid chroma — used by active controls
      (switch "on", slider range). The --accent-h/-c knob overrides apply in BOTH modes (the old dark
      twin dropped them — that was a bug). */
@@ -385,6 +391,33 @@
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --glass-chakra-stack-bg:
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+  /* Lustre's pigmented body sits ABOVE the adjustable backing. This preserves its deep color even
+     when the page is bright, while opacity and veil still determine how much backdrop survives. */
+  --glass-lustre-bg: oklch(
+    calc(var(--glass-lustre-l) * 1%) min(calc(var(--glass-tint-c) * 1.4), var(--glass-lustre-c-max)) var(--glass-tint-h) /
+    var(--glass-lustre-a)
+  );
+  --glass-lustre-ink-tonal: calc(var(--glass-lustre-gloss-l) * 1%) min(calc(var(--glass-tint-c) * 4.5), var(--glass-lustre-gloss-c-max))
+    var(--glass-tint-h);
+  --glass-lustre-ink: var(--glass-gloss-ink-white, var(--glass-lustre-ink-tonal));
+  --glass-lustre-top: var(--glass-gloss-top-hue, linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent 32%));
+  --glass-lustre-streak: var(
+    --glass-gloss-streak-hue,
+    linear-gradient(calc(125deg * var(--glass-gloss-hue-dir, 1)), transparent 32%, oklch(var(--glass-lustre-ink) / 0.16) 48%, transparent 64%)
+  );
+  --glass-lustre-glow: var(--glass-gloss-glow-hue, radial-gradient(circle at 50% 120%, oklch(var(--glass-lustre-ink) / 0.2), transparent 70%));
+  --glass-lustre-stack-bg:
+    var(--glass-lustre-top), var(--glass-lustre-glow), var(--glass-lustre-streak), var(--glass-crystal-fresco, none),
+    linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)), linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
+  --glass-lustre-border: oklch(calc(var(--glass-lustre-edge-l) * 1%) min(var(--glass-tint-c), 0.085) var(--glass-tint-h) / 0.38);
+  --glass-lustre-shadow:
+    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18),
+    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35),
+    0 0 28px -6px oklch(var(--glass-lustre-ink) / 0.28);
+  --glass-lustre-shadow-hover:
+    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2),
+    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42),
+    0 0 36px -4px oklch(var(--glass-lustre-ink) / 0.4);
 }
 
 /* C′. The FLAVOR VARIANTS block C falls back from, each valid only while its switch is `1`. Kept in a

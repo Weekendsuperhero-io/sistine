@@ -5,6 +5,7 @@ import { FG_EVENT } from "@/components/auto-foreground";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { GLASS_TINT_PRESETS as PRESETS } from "@/lib/glass-presets";
 import { cn } from "@/lib/utils";
 
 // Persistence shared with earlier versions: ROOT_KEY = the chosen base ("selenite" | preset | "custom"),
@@ -27,6 +28,7 @@ const BLUR_TOKENS: Record<string, number> = {
   "--blur-lg": 20,
   "--blur-frosted": 25,
   "--blur-crystal": 2,
+  "--blur-lustre": 2,
 };
 
 function applyDiffuse(floor: number) {
@@ -37,6 +39,7 @@ function applyDiffuse(floor: number) {
   }
 }
 const OPAQUE_L_KEY = "sistine-glass-opaque-l";
+const ONYX_L_KEY = "sistine-glass-onyx-l";
 /* Storage keys keep their opaque-era names so a saved outline survives the move to all materials. */
 const OUTLINE_KEY = "sistine-glass-opaque-outline";
 const OUTLINE_W_KEY = "sistine-glass-opaque-outline-w";
@@ -100,156 +103,6 @@ type Harmony = keyof typeof HARMONIES;
  * app/globals.css (the CSS is the fallback for static, no-switcher consumers) — otherwise the demo and a
  * static page render different fresco surfaces.
  */
-const PRESETS = [
-  {
-    value: "selenite",
-    label: "Selenite",
-    h: 250,
-    c: 0,
-    a: 0,
-    swatch: "oklch(90% 0 0)",
-  },
-  {
-    value: "sistine",
-    label: "Sistine",
-    h: 75,
-    c: 0.062,
-    a: 0.16,
-    bespoke: true,
-    swatch: "linear-gradient(135deg in oklch, oklch(82% 0.12 75), oklch(80% 0.12 8), oklch(78% 0.12 255), oklch(80% 0.12 158))",
-  },
-  {
-    value: "muse",
-    label: "Muse",
-    h: 230,
-    c: 0.056,
-    a: 0.1,
-    bespoke: true,
-    swatch: "linear-gradient(135deg in oklch, oklch(85% 0.1 222), oklch(78% 0.2 326), oklch(84% 0.12 74))",
-  },
-  {
-    value: "aurora",
-    label: "Aurora",
-    h: 205,
-    c: 0.054,
-    a: 0.16,
-    bespoke: true,
-    swatch: "linear-gradient(135deg in oklch, oklch(76.3% 0.124 235), oklch(74.7% 0.111 205), oklch(71.8% 0.155 155))",
-  },
-  {
-    value: "gloaming",
-    label: "Gloaming",
-    h: 32,
-    c: 0.089,
-    a: 0.12,
-    bespoke: true,
-    swatch: "linear-gradient(135deg in oklch, oklch(84% 0.13 62), oklch(78% 0.15 350), oklch(64% 0.14 278))",
-  },
-  {
-    value: "moonstone",
-    label: "Moonstone",
-    h: 75,
-    c: 0.047,
-    a: 0.18,
-    swatch: "oklch(94% 0.047 75)",
-  },
-  {
-    value: "amber",
-    label: "Amber",
-    h: 75,
-    c: 0.062,
-    a: 0.38,
-    swatch: "oklch(85% 0.13 75)",
-  },
-  {
-    value: "rose",
-    label: "Rose",
-    h: 8,
-    c: 0.095,
-    a: 0.17,
-    swatch: "oklch(82% 0.12 8)",
-  },
-  {
-    value: "goldstone",
-    label: "Goldstone",
-    h: 22,
-    c: 0.094,
-    a: 0.17,
-    swatch: "oklch(68% 0.15 22)",
-  },
-  {
-    value: "amethyst",
-    label: "Amethyst",
-    h: 300,
-    c: 0.101,
-    a: 0.15,
-    swatch: "oklch(78% 0.13 300)",
-  },
-  {
-    value: "sapphire",
-    label: "Sapphire",
-    h: 255,
-    c: 0.075,
-    a: 0.19,
-    swatch: "oklch(78% 0.13 255)",
-  },
-  {
-    value: "lapis",
-    label: "Lapis",
-    h: 268,
-    c: 0.085,
-    a: 0.13,
-    swatch: "oklch(56% 0.21 268)",
-  },
-  {
-    value: "aventurine",
-    label: "Aventurine",
-    h: 158,
-    c: 0.076,
-    a: 0.54,
-    swatch: "oklch(80% 0.13 158)",
-  },
-  {
-    value: "carnelian",
-    label: "Carnelian",
-    h: 38,
-    c: 0.081,
-    a: 0.19,
-    swatch: "oklch(78% 0.14 38)",
-  },
-  {
-    value: "peridot",
-    label: "Peridot",
-    h: 128,
-    c: 0.083,
-    a: 0.54,
-    swatch: "oklch(86% 0.16 128)",
-  },
-  {
-    value: "turquoise",
-    label: "Turquoise",
-    h: 190,
-    c: 0.057,
-    a: 0.54,
-    swatch: "oklch(82% 0.1 190)",
-  },
-  {
-    value: "aquamarine",
-    label: "Aquamarine",
-    h: 215,
-    c: 0.053,
-    a: 0.5,
-    swatch: "oklch(80% 0.11 215)",
-  },
-  {
-    value: "tourmaline",
-    label: "Tourmaline",
-    h: 342,
-    c: 0.106,
-    a: 0.18,
-    swatch: "oklch(76% 0.16 342)",
-  },
-] as const;
 
 type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
 
@@ -348,12 +201,16 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
  *  --glass-opaque-l is mode-aware in CSS (93 light / 33.4 dark), L must be tracked separately per mode — a
  *  single global value would wash out the other mode. Old plain-number values parse to a non-object and are
  *  ignored, self-healing to the mode default. */
+function lightnessKey() {
+  return document.documentElement.dataset.glassTint === "onyx" ? ONYX_L_KEY : OPAQUE_L_KEY;
+}
+
 function readLmap(): {
   light?: number;
   dark?: number;
 } {
   try {
-    const raw = JSON.parse(localStorage.getItem(OPAQUE_L_KEY) ?? "null");
+    const raw = JSON.parse(localStorage.getItem(lightnessKey()) ?? "null");
     if (raw && typeof raw === "object") {
       const out: {
         light?: number;
@@ -367,6 +224,17 @@ function readLmap(): {
     // ignore malformed storage
   }
   return {};
+}
+
+/** A preset switch changes the lightness namespace too; remove the old inline override first. */
+function restoreLightness() {
+  const root = document.documentElement;
+  const mode = root.classList.contains("dark") ? "dark" : "light";
+  const stored = readLmap()[mode];
+  if (typeof stored === "number" && Number.isFinite(stored)) root.style.setProperty("--glass-opaque-l", String(stored));
+  else root.style.removeProperty("--glass-opaque-l");
+  const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
+  return Number.isFinite(computed) ? computed : root.dataset.glassTint === "onyx" ? 16 : mode === "dark" ? 33.4 : 93;
 }
 
 /**
@@ -482,16 +350,7 @@ export function GlassTintSwitcher() {
   React.useEffect(() => {
     const root = document.documentElement;
     const apply = () => {
-      const mode = root.classList.contains("dark") ? "dark" : "light";
-      const stored = readLmap()[mode];
-      if (typeof stored === "number") {
-        root.style.setProperty("--glass-opaque-l", String(stored));
-        setLightness(stored);
-      } else {
-        root.style.removeProperty("--glass-opaque-l");
-        const computed = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-opaque-l"));
-        setLightness(Number.isFinite(computed) ? computed : mode === "dark" ? 33.4 : 93);
-      }
+      setLightness(restoreLightness());
       window.dispatchEvent(new Event(FG_EVENT));
     };
     apply();
@@ -534,6 +393,7 @@ export function GlassTintSwitcher() {
        <html data-glass-tint="lapis"> got it. The inline vars still win over the block's own h/c/a, and
        check-theme's [tint-sync] asserts the two agree, so setting the attribute cannot diverge them. */
     applyTint(p.h, p.c, null, p.value);
+    setLightness(restoreLightness());
     persist(p.value, p.h, p.c, p.a);
     // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94.5/84.9) and, for
     // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
@@ -680,7 +540,7 @@ export function GlassTintSwitcher() {
     setLightness(nl);
     root.style.setProperty("--glass-opaque-l", String(nl));
     try {
-      localStorage.setItem(OPAQUE_L_KEY, JSON.stringify(map));
+      localStorage.setItem(lightnessKey(), JSON.stringify(map));
     } catch {
       // ignore storage failures
     }

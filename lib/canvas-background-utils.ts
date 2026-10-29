@@ -98,7 +98,7 @@ export function useBackdropTint() {
       const v = Number.isFinite(acc) ? acc : hueless ? NEUTRAL_CANVAS_HUE : Number.parseFloat(cs.getPropertyValue("--glass-tint-h"));
       const next = {
         hue: Number.isFinite(v) ? v : NEUTRAL_CANVAS_HUE,
-        dark: root.classList.contains("dark"),
+        dark: root.classList.contains("dark") || root.dataset.glassTint === "onyx",
         p3: window.matchMedia?.("(color-gamut: p3)").matches ?? false,
         preset: root.dataset.glassTint,
         /* The live solved foreground — backdrops band their lightness against it so text stays
@@ -135,12 +135,13 @@ export function backdropPalette(
   hue?: number,
 ) {
   // Center lightness tracks the theme so it doesn't blast bright on dark / wash out on light.
-  const l = tint.dark ? 52 : 72;
+  const onyx = tint.preset === "onyx" && hue == null;
+  const l = onyx ? 18 : tint.dark ? 52 : 72;
   const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
   return {
     base: {
       l,
-      c: 0.15,
+      c: onyx ? 0 : 0.15,
       h: hue ?? tint.hue,
     } as OklchColor,
     frescoColors: frescoHues?.map((h) => `oklch(${l}% 0.15 ${h})`),

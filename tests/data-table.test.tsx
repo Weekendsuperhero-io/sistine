@@ -19,6 +19,28 @@ function renderedNames(): string[] {
 }
 
 describe("DataTableBlock: react-table v9 features", () => {
+  it("reports a valid first page when filtering produces no results", async () => {
+    const user = userEvent.setup();
+    render(<DataTableBlock />);
+    await user.type(
+      screen.getByRole("textbox", {
+        name: "Filter members by name",
+      }),
+      "no matching member",
+    );
+    expect(screen.getByText("No results.")).toBeInTheDocument();
+    expect(screen.getByText(/Page 1 of 1 · 0 members/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Next",
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", {
+        name: "Previous",
+      }),
+    ).toBeDisabled();
+  });
   it("paginates: 12 members across 2 pages of 6", async () => {
     const user = userEvent.setup();
     render(<DataTableBlock />);

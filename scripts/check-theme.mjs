@@ -160,8 +160,9 @@ for (const r of rules) {
 
 // 3. [preset] every switcher preset has a [data-glass-tint="x"] block. Selenite included: without one, a
 //    CSS-only consumer had no colour-wheel anchor on it (--harmony-h: 0 lived only in the switcher's JS).
-const switcher = readFileSync(join(root, "components/glass-tint-switcher.tsx"), "utf8");
+const switcher = readFileSync(join(root, "lib/glass-presets.ts"), "utf8");
 const presets = [...new Set([...switcher.matchAll(/value:\s*"([a-z]+)"/g)].map((m) => m[1]))].filter((v) => v !== "custom");
+if (!presets.length) fail("[preset] the shared palette contains no named presets.");
 for (const v of presets) {
   if (!css.includes(`[data-glass-tint="${v}"]`)) {
     fail(`[preset] switcher preset "${v}" has no [data-glass-tint="${v}"] block in globals.css.`);
@@ -269,13 +270,13 @@ for (const p of frescoPresets) {
 // 6a. [materials] each of the five [data-material] blocks declares the FULL --srf-* pin set, so an
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
-const MATERIALS = ["glass", "frosted", "crystal", "chakra", "opaque"];
+const MATERIALS = ["glass", "frosted", "crystal", "lustre", "chakra", "lucite"];
 const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
 const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
 /* Materials whose floor lightness is its own dial and can sit far from the page's, so they must remap
    the foreground tiers to their own set: opaque's solid floor, and chakra's table. */
-const FG_REMAP_MATERIALS = ["opaque", "chakra"];
-for (const m of MATERIALS) {
+const FG_REMAP_MATERIALS = ["lucite", "opaque", "chakra", "lustre"];
+for (const m of [...MATERIALS, "opaque"]) {
   const rule = rules.find((r) => selectors(r.selector).includes(`[data-material="${m}"]`));
   if (!rule) {
     fail(`[materials] the theme has no [data-material="${m}"] block.`);
@@ -436,9 +437,9 @@ function splitTop(sel) {
     for (const d of decls(r.body)) {
       if (d.name !== "--srf-solidify" || d.value !== "none") continue;
       const sels = splitTop(r.selector);
-      const opaqueMaterial = sels.length === 1 && sels[0] === '[data-material="opaque"]';
+      const opaqueMaterial = sels.length > 0 && sels.every((s) => /^\[data-material="(?:lucite|opaque)"\]$/.test(s));
       const whereArgs = sels.length === 1 && /^:where\(([\s\S]*)\)$/.exec(sels[0])?.[1];
-      const opaquePage = !!whereArgs && splitTop(whereArgs).every((x) => x.startsWith('[data-glass="opaque"]'));
+      const opaquePage = !!whereArgs && splitTop(whereArgs).every((x) => /^\[data-glass="(?:lucite|opaque)"\]/.test(x));
       if (!opaqueMaterial && !opaquePage) {
         fail(`[solidify-owner] "${r.selector.replace(/\s+/g, " ")}" drops the solidify layer — only [data-material="opaque"] and the opaque page's :where() token block may.`);
       }
@@ -464,7 +465,7 @@ function splitTop(sel) {
 //     each, so a nested flavor overrides its ancestor's. The old blocks re-pinned the ink alone and the
 //     pre-composed gradients and stacks rode in from <html>: every scoped flavor painted the page's.
 {
-  const GLOSS = /^--(glass-gloss-(ink|top|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg)$/;
+  const GLOSS = /^--(glass-gloss-(ink|top|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
   const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]"];
   for (const r of rules) {
     const sels = splitTop(r.selector);
@@ -527,7 +528,11 @@ for (const r of rules) {
 
 // 6c. [material-union] lib/material.ts's Material union == the four CSS materials (+ "none").
 const matSrc = readFileSync(join(root, "lib/material.ts"), "utf8");
-const union = [...(matSrc.match(/type Material =([^;]+);/)?.[1] ?? "").matchAll(/"([a-z]+)"/g)].map((x) => x[1]);
+const materialList = matSrc.match(/export const MATERIALS\s*=\s*\[([\s\S]*?)\]\s*as const;/)?.[1] ?? "";
+const union = [...materialList.matchAll(/"([a-z]+)"/g)].map((x) => x[1]).concat("none");
+if (!/type Material\s*=\s*\(typeof MATERIALS\)\[number\]\s*\|\s*"opaque"\s*\|\s*"none"\s*;/.test(matSrc)) {
+  fail('[material-union] Material must derive from MATERIALS plus the legacy "opaque" alias and "none".');
+}
 const expectedUnion = [...MATERIALS, "none"];
 if (union.length !== expectedUnion.length || !expectedUnion.every((v) => union.includes(v))) {
   fail(`[material-union] lib/material.ts Material = [${union}] != CSS materials + "none" [${expectedUnion}].`);

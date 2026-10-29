@@ -211,6 +211,19 @@
      .dark). LEAVES ONLY — none composes a tint var (check-theme invariant 1), so they may live on the bare
      blocks and inherit into tint scopes, where the engine re-resolves the derived tokens. */
   --glass-sheet-a: 0.11; /* sheer glass sheet base alpha (per-stop offsets ride on top) */
+  /* Lustre: polished, dense glass with a broad specular and a soft halo. */
+  --glass-lustre-l: 93;
+  --glass-lustre-a: 0.8;
+  --glass-lustre-wash-strength: 1;
+  --glass-lustre-c-max: 0.025;
+  --glass-lustre-gloss-l: 97;
+  --glass-lustre-gloss-c-max: 0.013;
+  --glass-lustre-edge-l: 55;
+  --foreground-lustre: oklch(0.22 0.025 var(--glass-fg-h));
+  --foreground-soft-lustre: oklch(0.4 0.025 var(--glass-fg-h));
+  --foreground-strong-lustre: oklch(0.15 0.025 var(--glass-fg-h));
+  --foreground-ui-lustre: oklch(0.46 0.025 var(--glass-fg-h));
+  --muted-foreground-lustre: oklch(0.3 0.025 var(--glass-fg-h));
   --glass-sheet-a1: 0.04; /* the sheet's TOP-stop offset (dark tapers it to 0.03) */
   --glass-frost-boost: 0.1; /* frosted = the sheet lifted by this much */
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
@@ -550,6 +563,17 @@
   --active-a: 0.2;
   /* ── Mode knobs — dark twins (see :root for what each dial does). */
   --glass-sheet-a: 0.05;
+  --glass-lustre-l: 22;
+  --glass-lustre-wash-strength: 0;
+  --glass-lustre-c-max: 0.035;
+  --glass-lustre-gloss-l: 68;
+  --glass-lustre-gloss-c-max: 0.1;
+  --glass-lustre-edge-l: 80;
+  --foreground-lustre: oklch(0.94 0.025 var(--glass-fg-h));
+  --foreground-soft-lustre: oklch(0.84 0.04 var(--glass-fg-h));
+  --foreground-strong-lustre: oklch(0.98 0.01 var(--glass-fg-h));
+  --foreground-ui-lustre: oklch(0.86 0.04 var(--glass-fg-h));
+  --muted-foreground-lustre: oklch(0.9 0.025 var(--glass-fg-h));
   --glass-sheet-a1: 0.03;
   --glass-frost-boost: 0.06;
   --glass-border-a: 0.15;
@@ -941,6 +965,7 @@
      inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
   --glass-crystal-fresco: none;
   --blur-crystal: 2px;
+  --blur-lustre: 2px;
 }
 
 /* B. MODE-DERIVED SURFACES — see the engine header above. Each tint-composing token is declared ONCE,
@@ -951,6 +976,11 @@
 [data-glass-tint] {
   /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult. */
   --glass-tint-wash: oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Lustre shares the preset's pigment in day mode. Night keeps its deep body and colored reflection. */
+  --glass-lustre-tint-wash: oklch(
+    var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) /
+    calc(var(--glass-tint-a) * var(--glass-lustre-wash-strength))
+  );
   /* Solid accent that tracks the FOREGROUND hue at a fixed vivid chroma — used by active controls
      (switch "on", slider range). The --accent-h/-c knob overrides apply in BOTH modes (the old dark
      twin dropped them — that was a bug). */
@@ -1203,6 +1233,33 @@
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
   --glass-chakra-stack-bg:
     var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+  /* Lustre's pigmented body sits ABOVE the adjustable backing. This preserves its deep color even
+     when the page is bright, while opacity and veil still determine how much backdrop survives. */
+  --glass-lustre-bg: oklch(
+    calc(var(--glass-lustre-l) * 1%) min(calc(var(--glass-tint-c) * 1.4), var(--glass-lustre-c-max)) var(--glass-tint-h) /
+    var(--glass-lustre-a)
+  );
+  --glass-lustre-ink-tonal: calc(var(--glass-lustre-gloss-l) * 1%) min(calc(var(--glass-tint-c) * 4.5), var(--glass-lustre-gloss-c-max))
+    var(--glass-tint-h);
+  --glass-lustre-ink: var(--glass-gloss-ink-white, var(--glass-lustre-ink-tonal));
+  --glass-lustre-top: var(--glass-gloss-top-hue, linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent 32%));
+  --glass-lustre-streak: var(
+    --glass-gloss-streak-hue,
+    linear-gradient(calc(125deg * var(--glass-gloss-hue-dir, 1)), transparent 32%, oklch(var(--glass-lustre-ink) / 0.16) 48%, transparent 64%)
+  );
+  --glass-lustre-glow: var(--glass-gloss-glow-hue, radial-gradient(circle at 50% 120%, oklch(var(--glass-lustre-ink) / 0.2), transparent 70%));
+  --glass-lustre-stack-bg:
+    var(--glass-lustre-top), var(--glass-lustre-glow), var(--glass-lustre-streak), var(--glass-crystal-fresco, none),
+    linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)), linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
+  --glass-lustre-border: oklch(calc(var(--glass-lustre-edge-l) * 1%) min(var(--glass-tint-c), 0.085) var(--glass-tint-h) / 0.38);
+  --glass-lustre-shadow:
+    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18),
+    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35),
+    0 0 28px -6px oklch(var(--glass-lustre-ink) / 0.28);
+  --glass-lustre-shadow-hover:
+    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2),
+    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42),
+    0 0 36px -4px oklch(var(--glass-lustre-ink) / 0.4);
 }
 
 /* C′. The FLAVOR VARIANTS block C falls back from, each valid only while its switch is `1`. Kept in a
@@ -1590,6 +1647,28 @@
   --muted-foreground: var(--muted-foreground-crystal);
 }
 
+/* Lustre — the pricing-card polish, baked into the background for sticky/fixed surfaces too. */
+[data-material="lustre"] {
+  --srf-solidify: initial;
+  --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-bg-color: transparent;
+  --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
+  --srf-border-color: var(--glass-lustre-border);
+  --srf-border-w: var(--brd-w, 1px);
+  --srf-shadow: var(--glass-lustre-shadow);
+  transition: box-shadow 0.2s ease-out;
+}
+[data-material="lustre"]:hover {
+  --srf-shadow: var(--glass-lustre-shadow-hover);
+}
+[data-material="lustre"]:not(.glass-veil, [data-surface="veil"]) {
+  --foreground: var(--foreground-lustre);
+  --foreground-soft: var(--foreground-soft-lustre);
+  --foreground-strong: var(--foreground-strong-lustre);
+  --foreground-ui: var(--foreground-ui-lustre);
+  --muted-foreground: var(--muted-foreground-lustre);
+}
+
 /* Chakra — the step-cut gem: a translucent tinted body with a two-step facet frame on all four edges,
    sitting between crystal (near-clear) and opaque (solid). Like crystal it bakes everything into the
    background stack and the shadow — no pseudo-elements, so it is safe on sticky/fixed surfaces, and it
@@ -1627,10 +1706,11 @@
   --muted-foreground: var(--muted-foreground-chakra);
 }
 
-/* Opaque — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
+/* Lucite — solid tinted floor, nothing to blur through. --glass-opaque-outline stays settable on any
    ancestor: it's composed HERE, on the element, so it resolves where it's read. The floor can be
    LIGHT while the page is dark, so the foreground tiers remap to the -opaque set AutoForeground
    bands against that floor (inherits into the card's content). */
+[data-material="lucite"],
 [data-material="opaque"] {
   /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
      background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
@@ -1772,6 +1852,28 @@
   --foreground-ui: var(--foreground-ui-crystal);
   --muted-foreground: var(--muted-foreground-crystal);
 }
+:where([data-glass="lustre"], [data-glass="lustre"] [data-glass-tint], [data-glass="lustre"][data-glass-tint]) {
+  --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-bg-color: transparent;
+  --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
+  --srf-border-color: var(--glass-lustre-border);
+  --srf-border-w: var(--brd-w, 1px);
+  --srf-shadow: var(--glass-lustre-shadow);
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
+  transition: box-shadow 0.2s ease-out;
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
+  --srf-shadow: var(--glass-lustre-shadow-hover);
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
+  --foreground: var(--foreground-lustre);
+  --foreground-soft: var(--foreground-soft-lustre);
+  --foreground-strong: var(--foreground-strong-lustre);
+  --foreground-ui: var(--foreground-ui-lustre);
+  --muted-foreground: var(--muted-foreground-lustre);
+}
+
 /* Chakra page — every adaptive surface becomes a step-cut gem. The cut rides --srf-shadow, so it
    follows each surface's own border-radius with nothing to keep in sync. */
 :where([data-glass="chakra"], [data-glass="chakra"] [data-glass-tint], [data-glass="chakra"][data-glass-tint]) {
@@ -1790,9 +1892,16 @@
   --foreground-ui: var(--foreground-ui-chakra);
   --muted-foreground: var(--muted-foreground-chakra);
 }
-/* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
+/* Lucite — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
-:where([data-glass="opaque"], [data-glass="opaque"] [data-glass-tint], [data-glass="opaque"][data-glass-tint]) {
+:where(
+  [data-glass="lucite"],
+  [data-glass="lucite"] [data-glass-tint],
+  [data-glass="lucite"][data-glass-tint],
+  [data-glass="opaque"],
+  [data-glass="opaque"] [data-glass-tint],
+  [data-glass="opaque"][data-glass-tint]
+) {
   /* Floor + the tint wash, no sheet — same as [data-material="opaque"] in materials.css: the wash is what
      makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
      out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
@@ -1818,6 +1927,7 @@
    this is for. A bare attribute selector is (0,1,0), which ties :root and wins on source order because
    globals.css imports styles.css after tokens.css. It is a plain literal, so it simply inherits into
    the tint / toast scopes and needs none of their re-resolution. */
+[data-glass="lucite"],
 [data-glass="opaque"] {
   --glass-solid-a: 1;
 }
@@ -1827,6 +1937,7 @@
    must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
    The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
    still reads as a solid panel and needs the same outline. */
+[data-glass="lucite"] :where(.glass, [data-surface]):not([data-material]),
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]) {
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
@@ -1856,6 +1967,7 @@
    opaque floor is the one surface with nothing composited over it and so sits at the raw --glass-tint-h
    while every sheer surface lands a few degrees off it (measured on the /colors panel: 22.0 vs 14.6).
    Splitting the rule is what keeps the edge treatment while dropping the foreground one. */
+[data-glass="lucite"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]),
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);
@@ -1876,6 +1988,74 @@
   --glass-tint-c: 0;
   --glass-tint-a: 0;
   --harmony-h: 0;
+}
+/* Onyx is a dark neutral palette in either page mode. The wash and backing carry the dark pigment;
+   lowering the white sheet keeps glass/frosted from turning it gray. No .dark class is required. */
+[data-glass-tint="onyx"] {
+  color-scheme: dark;
+  --glass-tint-h: 250;
+  --glass-tint-c: 0;
+  --glass-tint-a: 0.94;
+  --harmony-h: 0;
+  --glass-wash-l: 16%;
+  --glass-sheet-a: 0;
+  --glass-sheet-a1: 0;
+  --glass-frost-boost: 0;
+  --glass-solid-a: 0.9;
+  --glass-solid-l: 18%;
+  --glass-opaque-l: 16;
+  --glass-solidify-l: 18;
+  --glass-crystal-l: 18;
+  --glass-crystal-bg-a: 0.85;
+  --glass-chakra-l: 20;
+  --glass-chakra-a: 0.8;
+  --glass-gloss-l: 52;
+  --glass-gloss-c-max: 0;
+  --glass-lustre-l: 18;
+  --glass-lustre-gloss-l: 52;
+  --glass-lustre-edge-l: 70;
+  --primary-l: 0.82;
+  --primary-foreground: oklch(0.15 0 0);
+  --secondary-l: 0.24;
+  --muted-l: 0.2;
+  --accent-bg-l: 0.28;
+  --border-l: 0.38;
+  --input-l: 0.3;
+  --active-l: 100%;
+  --active-c-max: 0;
+  --active-a: 0.12;
+  --glass-accent-l: 0.75;
+  --glass-accent-c: 0;
+  --glass-glow-lc: 0.75 0;
+  --glass-glow-a: 0.2;
+  --ring: oklch(0.75 0 0);
+  --sidebar-l: 0.18;
+  /* Literal, achromatic tiers also cover scoped/CSS-only use before AutoForeground mounts. */
+  --foreground: oklch(0.94 0 0);
+  --foreground-soft: oklch(0.84 0 0);
+  --foreground-strong: oklch(0.98 0 0);
+  --foreground-ui: oklch(0.86 0 0);
+  --muted-foreground: oklch(0.9 0 0);
+  --foreground-opaque: oklch(0.94 0 0);
+  --foreground-soft-opaque: oklch(0.84 0 0);
+  --foreground-strong-opaque: oklch(0.98 0 0);
+  --foreground-ui-opaque: oklch(0.86 0 0);
+  --muted-foreground-opaque: oklch(0.9 0 0);
+  --foreground-crystal: oklch(0.94 0 0);
+  --foreground-soft-crystal: oklch(0.84 0 0);
+  --foreground-strong-crystal: oklch(0.98 0 0);
+  --foreground-ui-crystal: oklch(0.86 0 0);
+  --muted-foreground-crystal: oklch(0.9 0 0);
+  --foreground-chakra: oklch(0.94 0 0);
+  --foreground-soft-chakra: oklch(0.84 0 0);
+  --foreground-strong-chakra: oklch(0.98 0 0);
+  --foreground-ui-chakra: oklch(0.86 0 0);
+  --muted-foreground-chakra: oklch(0.9 0 0);
+  --foreground-lustre: oklch(0.94 0 0);
+  --foreground-soft-lustre: oklch(0.84 0 0);
+  --foreground-strong-lustre: oklch(0.98 0 0);
+  --foreground-ui-lustre: oklch(0.86 0 0);
+  --muted-foreground-lustre: oklch(0.9 0 0);
 }
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;

@@ -111,6 +111,19 @@
      .dark). LEAVES ONLY — none composes a tint var (check-theme invariant 1), so they may live on the bare
      blocks and inherit into tint scopes, where the engine re-resolves the derived tokens. */
   --glass-sheet-a: 0.11; /* sheer glass sheet base alpha (per-stop offsets ride on top) */
+  /* Lustre: polished, dense glass with a broad specular and a soft halo. */
+  --glass-lustre-l: 93;
+  --glass-lustre-a: 0.8;
+  --glass-lustre-wash-strength: 1;
+  --glass-lustre-c-max: 0.025;
+  --glass-lustre-gloss-l: 97;
+  --glass-lustre-gloss-c-max: 0.013;
+  --glass-lustre-edge-l: 55;
+  --foreground-lustre: oklch(0.22 0.025 var(--glass-fg-h));
+  --foreground-soft-lustre: oklch(0.4 0.025 var(--glass-fg-h));
+  --foreground-strong-lustre: oklch(0.15 0.025 var(--glass-fg-h));
+  --foreground-ui-lustre: oklch(0.46 0.025 var(--glass-fg-h));
+  --muted-foreground-lustre: oklch(0.3 0.025 var(--glass-fg-h));
   --glass-sheet-a1: 0.04; /* the sheet's TOP-stop offset (dark tapers it to 0.03) */
   --glass-frost-boost: 0.1; /* frosted = the sheet lifted by this much */
   --glass-border-a: 0.16; /* glass edge alpha — a white rim needs more presence on light backdrops */
@@ -450,6 +463,17 @@
   --active-a: 0.2;
   /* ── Mode knobs — dark twins (see :root for what each dial does). */
   --glass-sheet-a: 0.05;
+  --glass-lustre-l: 22;
+  --glass-lustre-wash-strength: 0;
+  --glass-lustre-c-max: 0.035;
+  --glass-lustre-gloss-l: 68;
+  --glass-lustre-gloss-c-max: 0.1;
+  --glass-lustre-edge-l: 80;
+  --foreground-lustre: oklch(0.94 0.025 var(--glass-fg-h));
+  --foreground-soft-lustre: oklch(0.84 0.04 var(--glass-fg-h));
+  --foreground-strong-lustre: oklch(0.98 0.01 var(--glass-fg-h));
+  --foreground-ui-lustre: oklch(0.86 0.04 var(--glass-fg-h));
+  --muted-foreground-lustre: oklch(0.9 0.025 var(--glass-fg-h));
   --glass-sheet-a1: 0.03;
   --glass-frost-boost: 0.06;
   --glass-border-a: 0.15;

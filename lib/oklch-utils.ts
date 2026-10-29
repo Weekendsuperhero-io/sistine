@@ -983,9 +983,10 @@ export function glassSolidSurface(
     c: number;
     a: number;
   },
+  // A preset can have a dark veil on a light page (Onyx). Read its live floor independently of mode.
+  solidL: number = dark ? 18 : 99,
 ): OklchColor {
   const baseL = dark ? 20 : 95;
-  const solidL = dark ? 18 : 99;
   // The real paint order, composited in the real space — see compositeSurface for why lerping the
   // OKLCH coordinates instead is not the same operation.
   return compositeSurface(

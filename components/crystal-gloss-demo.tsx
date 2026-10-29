@@ -163,7 +163,7 @@ export function CrystalGlossDemo() {
     /* Re-resolving Light here is what makes the day/night twin visible: the class flip changes which
        CSS value applies, and if an inline override is present it has to be swapped for that scheme's. */
     const read = () => {
-      setDark(root.classList.contains("dark"));
+      setDark(root.classList.contains("dark") || root.dataset.glassTint === "onyx");
       syncL();
     };
     read();
@@ -172,6 +172,7 @@ export function CrystalGlossDemo() {
       attributes: true,
       attributeFilter: [
         "class",
+        "data-glass-tint",
       ],
     });
     return () => observer.disconnect();

@@ -17,6 +17,7 @@ Storybook will start on `http://localhost:6006`
 ### Components with Stories (27 Total)
 
 #### Form Components (8)
+
 - **Button** - All variants with effects (glow, shimmer, ripple)
 - **Input** - Form inputs with glass effects and icon support
 - **Textarea** - Multi-line text inputs with glass variants
@@ -27,6 +28,7 @@ Storybook will start on `http://localhost:6006`
 - **Select** - Dropdown selects with glass variants
 
 #### Display Components (6)
+
 - **Card** - Glass morphism cards with customizable properties
 - **Badge** - Small labels with glass styling
 - **Alert** - Alert messages with icons and variants
@@ -35,6 +37,7 @@ Storybook will start on `http://localhost:6006`
 - **Separator** - Horizontal and vertical separators
 
 #### Overlay Components (5)
+
 - **Dialog** - Modal dialogs with glass effects
 - **AlertDialog** - Confirmation dialogs
 - **Popover** - Contextual popovers
@@ -42,16 +45,19 @@ Storybook will start on `http://localhost:6006`
 - **HoverCard** - Rich hover cards
 
 #### Navigation Components (2)
+
 - **Tabs** - Tabbed interfaces with glass styling
 - **Accordion** - Collapsible accordions
 
 #### Data Components (4)
+
 - **Table** - Data tables with glass variants
 - **Command** - Command palettes with search
 - **Slider** - Range sliders
 - **ToggleGroup** (via Toggle) - Toggle button groups
 
 #### Utility Components (4)
+
 - **Tooltip** - Contextual tooltips
 - **HoverCard** - Rich hover cards
 - **ScrollArea** - Custom scroll areas
@@ -94,16 +100,18 @@ To add a new story, create a file in this directory:
 
 ```tsx
 // stories/ComponentName.stories.tsx
-import type { Meta, StoryObj } from '@storybook/react';
-import { ComponentName } from '@/components/ui/glass/component-name';
+import type { Meta, StoryObj } from "@storybook/react";
+import { ComponentName } from "@/components/ui/glass/component-name";
 
 const meta = {
-  title: 'Sistine/ComponentName',
+  title: "Sistine/ComponentName",
   component: ComponentName,
   parameters: {
-    layout: 'centered',
+    layout: "centered",
   },
-  tags: ['autodocs'],
+  tags: [
+    "autodocs",
+  ],
 } satisfies Meta<typeof ComponentName>;
 
 export default meta;
@@ -150,4 +158,3 @@ The build output will be in `storybook-static/` directory.
 - Press `S` to add shortcuts panel
 
 Enjoy exploring Sistine components! 🎨✨
-

@@ -49,6 +49,28 @@
   --foreground-ui: var(--foreground-ui-crystal);
   --muted-foreground: var(--muted-foreground-crystal);
 }
+:where([data-glass="lustre"], [data-glass="lustre"] [data-glass-tint], [data-glass="lustre"][data-glass-tint]) {
+  --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-bg-color: transparent;
+  --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
+  --srf-border-color: var(--glass-lustre-border);
+  --srf-border-w: var(--brd-w, 1px);
+  --srf-shadow: var(--glass-lustre-shadow);
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
+  transition: box-shadow 0.2s ease-out;
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
+  --srf-shadow: var(--glass-lustre-shadow-hover);
+}
+[data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
+  --foreground: var(--foreground-lustre);
+  --foreground-soft: var(--foreground-soft-lustre);
+  --foreground-strong: var(--foreground-strong-lustre);
+  --foreground-ui: var(--foreground-ui-lustre);
+  --muted-foreground: var(--muted-foreground-lustre);
+}
+
 /* Chakra page — every adaptive surface becomes a step-cut gem. The cut rides --srf-shadow, so it
    follows each surface's own border-radius with nothing to keep in sync. */
 :where([data-glass="chakra"], [data-glass="chakra"] [data-glass-tint], [data-glass="chakra"][data-glass-tint]) {
@@ -67,9 +89,16 @@
   --foreground-ui: var(--foreground-ui-chakra);
   --muted-foreground: var(--muted-foreground-chakra);
 }
-/* Opaque — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
+/* Lucite — solid tinted panels for adaptive surfaces. --glass-solid-a: 1 makes any veiled overlay
    (glass-veil) compute a FULLY solid floor here too, so menus/toasts stay legible on an opaque page. */
-:where([data-glass="opaque"], [data-glass="opaque"] [data-glass-tint], [data-glass="opaque"][data-glass-tint]) {
+:where(
+  [data-glass="lucite"],
+  [data-glass="lucite"] [data-glass-tint],
+  [data-glass="lucite"][data-glass-tint],
+  [data-glass="opaque"],
+  [data-glass="opaque"] [data-glass-tint],
+  [data-glass="opaque"][data-glass-tint]
+) {
   /* Floor + the tint wash, no sheet — same as [data-material="opaque"] in materials.css: the wash is what
      makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
      out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
@@ -95,6 +124,7 @@
    this is for. A bare attribute selector is (0,1,0), which ties :root and wins on source order because
    globals.css imports styles.css after tokens.css. It is a plain literal, so it simply inherits into
    the tint / toast scopes and needs none of their re-resolution. */
+[data-glass="lucite"],
 [data-glass="opaque"] {
   --glass-solid-a: 1;
 }
@@ -104,6 +134,7 @@
    must resolve where it's read, and (b) the foreground remap must not leak into explicit materials.
    The uniform EDGE applies to every adaptive panel, veiled or not — a veiled card under the opaque page
    still reads as a solid panel and needs the same outline. */
+[data-glass="lucite"] :where(.glass, [data-surface]):not([data-material]),
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]) {
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
@@ -133,6 +164,7 @@
    opaque floor is the one surface with nothing composited over it and so sits at the raw --glass-tint-h
    while every sheer surface lands a few degrees off it (measured on the /colors panel: 22.0 vs 14.6).
    Splitting the rule is what keeps the edge treatment while dropping the foreground one. */
+[data-glass="lucite"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]),
 [data-glass="opaque"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-opaque);
   --foreground-soft: var(--foreground-soft-opaque);

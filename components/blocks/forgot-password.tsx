@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function ForgotPasswordBlock() {
+export function ForgotPasswordBlock({ signInHref = "/blocks/authentication" }: { signInHref?: string } = {}) {
   return (
     <div className="flex items-center justify-center min-h-screen p-6">
       <Card className="w-full max-w-md text-foreground">
@@ -25,7 +25,7 @@ export function ForgotPasswordBlock() {
           </div>
           <Button className="w-full text-foreground">Send Reset Link</Button>
           <Button variant="link" className="w-full text-muted-foreground" asChild>
-            <a href="/authentication">
+            <a href={signInHref}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to sign in
             </a>

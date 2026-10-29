@@ -71,6 +71,27 @@ describe("stopRules", () => {
  * not having effects.
  */
 describe("PatternBackground data-pat-static", () => {
+  it("uses the night palette for Onyx even when the page mode is light", () => {
+    const root = document.documentElement;
+    const previousClass = root.className;
+    const previousTint = root.getAttribute("data-glass-tint");
+    const host = document.createElement("div");
+    try {
+      root.classList.remove("dark");
+      root.dataset.glassTint = "onyx";
+      host.innerHTML = renderToStaticMarkup(<PatternBackground style="moonrise" speed={0} />);
+      document.body.append(host);
+      const scene = host.querySelector('[data-pattern="moonrise"]')!;
+      expect(getComputedStyle(scene).getPropertyValue("--sw-stars-o").trim()).toBe("1");
+      delete root.dataset.glassTint;
+      expect(getComputedStyle(scene).getPropertyValue("--sw-stars-o").trim()).toBe("0");
+    } finally {
+      host.remove();
+      root.className = previousClass;
+      if (previousTint === null) root.removeAttribute("data-glass-tint");
+      else root.setAttribute("data-glass-tint", previousTint);
+    }
+  });
   const markup = (style: (typeof PATTERN_STYLES)[number], speed: number) => renderToStaticMarkup(<PatternBackground style={style} speed={speed} />);
 
   // Match the rendered ATTRIBUTE, not the string. Each scene inlines its own
@@ -228,8 +249,8 @@ describe("forest treelines", () => {
     // A ridge reads its colours from palette variables (--fo-r2-bark, …). One left undefined makes the
     // whole paint invalid, and the part silently draws nothing: the middle ridge's trunks did exactly that.
     const html = markup();
-    const day = html.slice(html.indexOf('[data-pattern="forest"] {'), html.indexOf('.dark [data-pattern="forest"]'));
-    const night = html.slice(html.indexOf('.dark [data-pattern="forest"]'), html.indexOf(".fo-scene"));
+    const day = html.match(/(?:^|\n)\[data-pattern="forest"\]\s*\{([^}]+)\}/)?.[1] ?? "";
+    const night = html.match(/(?:\.dark|:is\([^)]*\.dark[^)]*\))\s+\[data-pattern="forest"\]\s*\{([^}]+)\}/)?.[1] ?? "";
     const used = new Set(
       [
         ...html.matchAll(/var\(--(fo-r\d(?:-[a-z]+)*)\)/g),
