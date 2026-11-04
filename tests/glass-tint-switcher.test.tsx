@@ -250,3 +250,47 @@ describe("GlassTintSwitcher: per-mode alpha stays with CSS", () => {
     expect(root().dataset.glassTint).toBeUndefined();
   });
 });
+
+/**
+ * A day/night PAIR is a switcher choice, not a theme preset: it writes plain `selenite` onto <html> by day
+ * and plain `onyx` by night, and swaps when the mode flips, so everything else (the theme, AutoForeground,
+ * the onyx rules) only ever sees a preset it already knows. The choice itself is what persists.
+ */
+describe("GlassTintSwitcher: day/night pair", () => {
+  const PAIR = "Selenite by day, onyx by night";
+
+  it("wears selenite by day, onyx by night, and swaps when the mode flips", async () => {
+    const user = userEvent.setup();
+    await mounted();
+    await user.click(screen.getByLabelText("Glass color"));
+    await user.click(await screen.findByLabelText(PAIR));
+    expect(root().dataset.glassTint).toBe("selenite");
+    expect(localStorage.getItem("sistine-glass-tint")).toBe("selenite-onyx");
+
+    root().classList.add("dark");
+    await waitFor(() => expect(root().dataset.glassTint).toBe("onyx"));
+    root().classList.remove("dark");
+    await waitFor(() => expect(root().dataset.glassTint).toBe("selenite"));
+    // The choice stays the pair through both flips.
+    expect(localStorage.getItem("sistine-glass-tint")).toBe("selenite-onyx");
+  });
+
+  it("restores a stored pair as the preset for the current mode", async () => {
+    localStorage.setItem("sistine-glass-tint", "selenite-onyx");
+    root().classList.add("dark");
+    await mounted();
+    await waitFor(() => expect(root().dataset.glassTint).toBe("onyx"));
+  });
+
+  it("stops swapping once another preset is chosen", async () => {
+    const user = userEvent.setup();
+    await mounted();
+    await user.click(screen.getByLabelText("Glass color"));
+    await user.click(await screen.findByLabelText(PAIR));
+    await user.click(screen.getByLabelText("Sapphire"));
+    root().classList.add("dark");
+    // Give a stray observer the chance to fire before asserting it did not.
+    await new Promise((r) => setTimeout(r, 20));
+    expect(root().dataset.glassTint).toBe("sapphire");
+  });
+});

@@ -80,6 +80,15 @@
   --foreground-ui-lustre: oklch(0.86 0 0);
   --muted-foreground-lustre: oklch(0.9 0 0);
 }
+[data-glass-tint="celestite"] {
+  /* Celestite — pale sky blue, the widest gap on the glass (aquamarine h215 → sapphire h255, 19.6 apart
+     as washes). h235's sRGB chroma peaks at L74, between aquamarine's L82 and sapphire's L62. */
+  --glass-tint-h: 235;
+  --glass-tint-c: 0.064;
+  --glass-tint-a: 0.2;
+  --glass-wash-l: 74%;
+  --glass-opaque-c-max: 0.065;
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
@@ -122,6 +131,17 @@
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.062;
 }
+[data-glass-tint="citrine"] {
+  /* Citrine — true yellow, the gap between amber (h75) and peridot (h128). Yellow's sRGB chroma peaks
+     LIGHT (L91 at h100, against amber's L80), so it washes like peridot: a pale wash near the light
+     floor, which takes high alpha by day and little at night. Its chroma is bound by the DARK end
+     instead: the dark opaque floor asks c × 0.98 at L33.4, where h100's sRGB ceiling is 0.0676. */
+  --glass-tint-h: 100;
+  --glass-tint-c: 0.066;
+  --glass-tint-a: 0.54;
+  --glass-wash-l: 91%;
+  --glass-opaque-c-max: 0.173;
+}
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
   --glass-tint-c: 0.083;
@@ -149,6 +169,15 @@
   --glass-tint-a: 0.18;
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.079;
+}
+[data-glass-tint="sodalite"] {
+  /* Sodalite — royal blue, between sapphire (h255, L62) and lapis (h268, L46): only 13° of hue apart but
+     17.1 as washes, almost all of it lightness. h262 peaks at L54, so it lands on the step between them. */
+  --glass-tint-h: 262;
+  --glass-tint-c: 0.08;
+  --glass-tint-a: 0.11;
+  --glass-wash-l: 54%;
+  --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="lapis"] {
   /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
@@ -208,6 +237,10 @@
 .dark [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
 }
+.dark[data-glass-tint="citrine"],
+.dark [data-glass-tint="citrine"] {
+  --glass-tint-a: 0.2;
+}
 .dark[data-glass-tint="peridot"],
 .dark [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
@@ -227,6 +260,14 @@
 .dark[data-glass-tint="sapphire"],
 .dark [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
+}
+.dark[data-glass-tint="celestite"],
+.dark [data-glass-tint="celestite"] {
+  --glass-tint-a: 0.3;
+}
+.dark[data-glass-tint="sodalite"],
+.dark [data-glass-tint="sodalite"] {
+  --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="lapis"],
 .dark [data-glass-tint="lapis"] {

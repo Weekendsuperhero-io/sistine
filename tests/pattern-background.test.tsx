@@ -1,3 +1,4 @@
+import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
@@ -190,6 +191,190 @@ describe("scene compositing", () => {
     for (const [, selector, body] of rules) {
       expect(body, selector.trim()).not.toMatch(/filter|mask|clip-path/);
     }
+  });
+});
+
+/**
+ * A picker draws every scene at once, as miniatures of the full-window wallpaper. What a miniature must not
+ * carry is a promoted layer that only the wallpaper needs: the root's `glass-backdrop-layer` and an
+ * unconditional `will-change` on a part that stands still (the discs, the sun path). Each was one layer per
+ * swatch, a hidden disc another, and every scene re-injected its stylesheets.
+ */
+describe("previews", () => {
+  const rootOf = (html: string) => {
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    return host.querySelector("[data-pattern]")!;
+  };
+
+  it("leaves the page-backdrop promotion off a preview, and only a preview", () => {
+    for (const style of PATTERN_STYLES) {
+      const wallpaper = rootOf(renderToStaticMarkup(<PatternBackground style={style} />));
+      const preview = rootOf(renderToStaticMarkup(<PatternBackground style={style} preview speed={0} />));
+      expect(wallpaper.classList.contains("glass-backdrop-layer"), `${style} wallpaper`).toBe(true);
+      expect(wallpaper.hasAttribute("data-pat-preview"), `${style} wallpaper`).toBe(false);
+      expect(preview.classList.contains("glass-backdrop-layer"), `${style} preview`).toBe(false);
+      expect(preview.getAttribute("data-pat-preview"), `${style} preview`).toBe("");
+    }
+  });
+
+  it("releases every unconditional will-change in a preview", () => {
+    // `var(--pat-wc, …)` is the speed-gated hint (stopRules releases it at Speed 0); a LITERAL
+    // `will-change: transform` promotes whatever the scene is doing, so a preview has to undo each one.
+    const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />))
+      .match(/<style[^>]*>([\s\S]*?)<\/style>/g)!
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const rules = [
+      ...css.matchAll(/([^{}]*)\{([^{}]*)\}/g),
+    ].map(([, selector, body]) => ({
+      selectors: selector.split(",").map((s) => s.trim()),
+      body,
+    }));
+    const promoted = rules.filter((r) => /will-change:\s*transform/.test(r.body)).flatMap((r) => r.selectors);
+    const released = new Set(rules.filter((r) => /will-change:\s*auto/.test(r.body)).flatMap((r) => r.selectors));
+    expect(promoted.sort()).toEqual([
+      ".au-sunpath",
+      ".scene-moon",
+      ".sw-sun",
+    ]);
+    for (const sel of promoted) expect(released, sel).toContain(`[data-pat-preview] ${sel}`);
+  });
+
+  it("remounts a preview when its disc moves, and keeps the wallpaper mounted", () => {
+    // An unpromoted disc moved in place meets the WebKit repaint bug its layer guards against (.sw-sun).
+    const view = render(<PatternBackground style="clouds" preview speed={0} disc="left" />);
+    const before = view.container.querySelector("[data-pattern]");
+    view.rerender(<PatternBackground style="clouds" preview speed={0} disc="right" />);
+    expect(view.container.querySelector("[data-pattern]")).not.toBe(before);
+
+    const wallpaper = render(<PatternBackground style="clouds" disc="left" />);
+    const live = wallpaper.container.querySelector("[data-pattern]");
+    wallpaper.rerender(<PatternBackground style="clouds" disc="right" />);
+    expect(wallpaper.container.querySelector("[data-pattern]")).toBe(live);
+  });
+
+  it("injects each stylesheet once, however many scenes are mounted", () => {
+    const view = render(
+      <>
+        {PATTERN_STYLES.map((style) => (
+          <PatternBackground key={style} style={style} preview speed={0} />
+        ))}
+        <PatternBackground style="clouds" />
+      </>,
+    );
+    const sheets = [
+      ...document.head.querySelectorAll('style[data-precedence="sistine-pattern"]'),
+    ].map((s) => s.getAttribute("data-href"));
+    expect(new Set(sheets).size, sheets.join(" ")).toBe(sheets.length);
+    // Shared sky, the Muse, and one sheet per scene family (moonrise rides synthwave's; the geometric
+    // tiles have none).
+    expect(sheets.sort()).toEqual(
+      [
+        "aurora",
+        "chase",
+        "clouds",
+        "dune",
+        "forest",
+        "muse",
+        "peaks",
+        "sky",
+        "starfield",
+        "synthwave",
+      ].map((name) => `sistine-pattern-${name}`),
+    );
+    expect(view.container.querySelector("style")).toBeNull();
+  });
+});
+
+/**
+ * The horizon scenes render both discs and let the palette pick one per mode. The pick has to take the other
+ * one out of the render tree: at opacity 0 a disc is still a promoted layer, invisible, in the live
+ * wallpaper too. jsdom does not resolve `var()` in `display`, so the gate is resolved by hand from the root.
+ */
+describe("disc display gates", () => {
+  const shownDiscs = (style: (typeof PATTERN_STYLES)[number], dark: boolean) => {
+    const html = document.documentElement;
+    const previous = html.className;
+    const host = document.createElement("div");
+    try {
+      html.classList.toggle("dark", dark);
+      host.innerHTML = renderToStaticMarkup(<PatternBackground style={style} />);
+      document.body.append(host);
+      const root = getComputedStyle(host.querySelector("[data-pattern]")!);
+      return [
+        ...host.querySelectorAll(".sw-sun, .scene-moon"),
+      ]
+        .filter((disc) => {
+          const display = getComputedStyle(disc).display;
+          const gate = /^var\((--[\w-]+),\s*([\w-]+)\)$/.exec(display);
+          return (gate ? root.getPropertyValue(gate[1]).trim() || gate[2] : display) !== "none";
+        })
+        .map((disc) => disc.className);
+    } finally {
+      host.remove();
+      html.className = previous;
+    }
+  };
+
+  it.each([
+    "clouds",
+    "dune",
+    "forest",
+    "peaks",
+  ] as const)("%s keeps only the sun by day and only the moon by night", (style) => {
+    expect(shownDiscs(style, false)).toEqual([
+      "sw-sun",
+    ]);
+    expect(shownDiscs(style, true)).toEqual([
+      "scene-moon",
+    ]);
+  });
+
+  it("drops aurora's sun at night, when the scene is moonless and sunless", () => {
+    expect(shownDiscs("aurora", false)).toEqual([
+      "sw-sun",
+    ]);
+    expect(shownDiscs("aurora", true)).toEqual([]);
+  });
+});
+
+/**
+ * Peaks' ridges are GENERATED, like forest's: per ridge, an inline SVG of facets and snow caps from a
+ * seeded generator. It must draw the same range on the server and the client, keep its valley on the disc,
+ * and light the facet that faces it.
+ */
+describe("peaks", () => {
+  const markup = (disc?: "left" | "center" | "right") => renderToStaticMarkup(<PatternBackground style="peaks" disc={disc} />);
+
+  it("draws the same range on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws four ridges, each centred on the disc, the far two snow-capped", () => {
+    const html = markup();
+    const ridges = [
+      ...html.matchAll(/<svg class="pk-ridge pk-r(\d)"[^>]*style="([^"]*)"[\s\S]*?<\/svg>/g),
+    ];
+    expect(ridges.map((m) => m[1])).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+    ]);
+    for (const [svg, , style] of ridges) expect(style, svg.slice(0, 40)).toContain("left:calc(var(--sw-disc-x, 50%) - 375vh)");
+    const capped = ridges.map(([svg]) => svg.includes("--pk-snow"));
+    expect(capped).toEqual([
+      true,
+      true,
+      false,
+      false,
+    ]);
+  });
+
+  it("lights the facets that face the disc", () => {
+    expect(markup("left")).toContain("--pk-lit-l:1;--pk-lit-r:0");
+    expect(markup("right")).toContain("--pk-lit-l:0;--pk-lit-r:1");
   });
 });
 

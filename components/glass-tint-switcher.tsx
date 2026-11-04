@@ -5,7 +5,7 @@ import { FG_EVENT } from "@/components/auto-foreground";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
-import { GLASS_TINT_PRESETS as PRESETS } from "@/lib/glass-presets";
+import { GLASS_TINT_PAIRS as PAIRS, GLASS_TINT_PRESETS as PRESETS } from "@/lib/glass-presets";
 import { cn } from "@/lib/utils";
 
 // Persistence shared with earlier versions: ROOT_KEY = the chosen base ("selenite" | preset | "custom"),
@@ -104,7 +104,16 @@ type Harmony = keyof typeof HARMONIES;
  * static page render different fresco surfaces.
  */
 
-type PresetValue = (typeof PRESETS)[number]["value"] | "custom";
+type PairId = (typeof PAIRS)[number]["id"];
+type PresetValue = (typeof PRESETS)[number]["value"] | PairId | "custom";
+
+/** The preset a day/night pair wears right now: its night preset in dark mode, its day preset otherwise. */
+function pairPreset(id: string) {
+  const pair = PAIRS.find((p) => p.id === id);
+  if (!pair) return undefined;
+  const value = document.documentElement.classList.contains("dark") ? pair.night : pair.day;
+  return PRESETS.find((p) => p.value === value);
+}
 
 // Chakra-stone renames (emerald→aventurine, bone→moonstone, neutral→selenite): map a stored legacy
 // name to its new preset so returning visitors keep their tint instead of falling back to the default.
@@ -237,6 +246,26 @@ function restoreLightness() {
   return Number.isFinite(computed) ? computed : root.dataset.glassTint === "onyx" ? 16 : mode === "dark" ? 33.4 : 93;
 }
 
+/** One round swatch in the picker grid. */
+function chip(key: string, label: string, swatch: string, active: boolean, onClick: () => void) {
+  return (
+    <button
+      type="button"
+      key={key}
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={cn(
+        "size-6 rounded-full border border-[var(--glass-border)] transition-transform active:scale-[0.96]",
+        active ? "ring-2 ring-foreground/60" : "hover:scale-110",
+      )}
+      style={{
+        background: swatch,
+      }}
+    />
+  );
+}
+
 /**
  * One unified glass-color control, in OKLCH terms: pick a preset (or dial a custom Hue) and adjust Chroma
  * (OKLCH C — the single "how colorful" master, driving surfaces + text + harmonics). Writes --glass-tint-h/c
@@ -272,7 +301,8 @@ export function GlassTintSwitcher() {
       }
     }
     const storedBase = ((legacy ?? storedRaw) as PresetValue | null) ?? "amethyst";
-    const preset = PRESETS.find((p) => p.value === storedBase);
+    // A stored day/night pair restores as the preset for the page's current mode.
+    const preset = PRESETS.find((p) => p.value === storedBase) ?? pairPreset(storedBase);
     let nh = preset?.h ?? 250;
     let nc = preset?.c ?? 0.018;
     let na = preset?.a ?? 0;
@@ -301,7 +331,7 @@ export function GlassTintSwitcher() {
     setC(nc);
     setA(na);
     // A custom tint has no CSS block to read from, so it inlines its own alpha; a named preset delegates.
-    applyTint(nh, nc, storedBase === "custom" ? na : null, storedBase === "custom" ? null : storedBase);
+    applyTint(nh, nc, storedBase === "custom" ? na : null, storedBase === "custom" ? null : (preset?.value ?? storedBase));
     /* No stored preference -> do NOT write inline, so the theme's own default (the --glass-opacity
        fallback in @utility glass) stays the single source of truth. Writing it unconditionally is what
        froze the crystal gloss twin earlier; same shape of bug, same fix. */
@@ -380,8 +410,10 @@ export function GlassTintSwitcher() {
     }
   };
 
-  const choose = (p: (typeof PRESETS)[number]) => {
-    setBase(p.value);
+  /** Apply a preset. `as` is what the switcher records as the choice: the preset itself, or the day/night
+   *  pair it stands in for, which keeps that pair's chip selected and re-applies on the next mode flip. */
+  const choose = (p: (typeof PRESETS)[number], as: PresetValue = p.value) => {
+    setBase(as);
     setH(p.h);
     setC(p.c);
     setA(p.a);
@@ -394,7 +426,7 @@ export function GlassTintSwitcher() {
        check-theme's [tint-sync] asserts the two agree, so setting the attribute cannot diverge them. */
     applyTint(p.h, p.c, null, p.value);
     setLightness(restoreLightness());
-    persist(p.value, p.h, p.c, p.a);
+    persist(as, p.h, p.c, p.a);
     // A preset click (not a drag) can change the CSS opaque floor (--glass-opaque-l: moonstone 94.5/84.9) and, for
     // frescoes, --glass-fg-h. Re-sync our lightness state from the DOM and let AutoForeground read the DOM once
     // (one reflow on a click is fine) so the tint is accurate and the NEXT drag's snapshot starts from truth.
@@ -407,6 +439,31 @@ export function GlassTintSwitcher() {
     if (Number.isFinite(ea)) setA(ea);
     window.dispatchEvent(new Event(FG_EVENT));
   };
+
+  const choosePair = (id: PairId) => {
+    const p = pairPreset(id);
+    if (p) choose(p, id);
+  };
+
+  // A day/night pair swaps its preset when the page's mode flips. The lightness observer above may run
+  // first, against the outgoing preset; choose() restores the incoming one's lightness itself.
+  React.useEffect(() => {
+    if (!PAIRS.some((p) => p.id === base)) return;
+    const root = document.documentElement;
+    const obs = new MutationObserver(() => {
+      const p = pairPreset(base);
+      if (p && root.dataset.glassTint !== p.value) choose(p, base);
+    });
+    obs.observe(root, {
+      attributes: true,
+      attributeFilter: [
+        "class",
+      ],
+    });
+    return () => obs.disconnect();
+  }, [
+    base,
+  ]);
 
   // Dragging a slider keeps a bespoke base (the frescoes) — data-glass-tint stays —
   // but overrides the tint vars; for any other base it becomes a free "custom" color.
@@ -561,11 +618,12 @@ export function GlassTintSwitcher() {
   const harmonyOrigin = c === 0 || base === "moonstone" ? 0 : h;
 
   const triggerSwatch =
-    base === "sistine" || base === "muse"
+    (PAIRS.find((p) => p.id === base)?.swatch ?? null) ||
+    (base === "sistine" || base === "muse"
       ? (PRESETS.find((p) => p.value === base)?.swatch ?? "oklch(90% 0.02 250)")
       : c < 0.005
         ? "oklch(90% 0.02 250)"
-        : `oklch(80% ${Math.min(0.15, c * 2).toFixed(3)} ${h})`;
+        : `oklch(80% ${Math.min(0.15, c * 2).toFixed(3)} ${h})`);
 
   return (
     <Popover>
@@ -583,26 +641,16 @@ export function GlassTintSwitcher() {
         <div className="font-medium text-sm">Glass color</div>
 
         <div className="grid grid-cols-4 gap-2">
-          {/* Four per row, the 4 frescoes on the top row, then selenite/moonstone + the jewels. */}
+          {/* Four per row: the 4 frescoes, then the neutrals (selenite, onyx, the day/night pair between
+              them, moonstone), then the jewels around the hue wheel, so each sits between its neighbours. */}
           {[
             ...PRESETS.filter((p) => FRESCOES.has(p.value)),
-            ...PRESETS.filter((p) => !FRESCOES.has(p.value)),
-          ].map((p) => (
-            <button
-              type="button"
-              key={p.value}
-              onClick={() => choose(p)}
-              title={p.label}
-              aria-label={p.label}
-              className={cn(
-                "size-6 rounded-full border border-[var(--glass-border)] transition-transform active:scale-[0.96]",
-                base === p.value ? "ring-2 ring-foreground/60" : "hover:scale-110",
-              )}
-              style={{
-                background: p.swatch,
-              }}
-            />
-          ))}
+            ...PRESETS.filter((p) => p.value === "selenite" || p.value === "onyx"),
+          ].map((p) => chip(p.value, p.label, p.swatch, base === p.value, () => choose(p)))}
+          {PAIRS.map((p) => chip(p.id, p.label, p.swatch, base === p.id, () => choosePair(p.id)))}
+          {PRESETS.filter((p) => !FRESCOES.has(p.value) && p.value !== "selenite" && p.value !== "onyx")
+            .sort((x, y) => (x.value === "moonstone" ? -1 : y.value === "moonstone" ? 1 : x.h - y.h))
+            .map((p) => chip(p.value, p.label, p.swatch, base === p.value, () => choose(p)))}
         </div>
 
         <SliderRow label="Hue" value={`${Math.round(h)}°`}>

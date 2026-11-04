@@ -138,7 +138,10 @@
    position:fixed descendants and no background-attachment:fixed; a transform/will-change would
    otherwise become their containing block and reparent them. Re-check that before adding children.
    will-change (rather than a translateZ hack) because the hint is honest here: this layer is on screen
-   and being sampled for the whole session, so there is nothing to hint OFF later. */
+   and being sampled for the whole session, so there is nothing to hint OFF later.
+   Only the page's OWN backdrop takes it. A preview of a scene (PatternBackground `preview`: a picker
+   swatch, a thumbnail) leaves it off: no sheer material blurs it, and a picker of a dozen miniatures
+   would otherwise be a dozen full layers. */
 @utility glass-backdrop-layer {
   will-change: transform;
 }

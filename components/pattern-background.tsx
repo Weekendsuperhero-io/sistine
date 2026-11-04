@@ -11,7 +11,19 @@ import { type CSSProperties, useId } from "react";
  * (CSS gradient) and CanvasBackground (JS canvas).
  */
 
-export type PatternStyle = "dots" | "grid" | "mesh" | "starfield" | "synthwave" | "moonrise" | "clouds" | "dune" | "aurora" | "forest" | "chase";
+export type PatternStyle =
+  | "dots"
+  | "grid"
+  | "mesh"
+  | "starfield"
+  | "synthwave"
+  | "moonrise"
+  | "clouds"
+  | "dune"
+  | "aurora"
+  | "forest"
+  | "peaks"
+  | "chase";
 
 export const PATTERN_STYLES: PatternStyle[] = [
   "dots",
@@ -24,6 +36,7 @@ export const PATTERN_STYLES: PatternStyle[] = [
   "dune",
   "aurora",
   "forest",
+  "peaks",
   "chase",
 ];
 
@@ -56,6 +69,7 @@ export const ANIMATED_PATTERNS = new Set<PatternStyle>([
   "dune",
   "aurora",
   "forest",
+  "peaks",
   "chase",
 ]);
 
@@ -67,6 +81,7 @@ export const DISC_PATTERNS = new Set<PatternStyle>([
   "dune",
   "aurora",
   "forest",
+  "peaks",
 ]);
 
 /** Scenes with a blowing-sand control (still / breeze / storm). */
@@ -354,10 +369,25 @@ const MUSE_STYLES = `
   fill: oklch(0.96 0.04 var(--muse-h));
 }`;
 
+/**
+ * A scene stylesheet, ONE copy per document however many scenes are mounted. A plain `<style>` was injected
+ * again by every PatternBackground, so a picker of eleven swatches beside the wallpaper carried some thirty
+ * copies for the browser to parse and match. With `href` + `precedence`, React 19 hoists the sheet into
+ * <head> and dedupes it by `href`, on the server as on the client. Every sheet shares one precedence, so they
+ * keep the order they are first rendered in: SKY_STYLES ahead of the scene sheet that builds on it.
+ */
+function SceneStyles({ name, css }: { name: string; css: string }) {
+  return (
+    <style href={`sistine-pattern-${name}`} precedence="sistine-pattern">
+      {css}
+    </style>
+  );
+}
+
 function MuseConstellation() {
   return (
     <>
-      <style>{MUSE_STYLES}</style>
+      <SceneStyles name="muse" css={MUSE_STYLES} />
       <svg className="star-muse" viewBox="0 0 100 92.4" aria-hidden="true">
         {MUSE_DOTS.map(([x, y], i) => (
           <circle key={`${x},${y}`} cx={x} cy={y} r={i % 7 === 0 ? 0.22 : i % 3 === 0 ? 0.16 : 0.12} />
@@ -405,6 +435,7 @@ const SKY_STYLES = `
     drop-shadow(0 0 var(--sw-disc-blur, 5vh) var(--sw-disc-glow))
     drop-shadow(0 0 var(--sw-disc-bloom, 0) var(--sw-disc-bloom-c, transparent));
   opacity: var(--sw-moon-o, 1);
+  display: var(--sw-moon-d, block);
   /* Its own compositing layer, as .sw-sun below: see the note there. */
   will-change: transform;
 }
@@ -413,7 +444,11 @@ const SKY_STYLES = `
    draws next (cloud deck, sand, water) covers the dipped half, so it reads as sitting in the horizon.
    Both discs render in every scene that wants either; --sw-sun-o / --sw-moon-o pick which one shows per
    mode, the same way --sw-stars-o gates the stars. Defaults are 1, so synthwave and moonrise — which
-   choose their disc in JSX instead — are untouched. */
+   choose their disc in JSX instead — are untouched.
+   Each opacity gate has a DISPLAY twin, --sw-sun-d / --sw-moon-d (block | none), set beside it in every
+   palette block: the hidden disc has to leave the render tree, not just go transparent, because at
+   opacity 0 it is still a promoted layer (the will-change below), an invisible full-filter layer in the
+   live wallpaper and in every preview. check-patterns ([disc-gates]) keeps each pair in agreement. */
 .sw-sun {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -423,6 +458,7 @@ const SKY_STYLES = `
   transform: translate(-50%, 33%);
   border-radius: 50%;
   opacity: var(--sw-sun-o, 1);
+  display: var(--sw-sun-d, block);
   background: linear-gradient(
     to top,
     var(--sw-disc-1) 0%,
@@ -443,6 +479,14 @@ const SKY_STYLES = `
      filter AND a mask it repainted only part of each: the old sun's top stayed painted at the old spot
      and the new one showed only its lower half. As a layer, the move just repositions it. */
   will-change: transform;
+}
+/* A PREVIEW (a picker swatch, a thumbnail) is not promoted. A picker draws a dozen miniatures at once, and
+   a promoted disc in each was a dozen layers for the window server to keep. The move above is the only
+   reason for the layer, and a preview never makes it in place: PatternBackground remounts a preview
+   whose disc changes, so it paints whole. */
+[data-pat-preview] .sw-sun,
+[data-pat-preview] .scene-moon {
+  will-change: auto;
 }
 /* Paints its children as ONE compositing layer. WebKit gives every element that overlaps an earlier
    composited one a layer of its own, so the z-order holds, and a disc is a layer (above), so loose, every
@@ -708,6 +752,8 @@ const CLOUDS_STYLES = `
      because it has to sit against a deep blue altitude sky rather than a violet one. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 34vh;
   /* Sun ramp, synthwave's structure with the ACCENT standing in for its magenta: the chosen colour sits
      at the BOTTOM of the disc — the end nearest the horizon — and mixes through to a warm yellow at the
@@ -741,6 +787,8 @@ const CLOUDS_STYLES = `
      what it declares — so both gates have to be flipped back here explicitly. */
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   --moon-size: 26vh;
   --moon-bottom: 57%;
   --moon-dip: 0%;
@@ -989,6 +1037,8 @@ const DUNE_STYLES = `
      tiers, so the dipped half is covered and a near crest occludes it, as it should. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 40vh;
   /* Sun ramp, synthwave's structure with the ACCENT standing in for its magenta: the chosen colour sits
      at the BOTTOM of the disc — the end nearest the horizon — and mixes through to a warm yellow at the
@@ -1039,6 +1089,8 @@ const DUNE_STYLES = `
   /* Back to a moon — both disc gates flipped explicitly (see the clouds note). */
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   --moon-size: 36vh;
   --moon-bottom: 50%;
   --moon-dip: 0%;
@@ -1581,6 +1633,8 @@ const AURORA_STYLES = `
      the lights are most vivid), so the moon gate is off in both modes and only the sun ever shows. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 38vh;
   /* The same banded outrun sun as every other scene. Its band gaps are transparent, and here they used to
      show the curtains through the disc, so the sun was made solid; .au-sunsky now paints the sky into
@@ -1630,6 +1684,7 @@ const AURORA_STYLES = `
   --au-glow: oklch(0.84 0.1 180 / 0.28);
   --au-h: var(--accent-h, var(--glass-tint-h, 35));
   --sw-sun-o: 0; /* moonless AND sunless at night — the curtains carry the scene */
+  --sw-sun-d: none; /* takes the sun AND its path on the water out of the tree, not just to opacity 0 */
   /* The lips sit on the horizon again at night: there is no sun for them to fade into. Night keeps its own
      softness and haze too. */
   --au-fade: initial;
@@ -1641,6 +1696,7 @@ const AURORA_STYLES = `
      carry the horizon, and between them it stays dark; the soft haze band just blends sky into water. */
   --au-haze-o: 0.4;
   --sw-moon-o: 0;
+  --sw-moon-d: none;
   --sw-stars-o: 1;
 }
 .au-scene {
@@ -1869,7 +1925,12 @@ const AURORA_STYLES = `
   width: calc(var(--sun-size, 38vh) * 2.4);
   transform: translateX(-50%);
   opacity: calc(0.62 * var(--sw-sun-o, 0));
+  display: var(--sw-sun-d, none);
   will-change: transform;
+}
+/* Unpromoted in a preview, as the discs are (see [data-pat-preview] .sw-sun). */
+[data-pat-preview] .au-sunpath {
+  will-change: auto;
 }
 .au-sunpath-paint {
   position: absolute;
@@ -2930,6 +2991,8 @@ const FOREST_STYLES = `
      accent at the bottom of the disc, mixing to a warm yellow crown. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 40vh;
   --fo-disc-y: 51.2vh; /* the disc's centre: 58vh horizon - 0.17 × 40vh (the sun dips 33% below it) */
   --sun-h: var(--accent-h, var(--glass-tint-h, 35));
@@ -2984,6 +3047,8 @@ const FOREST_STYLES = `
   --fo-rays-o: 0;
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   /* Low enough that the tallest spires cross its lower edge: the moon rises BEHIND the forest. */
   --moon-size: 30vh;
   --moon-bottom: 47%;
@@ -3116,6 +3181,500 @@ ${FOREST_RIDGES.map(
     linear-gradient(to bottom, transparent 0, var(--fo-fog-a) 62%, transparent 100%);
 }
 ${stopRules(".fo-fog")}`;
+
+// Peaks — an alpine range at SUNRISE (by night, under the moon), seen down a valley that runs toward the
+// disc. Four ridges recede by aerial perspective; each is open in the middle, wider the nearer it is, so
+// their slopes converge on the far range's COL, where the sun or moon rises. Like forest's ridges, each is
+// one inline SVG (a theme flip refills paths; it re-composites no masks), anchored on the disc placement
+// so the valley follows it. Every peak is two FACETS split down an arête from its summit, and the facet
+// facing the disc takes the light (--pk-lit-l / --pk-lit-r, inline from the placement); the far ranges
+// carry snow caps split the same way. Motion is two valley fog banks drifting one tile per loop, on
+// compositor-only transforms, stopped by stopRules. Nothing tilts in 3D and nothing is filtered: a
+// rotated plane is what made synthwave's floor a WebKit layer in every picker (see `preview`).
+
+type PeakSpec = {
+  /** The SVG's top edge, in vh from the top of the scene; the ridge runs from there to the bottom. */
+  top: number;
+  /** The valley floor (the far range's col), in vh below `top`. */
+  floor: number;
+  /** Half-width of the valley opening, in vh: the ridge stays at its floor this far either side. */
+  open: number;
+  /** Mean peak spacing, in vh. */
+  spacing: number;
+  /** How far a summit can fall short of the crest line, 0–1. */
+  rough: number;
+  /** Snow-cap depth as a fraction of a summit's rise above its higher saddle; 0 for none. */
+  snow: number;
+  /** How far a face dissolves into the valley fog toward the bottom, 0–1. */
+  pool: number;
+  seed: number;
+};
+
+/** A ridge's width, in vh, centred on the disc: the valley may sit anywhere from 26% to 74% across a
+ *  window up to 5× as wide as it is tall, and the ridge still reaches both edges. */
+const PEAK_W = 750;
+
+const PEAK_RIDGES: PeakSpec[] = [
+  {
+    top: 16,
+    floor: 40,
+    open: 9,
+    spacing: 30,
+    rough: 0.5,
+    snow: 0.42,
+    pool: 0.45,
+    seed: 11,
+  },
+  {
+    top: 34,
+    floor: 32,
+    open: 22,
+    spacing: 34,
+    rough: 0.45,
+    snow: 0.26,
+    pool: 0.5,
+    seed: 23,
+  },
+  {
+    top: 46,
+    floor: 30,
+    open: 40,
+    spacing: 40,
+    rough: 0.4,
+    snow: 0,
+    pool: 0.4,
+    seed: 37,
+  },
+  {
+    top: 56,
+    floor: 36,
+    open: 64,
+    spacing: 52,
+    rough: 0.35,
+    snow: 0,
+    pool: 0,
+    seed: 51,
+  },
+];
+
+/** One ridge's facets and snow caps as SVG paths, in vh, from its spec. Deterministic, so the range is
+ *  the same on the server and the client. */
+function peakRidge({ top, floor, open, spacing, rough, snow, seed }: PeakSpec) {
+  const h = 100 - top;
+  const rand = mulberry32(seed);
+  const mid = PEAK_W / 2;
+  // The crest line: the valley floor inside the opening, rising smoothly to 2vh under the top.
+  const crest = (x: number) => {
+    const t = Math.min(1, Math.max(0, (Math.abs(x - mid) - open) / (open * 1.6 + 8)));
+    return floor + (2 - floor) * t * t * (3 - 2 * t);
+  };
+  const summits: Pt[] = [];
+  for (let x = rand() * spacing * 0.5; x < PEAK_W; x += spacing * (0.7 + rand() * 0.6)) {
+    const c = crest(x);
+    summits.push([
+      x,
+      Math.min(h - 3, c + rough * rand() * (h - c) * 0.35),
+    ]);
+  }
+  // A saddle between neighbours, lower than both by a share of their spacing; the ends close at the edges.
+  const saddles: Pt[] = [
+    [
+      0,
+      Math.min(h - 1, summits[0][1] + spacing * 0.3),
+    ],
+  ];
+  for (let i = 1; i < summits.length; i++) {
+    const [a, b] = [
+      summits[i - 1],
+      summits[i],
+    ];
+    saddles.push([
+      a[0] + (b[0] - a[0]) * (0.35 + rand() * 0.3),
+      Math.min(h - 1, Math.max(a[1], b[1]) + (b[0] - a[0]) * (0.18 + rand() * 0.22)),
+    ]);
+  }
+  saddles.push([
+    PEAK_W,
+    Math.min(h - 1, summits[summits.length - 1][1] + spacing * 0.3),
+  ]);
+  // A crag part-way along a flank, pushed off the straight line so the profile breaks.
+  const crag = (from: Pt, to: Pt): Pt => {
+    const f = 0.35 + rand() * 0.3;
+    const [dx, dy] = [
+      to[0] - from[0],
+      to[1] - from[1],
+    ];
+    const k = (rand() - 0.5) * 0.16;
+    return [
+      from[0] + dx * f - dy * k,
+      from[1] + dy * f + dx * k,
+    ];
+  };
+  // Where a flank (summit → crag → saddle) first drops to depth y.
+  const cross = (flank: Pt[], y: number): Pt => {
+    for (let i = 1; i < flank.length; i++) {
+      const [a, b] = [
+        flank[i - 1],
+        flank[i],
+      ];
+      if (b[1] >= y) {
+        const t = (y - a[1]) / (b[1] - a[1] || 1);
+        return [
+          a[0] + (b[0] - a[0]) * t,
+          y,
+        ];
+      }
+    }
+    return flank[flank.length - 1];
+  };
+  const left: string[] = [];
+  const right: string[] = [];
+  const snowLeft: string[] = [];
+  const snowRight: string[] = [];
+  // The whole ridge line, for the shadowed body every facet sits on.
+  const line: Pt[] = [
+    saddles[0],
+  ];
+  summits.forEach((s, i) => {
+    const [sl, sr] = [
+      saddles[i],
+      saddles[i + 1],
+    ];
+    const [cl, cr] = [
+      crag(sl, s),
+      crag(s, sr),
+    ];
+    line.push(cl, s, cr, sr);
+    // The arête runs down from the summit to just below the shoulders, where the two facets meet the
+    // body. Carried to the foot of the ridge it split every peak into a pair of crystal shards.
+    const end: Pt = [
+      Math.min(sr[0] - 2, Math.max(sl[0] + 2, s[0] + (rand() - 0.5) * spacing * 0.3)),
+      Math.min(h - 1, s[1] + (Math.max(sl[1], sr[1]) - s[1]) * (1.1 + rand() * 0.5)),
+    ];
+    left.push(
+      poly([
+        sl,
+        cl,
+        s,
+        end,
+      ]),
+    );
+    right.push(
+      poly([
+        s,
+        cr,
+        sr,
+        end,
+      ]),
+    );
+    const depth = snow * (Math.min(sl[1], sr[1]) - s[1]);
+    if (depth < 1.5) return;
+    const y = s[1] + depth * (0.8 + rand() * 0.4);
+    const [xl, xr] = [
+      cross(
+        [
+          s,
+          cl,
+          sl,
+        ],
+        y,
+      ),
+      cross(
+        [
+          s,
+          cr,
+          sr,
+        ],
+        y,
+      ),
+    ];
+    const split: Pt = [
+      s[0] + (end[0] - s[0]) * Math.min(1, (y - s[1]) / (end[1] - s[1])),
+      y + depth * 0.15,
+    ];
+    // The snow line's lower edge dips below the level in two places on each side, never above it, so the
+    // cap stays inside the rock it lies on.
+    const dips = (from: Pt, to: Pt): Pt[] =>
+      [
+        1 / 3,
+        2 / 3,
+      ].map((f) => [
+        from[0] + (to[0] - from[0]) * f,
+        y + rand() * depth * 0.35,
+      ]);
+    snowLeft.push(
+      poly([
+        xl,
+        ...(cl[1] < y
+          ? [
+              cl,
+            ]
+          : []),
+        s,
+        split,
+        ...dips(split, xl),
+      ]),
+    );
+    snowRight.push(
+      poly([
+        s,
+        ...(cr[1] < y
+          ? [
+              cr,
+            ]
+          : []),
+        xr,
+        ...dips(xr, split),
+        split,
+      ]),
+    );
+  });
+  const body = poly([
+    [
+      0,
+      h,
+    ],
+    ...line,
+    [
+      PEAK_W,
+      h,
+    ],
+  ]);
+  return {
+    h,
+    body,
+    left: left.join(""),
+    right: right.join(""),
+    snowLeft: snowLeft.join(""),
+    snowRight: snowRight.join(""),
+  };
+}
+
+const PEAK_PATHS = PEAK_RIDGES.map(peakRidge);
+
+/** A facet's paint: its shadow tone mixed toward its lit tone by how squarely the disc faces that side.
+ *  In OKLab, not OKLCH: the shadows are cool and the light warm, nearly opposite hues, and an OKLCH mix
+ *  turns the hue through green on the way, so a half-lit facet came out olive. */
+const PEAK_LIT = (side: "l" | "r", shade: string, lit: string) =>
+  `color-mix(in oklab, var(${shade}), var(${lit}) calc(var(--pk-lit-${side}, ${side === "l" ? 0 : 1}) * 100%))`;
+
+/** One ridge as an inline SVG, its valley centred on the disc. The body is the shadow tone, dissolving
+ *  into the valley fog toward the foot by the ridge's `pool`; the summits' two facets sit on it, the one
+ *  facing the disc lit (dawn light reaches the tops first), and snow keeps its colour. */
+function PeakRidge({ index }: { index: number }) {
+  const spec = PEAK_RIDGES[index];
+  const { h, body, left, right, snowLeft, snowRight } = PEAK_PATHS[index];
+  // Per instance: url(#…) resolves to the first matching id in the document (see ForestRidge).
+  const scope = useId().replace(/[^\w-]/g, "");
+  const id = (part: string) => `${scope}pk-${index}-${part}`;
+  const faces = [
+    [
+      "body",
+      body,
+      `var(--pk-r${index})`,
+    ],
+    [
+      "left",
+      left,
+      PEAK_LIT("l", `--pk-r${index}`, `--pk-r${index}-lit`),
+    ],
+    [
+      "right",
+      right,
+      PEAK_LIT("r", `--pk-r${index}`, `--pk-r${index}-lit`),
+    ],
+  ] as const;
+  return (
+    <svg
+      className={`pk-ridge pk-r${index}`}
+      viewBox={`0 0 ${PEAK_W} ${h}`}
+      preserveAspectRatio="none"
+      style={{
+        height: `${h}vh`,
+        width: `${PEAK_W}vh`,
+        left: `calc(var(--sw-disc-x, 50%) - ${PEAK_W / 2}vh)`,
+      }}
+      aria-hidden="true"
+    >
+      <defs>
+        {faces.map(([part, , paint]) => (
+          <linearGradient key={part} id={id(part)} gradientUnits="userSpaceOnUse" x1="0" y1={spec.floor * 0.5} x2="0" y2={h}>
+            <stop
+              offset="0"
+              style={{
+                stopColor: paint,
+              }}
+            />
+            <stop
+              offset="1"
+              style={{
+                stopColor: `color-mix(in oklab, ${paint}, var(--pk-fog) ${spec.pool * 100}%)`,
+              }}
+            />
+          </linearGradient>
+        ))}
+      </defs>
+      {faces.map(([part, d]) => (
+        <path key={part} d={d} fill={`url(#${id(part)})`} />
+      ))}
+      {snowLeft ? (
+        <path
+          d={snowLeft}
+          style={{
+            fill: PEAK_LIT("l", "--pk-snow", "--pk-snow-lit"),
+          }}
+        />
+      ) : null}
+      {snowRight ? (
+        <path
+          d={snowRight}
+          style={{
+            fill: PEAK_LIT("r", "--pk-snow", "--pk-snow-lit"),
+          }}
+        />
+      ) : null}
+    </svg>
+  );
+}
+
+const PEAKS_STYLES = `
+[data-pattern="peaks"] {
+  /* DAY — SUNRISE over the range. A clear, cold zenith warming through lavender and rose to a gold band
+     at the col; the top three stops take the theme cast like the other day skies. The ridges run from a
+     pale violet haze far off to a deeper slate up close, their lit facets warming toward alpenglow, and
+     stay light enough (the nearest shadow at L 0.56) for dark text on a light page. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
+  --pk-sky-a: color-mix(in oklch, oklch(0.6 0.08 255), oklch(0.6 0.07 var(--glass-tint-h, 255)) var(--sw-cast));
+  --pk-sky-b: color-mix(in oklch, oklch(0.73 0.06 285), oklch(0.73 0.05 var(--glass-tint-h, 285)) var(--sw-cast));
+  --pk-sky-c: color-mix(in oklch, oklch(0.82 0.06 335), oklch(0.82 0.05 var(--glass-tint-h, 335)) var(--sw-cast));
+  --pk-sky-d: oklch(0.88 0.065 40);
+  --pk-sky-e: oklch(0.91 0.075 72);
+  --pk-r0: oklch(0.77 0.035 290);
+  --pk-r0-lit: oklch(0.86 0.05 25);
+  --pk-r1: oklch(0.7 0.042 275);
+  --pk-r1-lit: oklch(0.8 0.05 40);
+  --pk-r2: oklch(0.63 0.048 258);
+  --pk-r2-lit: oklch(0.75 0.045 52);
+  --pk-r3: oklch(0.56 0.05 238);
+  --pk-r3-lit: oklch(0.69 0.045 58);
+  --pk-snow: oklch(0.88 0.03 275);
+  --pk-snow-lit: oklch(0.97 0.03 45);
+  --pk-fog: oklch(0.9 0.035 60);
+  --pk-fog-a: oklch(0.93 0.03 62 / 0.55);
+  --pk-glow: oklch(0.93 0.09 75 / 0.55);
+  --sw-sun-o: 1;
+  --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
+  --sun-size: 34vh;
+  --pk-disc-y: 52.2vh; /* the sun's centre: 58vh horizon - 0.17 × 34vh; the col hides its lower third */
+  --sun-h: var(--accent-h, var(--glass-tint-h, 35));
+  --sw-disc-1: oklch(0.6 0.21 var(--sun-h));
+  --sw-disc-2: color-mix(in oklch, oklch(0.68 0.2 var(--sun-h)), oklch(0.74 0.18 48) 30%);
+  --sw-disc-3: color-mix(in oklch, oklch(0.76 0.18 var(--sun-h)), oklch(0.82 0.17 66) 58%);
+  --sw-disc-4: color-mix(in oklch, oklch(0.85 0.15 var(--sun-h)), oklch(0.89 0.15 80) 80%);
+  --sw-disc-5: oklch(0.94 0.13 94);
+  --sw-disc-glow: oklch(0.82 0.16 var(--sun-h) / 0.45);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="peaks"] {
+  /* NIGHT — the range under the moon: navy sky, moonlit snow, the ridge ladder compressed toward black. */
+  --pk-sky-a: oklch(0.09 0.035 262);
+  --pk-sky-b: oklch(0.12 0.045 266);
+  --pk-sky-c: oklch(0.16 0.05 272);
+  --pk-sky-d: oklch(0.2 0.05 276);
+  --pk-sky-e: oklch(0.24 0.045 270);
+  --pk-r0: oklch(0.25 0.04 270);
+  --pk-r0-lit: oklch(0.31 0.045 262);
+  --pk-r1: oklch(0.2 0.038 266);
+  --pk-r1-lit: oklch(0.26 0.042 258);
+  --pk-r2: oklch(0.155 0.034 260);
+  --pk-r2-lit: oklch(0.215 0.04 252);
+  --pk-r3: oklch(0.11 0.028 250);
+  --pk-r3-lit: oklch(0.17 0.034 245);
+  --pk-snow: oklch(0.4 0.03 265);
+  --pk-snow-lit: oklch(0.6 0.035 255);
+  --pk-fog: oklch(0.28 0.04 268);
+  --pk-fog-a: oklch(0.46 0.035 268 / 0.3);
+  --pk-glow: oklch(0.6 0.05 262 / 0.35);
+  --sw-sun-o: 0;
+  --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
+  /* Risen clear of the col, in the gap between the far peaks. */
+  --moon-size: 24vh;
+  --moon-bottom: 41%;
+  --moon-dip: 0%;
+  --pk-disc-y: 47vh;
+  --sw-moon-1: oklch(0.95 0.015 255);
+  --sw-moon-2: oklch(0.85 0.035 262);
+  --sw-moon-3: oklch(0.72 0.06 270);
+  --sw-maria: 0.64 0.05 268;
+  --sw-disc-glow: oklch(0.82 0.05 262 / 0.45);
+  --sw-stars-o: 1;
+}
+.pk-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    var(--pk-sky-a) 0%,
+    var(--pk-sky-b) 24%,
+    var(--pk-sky-c) 38%,
+    var(--pk-sky-d) 48%,
+    var(--pk-sky-e) 56%,
+    var(--pk-fog) 66%
+  );
+}
+.pk-ridge {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  overflow: visible;
+}
+/* The bloom around the disc, over the far range: brightest toward the light. */
+.pk-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(64vh 24vh at var(--sw-disc-x, 50%) calc(var(--pk-disc-y) + 4vh), var(--pk-glow) 0%, transparent 100%);
+}
+/* VALLEY FOG — soft banks drifting one tile per loop (seamless), each overhanging the viewport by a tile
+   per side; every ellipse stays inside its tile, or it clips to an edge that repeats. Banks only: forest's
+   continuous band under them ruled a stripe straight across the mountain faces. */
+.pk-fog {
+  position: absolute;
+  left: calc(-1 * var(--pk-ft));
+  right: calc(-1 * var(--pk-ft));
+  background-repeat: repeat-x;
+  background-size: var(--pk-ft) 100%;
+  animation: pk-drift calc(var(--pat-dur, 8s) * var(--pk-fk)) linear infinite;
+  will-change: var(--pat-wc, transform);
+}
+@keyframes pk-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--pk-ft)); }
+}
+.pk-fog-a {
+  top: 58%;
+  height: 14%;
+  --pk-ft: 160vh;
+  --pk-fk: 11;
+  background-image:
+    radial-gradient(30% 48% at 34% 56%, var(--pk-fog-a) 0 14%, transparent 78%),
+    radial-gradient(18% 40% at 76% 50%, var(--pk-fog-a) 0 12%, transparent 76%);
+}
+.pk-fog-b {
+  opacity: 0.6;
+  top: 70%;
+  height: 16%;
+  --pk-ft: 210vh;
+  --pk-fk: 7;
+  background-image:
+    radial-gradient(28% 46% at 28% 52%, var(--pk-fog-a) 0 14%, transparent 78%),
+    radial-gradient(20% 40% at 70% 56%, var(--pk-fog-a) 0 12%, transparent 76%);
+}
+${stopRules(".pk-fog")}`;
 
 // Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
 // bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
@@ -3800,6 +4359,11 @@ function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: numb
       return {
         backgroundColor: "oklch(0.09 0.035 262)",
       };
+    case "peaks":
+      // Rendered by its own layered branch in PatternBackground (palettes in PEAKS_STYLES); kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.09 0.035 262)",
+      };
     case "chase":
       // Pac-Man chase is rendered by its own branch in PatternBackground; kept exhaustive here.
       return {
@@ -3808,15 +4372,7 @@ function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: numb
   }
 }
 
-/** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
-export function PatternBackground({
-  style = "dots",
-  density = "medium",
-  speed = 8,
-  disc = "right",
-  sand = "breeze",
-  tileScale,
-}: {
+export type PatternBackgroundProps = {
   style?: PatternStyle;
   density?: PatternDensity;
   speed?: number;
@@ -3826,7 +4382,40 @@ export function PatternBackground({
   /** The geometric tiles' (dots, grid) scale, in place of the density's: a picker chip draws smaller
    *  tiles than the wallpaper, or a 48px chip shows one dot of a 48px-spaced field and no grid line. */
   tileScale?: number;
-}) {
+  /** A miniature of the scene (a picker swatch, a thumbnail) rather than the page's backdrop. A preview
+   *  drops the layers that only the full-window wallpaper needs: the root's `glass-backdrop-layer`
+   *  promotion (it is not the ground sheer materials blur) and the sun / moon / sun-path layers (they
+   *  guard a WebKit repaint bug when the disc moves; a preview is remounted instead, see below). Pair it
+   *  with `speed={0}` for a still picker, since a moving part needs its layer whatever it is drawn in.
+   *  The scene is still `position: fixed`, so the swatch has to contain it: `contain: paint` does,
+   *  without the layer a `transform: translateZ(0)` wrapper forces.
+   *  In a picker, draw the synthwave and moonrise swatches LAST (`position: relative; z-index: 1` on
+   *  their wrappers keeps them in place). Their tilted floor grids are layers whatever the mode, and
+   *  WebKit tests overlap against the grid's untilted box, which reaches well past the swatch, so every
+   *  swatch drawn after them in that area is composited too. Measured in Safari Technology Preview's
+   *  WebKit, an 11-swatch picker is 50 layers with them on top and 109 without. */
+  preview?: boolean;
+};
+
+/** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
+export function PatternBackground(props: PatternBackgroundProps) {
+  // A preview's disc is not a layer, so moving it in place would meet the WebKit repaint bug the layer is
+  // there for (see .sw-sun). Keyed on the disc, a preview remounts instead, and a new scene paints whole.
+  return <PatternScene key={props.preview ? (props.disc ?? "right") : undefined} {...props} />;
+}
+
+function PatternScene({
+  style = "dots",
+  density = "medium",
+  speed = 8,
+  disc = "right",
+  sand = "breeze",
+  tileScale,
+  preview = false,
+}: PatternBackgroundProps) {
+  // The scene root. Only the page's own backdrop is promoted (see glass-backdrop-layer in the theme).
+  const root = `fixed inset-0 -z-10 ${preview ? "" : "glass-backdrop-layer "}overflow-hidden pointer-events-none transition-[background-color] duration-500`;
+  const patPreview = preview ? "" : undefined;
   // Animated patterns share one pace: --pat-dur (loop seconds).
   const patDur = speed > 0 ? `${speed}s` : "8s";
   // Static means nothing moves, so the animation is REMOVED, not paused — `data-pat-static`
@@ -3843,7 +4432,7 @@ export function PatternBackground({
   if (style === "chase") {
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--pat-dur": patDur,
@@ -3853,8 +4442,9 @@ export function PatternBackground({
         }
         data-pattern="chase"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{PAC_STYLES}</style>
+        <SceneStyles name="chase" css={PAC_STYLES} />
         <div className="pac-scene">
           <div className="pac-field" />
           {PAC_WALLS.map((w) => (
@@ -3913,7 +4503,7 @@ export function PatternBackground({
     const moon = style === "moonrise";
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             // Scene colors (incl. --sw-line) live in SYNTHWAVE_STYLES' [data-pattern] palette blocks so the
@@ -3927,9 +4517,10 @@ export function PatternBackground({
         }
         data-pattern={style}
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{SYNTHWAVE_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="synthwave" css={SYNTHWAVE_STYLES} />
         <div className="sw-scene">
           <div
             className="sw-stars"
@@ -3957,7 +4548,7 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             // Moon placement (left/center/right) + the shared animated-pattern pace; scene colors live in
@@ -3969,9 +4560,10 @@ export function PatternBackground({
         }
         data-pattern="clouds"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{CLOUDS_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="clouds" css={CLOUDS_STYLES} />
         <div className="cl-scene">
           <div
             className="sw-stars"
@@ -4020,7 +4612,7 @@ export function PatternBackground({
     }[sand];
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--sw-disc-x": discX,
@@ -4033,9 +4625,10 @@ export function PatternBackground({
         }
         data-pattern="dune"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{DUNE_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="dune" css={DUNE_STYLES} />
         <div className="du-scene">
           <div
             className="sw-stars"
@@ -4086,7 +4679,7 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             // Sun placement (day only — the scene is moonless at night) plus the shared pace vars.
@@ -4097,9 +4690,10 @@ export function PatternBackground({
         }
         data-pattern="aurora"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{AURORA_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="aurora" css={AURORA_STYLES} />
         <div className="au-scene">
           <div
             className="sw-stars"
@@ -4181,7 +4775,7 @@ export function PatternBackground({
     const ridge = (i: number) => <ForestRidge index={i} />;
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--sw-disc-x": discX,
@@ -4193,9 +4787,10 @@ export function PatternBackground({
         }
         data-pattern="forest"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{FOREST_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="forest" css={FOREST_STYLES} />
         <div className="fo-scene">
           <div
             className="sw-stars"
@@ -4227,17 +4822,74 @@ export function PatternBackground({
       </div>
     );
   }
+  if (style === "peaks") {
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    // The facet facing the disc takes the light; centred, both sides catch some (see forest).
+    const [litL, litR] = {
+      left: [
+        "1",
+        "0",
+      ],
+      center: [
+        "0.7",
+        "0.25",
+      ],
+      right: [
+        "0",
+        "1",
+      ],
+    }[disc];
+    const ridge = (i: number) => <PeakRidge index={i} />;
+    return (
+      <div
+        className={root}
+        style={
+          {
+            "--sw-disc-x": discX,
+            "--pk-lit-l": litL,
+            "--pk-lit-r": litR,
+            "--pat-dur": patDur,
+            "--pat-wc": patWc,
+          } as CSSProperties
+        }
+        data-pattern="peaks"
+        data-pat-static={patStatic}
+        data-pat-preview={patPreview}
+      >
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="peaks" css={PEAKS_STYLES} />
+        <div className="pk-scene">
+          <div
+            className="sw-stars"
+            style={{
+              backgroundImage: stars,
+            }}
+          />
+          <MuseConstellation />
+          {/* The disc first: the far range's col hides its lower third, every ridge stands in front. */}
+          <div className="sw-sun" />
+          <div className="scene-moon" />
+          <div className="scene-group">
+            {ridge(0)}
+            <div className="pk-glow" />
+            {ridge(1)}
+            <div className="pk-fog pk-fog-a" />
+            {ridge(2)}
+            <div className="pk-fog pk-fog-b" />
+            {ridge(3)}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (style === "starfield") {
     // Scene colors live in STARFIELD_STYLES' palette blocks (an inline background would beat the .dark
     // day/night flip); only the star GLINTS — white in both modes — are painted inline, on their own
     // layer so the palette's --sw-stars-o can dim them by day.
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
-      <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        data-pattern="starfield"
-      >
-        <style>{STARFIELD_STYLES}</style>
+      <div className={root} data-pattern="starfield" data-pat-preview={patPreview}>
+        <SceneStyles name="starfield" css={STARFIELD_STYLES} />
         <div className="sf-scene" />
         <div
           className="sf-stars"
@@ -4249,11 +4901,5 @@ export function PatternBackground({
       </div>
     );
   }
-  return (
-    <div
-      className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background-color] duration-500"
-      style={styleFor(style, density, tileScale)}
-      data-pattern={style}
-    />
-  );
+  return <div className={root} style={styleFor(style, density, tileScale)} data-pattern={style} data-pat-preview={patPreview} />;
 }
