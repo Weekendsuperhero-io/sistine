@@ -20,17 +20,49 @@ import { PatternBackground } from "@/components/pattern-background";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GpuBackground, gpuFrames } from "./gpu-backgrounds";
 
-const BACKGROUNDS: Record<string, () => React.ReactNode> = {
-  still: () => <CanvasBackground style="gradient" seed="sistine" />,
-  "css-clouds": () => <PatternBackground style="clouds" speed={8} />,
-  "css-aurora": () => <PatternBackground style="aurora" speed={8} />,
-  "canvas2d-gradient": () => <CanvasBackground style="gradient" seed="sistine" animated />,
-  "webgl2-gradient": () => <GpuBackground api="webgl2" style="gradient" />,
-  "webgpu-gradient": () => <GpuBackground api="webgpu" style="gradient" />,
-  "canvas2d-lava": () => <CanvasBackground style="lava" seed="sistine" animated />,
-  "webgl2-lava": () => <GpuBackground api="webgl2" style="lava" />,
-  "webgpu-lava": () => <GpuBackground api="webgpu" style="lava" />,
-};
+const still = () => <CanvasBackground style="gradient" seed="sistine" />;
+
+/* A Map, not an object literal. The variant names come from the URL (`?order=`), and an object lookup of a
+   name like "constructor" or "toString" finds Object.prototype's function instead of undefined, so the
+   fallback to `still` never ran and calling it threw or rendered garbage. A Map only returns what was set. */
+const BACKGROUNDS = new Map<string, () => React.ReactNode>([
+  [
+    "still",
+    still,
+  ],
+  [
+    "css-clouds",
+    () => <PatternBackground style="clouds" speed={8} />,
+  ],
+  [
+    "css-aurora",
+    () => <PatternBackground style="aurora" speed={8} />,
+  ],
+  [
+    "canvas2d-gradient",
+    () => <CanvasBackground style="gradient" seed="sistine" animated />,
+  ],
+  [
+    "webgl2-gradient",
+    () => <GpuBackground api="webgl2" style="gradient" />,
+  ],
+  [
+    "webgpu-gradient",
+    () => <GpuBackground api="webgpu" style="gradient" />,
+  ],
+  [
+    "canvas2d-lava",
+    () => <CanvasBackground style="lava" seed="sistine" animated />,
+  ],
+  [
+    "webgl2-lava",
+    () => <GpuBackground api="webgl2" style="lava" />,
+  ],
+  [
+    "webgpu-lava",
+    () => <GpuBackground api="webgpu" style="lava" />,
+  ],
+]);
 
 /* The site chrome stays mounted (the root layout wraps every route), so it is hidden, and so is the
    provider's own background: only the bench's background and cards draw. */
@@ -266,7 +298,7 @@ function Schedule() {
   return (
     <div data-bench="" className="fixed inset-0 z-50 flex items-center justify-center p-10">
       <style>{BARE}</style>
-      <React.Fragment key={phase}>{(BACKGROUNDS[bg] ?? BACKGROUNDS.still)()}</React.Fragment>
+      <React.Fragment key={phase}>{(BACKGROUNDS.get(bg) ?? still)()}</React.Fragment>
       <p className="fixed top-3 left-4 text-xs font-mono opacity-70" data-bench-label="">
         {label}
       </p>
