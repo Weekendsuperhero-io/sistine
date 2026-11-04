@@ -228,7 +228,7 @@ export default function ThemingPage() {
               <h3 className="mb-2 font-semibold">Presets</h3>
               <p className="mb-2 text-muted-foreground">
                 <strong>Jewels</strong> (single hue): selenite, onyx, rose, goldstone, carnelian, amber, moonstone, citrine, peridot, aventurine,
-                turquoise, aquamarine, celestite, sapphire, sodalite, lapis, amethyst, tourmaline.
+                turquoise, aquamarine, celestite, sapphire, sodalite, lapis, tanzanite, amethyst, tourmaline.
               </p>
               <p className="mb-2 text-muted-foreground">
                 <strong>Onyx</strong> keeps every material near-black with light text in both page modes. Set <IC>data-glass-tint="onyx"</IC> on the

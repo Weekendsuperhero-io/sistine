@@ -125,6 +125,14 @@ export const GLASS_TINT_PRESETS = [
     swatch: "oklch(56% 0.21 268)",
   },
   {
+    value: "tanzanite",
+    label: "Tanzanite",
+    h: 284,
+    c: 0.093,
+    a: 0.1,
+    swatch: "oklch(67% 0.17 284)",
+  },
+  {
     value: "aventurine",
     label: "Aventurine",
     h: 158,

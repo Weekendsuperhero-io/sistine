@@ -2083,6 +2083,15 @@
   --glass-wash-l: 88%;
   --glass-opaque-c-max: 0.195;
 }
+[data-glass-tint="tanzanite"] {
+  /* Tanzanite — blue-violet, between lapis (h268, L46) and amethyst (h300, L55). h284's sRGB chroma peaks
+     at L50, so its wash lands on the step between them, and the picker's last row of jewels fills. */
+  --glass-tint-h: 284;
+  --glass-tint-c: 0.093;
+  --glass-tint-a: 0.1;
+  --glass-wash-l: 50%;
+  --glass-opaque-c-max: 0.057;
+}
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
@@ -2251,6 +2260,10 @@
 }
 .dark[data-glass-tint="lapis"],
 .dark [data-glass-tint="lapis"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="tanzanite"],
+.dark [data-glass-tint="tanzanite"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="amethyst"],

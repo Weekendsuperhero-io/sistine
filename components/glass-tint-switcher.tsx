@@ -246,6 +246,12 @@ function restoreLightness() {
   return Number.isFinite(computed) ? computed : root.dataset.glassTint === "onyx" ? 16 : mode === "dark" ? 33.4 : 93;
 }
 
+/** A swatch's paint, sized to the BORDER box. By default a background image is sized to the padding box but
+ *  painted under the border too, by repeating it, so the chip's translucent 1px rim showed the far edge of
+ *  the next tile: invisible on a solid or a soft gradient, a black arc on the white half of the hard-split
+ *  day/night swatch. The box keyword sets origin and clip together, and suits a plain colour as well. */
+const paint = (swatch: string) => `${swatch} border-box`;
+
 /** One round swatch in the picker grid. */
 function chip(key: string, label: string, swatch: string, active: boolean, onClick: () => void) {
   return (
@@ -260,7 +266,7 @@ function chip(key: string, label: string, swatch: string, active: boolean, onCli
         active ? "ring-2 ring-foreground/60" : "hover:scale-110",
       )}
       style={{
-        background: swatch,
+        background: paint(swatch),
       }}
     />
   );
@@ -632,7 +638,7 @@ export function GlassTintSwitcher() {
           <span
             className="size-4 rounded-full border border-[var(--glass-border)]"
             style={{
-              background: triggerSwatch,
+              background: paint(triggerSwatch),
             }}
           />
         </Button>
