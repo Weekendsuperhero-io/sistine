@@ -276,6 +276,7 @@ describe("previews", () => {
         "clouds",
         "dune",
         "forest",
+        "meadow",
         "muse",
         "peaks",
         "sky",
@@ -322,6 +323,7 @@ describe("disc display gates", () => {
     "dune",
     "forest",
     "peaks",
+    "meadow",
   ] as const)("%s keeps only the sun by day and only the moon by night", (style) => {
     expect(shownDiscs(style, false)).toEqual([
       "sw-sun",
@@ -331,11 +333,13 @@ describe("disc display gates", () => {
     ]);
   });
 
-  it("drops aurora's sun at night, when the scene is moonless and sunless", () => {
+  it("keeps only aurora's sun by day and only its moon by night", () => {
     expect(shownDiscs("aurora", false)).toEqual([
       "sw-sun",
     ]);
-    expect(shownDiscs("aurora", true)).toEqual([]);
+    expect(shownDiscs("aurora", true)).toEqual([
+      "scene-moon",
+    ]);
   });
 });
 
@@ -375,6 +379,54 @@ describe("peaks", () => {
   it("lights the facets that face the disc", () => {
     expect(markup("left")).toContain("--pk-lit-l:1;--pk-lit-r:0");
     expect(markup("right")).toContain("--pk-lit-l:0;--pk-lit-r:1");
+  });
+});
+
+/**
+ * Meadow's hills are GENERATED: per range, one periodic tile of hill (a sum of sines plus a saddle under the
+ * disc), used as a CSS mask and repeated across a strip centred on the disc. The tile has to end at the
+ * height it starts at, or every repeat steps; it has to be the same on the server and the client; and only
+ * the nearest range carries grass.
+ */
+describe("meadow", () => {
+  const markup = () => renderToStaticMarkup(<PatternBackground style="meadow" />);
+  /** Each range's mask path, decoded from its --mw-m custom property. */
+  const masks = (html: string) =>
+    [
+      ...html.matchAll(/--mw-m: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]).match(/d='([^']+)'/)?.[1] ?? "");
+
+  it("draws the same hills on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws four ranges, each tile ending at the height it starts at", () => {
+    const paths = masks(markup());
+    expect(paths).toHaveLength(4);
+    for (const d of paths) {
+      // M0 <foot> L0 <crest start> … L150 <crest end> L150 <foot> Z, then any grass blades.
+      const start = d.match(/^M0 [\d.]+L0 ([\d.]+)/)?.[1];
+      const end = d.match(/L150 ([\d.]+)L150 [\d.]+Z/)?.[1];
+      expect(start).toBeDefined();
+      expect(end).toBe(start);
+    }
+  });
+
+  it("fringes only the nearest range with grass", () => {
+    // A blade is its own closed triangle after the hill's outline: count the subpaths.
+    const subpaths = masks(markup()).map((d) => d.split("M").length - 1);
+    expect(subpaths.slice(0, 3)).toEqual([
+      1,
+      1,
+      1,
+    ]);
+    expect(subpaths[3]).toBeGreaterThan(100);
+  });
+
+  it("centres every range on the disc", () => {
+    const html = markup();
+    expect(html.match(/class="mw-hill mw-h\d mw-fill"/g)).toHaveLength(4);
+    expect(html).toContain("left: calc(var(--sw-disc-x, 50%) - 375vh)");
   });
 });
 
