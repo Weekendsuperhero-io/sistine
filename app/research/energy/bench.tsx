@@ -235,15 +235,22 @@ function Schedule() {
       phases: [],
       canvasFrames: 0,
     };
+    let restore: (() => void) | undefined;
     if (p.diag) {
-      // Count the 2D canvas's frames: each style fills the visible canvas once per frame.
+      // Count the 2D canvas's frames: each style fills the visible canvas once per frame. The wrapper is
+      // removed on unmount: left in place, a remount (or a development double-run of this effect) wrapped
+      // the wrapper and counted every frame twice.
       const fill = CanvasRenderingContext2D.prototype.fillRect;
       CanvasRenderingContext2D.prototype.fillRect = function (...args) {
         if (this.canvas.isConnected && window.__bench) window.__bench.canvasFrames++;
         return fill.apply(this, args);
       };
+      restore = () => {
+        CanvasRenderingContext2D.prototype.fillRect = fill;
+      };
     }
     setPlan(p);
+    return restore;
   }, []);
 
   // Advance on the wall clock, and count frames over each measured window (settle excluded).

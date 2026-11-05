@@ -509,11 +509,14 @@ export function GpuBackground({
       if (!animated) return r.draw(0);
       let last = 0;
       const paint = (now: number) => {
+        if (now - last >= 33) {
+          // CanvasBackground's ~30 fps cap
+          last = now;
+          r.draw(now / 1000);
+          gpuFrames.count++;
+        }
+        // Scheduled after the draw, so a draw that throws ends the loop rather than rethrowing every frame.
         frame = requestAnimationFrame(paint);
-        if (now - last < 33) return; // CanvasBackground's ~30 fps cap
-        last = now;
-        r.draw(now / 1000);
-        gpuFrames.count++;
       };
       frame = requestAnimationFrame(paint);
     };
@@ -527,6 +530,7 @@ export function GpuBackground({
     api,
     style,
     animated,
+    preserve,
     tint,
   ]);
 
