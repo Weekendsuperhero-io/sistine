@@ -430,6 +430,43 @@ describe("meadow", () => {
   });
 });
 
+/**
+ * Dune's tiers are generated skewed waves (a long windward rise, a shorter lee) with a continuous slope, so
+ * no crest meets its slip face at a corner: the hand-drawn set gave each tier one curve-into-straight-drop
+ * corner, and tier over tier those read as a jagged zigzag. Each crest also keeps room above the box's top
+ * edge for its cast shadow, which is the same silhouette nudged up.
+ */
+describe("dune", () => {
+  const markup = () => renderToStaticMarkup(<PatternBackground style="dune" />);
+  /** Every tier's silhouette path, decoded from its .du-pos-* mask. */
+  const ridges = (html: string) =>
+    [
+      ...html.matchAll(/\.du-pos-[a-z]+ \{[^}]*?-webkit-mask: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]).match(/d='([^']+)'/)?.[1] ?? "");
+
+  it("draws the same dunes on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws every tier as one smooth run of curves, with no corner along the crest", () => {
+    const paths = ridges(markup());
+    expect(paths).toHaveLength(6);
+    for (const d of paths) {
+      // Straight segments only at the box's edges; the crest itself is quadratic curves end to end.
+      expect(d).toMatch(/^M0 60L0 [\d.]+L[\d.]+ [\d.]+(Q[\d.]+ [\d.]+ [\d.]+ [\d.]+)+L200 [\d.]+L200 60Z$/);
+    }
+  });
+
+  it("keeps every crest clear of the top edge, for its cast shadow", () => {
+    for (const d of ridges(markup())) {
+      const ys = [
+        ...d.matchAll(/(?:^|[MLQ ])[\d.]+ ([\d.]+)/g),
+      ].map((m) => Number(m[1]));
+      expect(Math.min(...ys)).toBeGreaterThan(12);
+    }
+  });
+});
+
 describe("ANIMATED_PATTERNS", () => {
   it("only names real pattern styles", () => {
     // The set gates the speed control; a stale name there means a scene whose

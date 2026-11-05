@@ -959,42 +959,59 @@ ${stopRules(".cl-deck")}`;
 // background period diagonally (right + up) per loop, so the drift is seamless. Day = dusty mauve-brown
 // ridges under a pale sky with the warmth compressed into a band at the skyline; night = cool indigo
 // ridges under a warm desert moon. The moon is a per-mode size: small by day, prominent by night.
-// RIDGE GRAMMAR. The old paths were all-`C`, smooth at every join, 2-3 inflections — a grammar that can
-// only make sine waves, which is what they read as. Real ridges (see the aerial references) have a long
-// shallow windward flank rising to a DEFINED apex, then a short steep slip face: asymmetry plus a corner.
-// So each crest here is `C` (the slow rise) followed by `L` (the fast drop) — the C→L join is the corner,
-// and there was not one of those in the old set. But giving EVERY crest the same treatment read as
-// machined zigzag, so each tier now mixes ONE defined corner with smooth rounded crests at differing
-// amplitudes — landforms are not uniformly sharp. Crests per tile at uneven spacing, amplitude and
-// sharpness growing toward the viewer; the far tiers stay softer because haze erases that detail anyway.
+// RIDGE SHAPE. Each tier is a SKEWED wave: every crest rises over a long windward flank and falls over a
+// shorter, steeper lee, the asymmetry real ridges have, with a smaller harmonic on top so no two crests
+// match. The skew is a phase modulation (sin(t - s·sin t)), so the slope is continuous everywhere: crests are
+// rounded and there is no corner anywhere. The hand-drawn set before it gave each tier one crest that met its
+// slip face at a corner (a curve into a straight drop); repeated tier over tier, those corners read as a
+// jagged zigzag. Amplitude and skew grow toward the viewer; the far tiers stay soft, as haze would leave them.
 // Crests keep headroom above y=0: .du-sh draws this same silhouette nudged UP by --du-off and blurred 8px,
 // and a crest sitting on the top edge would clip its own cast shadow.
-const DUNE_A0 = svgMask("<path d='M0 25 C 24 22 42 20 60 22 C 82 25 100 21 122 19 C 148 17 176 22 200 24 L200 60 L0 60 Z'/>", "0 0 200 60", true);
-const DUNE_A = svgMask(
-  "<path d='M0 28 C 20 25 34 21 50 22 L56 25 C 74 29 92 25 110 22 C 132 19 158 24 178 26 C 188 27 194 27 200 26 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_B = svgMask(
-  "<path d='M0 31 C 16 27 30 21 46 20 L53 26 C 68 31 84 29 98 25 C 116 20 136 25 154 30 C 172 34 188 32 200 30 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_C = svgMask(
-  "<path d='M0 39 C 14 34 26 26 40 23 L48 31 C 60 37 74 35 88 31 C 106 26 122 32 138 38 C 158 44 182 40 200 37 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_D = svgMask(
-  "<path d='M0 45 C 12 38 24 28 38 23 L47 33 C 58 41 72 39 86 34 C 104 28 120 35 136 42 C 158 49 182 45 200 42 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_E = svgMask(
-  "<path d='M0 41 C 10 32 22 20 36 15 L46 27 C 56 36 70 34 84 28 C 102 21 118 30 134 40 C 156 49 182 44 200 38 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
+
+/** One tier's silhouette, in the 200 × 60 box every tier's mask stretches over its own height. `base` is
+ *  the mean crest depth, `amp` the swell above and below it, `crests` how many cross the width, `skew` how
+ *  much longer the windward flank is than the lee (0 = a plain sine). Drawn through the midpoints of
+ *  closely spaced samples with each sample as the control point, so it has no corners. Deterministic. */
+function duneRidge(base: number, amp: number, crests: number, skew: number, seed: number) {
+  const rand = mulberry32(seed);
+  const [p1, p2] = [
+    rand() * Math.PI * 2,
+    rand() * Math.PI * 2,
+  ];
+  const at = (x: number) => {
+    const t = (2 * Math.PI * crests * x) / 200 + p1;
+    return base - amp * Math.sin(t - skew * Math.sin(t)) - amp * 0.22 * Math.sin(2.3 * t + p2);
+  };
+  // Rounded to a tenth (f1 is declared further down, after this runs at module load).
+  const r = (n: number) => String(Math.round(n * 10) / 10);
+  const n = 80;
+  const pts = Array.from(
+    {
+      length: n + 1,
+    },
+    (_, i) =>
+      [
+        (200 * i) / n,
+        at((200 * i) / n),
+      ] as const,
+  );
+  const mid = (i: number) => `${r((pts[i][0] + pts[i + 1][0]) / 2)} ${r((pts[i][1] + pts[i + 1][1]) / 2)}`;
+  let d = `M0 60L0 ${r(pts[0][1])}L${mid(0)}`;
+  for (let i = 1; i < n; i++) d += `Q${r(pts[i][0])} ${r(pts[i][1])} ${mid(i)}`;
+  d += `L200 ${r(pts[n][1])}L200 60Z`;
+  return svgMask(`<path d='${d}'/>`, "0 0 200 60", true);
+}
+/* Spaced in SCENE terms, not box terms: each tier's mask stretches over its own height (58% … 18% of the
+   scene), so a tier's crests land at its top + y/60 of its height. Chosen so each tier's crest band sits
+   mostly below the one behind it (centres at 62, 68, 74.5, 81, 87 and 92.5% of the scene, swells of 2.5 to
+   4 of it) and overlaps it only a little: near tiers that rose well above the far ones' troughs crossed
+   them, and their cast shadows and rims tangled into a knot of lines. */
+const DUNE_A0 = duneRidge(20.7, 2.4, 1.4, 0.3, 61);
+const DUNE_A = duneRidge(23.1, 3.5, 2, 0.45, 67);
+const DUNE_B = duneRidge(26, 4.7, 1.8, 0.5, 71);
+const DUNE_C = duneRidge(29.2, 6.5, 1.5, 0.55, 73);
+const DUNE_D = duneRidge(32.1, 9, 1.3, 0.6, 79);
+const DUNE_E = duneRidge(35, 13, 1.1, 0.62, 83);
 const DUNE_STYLES = `
 [data-pattern="dune"] {
   /* DAY — GOLDEN HOUR, drawn from the aerial reference: a pale blue zenith cooling through a
@@ -1709,8 +1726,8 @@ const AURORA_STYLES = `
      reading as a moon. */
   --sw-moon-o: 1;
   --sw-moon-d: block;
-  --moon-size: 13vh;
-  --moon-bottom: 66%;
+  --moon-size: 24vh;
+  --moon-bottom: 60%;
   --moon-dip: 0%;
   --sw-moon-1: oklch(0.96 0.012 255);
   --sw-moon-2: oklch(0.87 0.03 262);
