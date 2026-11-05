@@ -643,14 +643,26 @@ const SKY_STYLES = `
 // --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
 // (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
 // rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
-// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon; synthwave's
-// DAY lines fall back to the tint's hue instead, see --sw-follow); by day the
+// (accent hue, else the tint's hue, else the scene's own --sw-line-h: pink by day and Tron cyan by night
+// for the sun, violet for the moon; see --sw-follow, and moonrise's night keeps its violet); by day the
 // sky/ground also take a gentle cast of the theme tint (--sw-cast, gated on tint chroma so neutral stays
 // the authored scene). Layers back→front: sky gradient (.sw-scene) · stars (day-hidden via --sw-stars-o) ·
 // disc · ground (hides the disc's dip) · horizon glow · floor-grid. The floor uses PARENT perspective
 // (.sw-floor, perspective-origin at the horizon) so lines converge at the horizon, not the near edge. The
 // lone motion is the grid's compositor-only translateY scroll.
 const SYNTHWAVE_STYLES = `
+[data-pattern="synthwave"],
+[data-pattern="moonrise"] {
+  /* The lines and the horizon glow take the CHOSEN colour: the accent knob when it is set, else the tint's
+     hue (--sw-hue), else the scene's own (--sw-line-h, set per scene and mode below). The pale tints keep
+     the scene's own colours: selenite and onyx (chroma 0), the default (0.018) and moonstone (0.047, a
+     cream) have no colour to give, and their hues (250, 75) would turn a white theme's grid blue and a
+     cream one's orange. So --sw-follow is a step on the tint's chroma, 0 to c 0.05 and 1 from c 0.051;
+     the nearest presets sit either side of it (moonstone 0.047, aquamarine 0.053), and a test names the
+     pale set. Synthwave follows by day and by night, moonrise by day. */
+  --sw-follow: clamp(0, (var(--glass-tint-c, 0) - 0.05) * 1000, 1);
+  --sw-hue: calc(var(--sw-line-h) + (var(--glass-tint-h, 0) - var(--sw-line-h)) * var(--sw-follow));
+}
 [data-pattern="synthwave"] {
   /* DAY — an outrun SUNSET on the sand. The night scene is neon on dark ground; by day the old palette
      inverted it into dark teal lines on a near-white floor (lines L 0.48 on ground L 0.91, the lower sky
@@ -661,18 +673,12 @@ const SYNTHWAVE_STYLES = `
      inside sRGB. The lines may not: at L 0.62 the cyans and blues top out below C 0.21 (celestite's ceiling
      is 0.13), and the browser maps them in. Every preset's lines read on the sand, warm ones included: they
      are more saturated than the floor, and citrine's are the faintest, an olive. */
-  --sw-line-h: 195; /* scene identity hue (Tron cyan) — the NIGHT lines'; the day lines take the chosen colour */
+  --sw-line-h: 355; /* the day lines' own hue (hot pink), for a pale tint; see --sw-follow */
   /* Day tint cast — how much of the theme tint bleeds into the upper sky. Gated on the tint's chroma, so the
      near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
      gentle atmospheric wash. Day-only; night keeps its authored neon. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  /* The day lines and the horizon glow take the CHOSEN colour: the accent knob when it is set, else the tint's
-     hue. A near-neutral tint (selenite and onyx at c 0, the default at 0.018) has no colour to give, and its
-     hue (250) would turn the grid blue for a white theme, so a gate on the tint's chroma keeps the authored
-     pink for those: 0 below c 0.03, 1 from c 0.031, and every preset with a colour is at 0.047 or more. */
-  --sw-follow: clamp(0, (var(--glass-tint-c, 0) - 0.03) * 1000, 1);
-  --sw-day-h: calc(355 + (var(--glass-tint-h, 355) - 355) * var(--sw-follow));
-  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, var(--sw-day-h)));
+  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, var(--sw-hue)));
   --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
   --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
   --sw-sky-c: oklch(0.88 0.06 40);
@@ -680,7 +686,7 @@ const SYNTHWAVE_STYLES = `
   --sw-ground-a: oklch(0.86 0.07 60);
   --sw-ground-b: oklch(0.7 0.11 30);
   --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
-  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, var(--sw-day-h)));
+  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, var(--sw-hue)));
   --sw-glow-bloom: oklch(0.85 0.075 30 / 0.5);
   --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
   --sw-disc-2: oklch(0.65 0.22 6);
@@ -691,8 +697,9 @@ const SYNTHWAVE_STYLES = `
   --sw-stars-o: 0; /* stars hidden by day (also gates the Muse constellation) */
 }
 .dark [data-pattern="synthwave"] {
-  /* NIGHT — the original neon scene, verbatim */
-  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-line-h)));
+  /* NIGHT — the original neon scene, its grid in the chosen colour (Tron cyan for a pale tint) */
+  --sw-line-h: 195;
+  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-hue)));
   --sw-sky-a: oklch(0.12 0.085 285);
   --sw-sky-b: oklch(0.15 0.1 305);
   --sw-sky-c: oklch(0.24 0.14 332);
@@ -712,9 +719,9 @@ const SYNTHWAVE_STYLES = `
 }
 [data-pattern="moonrise"] {
   /* DAY — a pale morning sky with a faint daytime moon */
-  --sw-line-h: 270; /* scene identity hue (violet) */
+  --sw-line-h: 270; /* scene identity hue (violet): the night lines', and the day lines' for a pale tint */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-line-h)));
+  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-hue)));
   --sw-sky-a: color-mix(in oklch, oklch(0.87 0.04 245), oklch(0.87 0.05 var(--glass-tint-h, 245)) var(--sw-cast));
   --sw-sky-b: color-mix(in oklch, oklch(0.9 0.045 260), oklch(0.9 0.045 var(--glass-tint-h, 260)) var(--sw-cast));
   --sw-sky-c: color-mix(in oklch, oklch(0.92 0.035 275), oklch(0.92 0.035 var(--glass-tint-h, 275)) var(--sw-cast));
@@ -722,7 +729,7 @@ const SYNTHWAVE_STYLES = `
   --sw-ground-a: color-mix(in oklch, oklch(0.93 0.02 275), oklch(0.93 0.025 var(--glass-tint-h, 275)) var(--sw-cast));
   --sw-ground-b: color-mix(in oklch, oklch(0.88 0.035 280), oklch(0.88 0.035 var(--glass-tint-h, 280)) var(--sw-cast));
   --sw-below: var(--sw-ground-a);
-  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-hue)));
   --sw-glow-bloom: oklch(0.8 0.07 290 / 0.3);
   --sw-moon-1: oklch(0.94 0.02 270); /* daytime moon: whitish, barely-there */
   --sw-moon-2: oklch(0.9 0.04 278);
