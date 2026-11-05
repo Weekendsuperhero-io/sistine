@@ -1,4 +1,4 @@
-import { type CSSProperties, Fragment, useId } from "react";
+import { type CSSProperties, Fragment, useEffect, useId, useRef, useState } from "react";
 
 /**
  * Pure-CSS pattern backgrounds — tileable wallpapers built entirely from `background-image` layers
@@ -388,6 +388,129 @@ function SceneStyles({ name, css }: { name: string; css: string }) {
   );
 }
 
+/**
+ * The synthwave / moonrise floor grid, PROJECTED: the plane .sw-floor / .sw-grid draw in 3D, worked out in 2D.
+ * The CSS tilts a plane back by rotateX(78deg) about its top edge, which sits 4vmin above the floor's top,
+ * under a 75vh perspective from the floor's top centre. Every length is reproduced: the plane runs from
+ * -60% to 160% of the floor's width and 66vh deep, its cell is round(4vmin, 1px) and its lines are 2px. A
+ * point `y` down the plane and `x` across it lands at
+ *   k = d / (d - y·sin θ),   X = W/2 + (x - W/2)·k,   Y = (y·cos θ - 4vmin)·k
+ * in the floor's own pixels (origin top-left), which is the CSS perspective projection. Lines on a plane
+ * stay straight, so each rung is a band and each rail a quadrilateral, exactly. Returns one SVG path.
+ */
+export function floorGridPath(kind: "rungs" | "rails", w: number, h: number, vw: number, vh: number, roundCell = true): string {
+  const d = 0.75 * vh;
+  const theta = (78 * Math.PI) / 180;
+  const [sin, cos] = [
+    Math.sin(theta),
+    Math.cos(theta),
+  ];
+  const lift = (4 * Math.min(vw, vh)) / 100; // the plane's top edge, 4vmin above the floor's
+  const cell = roundCell ? Math.round(lift) : lift;
+  const k = (y: number) => d / (d - y * sin);
+  const toY = (y: number) => (y * cos - lift) * k(y);
+  const toX = (x: number, y: number) => w / 2 + (x - w / 2) * k(y);
+  const r = (n: number) => String(Math.round(n * 100) / 100);
+  // How far down the plane the floor's bottom edge is: solve Y(y) = h. Nothing past it shows.
+  const yEnd = Math.min(0.66 * vh, (d * (h + lift)) / (d * cos + h * sin));
+  let path = "";
+  if (kind === "rungs") {
+    for (let y = 0; y <= yEnd; y += cell) {
+      const [top, bottom] = [
+        toY(y),
+        toY(Math.min(y + 2, 0.66 * vh)),
+      ];
+      if (bottom < 0) continue;
+      path += `M0 ${r(top)}H${r(w)}V${r(bottom)}H0Z`;
+    }
+  } else {
+    for (let x = -0.6 * w; x < 1.6 * w; x += cell) {
+      const quad = [
+        [
+          toX(x, 0),
+          toY(0),
+        ],
+        [
+          toX(x + 2, 0),
+          toY(0),
+        ],
+        [
+          toX(x + 2, yEnd),
+          toY(yEnd),
+        ],
+        [
+          toX(x, yEnd),
+          toY(yEnd),
+        ],
+      ];
+      const xs = quad.map(([qx]) => qx);
+      if (Math.max(...xs) < 0 || Math.min(...xs) > w) continue;
+      path += `M${quad.map(([qx, qy]) => `${r(qx)} ${r(qy)}`).join("L")}Z`;
+    }
+  }
+  return path;
+}
+
+/**
+ * One layer of the floor grid. Moving, it is the 3D plane (the rungs scroll toward you, which a flat drawing
+ * cannot do on the compositor). STILL, it is the same grid drawn flat (floorGridPath): a 3D transform always
+ * makes its element a compositing layer, and the wide, tiled, masked floor was ~20 of synthwave's 26 layers
+ * with nothing moving. The plane renders until the floor has been measured (and on the server), then the
+ * drawing replaces it and follows the floor's size.
+ */
+function FloorGrid({ kind, still }: { kind: "rungs" | "rails"; still: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [flat, setFlat] = useState<{
+    w: number;
+    h: number;
+    d: string;
+  } | null>(null);
+  useEffect(() => {
+    if (!still) {
+      setFlat(null);
+      return;
+    }
+    const floor = ref.current?.parentElement;
+    if (!floor) return;
+    const roundCell = typeof CSS !== "undefined" && CSS.supports("width: round(1px, 2px)");
+    const draw = () => {
+      // Layout size, not getBoundingClientRect: a scaled preview reports its transformed box.
+      const [w, h] = [
+        floor.offsetWidth,
+        floor.offsetHeight,
+      ];
+      if (w && h)
+        setFlat({
+          w,
+          h,
+          d: floorGridPath(kind, w, h, window.innerWidth, window.innerHeight, roundCell),
+        });
+    };
+    draw();
+    const observer = new ResizeObserver(draw);
+    observer.observe(floor);
+    window.addEventListener("resize", draw);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", draw);
+    };
+  }, [
+    kind,
+    still,
+  ]);
+  if (!flat) return <div ref={ref} className={`sw-grid sw-grid-${kind}`} />;
+  return (
+    <svg className="sw-flat" viewBox={`0 0 ${flat.w} ${flat.h}`} preserveAspectRatio="none" aria-hidden="true">
+      <path
+        d={flat.d}
+        style={{
+          fill: "var(--sw-line)",
+        }}
+      />
+    </svg>
+  );
+}
+
 function MuseConstellation() {
   return (
     <>
@@ -440,8 +563,7 @@ const SKY_STYLES = `
     drop-shadow(0 0 var(--sw-disc-bloom, 0) var(--sw-disc-bloom-c, transparent));
   opacity: var(--sw-moon-o, 1);
   display: var(--sw-moon-d, block);
-  /* Its own compositing layer, as .sw-sun below: see the note there. */
-  will-change: transform;
+  /* No compositing layer of its own: see .sw-sun below. */
 }
 /* The OUTRUN SUN — synthwave's disc, promoted to shared furniture so clouds / dune / aurora can put the
    same low banded sun on their day horizon. It sits ON the 42% line and dips below it; whatever the scene
@@ -451,8 +573,9 @@ const SKY_STYLES = `
    choose their disc in JSX instead — are untouched.
    Each opacity gate has a DISPLAY twin, --sw-sun-d / --sw-moon-d (block | none), set beside it in every
    palette block: the hidden disc has to leave the render tree, not just go transparent, because at
-   opacity 0 it is still a promoted layer (the will-change below), an invisible full-filter layer in the
-   live wallpaper and in every preview. check-patterns ([disc-gates]) keeps each pair in agreement. */
+   opacity 0 it is still laid out and carried through its filter and masks (and, while discs had layers of
+   their own, it was an invisible full-filter layer). check-patterns ([disc-gates]) keeps each pair in
+   agreement. */
 .sw-sun {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -478,25 +601,19 @@ const SKY_STYLES = `
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
     repeating-linear-gradient(to bottom, #000 0 var(--sun-band, 0.85vh), transparent var(--sun-band, 0.85vh) calc(var(--sun-band, 0.85vh) * 2));
   filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
-  /* Its own compositing LAYER. Moving a disc (the left / center / right control changes \`left\`) on the
-     page's own layer asks WebKit to repaint the old and new spots, and for a disc carrying a drop-shadow
-     filter AND a mask it repainted only part of each: the old sun's top stayed painted at the old spot
-     and the new one showed only its lower half. As a layer, the move just repositions it. */
-  will-change: transform;
-}
-/* A PREVIEW (a picker swatch, a thumbnail) is not promoted. A picker draws a dozen miniatures at once, and
-   a promoted disc in each was a dozen layers for the window server to keep. The move above is the only
-   reason for the layer, and a preview never makes it in place: PatternBackground remounts a preview
-   whose disc changes, so it paints whole. */
-[data-pat-preview] .sw-sun,
-[data-pat-preview] .scene-moon {
-  will-change: auto;
+  /* NO compositing layer of its own. Moving a disc in place (the left / center / right control changes
+     \`left\`) asks WebKit to repaint the old and new spots, and for a disc carrying a drop-shadow filter AND
+     a mask it repainted only part of each: the old sun's top stayed painted at the old spot and the new one
+     showed only its lower half. A layer of its own made the move a reposition, but it cost 2-7 layers in
+     every horizon scene (the disc, the sun path, their masks) for a protection only that moment needed.
+     PatternBackground remounts the scene when the placement changes instead, so a disc never moves in
+     place: the new scene paints whole. */
 }
 /* Paints its children as ONE compositing layer. WebKit gives every element that overlaps an earlier
-   composited one a layer of its own, so the z-order holds, and a disc is a layer (above), so loose, every
-   ridge, twin, deck and veil drawn after it became a full-viewport layer: dune had 52 of them while
-   static, and the window server re-applied each one's mask and blur whenever anything on the page above
-   them changed. Inside one stacking context they paint into a single backing store instead, masks and
+   composited one a layer of its own, so the z-order holds; when the disc was a layer, every ridge, twin,
+   deck and veil drawn after it became a full-viewport layer: dune had 52 of them while static, and the
+   window server re-applied each one's mask and blur whenever anything on the page above them changed. The
+   same holds for anything that moves (a cloud deck, a fog bank, a curtain), which has to be a layer. Inside one stacking context they paint into a single backing store instead, masks and
    blurs drawn once. Each scene wraps everything in front of its disc in one, and, inside it, any still
    run that sits over a MOVING part (a fog bank, the water), so only what moves gets layers of its own.
    Same box as the scene (inset 0), so the children's percentages and insets resolve unchanged. */
@@ -534,22 +651,28 @@ const SKY_STYLES = `
 // lone motion is the grid's compositor-only translateY scroll.
 const SYNTHWAVE_STYLES = `
 [data-pattern="synthwave"] {
-  /* DAY — a bright, hazy outrun morning */
-  --sw-line-h: 195; /* scene identity hue (Tron cyan) — shared by both modes */
-  /* Day tint cast — how much of the theme tint bleeds into sky/ground. Gated on the tint's chroma, so the
+  /* DAY — an outrun SUNSET on the sand. The night scene is neon on dark ground; by day the old palette
+     inverted it into dark teal lines on a near-white floor (lines L 0.48 on ground L 0.91, the lower sky
+     at L 0.90 in the same pink), which read as graph paper with no horizon. Now: a peach band at the
+     skyline, a warm sand floor deepening from peach to coral toward the viewer, and the lines and horizon
+     glow in hot pink. The upper sky keeps the theme cast; from the band down it is authored, as dune's is,
+     or the cast muddies the sunset. Every colour sits inside sRGB. */
+  --sw-line-h: 195; /* scene identity hue (Tron cyan) — the NIGHT lines'; the day lines are pink */
+  /* Day tint cast — how much of the theme tint bleeds into the upper sky. Gated on the tint's chroma, so the
      near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
      gentle atmospheric wash. Day-only; night keeps its authored neon. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  --sw-line: oklch(0.48 0.08 var(--accent-h, var(--sw-line-h))); /* C 0.08 stays in-gamut at L 0.48 for EVERY accent hue */
+  /* The accent, when set, takes the lines and glow, at its own vividness. */
+  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, 355));
   --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
   --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-sky-c: color-mix(in oklch, oklch(0.9 0.07 330), oklch(0.9 0.06 var(--glass-tint-h, 330)) var(--sw-cast));
-  --sw-sky-d: color-mix(in oklch, oklch(0.92 0.04 25), oklch(0.92 0.04 var(--glass-tint-h, 25)) var(--sw-cast));
-  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.03 320), oklch(0.93 0.03 var(--glass-tint-h, 320)) var(--sw-cast));
-  --sw-ground-b: color-mix(in oklch, oklch(0.87 0.045 310), oklch(0.87 0.04 var(--glass-tint-h, 310)) var(--sw-cast));
+  --sw-sky-c: oklch(0.88 0.06 40);
+  --sw-sky-d: oklch(0.9 0.06 60);
+  --sw-ground-a: oklch(0.86 0.07 60);
+  --sw-ground-b: oklch(0.7 0.11 30);
   --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
-  --sw-glow-core: oklch(0.72 0.11 var(--accent-h, var(--sw-line-h)));
-  --sw-glow-bloom: oklch(0.75 0.12 340 / 0.35);
+  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, 355));
+  --sw-glow-bloom: oklch(0.85 0.075 30 / 0.5);
   --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
   --sw-disc-2: oklch(0.65 0.22 6);
   --sw-disc-3: oklch(0.72 0.18 42);
@@ -706,6 +829,20 @@ const SYNTHWAVE_STYLES = `
   background-image: linear-gradient(to bottom, var(--sw-line) 0 2px, transparent 2px);
   animation: sw-grid-scroll var(--pat-dur, 8s) linear infinite;
   will-change: var(--pat-wc, transform);
+}
+/* The FLAT floor (see FloorGrid): the same grid projected into the floor's pixels, no 3D. Once it is
+   drawn, the floor's perspective has nothing left to project, and the property alone still made the floor
+   a compositing layer (5 layers, both floors and their masks), so it goes. */
+.sw-floor:has(> .sw-flat) {
+  perspective: none;
+}
+.sw-flat {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
 }
 .sw-grid-rails {
   background-image: linear-gradient(to right, var(--sw-line) 0 2px, transparent 2px);
@@ -1960,9 +2097,8 @@ const AURORA_STYLES = `
    column that widens with distance, so this is a tapered gradient broken up by the same ripple rhythm as
    the mirror. By day it is the sun's, gated on --sw-sun-o so it appears and disappears with the sun; the
    night palette repoints it at the moon through --au-path-d / -o / -w and its colours --au-path-1..4.
-   Its own compositing layer, like the disc it reflects (see .sw-sun): it moves with the disc, and moving a
-   masked, blurred element painted on a shared layer is what left half a disc behind. The glints are drawn
-   by the child (.au-sunpath-paint), so their blur and masks go into the layer once, as a curtain's do. */
+   No layer of its own, as the disc it reflects has none (see .sw-sun): the scene remounts when the
+   placement changes, so it never moves in place. Its glints are drawn by the child (.au-sunpath-paint). */
 .au-sunpath {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -1972,11 +2108,6 @@ const AURORA_STYLES = `
   transform: translateX(-50%);
   opacity: var(--au-path-o, calc(0.62 * var(--sw-sun-o, 0)));
   display: var(--au-path-d, var(--sw-sun-d, none));
-  will-change: transform;
-}
-/* Unpromoted in a preview, as the discs are (see [data-pat-preview] .sw-sun). */
-[data-pat-preview] .au-sunpath {
-  will-change: auto;
 }
 .au-sunpath-paint {
   position: absolute;
@@ -4742,25 +4873,22 @@ export type PatternBackgroundProps = {
    *  tiles than the wallpaper, or a 48px chip shows one dot of a 48px-spaced field and no grid line. */
   tileScale?: number;
   /** A miniature of the scene (a picker swatch, a thumbnail) rather than the page's backdrop. A preview
-   *  drops the layers that only the full-window wallpaper needs: the root's `glass-backdrop-layer`
-   *  promotion (it is not the ground sheer materials blur) and the sun / moon / sun-path layers (they
-   *  guard a WebKit repaint bug when the disc moves; a preview is remounted instead, see below). Pair it
-   *  with `speed={0}` for a still picker, since a moving part needs its layer whatever it is drawn in.
+   *  drops the layer only the full-window wallpaper needs: the root's `glass-backdrop-layer` promotion
+   *  (it is not the ground sheer materials blur). Pair it with `speed={0}` for a still picker, since a
+   *  moving part needs its layer whatever it is drawn in.
    *  The scene is still `position: fixed`, so the swatch has to contain it: `contain: paint` does,
    *  without the layer a `transform: translateZ(0)` wrapper forces.
-   *  In a picker, draw the synthwave and moonrise swatches LAST (`position: relative; z-index: 1` on
-   *  their wrappers keeps them in place). Their tilted floor grids are layers whatever the mode, and
-   *  WebKit tests overlap against the grid's untilted box, which reaches well past the swatch, so every
-   *  swatch drawn after them in that area is composited too. Measured in Safari Technology Preview's
-   *  WebKit, an 11-swatch picker is 50 layers with them on top and 109 without. */
+   *  A still preview of any scene adds no compositing layers: synthwave's and moonrise's floor is drawn
+   *  flat when still (see FloorGrid), so the old advice to draw those two swatches last no longer applies.
+   *  Measured in Safari Technology Preview's WebKit, a 13-swatch picker adds none (it was 109). */
   preview?: boolean;
 };
 
 /** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
 export function PatternBackground(props: PatternBackgroundProps) {
-  // A preview's disc is not a layer, so moving it in place would meet the WebKit repaint bug the layer is
-  // there for (see .sw-sun). Keyed on the disc, a preview remounts instead, and a new scene paints whole.
-  return <PatternScene key={props.preview ? (props.disc ?? "right") : undefined} {...props} />;
+  // The discs have no layers of their own, so moving one in place would meet a WebKit repaint bug (see
+  // .sw-sun). Keyed on the placement, the scene remounts instead, and a new scene paints whole.
+  return <PatternScene key={props.disc ?? "right"} {...props} />;
 }
 
 function PatternScene({
@@ -4893,10 +5021,10 @@ function PatternScene({
             <div className="sw-ground" />
             <div className="sw-glow" />
             <div className="sw-floor sw-floor-rungs">
-              <div className="sw-grid sw-grid-rungs" />
+              <FloorGrid kind="rungs" still={speed <= 0} />
             </div>
             <div className="sw-floor sw-floor-rails">
-              <div className="sw-grid sw-grid-rails" />
+              <FloorGrid kind="rails" still={speed <= 0} />
             </div>
           </div>
         </div>

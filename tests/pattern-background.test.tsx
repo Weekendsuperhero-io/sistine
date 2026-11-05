@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
 
 /**
  * A scene stops for two reasons — `prefers-reduced-motion` and Speed 0 — and the
@@ -128,7 +128,7 @@ describe("PatternBackground data-pat-static", () => {
  * 52 masked full-viewport layers while static, and the window server re-applied every mask and blur on any
  * frame where the page above them changed. Two structures keep it to a handful, and these pin both: all
  * that a scene draws in front of its disc sits in ONE `.scene-group` (a stacking context, painted as one
- * layer), and a box that is a layer of its own (a swaying curtain, the sun path that moves with the disc)
+ * layer), and a box that is a layer of its own (a swaying curtain) or moves (the sun path)
  * draws its blur and masks on a child, never on itself.
  */
 describe("scene compositing", () => {
@@ -218,9 +218,9 @@ describe("previews", () => {
     }
   });
 
-  it("releases every unconditional will-change in a preview", () => {
+  it("promotes nothing unconditionally, in a preview or a wallpaper", () => {
     // `var(--pat-wc, …)` is the speed-gated hint (stopRules releases it at Speed 0); a LITERAL
-    // `will-change: transform` promotes whatever the scene is doing, so a preview has to undo each one.
+    // `will-change: transform` promotes whatever the scene is doing, even when nothing moves.
     const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />))
       .match(/<style[^>]*>([\s\S]*?)<\/style>/g)!
       .join("\n")
@@ -232,26 +232,22 @@ describe("previews", () => {
       body,
     }));
     const promoted = rules.filter((r) => /will-change:\s*transform/.test(r.body)).flatMap((r) => r.selectors);
-    const released = new Set(rules.filter((r) => /will-change:\s*auto/.test(r.body)).flatMap((r) => r.selectors));
-    expect(promoted.sort()).toEqual([
-      ".au-sunpath",
-      ".scene-moon",
-      ".sw-sun",
-    ]);
-    for (const sel of promoted) expect(released, sel).toContain(`[data-pat-preview] ${sel}`);
+    // The discs and the sun path were the last: the scene remounts on a placement change instead.
+    expect(promoted).toEqual([]);
   });
 
-  it("remounts a preview when its disc moves, and keeps the wallpaper mounted", () => {
-    // An unpromoted disc moved in place meets the WebKit repaint bug its layer guards against (.sw-sun).
-    const view = render(<PatternBackground style="clouds" preview speed={0} disc="left" />);
-    const before = view.container.querySelector("[data-pattern]");
-    view.rerender(<PatternBackground style="clouds" preview speed={0} disc="right" />);
-    expect(view.container.querySelector("[data-pattern]")).not.toBe(before);
-
-    const wallpaper = render(<PatternBackground style="clouds" disc="left" />);
-    const live = wallpaper.container.querySelector("[data-pattern]");
-    wallpaper.rerender(<PatternBackground style="clouds" disc="right" />);
-    expect(wallpaper.container.querySelector("[data-pattern]")).toBe(live);
+  it("remounts the scene when its disc moves, preview or wallpaper", () => {
+    // A disc has no layer of its own, so moved in place it would meet the WebKit repaint bug (.sw-sun).
+    for (const preview of [
+      true,
+      false,
+    ]) {
+      const view = render(<PatternBackground style="clouds" preview={preview} speed={0} disc="left" />);
+      const before = view.container.querySelector("[data-pattern]");
+      view.rerender(<PatternBackground style="clouds" preview={preview} speed={0} disc="right" />);
+      expect(view.container.querySelector("[data-pattern]"), `preview=${preview}`).not.toBe(before);
+      view.unmount();
+    }
   });
 
   it("injects each stylesheet once, however many scenes are mounted", () => {
@@ -463,6 +459,84 @@ describe("dune", () => {
         ...d.matchAll(/(?:^|[MLQ ])[\d.]+ ([\d.]+)/g),
       ].map((m) => Number(m[1]));
       expect(Math.min(...ys)).toBeGreaterThan(12);
+    }
+  });
+});
+
+/**
+ * Still, synthwave's and moonrise's floor grid is DRAWN in perspective (floorGridPath) rather than tilted in
+ * 3D: a 3D transform always makes its element a compositing layer, and the floor was ~20 of the scene's 26.
+ * The drawing has to be the same grid: the CSS perspective projection of the same plane, lines and cell.
+ */
+describe("synthwave floor, drawn flat", () => {
+  // A 1440 × 900 window, its 42% floor: 1440 × 378.
+  const [vw, vh, w, h] = [
+    1440,
+    900,
+    1440,
+    378,
+  ];
+  const quads = (d: string) =>
+    [
+      ...d.matchAll(/M([^Z]+)Z/g),
+    ].map((m) => m[1].split("L").map((pt) => pt.trim().split(" ").map(Number)));
+
+  it("puts every rung where the CSS perspective puts it, spreading toward the viewer", () => {
+    // Each rung is a band: M0 <top>H<w>V<bottom>H0Z.
+    const tops = [
+      ...floorGridPath("rungs", w, h, vw, vh).matchAll(/M0 (-?[\d.]+)H/g),
+    ].map((m) => Number(m[1]));
+    // The CSS: a plane tilted back 78deg about its top edge, 4vmin (36px) above the floor, under a 75vh
+    // (675px) perspective from the floor's top centre; rungs every round(4vmin) = 36px down the plane.
+    const [d, t] = [
+      675,
+      (78 * Math.PI) / 180,
+    ];
+    const project = (y: number) => ((y * Math.cos(t) - 36) * d) / (d - y * Math.sin(t));
+    const expected: number[] = [];
+    for (let y = 0; project(y) <= h; y += 36) if (project(y + 2) >= 0) expected.push(project(y));
+    expect(tops).toHaveLength(expected.length);
+    tops.forEach((top, i) => expect(top).toBeCloseTo(expected[i], 1));
+    const gaps = tops.slice(1).map((top, i) => top - tops[i]);
+    for (let i = 1; i < gaps.length; i++) expect(gaps[i]).toBeGreaterThan(gaps[i - 1]);
+  });
+
+  it("converges the rails on the plane's vanishing point, cot θ × perspective above the floor", () => {
+    const rails = quads(floorGridPath("rails", w, h, vw, vh));
+    expect(rails.length).toBeGreaterThan(10);
+    // Each rail's left edge, extended upward, passes through (w/2, -d·cot 78°).
+    const vanishY = -0.75 * vh * (Math.cos((78 * Math.PI) / 180) / Math.sin((78 * Math.PI) / 180));
+    for (const q of rails) {
+      const [[x0, y0], , , [x1, y1]] = q;
+      if (Math.abs(x1 - x0) < 1) continue;
+      const atVanish = x0 + ((vanishY - y0) * (x1 - x0)) / (y1 - y0);
+      expect(atVanish).toBeCloseTo(w / 2, 0);
+    }
+  });
+
+  it("draws flat when still, once the floor is measured, and keeps the 3D plane while it moves", async () => {
+    const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+    const height = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      get: () => 1440,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 378,
+    });
+    try {
+      const still = render(<PatternBackground style="synthwave" speed={0} />);
+      expect(still.container.querySelectorAll("svg.sw-flat")).toHaveLength(2);
+      expect(still.container.querySelector(".sw-grid")).toBeNull();
+      still.unmount();
+      const moving = render(<PatternBackground style="synthwave" speed={8} />);
+      expect(moving.container.querySelectorAll(".sw-grid")).toHaveLength(2);
+      expect(moving.container.querySelector("svg.sw-flat")).toBeNull();
+      moving.unmount();
+    } finally {
+      if (width) Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+      if (height) Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
     }
   });
 });
