@@ -64,6 +64,15 @@ const BACKGROUNDS = new Map<string, () => React.ReactNode>([
   ],
 ]);
 
+/** The background for a variant NAME from the URL; anything else renders the still one. Guarded the way
+ *  CodeQL's unvalidated-dynamic-method-call rule recognises (`has` before the lookup, a `typeof` check
+ *  before the call): a bare `BACKGROUNDS.get(name) ?? still` was already safe at runtime, but the rule
+ *  still flagged the call. */
+function background(name: string): React.ReactNode {
+  const draw = BACKGROUNDS.has(name) ? BACKGROUNDS.get(name) : undefined;
+  return typeof draw === "function" ? draw() : still();
+}
+
 /* The site chrome stays mounted (the root layout wraps every route), so it is hidden, and so is the
    provider's own background: only the bench's background and cards draw. */
 const BARE = `
@@ -298,7 +307,7 @@ function Schedule() {
   return (
     <div data-bench="" className="fixed inset-0 z-50 flex items-center justify-center p-10">
       <style>{BARE}</style>
-      <React.Fragment key={phase}>{(BACKGROUNDS.get(bg) ?? still)()}</React.Fragment>
+      <React.Fragment key={phase}>{background(bg)}</React.Fragment>
       <p className="fixed top-3 left-4 text-xs font-mono opacity-70" data-bench-label="">
         {label}
       </p>
