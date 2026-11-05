@@ -643,7 +643,8 @@ const SKY_STYLES = `
 // --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
 // (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
 // rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
-// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the
+// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon; synthwave's
+// DAY lines fall back to the tint's hue instead, see --sw-follow); by day the
 // sky/ground also take a gentle cast of the theme tint (--sw-cast, gated on tint chroma so neutral stays
 // the authored scene). Layers back→front: sky gradient (.sw-scene) · stars (day-hidden via --sw-stars-o) ·
 // disc · ground (hides the disc's dip) · horizon glow · floor-grid. The floor uses PARENT perspective
@@ -655,15 +656,23 @@ const SYNTHWAVE_STYLES = `
      inverted it into dark teal lines on a near-white floor (lines L 0.48 on ground L 0.91, the lower sky
      at L 0.90 in the same pink), which read as graph paper with no horizon. Now: a peach band at the
      skyline, a warm sand floor deepening from peach to coral toward the viewer, and the lines and horizon
-     glow in hot pink. The upper sky keeps the theme cast; from the band down it is authored, as dune's is,
-     or the cast muddies the sunset. Every colour sits inside sRGB. */
-  --sw-line-h: 195; /* scene identity hue (Tron cyan) — the NIGHT lines'; the day lines are pink */
+     glow in the chosen colour (hot pink for a neutral theme). The upper sky keeps the theme cast; from the
+     band down it is authored, as dune's is, or the cast muddies the sunset. Every authored colour sits
+     inside sRGB. The lines may not: at L 0.62 the cyans and blues top out below C 0.21 (celestite's ceiling
+     is 0.13), and the browser maps them in. Every preset's lines read on the sand, warm ones included: they
+     are more saturated than the floor, and citrine's are the faintest, an olive. */
+  --sw-line-h: 195; /* scene identity hue (Tron cyan) — the NIGHT lines'; the day lines take the chosen colour */
   /* Day tint cast — how much of the theme tint bleeds into the upper sky. Gated on the tint's chroma, so the
      near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
      gentle atmospheric wash. Day-only; night keeps its authored neon. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  /* The accent, when set, takes the lines and glow, at its own vividness. */
-  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, 355));
+  /* The day lines and the horizon glow take the CHOSEN colour: the accent knob when it is set, else the tint's
+     hue. A near-neutral tint (selenite and onyx at c 0, the default at 0.018) has no colour to give, and its
+     hue (250) would turn the grid blue for a white theme, so a gate on the tint's chroma keeps the authored
+     pink for those: 0 below c 0.03, 1 from c 0.031, and every preset with a colour is at 0.047 or more. */
+  --sw-follow: clamp(0, (var(--glass-tint-c, 0) - 0.03) * 1000, 1);
+  --sw-day-h: calc(355 + (var(--glass-tint-h, 355) - 355) * var(--sw-follow));
+  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, var(--sw-day-h)));
   --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
   --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
   --sw-sky-c: oklch(0.88 0.06 40);
@@ -671,7 +680,7 @@ const SYNTHWAVE_STYLES = `
   --sw-ground-a: oklch(0.86 0.07 60);
   --sw-ground-b: oklch(0.7 0.11 30);
   --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
-  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, 355));
+  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, var(--sw-day-h)));
   --sw-glow-bloom: oklch(0.85 0.075 30 / 0.5);
   --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
   --sw-disc-2: oklch(0.65 0.22 6);

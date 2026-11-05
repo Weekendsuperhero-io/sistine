@@ -2,6 +2,7 @@ import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import { GLASS_TINT_PRESETS } from "@/lib/glass-presets";
 
 /**
  * A scene stops for two reasons — `prefers-reduced-motion` and Speed 0 — and the
@@ -537,6 +538,34 @@ describe("synthwave floor, drawn flat", () => {
     } finally {
       if (width) Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
       if (height) Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
+    }
+  });
+});
+
+describe("synthwave by day, in the chosen colour", () => {
+  // The DAY block: the first `[data-pattern="synthwave"] { … }` in the scene's stylesheet (night follows it,
+  // under .dark), comments stripped so their prose cannot match a declaration.
+  const day = renderToStaticMarkup(<PatternBackground style="synthwave" />)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .match(/\[data-pattern="synthwave"\]\s*\{([^}]*)\}/)![1];
+  const decl = (name: string) => day.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim();
+
+  it("draws the lines and the horizon glow at the accent's hue, else the tint's", () => {
+    expect(decl("--sw-line")).toMatch(/var\(--accent-h, var\(--sw-day-h\)\)\)$/);
+    expect(decl("--sw-glow-core")).toMatch(/var\(--accent-h, var\(--sw-day-h\)\)\)$/);
+    expect(decl("--sw-day-h")).toBe("calc(355 + (var(--glass-tint-h, 355) - 355) * var(--sw-follow))");
+  });
+
+  it("follows every preset with a colour, and keeps the authored pink for the neutral ones", () => {
+    // The gate is a step on the tint's chroma; a preset added between its edges would get a hue partway
+    // round from pink, so every preset must sit clear of it on one side or the other.
+    const [, edge, gain] = decl("--sw-follow")!
+      .match(/^clamp\(0, \(var\(--glass-tint-c, 0\) - ([\d.]+)\) \* (\d+), 1\)$/)!
+      .map(Number);
+    const follow = (c: number) => Math.min(1, Math.max(0, (c - edge) * gain));
+    expect(follow(0.018), "the default tint (engine.css, c 0.018)").toBe(0);
+    for (const preset of GLASS_TINT_PRESETS) {
+      expect(follow(preset.c), `${preset.value} (c ${preset.c})`).toBe(preset.c === 0 ? 0 : 1);
     }
   });
 });
