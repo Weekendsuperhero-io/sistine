@@ -223,8 +223,8 @@ And more! See the [full component list](https://sistine.weekendsuperhero.io/comp
 
 ### Prerequisites
 
-- Node.js 18+ 
-- bun, pnpm, yarn, or npm
+- **Node.js 26**, the active LTS: the version in `.node-version`, which CI reads too. The test tooling needs at least 22.22.2 or 24.15 (jsdom 31).
+- **Bun 1.4.3**, the version in `.bun-version`, which CI reads too. It is required, not one choice among package managers: the scripts call it directly (`bun run typecheck` is `bun check`, new in 1.4.3; the compatibility check runs under Bun), and `bunfig.toml` pins the install layout the type check depends on.
 
 ### Setup
 
@@ -238,6 +238,12 @@ bun install
 
 # Start development server
 bun run dev
+
+# Run the tests and every check (theme, patterns, browser compatibility, gamut, contrast, DOM tests)
+bun run test
+
+# Type-check
+bun run typecheck
 
 # Start Storybook (interactive playground)
 bun run storybook

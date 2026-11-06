@@ -21,7 +21,9 @@ function Progress({ className, value, ...props }: React.ComponentProps<typeof Pr
         data-slot="progress-indicator"
         className="h-full w-full flex-1 rounded-full bg-[var(--glass-accent)] transition-transform"
         style={{
-          transform: `translateX(-${100 - (value ?? 0)}%)`,
+          // value − 100, not a minus sign in front of 100 − value: at 100% that wrote `-0%`, which engines
+          // serialise as `0%` (jsdom 31 does), so the same transform read back two ways.
+          transform: `translateX(${(value ?? 0) - 100}%)`,
         }}
       />
     </ProgressPrimitive.Root>
