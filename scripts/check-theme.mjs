@@ -267,11 +267,24 @@ for (const p of frescoPresets) {
   }
 }
 
-// 6a. [materials] each of the five [data-material] blocks declares the FULL --srf-* pin set, so an
+// 6a. [materials] every [data-material] block declares the FULL --srf-* pin set, so an
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
 const MATERIALS = ["glass", "frosted", "crystal", "lustre", "chakra", "lucite"];
-const PIN_SET = ["--srf-bg-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
+const PIN_SET = ["--srf-bg-image", "--srf-fill-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
+/* [fill-image] A filled control (the default button) paints --srf-fill-image over its own --primary fill,
+   so no material's fill image may carry an opaque body: lustre's is its polish alone, without the tint
+   wash and the dense --glass-lustre-bg that hid the fill and left the label on lustre's own floor. */
+{
+  const polish = rules.flatMap((r) => decls(r.body)).find((d) => d.name === "--glass-lustre-polish-bg");
+  if (!polish || /--glass-lustre-(bg|tint-wash)\b/.test(polish.value)) {
+    fail("[fill-image] --glass-lustre-polish-bg must exist and leave out lustre's tint wash and body (--glass-lustre-tint-wash, --glass-lustre-bg).");
+  }
+  for (const r of rules.filter((r) => /data-(material|glass)="lustre"/.test(r.selector))) {
+    const fill = decls(r.body).find((d) => d.name === "--srf-fill-image");
+    if (fill && fill.value !== "var(--glass-lustre-polish-bg)") fail(`[fill-image] ${r.selector.trim()} pins --srf-fill-image to ${fill.value}, not lustre's polish.`);
+  }
+}
 const OPAQUE_FG = ["--foreground", "--foreground-soft", "--foreground-strong", "--foreground-ui", "--muted-foreground"];
 /* Materials whose floor lightness is its own dial and can sit far from the page's, so they must remap
    the foreground tiers to their own set: opaque's solid floor, and chakra's table. */

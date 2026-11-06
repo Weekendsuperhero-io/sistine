@@ -23,6 +23,7 @@
    when it also applies glass-veil). Everything ABOVE is inherited tokens and needs no marker. */
 :where([data-glass="frosted"], [data-glass="frosted"] [data-glass-tint], [data-glass="frosted"][data-glass-tint]) {
   --srf-bg-image: var(--frosted-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
      as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
      floor's channel. */
@@ -35,6 +36,7 @@
   /* Gloss rides inside --crystal-stack-bg (baked — sticky/fixed-safe). Shimmer stays the opt-in
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
@@ -51,6 +53,7 @@
 }
 :where([data-glass="lustre"], [data-glass="lustre"] [data-glass-tint], [data-glass="lustre"][data-glass-tint]) {
   --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-fill-image: var(--glass-lustre-polish-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
   --srf-border-color: var(--glass-lustre-border);
@@ -75,6 +78,7 @@
    follows each surface's own border-radius with nothing to keep in sync. */
 :where([data-glass="chakra"], [data-glass="chakra"] [data-glass-tint], [data-glass="chakra"][data-glass-tint]) {
   --srf-bg-image: var(--glass-chakra-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
   --srf-border-color: var(--glass-chakra-border);
@@ -103,6 +107,7 @@
      makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
      out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
   --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);

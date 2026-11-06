@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Spinner } from "@/components/ui/spinner";
+import { MATERIALS } from "@/lib/material";
 
 /**
  * Spinner is deliberately NOT a glass surface: it is a bordered ring drawn in `--primary`, so it stays
@@ -56,15 +57,7 @@ export const Large: Story = {
 export const OnGlassSurfaces: Story = {
   render: () => (
     <div className="flex items-center gap-6">
-      {(
-        [
-          "glass",
-          "frosted",
-          "crystal",
-          "chakra",
-          "lucite",
-        ] as const
-      ).map((material) => (
+      {MATERIALS.map((material) => (
         <div key={material} className="glass glass-border rounded-xl p-6" data-material={material}>
           <Spinner size="md" />
         </div>

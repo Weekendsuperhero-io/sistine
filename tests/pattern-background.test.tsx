@@ -542,6 +542,109 @@ describe("synthwave floor, drawn flat", () => {
   });
 });
 
+describe("the theme cast in the day skies", () => {
+  // Every cast of the tint into a scene colour (a mix weighted by --sw-cast), across every scene's stylesheet.
+  // Starfield leans its sky toward the accent or tint by the same rule but is no --sw-cast (pinned below).
+  const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />));
+  const casts = [
+    ...new Set(css.match(/color-mix\([^;]*?var\(--glass-tint-h[^;]*?;/g) ?? []),
+  ].filter((mix) => mix.includes("--sw-cast"));
+
+  it("weights every cast by how far the tint's hue agrees with the stop's", () => {
+    // Ungated, a warm tint swung a blue sky round the wheel through teal (in OKLCH) or greyed it (in OKLab).
+    expect(casts).toHaveLength(26);
+    for (const cast of casts) {
+      const m = cast.match(
+        /^color-mix\(in oklch, oklch\(([\d.]+) [\d.]+ (\d+)\), oklch\(([\d.]+) [\d.]+ var\(--glass-tint-h, (\d+)\)\) calc\(var\(--sw-cast\) \* max\(0, cos\(calc\(\(var\(--glass-tint-h, (\d+)\) - (\d+)\) \* 1deg\)\)\)\)\);$/,
+      );
+      expect(m, cast).not.toBeNull();
+      const [, l, h, lTint, ...hues] = m!;
+      expect(lTint, cast).toBe(l);
+      for (const other of hues) expect(other, cast).toBe(h);
+    }
+  });
+});
+
+describe("starfield, the chosen colour in the nebulae", () => {
+  const css = renderToStaticMarkup(<PatternBackground style="starfield" />).replace(/\/\*[\s\S]*?\*\//g, "");
+  const block = (selector: string) =>
+    [
+      ...css.matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].find(([, s]) => s.replace(/\s+/g, " ").trim() === selector)?.[2] ?? "";
+  const decl = (selector: string, name: string) =>
+    block(selector)
+      .match(new RegExp(`${name}:\\s*([^;]+);`))?.[1]
+      .replace(/\s+/g, " ")
+      .trim();
+  const DAY = '[data-pattern="starfield"]';
+  const NIGHT = '.dark [data-pattern="starfield"]';
+  const rad = Math.PI / 180;
+  const [amber, sapphire] = [
+    "amber",
+    "sapphire",
+  ].map((name) => GLASS_TINT_PRESETS.find((p) => p.value === name)!.h);
+
+  it("leans the sky toward the colour only as far as the hues agree, by day and by night", () => {
+    // A flat 28% turned amber's day sky teal; at night the sky WAS the colour, brown for amber.
+    for (const [selector, base, max] of [
+      [
+        DAY,
+        240,
+        28,
+      ],
+      [
+        NIGHT,
+        250,
+        100,
+      ],
+    ] as const) {
+      const bg = decl(selector, "--sf-bg")!;
+      const m = bg.match(
+        /^color-mix\( in oklch, oklch\([\d.]+ [\d.]+ (\d+)\), oklch\([\d.]+ [\d.]+ var\(--sf-h\)\) calc\((\d+)% \* max\(0, cos\(calc\(\(var\(--sf-h\) - (\d+)\) \* 1deg\)\)\)\) \)$/,
+      );
+      expect(m, `${selector} --sf-bg: ${bg}`).not.toBeNull();
+      const [, own, weight, gate] = m!.map(Number);
+      expect([
+        own,
+        gate,
+        weight,
+      ]).toEqual([
+        base,
+        base,
+        max,
+      ]);
+      const lean = (h: number) => weight * Math.max(0, Math.cos((h - base) * rad));
+      expect(lean(amber), `${selector}: amber keeps the blue`).toBe(0);
+      expect(lean(sapphire), `${selector}: sapphire tints it`).toBeGreaterThan(0.9 * max);
+    }
+    expect(decl(DAY, "--sf-h")).toBe("var(--accent-h, var(--glass-tint-h, 240))");
+  });
+
+  it("turns the second cloud toward red, from every preset's hue", () => {
+    // A fixed +40° took amber and citrine to olive; toward red, a warm theme's second cloud is red-orange.
+    const m = decl(DAY, "--sf-h2")!.match(/^calc\(var\(--sf-h\) \+ (\d+) \* sin\(calc\(\((\d+) - var\(--sf-h\)\) \* 1deg\)\)\)$/);
+    expect(m).not.toBeNull();
+    const [, k, red] = m!.map(Number);
+    // The target is a red (OKLCH puts red near 25), and the turn at most the old 40°.
+    expect(red).toBeGreaterThanOrEqual(10);
+    expect(red).toBeLessThanOrEqual(40);
+    expect(k).toBeLessThanOrEqual(40);
+    const h2 = (h: number) => h + k * Math.sin((red - h) * rad);
+    const gap = (h: number) => Math.abs(((((h - red) % 360) + 540) % 360) - 180);
+    for (const preset of GLASS_TINT_PRESETS) {
+      if (gap(preset.h) < 1 || gap(preset.h) > 179) continue; // already red, or exactly opposite
+      expect(gap(h2(preset.h)), `${preset.value} (h ${preset.h})`).toBeLessThan(gap(preset.h));
+    }
+    for (const selector of [
+      DAY,
+      NIGHT,
+    ]) {
+      expect(decl(selector, "--sf-nebula-1"), selector).toMatch(/ var\(--sf-h\) \/ 0\.(8|75)\)$/);
+      expect(decl(selector, "--sf-nebula-2"), selector).toMatch(/ var\(--sf-h2\) \/ 0\.(65|55)\)$/);
+    }
+  });
+});
+
 describe("synthwave and moonrise grid lines, in the chosen colour", () => {
   // The scenes' rules, keyed by their selector list; comments stripped so their prose cannot match.
   const css = renderToStaticMarkup(
@@ -715,6 +818,37 @@ describe("forest treelines", () => {
  * mirrors, generated from the same ray tile, each with a lighter core. Night keeps the gradient mirror, so
  * both sets render and CSS shows one per mode.
  */
+describe("aurora rays", () => {
+  // Safari 27.2 paints a TILED background (background-size + repeat) under a skew without the skew when the
+  // skewed box has no layer of its own, and a still curtain has none: its rays stood straight up under its
+  // slanted outline and met their reflections askew at the waterline. A repeating gradient is drawn skewed.
+  const css = renderToStaticMarkup(<PatternBackground style="aurora" speed={0} />).replace(/\/\*[\s\S]*?\*\//g, "");
+  const rule = (selector: string) =>
+    [
+      ...css.matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].find(([, s]) => s.trim() === selector)?.[2] ?? "";
+
+  it("paints each curtain's rays as one repeating gradient, never a tile", () => {
+    const paint = rule(".au-paint");
+    expect(paint).toContain("background-image: var(--au-rays)");
+    expect(paint).not.toMatch(/background-(size|repeat)\s*:/);
+    for (const layer of [
+      "a",
+      "b",
+      "c",
+    ]) {
+      const rays =
+        rule(`.au-${layer}`)
+          .match(/--au-rays:\s*([^;]+);/)?.[1]
+          .trim() ?? "";
+      // One period per tile: held open at 0 and at the full tile width.
+      expect(rays, layer).toMatch(/^repeating-linear-gradient\(to right, transparent 0, /);
+      expect(rays, layer).toMatch(/, transparent var\(--au-tile\)\)$/);
+      expect(rays, layer).not.toMatch(/\d%/);
+    }
+  });
+});
+
 describe("aurora day reflection", () => {
   const markup = () => renderToStaticMarkup(<PatternBackground style="aurora" />);
   const streaks = (html: string) =>
@@ -747,6 +881,22 @@ describe("aurora day reflection", () => {
     ]) {
       expect(html).toContain(`au-curtain au-${layer} au-flat`);
     }
+  });
+
+  it("hides the other mode's mirror without stopping it, so a day/night switch keeps it in step", () => {
+    // display: none stops an element's animations and showing it restarts them from zero, so after a switch
+    // the reflection swayed out of step with the sky curtains it mirrors. Hidden, it keeps their clock.
+    const rules = [
+      ...markup()
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].filter(([, selector]) => selector.split(",").some((s) => /\.au-(flat|streaks)$/.test(s.trim())));
+    const gates = rules.filter(([, , body]) => /\b(display|visibility)\s*:/.test(body));
+    expect(gates.map(([, selector]) => selector.replace(/\s+/g, " ").trim())).toEqual([
+      '[data-pattern="aurora"] .au-flat, .dark [data-pattern="aurora"] .au-streaks',
+      '.dark [data-pattern="aurora"] .au-flat',
+    ]);
+    for (const [selector, , body] of gates) expect(body, selector.trim()).not.toMatch(/\bdisplay\s*:/);
   });
 
   it("draws one straight streak and one core per ray, in the curtain's palette", () => {

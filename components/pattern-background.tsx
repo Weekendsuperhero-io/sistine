@@ -638,6 +638,19 @@ const SKY_STYLES = `
   }
 }`;
 
+/**
+ * A sky or ground stop with the theme tint cast in: the stop `oklch(l c h)` moves toward the tint's hue (at
+ * chroma `tintC`) by the scene's --sw-cast, scaled by how far the tint's hue AGREES with the stop's: the
+ * cosine of the hue distance, and nothing at 90° or more. Mixed in OKLCH at a full cast, a tint opposite the
+ * stop swung it round the wheel through a third hue (amber or citrine on a blue sky made it teal, rose or
+ * carnelian made it lavender); mixed in OKLab it went grey instead, as complementary colours do. Gated on the
+ * distance, a blue or violet theme tints a blue sky as before, a warm theme leaves the scene's own sky alone,
+ * and the hues in between get a little. Used by every scene whose sky or ground takes the cast.
+ */
+function tintCast(l: number, c: number, h: number, tintC: number): string {
+  return `color-mix(in oklch, oklch(${l} ${c} ${h}), oklch(${l} ${tintC} var(--glass-tint-h, ${h})) calc(var(--sw-cast) * max(0, cos(calc((var(--glass-tint-h, ${h}) - ${h}) * 1deg)))))`;
+}
+
 // Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
 // each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
 // --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
@@ -676,11 +689,13 @@ const SYNTHWAVE_STYLES = `
   --sw-line-h: 355; /* the day lines' own hue (hot pink), for a pale tint; see --sw-follow */
   /* Day tint cast — how much of the theme tint bleeds into the upper sky. Gated on the tint's chroma, so the
      near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
-     gentle atmospheric wash. Day-only; night keeps its authored neon. */
+     gentle atmospheric wash, and per stop on how far the tint's hue agrees with the stop's (tintCast), so a
+     warm theme leaves the blue sky alone. Every scene's cast works this way. Day-only; night keeps its
+     authored neon. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
   --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, var(--sw-hue)));
-  --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
-  --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
+  --sw-sky-a: ${tintCast(0.85, 0.055, 235, 0.07)};
+  --sw-sky-b: ${tintCast(0.88, 0.05, 275, 0.06)};
   --sw-sky-c: oklch(0.88 0.06 40);
   --sw-sky-d: oklch(0.9 0.06 60);
   --sw-ground-a: oklch(0.86 0.07 60);
@@ -722,12 +737,12 @@ const SYNTHWAVE_STYLES = `
   --sw-line-h: 270; /* scene identity hue (violet): the night lines', and the day lines' for a pale tint */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
   --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-hue)));
-  --sw-sky-a: color-mix(in oklch, oklch(0.87 0.04 245), oklch(0.87 0.05 var(--glass-tint-h, 245)) var(--sw-cast));
-  --sw-sky-b: color-mix(in oklch, oklch(0.9 0.045 260), oklch(0.9 0.045 var(--glass-tint-h, 260)) var(--sw-cast));
-  --sw-sky-c: color-mix(in oklch, oklch(0.92 0.035 275), oklch(0.92 0.035 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-sky-d: color-mix(in oklch, oklch(0.94 0.03 300), oklch(0.94 0.03 var(--glass-tint-h, 300)) var(--sw-cast));
-  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.02 275), oklch(0.93 0.025 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-ground-b: color-mix(in oklch, oklch(0.88 0.035 280), oklch(0.88 0.035 var(--glass-tint-h, 280)) var(--sw-cast));
+  --sw-sky-a: ${tintCast(0.87, 0.04, 245, 0.05)};
+  --sw-sky-b: ${tintCast(0.9, 0.045, 260, 0.045)};
+  --sw-sky-c: ${tintCast(0.92, 0.035, 275, 0.035)};
+  --sw-sky-d: ${tintCast(0.94, 0.03, 300, 0.03)};
+  --sw-ground-a: ${tintCast(0.93, 0.02, 275, 0.025)};
+  --sw-ground-b: ${tintCast(0.88, 0.035, 280, 0.035)};
   --sw-below: var(--sw-ground-a);
   --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-hue)));
   --sw-glow-bloom: oklch(0.8 0.07 290 / 0.3);
@@ -889,9 +904,9 @@ const CLOUDS_STYLES = `
 [data-pattern="clouds"] {
   /* DAY — white deck under a deep altitude sky */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --cl-sky-a: color-mix(in oklch, oklch(0.53 0.115 253), oklch(0.53 0.1 var(--glass-tint-h, 253)) var(--sw-cast));
-  --cl-sky-b: color-mix(in oklch, oklch(0.66 0.1 248), oklch(0.66 0.09 var(--glass-tint-h, 248)) var(--sw-cast));
-  --cl-sky-c: color-mix(in oklch, oklch(0.79 0.06 241), oklch(0.79 0.055 var(--glass-tint-h, 241)) var(--sw-cast));
+  --cl-sky-a: ${tintCast(0.53, 0.115, 253, 0.1)};
+  --cl-sky-b: ${tintCast(0.66, 0.1, 248, 0.09)};
+  --cl-sky-c: ${tintCast(0.79, 0.06, 241, 0.055)};
   --cl-sky-d: oklch(0.9 0.025 235); /* the pale stop the deck emerges from — authored, no cast */
   /* Was / 0.75: over the far and mid deck that much near-white turned the whole lower view into fog, so
      the deck read as a white wash with grey smudges rather than as cloud. */
@@ -929,10 +944,10 @@ const CLOUDS_STYLES = `
   /* NIGHT — a moonlit slate deck under deep navy, and the moon comes forward */
   /* The same theme cast as the day sky (--sw-cast, from the tint's chroma): the night sky ignored the tint
      entirely, the one horizon scene that looked the same in every theme after dark. */
-  --cl-sky-a: color-mix(in oklch, oklch(0.08 0.03 262), oklch(0.08 0.03 var(--glass-tint-h, 262)) var(--sw-cast));
-  --cl-sky-b: color-mix(in oklch, oklch(0.11 0.04 266), oklch(0.11 0.04 var(--glass-tint-h, 266)) var(--sw-cast));
-  --cl-sky-c: color-mix(in oklch, oklch(0.15 0.05 270), oklch(0.15 0.05 var(--glass-tint-h, 270)) var(--sw-cast));
-  --cl-sky-d: color-mix(in oklch, oklch(0.21 0.05 276), oklch(0.21 0.05 var(--glass-tint-h, 276)) var(--sw-cast));
+  --cl-sky-a: ${tintCast(0.08, 0.03, 262, 0.03)};
+  --cl-sky-b: ${tintCast(0.11, 0.04, 266, 0.04)};
+  --cl-sky-c: ${tintCast(0.15, 0.05, 270, 0.05)};
+  --cl-sky-d: ${tintCast(0.21, 0.05, 276, 0.05)};
   --cl-haze: oklch(0.45 0.05 272 / 0.35);
   --cl-f-hi: oklch(0.4 0.04 268);
   --cl-f-lo: oklch(0.345 0.04 266);
@@ -1172,9 +1187,9 @@ const DUNE_STYLES = `
      apricot into a deeper orange that meets the land. Chroma stays LOW everywhere but that band;
      the photograph's sky is dusty, not a poster sunset. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --du-sky-a: color-mix(in oklch, oklch(0.79 0.05 250), oklch(0.79 0.045 var(--glass-tint-h, 250)) var(--sw-cast));
-  --du-sky-b: color-mix(in oklch, oklch(0.84 0.03 262), oklch(0.84 0.03 var(--glass-tint-h, 262)) var(--sw-cast));
-  --du-sky-c: color-mix(in oklch, oklch(0.87 0.03 70), oklch(0.87 0.03 var(--glass-tint-h, 70)) var(--sw-cast));
+  --du-sky-a: ${tintCast(0.79, 0.05, 250, 0.045)};
+  --du-sky-b: ${tintCast(0.84, 0.03, 262, 0.03)};
+  --du-sky-c: ${tintCast(0.87, 0.03, 70, 0.03)};
   --du-sky-d: oklch(0.86 0.055 64); /* warm band — authored from here down, or the cast pinks it */
   --du-sky-e: oklch(0.82 0.075 52); /* apricot… */
   --du-sky-f: oklch(0.74 0.075 40); /* …into the deeper orange the haze sits in */
@@ -1583,23 +1598,30 @@ function rayStops(tile: string): RayStop[] {
   });
 }
 
-/* A tile as the curtain's gradient. --au-crisp scales every band's ramp in and out (as it scales the
-   blur), so at night's 1 this is exactly the authored tile, and by day the ramps shrink toward the band,
-   which leaves clean edges and clear sky between the rays. */
+/* A tile as the curtain's gradient: a REPEATING gradient whose period is the tile (--au-tile, in vh), its
+   stops the tile's percentages of it, held open at 0 and at the full tile so the period is exact (the tiles
+   end short of 100%, in sky). Not a linear-gradient tiled by background-size, which Safari 27.2 paints
+   unskewed under the curtain's skew when the curtain has no layer (see .au-paint). --au-crisp scales every
+   band's ramp in and out (as it scales the blur), so at night's 1 this is exactly the authored tile, and by
+   day the ramps shrink toward the band, which leaves clean edges and clear sky between the rays. */
 function rays(tile: string): string {
   const stops = rayStops(tile);
-  const out: string[] = [];
+  const at = (pct: string | number) => `calc(var(--au-tile) * ${pct} / 100)`;
+  const out: string[] = [
+    "transparent 0",
+  ];
   stops.forEach((s, i) => {
     if (typeof s !== "number") {
-      out.push(`var(${s[0]}) ${s[1]}% ${s[2]}%`);
+      out.push(`var(${s[0]}) ${at(s[1])} ${at(s[2])}`);
       return;
     }
     const prev = stops[i - 1];
     const next = stops[i + 1];
-    if (Array.isArray(prev)) out.push(`transparent calc(${prev[2]}% + ${s - prev[2]}% * var(--au-crisp, 1))`);
-    if (Array.isArray(next)) out.push(`transparent calc(${next[1]}% - ${next[1] - s}% * var(--au-crisp, 1))`);
+    if (Array.isArray(prev)) out.push(`transparent ${at(`(${prev[2]} + ${s - prev[2]} * var(--au-crisp, 1))`)}`);
+    if (Array.isArray(next)) out.push(`transparent ${at(`(${next[1]} - ${next[1] - s} * var(--au-crisp, 1))`)}`);
   });
-  return `linear-gradient(to right, ${out.join(", ")})`;
+  out.push("transparent var(--au-tile)");
+  return `repeating-linear-gradient(to right, ${out.join(", ")})`;
 }
 
 /** The day reflection of one curtain tile: every ray as a straight STREAK down the water. Coordinates are
@@ -1942,9 +1964,11 @@ const AURORA_STYLES = `
      the line and the reflection takes over there. (The clip is pre-transform, but sway is a skewX and a
      translateX, neither of which moves a horizontal edge.) */
   clip-path: inset(0 0 3vh 0);
+  /* One REPEATING gradient across the box (rays()), not a tile repeated by background-size + repeat-x:
+     Safari 27.2 paints a TILED background under a skew without the skew when the skewed box has no layer
+     of its own, so a still curtain (Speed: Static, no layers) stood its rays straight up under its slanted
+     outline, and they met their reflections askew at the waterline. A repeating gradient is drawn skewed. */
   background-image: var(--au-rays);
-  background-repeat: repeat-x;
-  background-size: var(--au-tile) 100%;
   filter: blur(calc(var(--au-blur, 1.2vh) * var(--au-blur-m, 1) * var(--au-crisp, 1)));
   -webkit-mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
   mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
@@ -2070,12 +2094,17 @@ const AURORA_STYLES = `
   height: 100%;
   display: block;
 }
+/* The other mode's reflection is HIDDEN, never removed. display: none stops an element's animations, and
+   showing it again starts them from zero: after a day/night switch the reflection swayed out of step with
+   the sky it mirrors (measured: sky 8.5s into its sway, the new reflection 2.1s), so the curtains met their
+   reflections askew at the waterline until something remounted the scene. Hidden, it keeps swaying in step
+   and draws nothing. */
 [data-pattern="aurora"] .au-flat,
 .dark [data-pattern="aurora"] .au-streaks {
-  display: none;
+  visibility: hidden;
 }
 .dark [data-pattern="aurora"] .au-flat {
-  display: block;
+  visibility: visible;
 }
 /* The ripples FADE IN below the waterline, from nothing at the line to full 6vh down: real ripple lines
    compress to nothing toward the horizon, and starting at full strength they ruled it, a 1px highlight
@@ -3134,9 +3163,9 @@ const FOREST_STYLES = `
      warm gold band at the treeline, chroma kept low the way a hazy dawn is; the top three stops take
      the theme cast like the other day skies. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --fo-sky-a: color-mix(in oklch, oklch(0.66 0.06 252), oklch(0.66 0.055 var(--glass-tint-h, 252)) var(--sw-cast));
-  --fo-sky-b: color-mix(in oklch, oklch(0.76 0.05 298), oklch(0.76 0.045 var(--glass-tint-h, 298)) var(--sw-cast));
-  --fo-sky-c: color-mix(in oklch, oklch(0.83 0.05 345), oklch(0.83 0.045 var(--glass-tint-h, 345)) var(--sw-cast));
+  --fo-sky-a: ${tintCast(0.66, 0.06, 252, 0.055)};
+  --fo-sky-b: ${tintCast(0.76, 0.05, 298, 0.045)};
+  --fo-sky-c: ${tintCast(0.83, 0.05, 345, 0.045)};
   --fo-sky-d: oklch(0.87 0.06 45); /* peach — authored from here down, or the cast muddies the dawn */
   --fo-sky-e: oklch(0.9 0.07 72); /* the gold band the sun rises out of */
   /* Ridges, far → near, each a SHADOW / LIT pair (the two facets of every tier): lavender haze to a
@@ -3737,9 +3766,9 @@ const PEAKS_STYLES = `
      pale violet haze far off to a deeper slate up close, their lit facets warming toward alpenglow, and
      stay light enough (the nearest shadow at L 0.56) for dark text on a light page. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --pk-sky-a: color-mix(in oklch, oklch(0.6 0.08 255), oklch(0.6 0.07 var(--glass-tint-h, 255)) var(--sw-cast));
-  --pk-sky-b: color-mix(in oklch, oklch(0.73 0.06 285), oklch(0.73 0.05 var(--glass-tint-h, 285)) var(--sw-cast));
-  --pk-sky-c: color-mix(in oklch, oklch(0.82 0.06 335), oklch(0.82 0.05 var(--glass-tint-h, 335)) var(--sw-cast));
+  --pk-sky-a: ${tintCast(0.6, 0.08, 255, 0.07)};
+  --pk-sky-b: ${tintCast(0.73, 0.06, 285, 0.05)};
+  --pk-sky-c: ${tintCast(0.82, 0.06, 335, 0.05)};
   --pk-sky-d: oklch(0.88 0.065 40);
   --pk-sky-e: oklch(0.91 0.075 72);
   --pk-r0: oklch(0.77 0.035 290);
@@ -4012,8 +4041,8 @@ const MEADOW_STYLES = `
      up close, their lit sides warming toward a sunlit yellow-green, and stay light enough (the nearest
      shadow at L 0.58) for dark text on a light page. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --mw-sky-a: color-mix(in oklch, oklch(0.66 0.09 240), oklch(0.66 0.08 var(--glass-tint-h, 240)) var(--sw-cast));
-  --mw-sky-b: color-mix(in oklch, oklch(0.78 0.065 228), oklch(0.78 0.06 var(--glass-tint-h, 228)) var(--sw-cast));
+  --mw-sky-a: ${tintCast(0.66, 0.09, 240, 0.08)};
+  --mw-sky-b: ${tintCast(0.78, 0.065, 228, 0.06)};
   --mw-sky-c: oklch(0.87 0.045 210);
   --mw-sky-d: oklch(0.92 0.045 92);
   --mw-haze: oklch(0.9 0.035 130);
@@ -4177,8 +4206,8 @@ ${MEADOW_PATHS.map(
 }
 ${stopRules(".mw-cloud")}`;
 
-// Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
-// bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
+// Starfield — a deep night field by night, a "morning haze" by day: an azure sky leaning toward the chosen
+// colour where it agrees, the nebulae in that colour, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
 // leave an empty gradient; the Tron scenes can hide theirs because the sun/grid carry the scene).
 // Same mode recipe as the other scenes: --sf-* palette vars, day on [data-pattern="starfield"], night
 // verbatim under .dark. The star dots themselves stay white in both modes — only their layer's opacity
@@ -4201,14 +4230,24 @@ const STARFIELD_STYLES = `
      the 0.1 they asked, so 39% of the colour survived and the wisps rendered near-neutral — the hue had
      nowhere to go. Below the sky it does: capped with min() at 0.10 / 0.09, which holds at EVERY accent
      hue (worst is h200 at 0.106 / 0.099), 7-8 L clear of the sky and now reading as accent-coloured
-     wisps against the blue rather than grey smudges. */
+     wisps against the blue rather than grey smudges.
+     THE CHOSEN COLOUR, by day and by night, lives in the NEBULAE; the sky leans toward it only as far as
+     the two hues agree (the cosine of their distance, nothing at 90° or more: tintCast's rule). At a flat
+     28%, "always blue" held on paper but not on screen: amber's 194 reads teal, and the warm themes'
+     clouds were muddy olive and brown on it; the reds' 290s read lavender. Now a warm theme keeps the
+     azure sky and carries its colour in the clouds, which are stronger to carry it (0.55 / 0.4 → 0.8 /
+     0.65), and a blue or violet theme tints the sky as before. The second cloud turns toward RED
+     (--sf-h2), not a fixed +40°: from amber or citrine +40° landed on olive, and from a blue it heads for
+     violet either way. */
+  --sf-h: var(--accent-h, var(--glass-tint-h, 240));
+  --sf-h2: calc(var(--sf-h) + 40 * sin(calc((20 - var(--sf-h)) * 1deg)));
   --sf-bg: color-mix(
     in oklch,
     oklch(0.78 0.1 240),
-    oklch(0.78 0.1 var(--accent-h, var(--glass-tint-h, 240))) 28%
+    oklch(0.78 0.1 var(--sf-h)) calc(28% * max(0, cos(calc((var(--sf-h) - 240) * 1deg))))
   );
-  --sf-nebula-1: oklch(0.64 min(var(--accent-c, 0.1), 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
-  --sf-nebula-2: oklch(0.6 min(var(--accent-c, 0.09), 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
+  --sf-nebula-1: oklch(0.64 min(var(--accent-c, 0.1), 0.1) var(--sf-h) / 0.8);
+  --sf-nebula-2: oklch(0.6 min(var(--accent-c, 0.09), 0.09) var(--sf-h2) / 0.65);
   --sw-stars-o: 1;
   /* Not faded at all by day: the layer gate is already 1, and this gives each dot a solid core so it
      is genuinely opaque rather than a gradient that is only white at its centre pixel. Mean alpha
@@ -4216,10 +4255,19 @@ const STARFIELD_STYLES = `
   --star-core: 60%;
 }
 .dark [data-pattern="starfield"] {
-  /* NIGHT — the original deep field, verbatim */
-  --sf-bg: oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)));
-  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
-  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3);
+  /* NIGHT — a deep blue field (selenite's, h 250) with the chosen colour in the nebulae, by the day's rule.
+     The sky used to BE the chosen colour at L 0.19, which read as night only for the blues and violets:
+     amber and carnelian made it brown, citrine and peridot olive. Now it leans toward the colour as far as
+     the hues agree, all the way for a blue (sapphire's night is unchanged), none for a warm one; the
+     clouds are stronger to carry the colour (0.42 / 0.3 → 0.75 / 0.55) and glow amber, gold, red or green
+     on the blue, and the second takes --sf-h2 as by day. */
+  --sf-bg: color-mix(
+    in oklch,
+    oklch(0.19 0.055 250),
+    oklch(0.19 0.055 var(--sf-h)) calc(100% * max(0, cos(calc((var(--sf-h) - 250) * 1deg))))
+  );
+  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--sf-h) / 0.75);
+  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) var(--sf-h2) / 0.55);
   --sw-stars-o: 1;
   /* Pinned back to the original falloff. --star-core lives in the shared base block, which night
      inherits, and night's stars already read fine on a near-black sky — solidifying them there would

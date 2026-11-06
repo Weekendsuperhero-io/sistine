@@ -1,6 +1,7 @@
 import { TextBIcon as Bold, TextItalicIcon as Italic, TextUnderlineIcon as Underline } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Toggle } from "@/components/ui/toggle";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Toggle",
@@ -22,10 +23,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

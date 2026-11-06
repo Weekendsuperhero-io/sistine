@@ -35,7 +35,29 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { MATERIALS } from "@/lib/material";
 import { cn } from "@/lib/utils";
+
+/* The page's material copy is written from MATERIALS (the section's heading, names and tabs, and the
+   features card): written out by hand, it said "Five distinct materials" and "5 Materials" and left
+   Lustre out after Lustre shipped. */
+const COUNT_WORDS = [
+  "No",
+  "One",
+  "Two",
+  "Three",
+  "Four",
+  "Five",
+  "Six",
+  "Seven",
+  "Eight",
+  "Nine",
+  "Ten",
+];
+const materialLabel = (m: string) => m.charAt(0).toUpperCase() + m.slice(1);
+const MATERIAL_NAMES = new Intl.ListFormat("en", {
+  type: "conjunction",
+}).format(MATERIALS.map(materialLabel));
 
 /** The material system's composable surfaces, sheerest → most solid — the showcase cards below swap
  *  between them: bare structural glass, + the border axis, + the veil floor, and the opaque material. */
@@ -396,29 +418,28 @@ export default function Home() {
         {/* ───────────────── Variants ───────────────── */}
         <section className="container mx-auto px-4 pb-32">
           <div className="max-w-3xl mx-auto text-center mb-14">
-            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">Five distinct materials</h2>
-            <p className="text-muted-foreground">Every component composes the Glass, Frosted, Crystal, Chakra, and Lucite materials.</p>
+            <h2 className="text-2xl md:text-3xl font-semibold text-foreground mb-3">
+              {COUNT_WORDS[MATERIALS.length] ?? MATERIALS.length} distinct materials
+            </h2>
+            <p className="text-muted-foreground">Every component composes the {MATERIAL_NAMES} materials.</p>
           </div>
 
           <div className="max-w-3xl mx-auto">
             <Tabs defaultValue="glass">
-              <TabsList className="mb-6 w-full grid grid-cols-5">
-                <TabsTrigger value="glass">Glass</TabsTrigger>
-                <TabsTrigger value="frosted">Frosted</TabsTrigger>
-                <TabsTrigger value="crystal">Crystal</TabsTrigger>
-                <TabsTrigger value="chakra">Chakra</TabsTrigger>
-                <TabsTrigger value="lucite">Lucite</TabsTrigger>
+              <TabsList
+                className="mb-6 w-full grid"
+                style={{
+                  gridTemplateColumns: `repeat(${MATERIALS.length}, minmax(0, 1fr))`,
+                }}
+              >
+                {MATERIALS.map((m) => (
+                  <TabsTrigger key={m} value={m}>
+                    {materialLabel(m)}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
-              {(
-                [
-                  "glass",
-                  "frosted",
-                  "crystal",
-                  "chakra",
-                  "lucite",
-                ] as const
-              ).map((v) => (
+              {MATERIALS.map((v) => (
                 <TabsContent key={v} value={v}>
                   <Card material={v} border sheen={v === "crystal"}>
                     <CardHeader>
@@ -538,8 +559,8 @@ export default function Home() {
               },
               {
                 icon: Palette,
-                title: "5 Materials",
-                desc: "Glass, Frosted, Crystal, Chakra, and Lucite. Each component adapts to every material automatically.",
+                title: `${MATERIALS.length} Materials`,
+                desc: `${MATERIAL_NAMES}. Each component adapts to every material automatically.`,
               },
               {
                 icon: Layers,

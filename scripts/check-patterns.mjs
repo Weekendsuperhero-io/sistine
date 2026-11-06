@@ -94,7 +94,9 @@ for (const st of sceneStyles) {
    (0 ↔ none, anything else ↔ block), or a mode shows a disc it means to hide, or hides one it shows. */
 let gatedBlocks = 0;
 for (const st of sceneStyles) {
-  const body = st.body.replace(/\/\*[\s\S]*?\*\//g, "");
+  /* Template placeholders out too: a declaration's `${tintCast(…)}` brings braces into the block, and split
+     there the block's gates went unseen (12 of the 24 at the time, and the check still passed). */
+  const body = st.body.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\$\{[^{}]*\}/g, "0");
   for (const [, selector, decls] of body.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
     for (const disc of ["sun", "moon"]) {
       const o = decls.match(new RegExp(`--sw-${disc}-o:\\s*([^;]+);`))?.[1].trim();

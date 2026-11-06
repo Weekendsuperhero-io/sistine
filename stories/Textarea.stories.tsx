@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Textarea } from "@/components/ui/textarea";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Textarea",
@@ -20,10 +21,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

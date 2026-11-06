@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { glassVars } from "@/lib/material";
+import { glassVars, MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Card",
@@ -21,12 +21,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lustre",
-        "chakra",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

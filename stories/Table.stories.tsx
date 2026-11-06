@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Table",
@@ -20,10 +21,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

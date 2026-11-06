@@ -6,6 +6,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MATERIALS } from "@/lib/material";
 import { type OklchColor, rampAxisColors } from "@/lib/oklch-utils";
 import { getUiComponents, getUtilities } from "@/lib/registry";
 import { cn } from "@/lib/utils";
@@ -23,14 +24,9 @@ const buttonVariantNames = [
   "link",
 ] as const;
 
-// The five materials, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
-const buttonMaterialNames = [
-  "glass",
-  "frosted",
-  "crystal",
-  "chakra",
-  "lucite",
-] as const;
+// Every material, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
+// From MATERIALS, so a new material shows here without an edit (Lustre was missing from a hand-kept list).
+const buttonMaterialNames = MATERIALS;
 
 // gradient fill strengths to compare — the engine's --gradient construction (--gradient-l/-c envelope,
 // --glass-fg-h + 63.53° sweep) at three alphas, so Medium (0.5) IS the accent token at every theme/mode,
@@ -59,14 +55,9 @@ const solidIntensities = [
   },
 ] as const;
 
-// The main glass surface types — the gradient gets overlaid on each, at each intensity.
-const glassTypes = [
-  "glass",
-  "frosted",
-  "crystal",
-  "chakra",
-  "lucite",
-] as const;
+// Every material — the gradient gets overlaid on each, at each intensity. From MATERIALS, as the button row
+// above is: the hand-kept list had left Lustre out.
+const glassTypes = MATERIALS;
 
 // The four ramp axes the gradient can follow — computed in JS from the real lib/oklch-utils ramps.
 const GRADIENT_AXES = [
@@ -218,8 +209,8 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Button materials</CardTitle>
             <CardDescription className="text-muted-foreground">
-              The five materials via the <code className="text-xs">material</code> prop, plus the <code className="text-xs">gradient</code> axis
-              layering the theme-aware brand gradient over the material.
+              Every material via the <code className="text-xs">material</code> prop, plus the <code className="text-xs">gradient</code> axis layering
+              the theme-aware brand gradient over the material.
             </CardDescription>
           </CardHeader>
           <CardContent>
