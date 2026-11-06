@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Bench } from "@/app/research/energy/bench";
+import { GpuBackground } from "@/app/research/energy/gpu-backgrounds";
 
 /**
  * The research bench (/research/energy) picks each phase's background by NAME, from the URL. Looked up on
@@ -58,5 +59,55 @@ describe("energy bench", () => {
     } finally {
       if (!had) delete g.CanvasRenderingContext2D;
     }
+  });
+});
+
+/**
+ * GpuBackground schedules its next frame AFTER drawing, as CanvasBackground does: scheduled before, a frame
+ * whose draw threw had already queued the next one, so the error was thrown again on every frame. jsdom has
+ * no WebGL2, so the context is a stand-in good enough for the renderer to build (every call returns a truthy
+ * object, so the shaders compile and the program links), and `drawArrays`, what each frame draws, is the
+ * one call that can be made to throw. Frames are driven by hand.
+ */
+describe("GpuBackground animation loop", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  async function run(draw: () => void) {
+    const gl = new Proxy({} as Record<string | symbol, unknown>, {
+      get: (target, key) => (key in target ? target[key] : key === "drawArrays" ? draw : () => ({})),
+      set: (target, key, value) => {
+        target[key] = value;
+        return true;
+      },
+    });
+    const real = HTMLCanvasElement.prototype.getContext;
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      return type === "webgl2" ? gl : (real as (...a: unknown[]) => unknown).call(this, type, ...rest);
+    } as unknown as typeof real);
+    const queue: FrameRequestCallback[] = [];
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => queue.push(cb));
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    render(<GpuBackground api="webgl2" style="gradient" />);
+    // The loop starts from an async setup, and is (re)started as the effect settles: drive the newest frame.
+    await waitFor(() => expect(queue.length).toBeGreaterThan(0));
+    return queue;
+  }
+
+  it("stops when a frame's draw throws", async () => {
+    const queue = await run(() => {
+      throw new Error("draw failed");
+    });
+    const frame = queue.at(-1);
+    const scheduled = queue.length;
+    expect(() => frame?.(1000)).toThrow("draw failed");
+    expect(queue.length).toBe(scheduled);
+  });
+
+  it("keeps running while frames draw", async () => {
+    const queue = await run(() => {});
+    const frame = queue.at(-1);
+    const scheduled = queue.length;
+    frame?.(1000);
+    expect(queue.length).toBe(scheduled + 1);
   });
 });

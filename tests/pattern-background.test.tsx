@@ -931,6 +931,66 @@ describe("aurora day reflection", () => {
 describe("chase", () => {
   const html = renderToStaticMarkup(<PatternBackground style="chase" speed={0} />);
 
+  it("snaps the lanes to the pellet grid only where round() exists", () => {
+    // round() reached Chrome and Edge in 125, below the floor. Written inline inside a calc() with var()s it
+    // did not fall back: the property was left unset and every lane piled up at the top. The inline style
+    // carries the nominal place; the stylesheet puts the lane there and snaps it under @supports, and the
+    // snap must come AFTER the lane's own rule, or that rule's nominal place wins at equal specificity (the
+    // N–S lanes once stood 2px off their dot column that way).
+    const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? []).join("\n").replace(/\/\*[\s\S]*?\*\//g, "");
+    const lanes = [
+      ...html.matchAll(/class="pac-(v?)lane[^"]*" style="([^"]*)"/g),
+    ];
+    expect(lanes.length).toBeGreaterThan(0);
+    for (const [, vertical, style] of lanes) {
+      expect(style, style).toContain(vertical ? "--pac-left:" : "--pac-top:");
+      expect(style, style).not.toContain("round(");
+    }
+    // Each @supports block, as [start, end, body], by brace matching.
+    const supports: [
+      number,
+      number,
+      string,
+    ][] = [];
+    for (const m of css.matchAll(/@supports \(width: round\(1px, 2px\)\)\s*\{/g)) {
+      const from = m.index ?? 0;
+      let depth = 1;
+      let i = from + m[0].length;
+      for (; i < css.length && depth > 0; i++) {
+        if (css[i] === "{") depth++;
+        else if (css[i] === "}") depth--;
+      }
+      supports.push([
+        from,
+        i,
+        css.slice(from, i),
+      ]);
+    }
+    const guarded = (needle: RegExp) => supports.find(([, , body]) => needle.test(body));
+    for (const [rule, prop, nominal] of [
+      [
+        "pac-lane",
+        "top",
+        "--pac-top",
+      ],
+      [
+        "pac-vlane",
+        "left",
+        "--pac-left",
+      ],
+    ] as const) {
+      const base = css.search(new RegExp(`\\.${rule}\\s*\\{[^}]*\\b${prop}:\\s*var\\(${nominal}\\)`));
+      expect(base, `.${rule} places the lane at its nominal ${prop}`).toBeGreaterThanOrEqual(0);
+      const snap = guarded(new RegExp(`\\.${rule}\\s*\\{\\s*${prop}:\\s*calc\\(round\\(down, var\\(${nominal}\\)`));
+      expect(snap, `.${rule}'s snap sits under @supports`).toBeDefined();
+      expect(snap?.[0], `.${rule}'s snap comes after its rule`).toBeGreaterThan(base);
+    }
+    // No round() anywhere else in the scene's CSS.
+    let unguarded = css;
+    for (const [, , body] of supports) unguarded = unguarded.replace(body, "");
+    expect(unguarded).not.toContain("round(");
+  });
+
   it("paints every wake before any sprite", () => {
     const lastWake = Math.max(html.lastIndexOf('class="pac-wake-runner"'), html.lastIndexOf('class="pac-vwake-runner"'));
     const firstSprite = Math.min(
