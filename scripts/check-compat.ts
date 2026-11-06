@@ -91,16 +91,20 @@ const covers = (s: Statement, min: number[]) => {
   if (cmp(v, min) > 0) return false;
   return !(typeof s.version_removed === "string" && cmp(version(s.version_removed), min) <= 0);
 };
-/* MDN's notes are HTML (<code>, <a>); the report prints them as plain text. Tags out, then any `<` or `>`
-   left over: one regex pass over the tags alone can leave a tag behind (`<scr<b>ipt>` loses `<b>` and
-   becomes `<script>`), which CodeQL flags as incomplete sanitization. The notes come from the installed
-   package and only ever reach the terminal, never a page, but the strip is now complete either way. */
-const plainText = (html: string) =>
-  html
-    .replace(/<[^>]*>/g, "")
-    .replace(/[<>]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+/* MDN's notes are HTML (<code>, <a>); the report prints them as plain text. One regex pass over the tags
+   can leave a tag behind (`<scr<b>ipt>` loses `<b>` and becomes `<script>`), which CodeQL flags as
+   incomplete multi-character sanitization, so the tags come out in a loop until a pass removes nothing
+   (CodeQL's own recommended fix), then any lone `<` or `>` goes. The notes come from the installed package
+   and only ever reach the terminal, never a page, but the strip is complete either way. */
+function plainText(html: string): string {
+  let text = html;
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, "");
+  } while (text !== previous);
+  return text.replace(/[<>]/g, "").replace(/\s+/g, " ").trim();
+}
 
 /* Supported if ANY statement covers the target: support that changed over time is several statements, the
    newest first (overscroll-behavior: full from Chrome 144, partial from 63). A prefixed statement counts
