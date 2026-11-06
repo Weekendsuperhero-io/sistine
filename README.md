@@ -143,9 +143,23 @@ This floor is derived from what the theme actually uses, not chosen. The binding
 
 Tailwind v4's own baseline (Safari 16.4 / Chrome 111 / Firefox 128) sits just under this, so the floor is set by Sistine's CSS rather than by Tailwind.
 
+**Checked on every test run.** `bun run test:compat` (part of `bun run test`) reads every CSS feature the library ships against this `browserslist` in MDN's browser-compat-data, the data Can I use draws on, and fails on anything a target lacks. It reads the site's stylesheet as the build ships it (Tailwind's output, lowered by Lightning CSS for these targets, which is where Safari's `-webkit-` twins come from) and the CSS the pattern scenes write at runtime, and prints the features that set the floor in each browser. Features newer than the floor appear only behind `@supports` (the discs' and the chase lanes' `round()`, Chrome 125) or as enhancements that degrade to something correct, each listed in the script with its reason: `field-sizing` (a textarea grows with its content), `scrollbar-color` / `scrollbar-width`, and `text-wrap: pretty`. What it cannot check is whether a browser draws a supported feature correctly: that still takes looking at the scenes in each engine.
+
 That `browserslist` belongs to this repository: it is what Sistine's own build targets and what the floor above was measured against. It does not travel with the registry items, so a consuming app is not covered by it. Declare your own `browserslist` at or above this floor; without one, your CSS toolchain falls back to its defaults, which may target engines the theme does not render in.
 
 Below the floor there is **one safety net, not a polyfill**: `app/theme/tokens.css` ends with an `@supports not (color: oklch(…))` block that restores a legible background, foreground and panel fill. Because every colour is an oklch value passed through a custom property, an engine without oklch resolves those properties to invalid at substitution time and computes them to `unset`, so surfaces go transparent rather than falling back. The block prevents that; it does not reproduce the palette.
+
+### In a Tauri app
+
+Tauri renders with each platform's own web view, so the floor above becomes an operating-system floor:
+
+| Platform | Web view | Minimum |
+|---|---|---|
+| macOS | WKWebView: the system WebKit, the installed Safari's | **macOS 15 Sequoia**, which ships Safari 18. Set `bundle.macOS.minimumSystemVersion` to `"15.0"` in `tauri.conf.json`. |
+| Windows | WebView2 (Chromium, evergreen) | Windows 10 or 11 with the evergreen runtime, Tauri's default: it tracks current Edge. WebView2 on Windows 7 and 8 stopped at 109, below the floor; a fixed-version runtime must be 120 or later. |
+| Linux | WebKitGTK | Not expressible in `browserslist`; its features track Safari's of the same period, so WebKitGTK from 2024 on. Verify on the distributions you ship to. The glass blur rides the GPU compositing path, which some Linux setups turn off to work around drivers, so check the blur there too. |
+
+No platform uses Firefox as its web view: the Firefox floor above is for the open web. Keep the app's own `browserslist` at Safari 17.5 even though macOS 15 starts at Safari 18: at 18 the build stops writing the `-webkit-` twins (`-webkit-backdrop-filter`), and WebKitGTK, which lags Safari, may still need them. The compatibility check above covers support, not rendering, and the system web view IS the renderer: test on the oldest macOS you support as well as the newest, and on Linux.
 
 ## 🎨 Customization
 

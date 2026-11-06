@@ -4295,7 +4295,7 @@ const STARFIELD_STYLES = `
 // COMPLEMENT (var(--hue-complement)) ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it
 // (fade out) mid-run; the others let it escape ahead.
 // PELLET-GRID ALIGNMENT: lane top/left values below are NOMINAL — each lane snaps to the nearest pellet
-// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2 (pellet centers sit at
+// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2, where round() exists (pellet centers sit at
 // (k + 0.5)·cell), so Pac chomps ALONG a dot line at every density and viewport, no JS. Sprites are
 // --pac-sprite = min(cell, 34px): never bigger than one dot cell (dense shrinks them to the cell; sparse
 // keeps them 34px inside the larger cell), Pac and ghost the same size, centered on the row.
@@ -4505,9 +4505,8 @@ function pacVars(lane: (typeof PAC_LANES)[number] | (typeof PAC_VLANES)[number])
 
 const pacLane = (lane: (typeof PAC_LANES)[number]) =>
   ({
-    // Snap the nominal % to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell), so Pac
-    // chomps along an actual dot line at every density and viewport.
-    top: `calc(round(down, ${lane.top}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
+    // The NOMINAL position; .pac-lane snaps it to the pellet grid where round() exists (see there).
+    "--pac-top": lane.top,
     "--pac-x": `${lane.still.pac}vw`,
     "--ghost-x": `${lane.still.ghost}vw`,
     ...pacVars(lane),
@@ -4515,8 +4514,8 @@ const pacLane = (lane: (typeof PAC_LANES)[number]) =>
 
 const pacVlane = (lane: (typeof PAC_VLANES)[number]) =>
   ({
-    // Same pellet-grid snap as the E–W lanes, along the x axis (columns at (k+0.5)·cell).
-    left: `calc(round(down, ${lane.left}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
+    // The NOMINAL position; .pac-vlane snaps it to the pellet columns where round() exists.
+    "--pac-left": lane.left,
     "--pac-y": `${lane.still.pac}vh`,
     "--ghost-y": `${lane.still.ghost}vh`,
     ...pacVars(lane),
@@ -4568,10 +4567,22 @@ const PAC_STYLES = `
 }
 .pac-lane {
   position: absolute;
+  top: var(--pac-top);
   left: 0;
   right: 0;
   height: var(--pac-sprite);
   transform: translateY(-50%);
+}
+/* Each lane SNAPS its nominal position to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell),
+   so Pac chomps along an actual dot line at every density and viewport; the N–S lanes snap to columns.
+   Behind a feature query, as the discs' round() is: Chrome and Edge only have round() from 125, and
+   written inline it sat in a calc() with var()s, where an unsupported function does not fall back but
+   leaves the property unset, so every lane piled up at the top. Without round() a lane keeps its
+   nominal position, a little off the dot line. */
+@supports (width: round(1px, 2px)) {
+  .pac-lane {
+    top: calc(round(down, var(--pac-top), var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2);
+  }
 }
 /* Pac rides a runner that translates across. Only transforms animate here. The base transform is the lane's
    STILL pose, which the animation overrides while it runs. */
@@ -4704,10 +4715,18 @@ const PAC_STYLES = `
    Distances are in vh — the column spans the viewport height. */
 .pac-vlane {
   position: absolute;
+  left: var(--pac-left);
   top: 0;
   bottom: 0;
   width: var(--pac-sprite);
   transform: translateX(-50%);
+}
+/* The columns' snap, as .pac-lane's (see there). AFTER .pac-vlane: at equal specificity a snap written
+   before it lost to its nominal left, and the N–S sprites stood 2px off their dot column. */
+@supports (width: round(1px, 2px)) {
+  .pac-vlane {
+    left: calc(round(down, var(--pac-left), var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2);
+  }
 }
 .pac-vrunner {
   position: absolute;
