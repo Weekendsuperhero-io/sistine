@@ -91,6 +91,17 @@ const covers = (s: Statement, min: number[]) => {
   if (cmp(v, min) > 0) return false;
   return !(typeof s.version_removed === "string" && cmp(version(s.version_removed), min) <= 0);
 };
+/* MDN's notes are HTML (<code>, <a>); the report prints them as plain text. Tags out, then any `<` or `>`
+   left over: one regex pass over the tags alone can leave a tag behind (`<scr<b>ipt>` loses `<b>` and
+   becomes `<script>`), which CodeQL flags as incomplete sanitization. The notes come from the installed
+   package and only ever reach the terminal, never a page, but the strip is now complete either way. */
+const plainText = (html: string) =>
+  html
+    .replace(/<[^>]*>/g, "")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 /* Supported if ANY statement covers the target: support that changed over time is several statements, the
    newest first (overscroll-behavior: full from Chrome 144, partial from 63). A prefixed statement counts
    only where the same rule also declares that prefixed name. */
@@ -101,7 +112,7 @@ function verdict(compat: Compat, browser: string, min: number[], prefixes: Set<s
   const hit = all.find((s) => (!s.prefix || prefixes.has(s.prefix)) && covers(s, min));
   if (hit) {
     const added = hit.version_added === true ? [0] : version(String(hit.version_added).replace("≤", ""));
-    if (hit.partial_implementation) return { browser, status: "partial", added, note: [hit.notes ?? "partial"].flat()[0].replace(/<[^>]+>/g, "") };
+    if (hit.partial_implementation) return { browser, status: "partial", added, note: plainText([hit.notes ?? "partial"].flat()[0]) };
     return { browser, status: "ok", added };
   }
   const plain = all.find((s) => !s.prefix);

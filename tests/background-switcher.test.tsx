@@ -106,3 +106,32 @@ describe("BackgroundSwitcher: themed colour default", () => {
     expect(input.value).toBe("#123456");
   });
 });
+
+/**
+ * The switcher is the only place a phone can pick a scene, its speed, density and placement. It was
+ * `hidden sm:flex`, so below 640px none of it rendered while the header kept an empty row for it.
+ */
+describe("BackgroundSwitcher on a phone", () => {
+  it("renders at every width, as wide as its controls, with touch-sized targets on a touch screen", () => {
+    render(
+      <BackgroundProvider>
+        <BackgroundSwitcher />
+      </BackgroundProvider>,
+    );
+    const group = screen.getByRole("group", {
+      name: "Background style",
+    });
+    const classes = group.className.split(/\s+/);
+    expect(classes).not.toContain("hidden");
+    expect(classes).toEqual(
+      expect.arrayContaining([
+        "flex",
+        "w-max",
+        "min-w-full",
+      ]),
+    );
+    for (const control of screen.getAllByRole("button")) {
+      expect(control.className, control.getAttribute("aria-label") ?? "").toContain("pointer-coarse:h-9");
+    }
+  });
+});
