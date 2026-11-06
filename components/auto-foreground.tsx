@@ -373,12 +373,13 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         dark,
       });
       const iconHue = storedFg.iconHue;
-      /* Set the full foreground tier set against a given SURFACE, under a var suffix. Run FOUR times, once
-         per modeled surface: "" (the normal glass-SOLID floor), "-opaque", "-crystal", "-chakra". Each
+      /* Set the full foreground tier set against a given SURFACE, under a var suffix. Run FIVE times, once
+         per modeled surface: "" (the normal glass-SOLID floor), "-opaque", "-crystal", "-lustre", "-chakra". Each
          material's [data-material] block remaps --foreground* → its own suffixed set, so a LIGHT opaque
          floor (dark-mode moonstone cream) gets DARK card text while the dark page keeps light text — one
          global foreground cannot do both.
-         FIVE materials share those four sets: `glass` and `frosted` both fall through to "". They are not
+         SIX materials share those five sets: `glass` and `frosted` both fall through to "" (and lucite takes
+         "-opaque"). Glass and frosted are not
          quite the same surface — frosted paints --glass-frosted-bg, the same sheet lifted by
          --glass-frost-boost (0.1 light / 0.06 dark) — and the "" model deliberately stops at the wash, so
          NEITHER sheet is in it. Both are therefore banded against a floor darker than what renders, which

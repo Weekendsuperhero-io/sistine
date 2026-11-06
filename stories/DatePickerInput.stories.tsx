@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import * as React from "react";
 import { DatePickerInput } from "@/components/ui/date-picker-input";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/DatePickerInput",
@@ -21,10 +22,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     effect: {

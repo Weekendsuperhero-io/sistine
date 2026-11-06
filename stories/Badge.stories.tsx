@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Badge } from "@/components/ui/badge";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Badge",
@@ -25,10 +26,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

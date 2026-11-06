@@ -1,4 +1,4 @@
-import { type CSSProperties, useId } from "react";
+import { type CSSProperties, Fragment, useEffect, useId, useRef, useState } from "react";
 
 /**
  * Pure-CSS pattern backgrounds — tileable wallpapers built entirely from `background-image` layers
@@ -11,7 +11,20 @@ import { type CSSProperties, useId } from "react";
  * (CSS gradient) and CanvasBackground (JS canvas).
  */
 
-export type PatternStyle = "dots" | "grid" | "mesh" | "starfield" | "synthwave" | "moonrise" | "clouds" | "dune" | "aurora" | "forest" | "chase";
+export type PatternStyle =
+  | "dots"
+  | "grid"
+  | "mesh"
+  | "starfield"
+  | "synthwave"
+  | "moonrise"
+  | "clouds"
+  | "dune"
+  | "aurora"
+  | "forest"
+  | "peaks"
+  | "meadow"
+  | "chase";
 
 export const PATTERN_STYLES: PatternStyle[] = [
   "dots",
@@ -24,6 +37,8 @@ export const PATTERN_STYLES: PatternStyle[] = [
   "dune",
   "aurora",
   "forest",
+  "peaks",
+  "meadow",
   "chase",
 ];
 
@@ -56,6 +71,8 @@ export const ANIMATED_PATTERNS = new Set<PatternStyle>([
   "dune",
   "aurora",
   "forest",
+  "peaks",
+  "meadow",
   "chase",
 ]);
 
@@ -67,6 +84,8 @@ export const DISC_PATTERNS = new Set<PatternStyle>([
   "dune",
   "aurora",
   "forest",
+  "peaks",
+  "meadow",
 ]);
 
 /** Scenes with a blowing-sand control (still / breeze / storm). */
@@ -354,10 +373,148 @@ const MUSE_STYLES = `
   fill: oklch(0.96 0.04 var(--muse-h));
 }`;
 
+/**
+ * A scene stylesheet, ONE copy per document however many scenes are mounted. A plain `<style>` was injected
+ * again by every PatternBackground, so a picker of eleven swatches beside the wallpaper carried some thirty
+ * copies for the browser to parse and match. With `href` + `precedence`, React 19 hoists the sheet into
+ * <head> and dedupes it by `href`, on the server as on the client. Every sheet shares one precedence, so they
+ * keep the order they are first rendered in: SKY_STYLES ahead of the scene sheet that builds on it.
+ */
+function SceneStyles({ name, css }: { name: string; css: string }) {
+  return (
+    <style href={`sistine-pattern-${name}`} precedence="sistine-pattern">
+      {css}
+    </style>
+  );
+}
+
+/**
+ * The synthwave / moonrise floor grid, PROJECTED: the plane .sw-floor / .sw-grid draw in 3D, worked out in 2D.
+ * The CSS tilts a plane back by rotateX(78deg) about its top edge, which sits 4vmin above the floor's top,
+ * under a 75vh perspective from the floor's top centre. Every length is reproduced: the plane runs from
+ * -60% to 160% of the floor's width and 66vh deep, its cell is round(4vmin, 1px) and its lines are 2px. A
+ * point `y` down the plane and `x` across it lands at
+ *   k = d / (d - y·sin θ),   X = W/2 + (x - W/2)·k,   Y = (y·cos θ - 4vmin)·k
+ * in the floor's own pixels (origin top-left), which is the CSS perspective projection. Lines on a plane
+ * stay straight, so each rung is a band and each rail a quadrilateral, exactly. Returns one SVG path.
+ */
+export function floorGridPath(kind: "rungs" | "rails", w: number, h: number, vw: number, vh: number, roundCell = true): string {
+  const d = 0.75 * vh;
+  const theta = (78 * Math.PI) / 180;
+  const [sin, cos] = [
+    Math.sin(theta),
+    Math.cos(theta),
+  ];
+  const lift = (4 * Math.min(vw, vh)) / 100; // the plane's top edge, 4vmin above the floor's
+  const cell = roundCell ? Math.round(lift) : lift;
+  const k = (y: number) => d / (d - y * sin);
+  const toY = (y: number) => (y * cos - lift) * k(y);
+  const toX = (x: number, y: number) => w / 2 + (x - w / 2) * k(y);
+  const r = (n: number) => String(Math.round(n * 100) / 100);
+  // How far down the plane the floor's bottom edge is: solve Y(y) = h. Nothing past it shows.
+  const yEnd = Math.min(0.66 * vh, (d * (h + lift)) / (d * cos + h * sin));
+  let path = "";
+  if (kind === "rungs") {
+    for (let y = 0; y <= yEnd; y += cell) {
+      const [top, bottom] = [
+        toY(y),
+        toY(Math.min(y + 2, 0.66 * vh)),
+      ];
+      if (bottom < 0) continue;
+      path += `M0 ${r(top)}H${r(w)}V${r(bottom)}H0Z`;
+    }
+  } else {
+    for (let x = -0.6 * w; x < 1.6 * w; x += cell) {
+      const quad = [
+        [
+          toX(x, 0),
+          toY(0),
+        ],
+        [
+          toX(x + 2, 0),
+          toY(0),
+        ],
+        [
+          toX(x + 2, yEnd),
+          toY(yEnd),
+        ],
+        [
+          toX(x, yEnd),
+          toY(yEnd),
+        ],
+      ];
+      const xs = quad.map(([qx]) => qx);
+      if (Math.max(...xs) < 0 || Math.min(...xs) > w) continue;
+      path += `M${quad.map(([qx, qy]) => `${r(qx)} ${r(qy)}`).join("L")}Z`;
+    }
+  }
+  return path;
+}
+
+/**
+ * One layer of the floor grid. Moving, it is the 3D plane (the rungs scroll toward you, which a flat drawing
+ * cannot do on the compositor). STILL, it is the same grid drawn flat (floorGridPath): a 3D transform always
+ * makes its element a compositing layer, and the wide, tiled, masked floor was ~20 of synthwave's 26 layers
+ * with nothing moving. The plane renders until the floor has been measured (and on the server), then the
+ * drawing replaces it and follows the floor's size.
+ */
+function FloorGrid({ kind, still }: { kind: "rungs" | "rails"; still: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [flat, setFlat] = useState<{
+    w: number;
+    h: number;
+    d: string;
+  } | null>(null);
+  useEffect(() => {
+    if (!still) {
+      setFlat(null);
+      return;
+    }
+    const floor = ref.current?.parentElement;
+    if (!floor) return;
+    const roundCell = typeof CSS !== "undefined" && CSS.supports("width: round(1px, 2px)");
+    const draw = () => {
+      // Layout size, not getBoundingClientRect: a scaled preview reports its transformed box.
+      const [w, h] = [
+        floor.offsetWidth,
+        floor.offsetHeight,
+      ];
+      if (w && h)
+        setFlat({
+          w,
+          h,
+          d: floorGridPath(kind, w, h, window.innerWidth, window.innerHeight, roundCell),
+        });
+    };
+    draw();
+    const observer = new ResizeObserver(draw);
+    observer.observe(floor);
+    window.addEventListener("resize", draw);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", draw);
+    };
+  }, [
+    kind,
+    still,
+  ]);
+  if (!flat) return <div ref={ref} className={`sw-grid sw-grid-${kind}`} />;
+  return (
+    <svg className="sw-flat" viewBox={`0 0 ${flat.w} ${flat.h}`} preserveAspectRatio="none" aria-hidden="true">
+      <path
+        d={flat.d}
+        style={{
+          fill: "var(--sw-line)",
+        }}
+      />
+    </svg>
+  );
+}
+
 function MuseConstellation() {
   return (
     <>
-      <style>{MUSE_STYLES}</style>
+      <SceneStyles name="muse" css={MUSE_STYLES} />
       <svg className="star-muse" viewBox="0 0 100 92.4" aria-hidden="true">
         {MUSE_DOTS.map(([x, y], i) => (
           <circle key={`${x},${y}`} cx={x} cy={y} r={i % 7 === 0 ? 0.22 : i % 3 === 0 ? 0.16 : 0.12} />
@@ -405,15 +562,20 @@ const SKY_STYLES = `
     drop-shadow(0 0 var(--sw-disc-blur, 5vh) var(--sw-disc-glow))
     drop-shadow(0 0 var(--sw-disc-bloom, 0) var(--sw-disc-bloom-c, transparent));
   opacity: var(--sw-moon-o, 1);
-  /* Its own compositing layer, as .sw-sun below: see the note there. */
-  will-change: transform;
+  display: var(--sw-moon-d, block);
+  /* No compositing layer of its own: see .sw-sun below. */
 }
 /* The OUTRUN SUN — synthwave's disc, promoted to shared furniture so clouds / dune / aurora can put the
    same low banded sun on their day horizon. It sits ON the 42% line and dips below it; whatever the scene
    draws next (cloud deck, sand, water) covers the dipped half, so it reads as sitting in the horizon.
    Both discs render in every scene that wants either; --sw-sun-o / --sw-moon-o pick which one shows per
    mode, the same way --sw-stars-o gates the stars. Defaults are 1, so synthwave and moonrise — which
-   choose their disc in JSX instead — are untouched. */
+   choose their disc in JSX instead — are untouched.
+   Each opacity gate has a DISPLAY twin, --sw-sun-d / --sw-moon-d (block | none), set beside it in every
+   palette block: the hidden disc has to leave the render tree, not just go transparent, because at
+   opacity 0 it is still laid out and carried through its filter and masks (and, while discs had layers of
+   their own, it was an invisible full-filter layer). check-patterns ([disc-gates]) keeps each pair in
+   agreement. */
 .sw-sun {
   position: absolute;
   left: var(--sw-disc-x, 50%);
@@ -423,6 +585,7 @@ const SKY_STYLES = `
   transform: translate(-50%, 33%);
   border-radius: 50%;
   opacity: var(--sw-sun-o, 1);
+  display: var(--sw-sun-d, block);
   background: linear-gradient(
     to top,
     var(--sw-disc-1) 0%,
@@ -438,17 +601,19 @@ const SKY_STYLES = `
     linear-gradient(to bottom, #000 0 42%, transparent 42%),
     repeating-linear-gradient(to bottom, #000 0 var(--sun-band, 0.85vh), transparent var(--sun-band, 0.85vh) calc(var(--sun-band, 0.85vh) * 2));
   filter: drop-shadow(0 0 5vh var(--sw-disc-glow));
-  /* Its own compositing LAYER. Moving a disc (the left / center / right control changes \`left\`) on the
-     page's own layer asks WebKit to repaint the old and new spots, and for a disc carrying a drop-shadow
-     filter AND a mask it repainted only part of each: the old sun's top stayed painted at the old spot
-     and the new one showed only its lower half. As a layer, the move just repositions it. */
-  will-change: transform;
+  /* NO compositing layer of its own. Moving a disc in place (the left / center / right control changes
+     \`left\`) asks WebKit to repaint the old and new spots, and for a disc carrying a drop-shadow filter AND
+     a mask it repainted only part of each: the old sun's top stayed painted at the old spot and the new one
+     showed only its lower half. A layer of its own made the move a reposition, but it cost 2-7 layers in
+     every horizon scene (the disc, the sun path, their masks) for a protection only that moment needed.
+     PatternBackground remounts the scene when the placement changes instead, so a disc never moves in
+     place: the new scene paints whole. */
 }
 /* Paints its children as ONE compositing layer. WebKit gives every element that overlaps an earlier
-   composited one a layer of its own, so the z-order holds, and a disc is a layer (above), so loose, every
-   ridge, twin, deck and veil drawn after it became a full-viewport layer: dune had 52 of them while
-   static, and the window server re-applied each one's mask and blur whenever anything on the page above
-   them changed. Inside one stacking context they paint into a single backing store instead, masks and
+   composited one a layer of its own, so the z-order holds; when the disc was a layer, every ridge, twin,
+   deck and veil drawn after it became a full-viewport layer: dune had 52 of them while static, and the
+   window server re-applied each one's mask and blur whenever anything on the page above them changed. The
+   same holds for anything that moves (a cloud deck, a fog bank, a curtain), which has to be a layer. Inside one stacking context they paint into a single backing store instead, masks and
    blurs drawn once. Each scene wraps everything in front of its disc in one, and, inside it, any still
    run that sits over a MOVING part (a fog bank, the water), so only what moves gets layers of its own.
    Same box as the scene (inset 0), so the children's percentages and insets resolve unchanged. */
@@ -473,35 +638,71 @@ const SKY_STYLES = `
   }
 }`;
 
+/**
+ * A sky or ground stop with the theme tint cast in: the stop `oklch(l c h)` moves toward the tint's hue (at
+ * chroma `tintC`) by the scene's --sw-cast, scaled by how far the tint's hue AGREES with the stop's: the
+ * cosine of the hue distance, and nothing at 90° or more. Mixed in OKLCH at a full cast, a tint opposite the
+ * stop swung it round the wheel through a third hue (amber or citrine on a blue sky made it teal, rose or
+ * carnelian made it lavender); mixed in OKLab it went grey instead, as complementary colours do. Gated on the
+ * distance, a blue or violet theme tints a blue sky as before, a warm theme leaves the scene's own sky alone,
+ * and the hues in between get a little. Used by every scene whose sky or ground takes the cast.
+ */
+function tintCast(l: number, c: number, h: number, tintC: number): string {
+  return `color-mix(in oklch, oklch(${l} ${c} ${h}), oklch(${l} ${tintC} var(--glass-tint-h, ${h})) calc(var(--sw-cast) * max(0, cos(calc((var(--glass-tint-h, ${h}) - ${h}) * 1deg)))))`;
+}
+
 // Synthwave / Tron horizon — two variants: `synthwave` (outrun sun) and `moonrise` (purple-blue moon),
 // each with a DAY and a NIGHT palette so the scene follows the light/dark toggle. Every scene color is a
 // --sw-* custom property: day values sit on [data-pattern="…"], night values under .dark
 // (the injected <style> is plain global CSS and the wrapper descends from html.dark), and the structural
 // rules read the vars — so the mode flip is pure CSS, no re-render. The grid + horizon glow ride --sw-line
-// (accent hue, falling back to the scene identity hue --sw-line-h: Tron-cyan sun / violet moon); by day the
+// (accent hue, else the tint's hue, else the scene's own --sw-line-h: pink by day and Tron cyan by night
+// for the sun, violet for the moon; see --sw-follow, and moonrise's night keeps its violet); by day the
 // sky/ground also take a gentle cast of the theme tint (--sw-cast, gated on tint chroma so neutral stays
 // the authored scene). Layers back→front: sky gradient (.sw-scene) · stars (day-hidden via --sw-stars-o) ·
 // disc · ground (hides the disc's dip) · horizon glow · floor-grid. The floor uses PARENT perspective
 // (.sw-floor, perspective-origin at the horizon) so lines converge at the horizon, not the near edge. The
 // lone motion is the grid's compositor-only translateY scroll.
 const SYNTHWAVE_STYLES = `
+[data-pattern="synthwave"],
+[data-pattern="moonrise"] {
+  /* The lines and the horizon glow take the CHOSEN colour: the accent knob when it is set, else the tint's
+     hue (--sw-hue), else the scene's own (--sw-line-h, set per scene and mode below). The pale tints keep
+     the scene's own colours: selenite and onyx (chroma 0), the default (0.018) and moonstone (0.047, a
+     cream) have no colour to give, and their hues (250, 75) would turn a white theme's grid blue and a
+     cream one's orange. So --sw-follow is a step on the tint's chroma, 0 to c 0.05 and 1 from c 0.051;
+     the nearest presets sit either side of it (moonstone 0.047, aquamarine 0.053), and a test names the
+     pale set. Synthwave follows by day and by night, moonrise by day. */
+  --sw-follow: clamp(0, (var(--glass-tint-c, 0) - 0.05) * 1000, 1);
+  --sw-hue: calc(var(--sw-line-h) + (var(--glass-tint-h, 0) - var(--sw-line-h)) * var(--sw-follow));
+}
 [data-pattern="synthwave"] {
-  /* DAY — a bright, hazy outrun morning */
-  --sw-line-h: 195; /* scene identity hue (Tron cyan) — shared by both modes */
-  /* Day tint cast — how much of the theme tint bleeds into sky/ground. Gated on the tint's chroma, so the
+  /* DAY — an outrun SUNSET on the sand. The night scene is neon on dark ground; by day the old palette
+     inverted it into dark teal lines on a near-white floor (lines L 0.48 on ground L 0.91, the lower sky
+     at L 0.90 in the same pink), which read as graph paper with no horizon. Now: a peach band at the
+     skyline, a warm sand floor deepening from peach to coral toward the viewer, and the lines and horizon
+     glow in the chosen colour (hot pink for a neutral theme). The upper sky keeps the theme cast; from the
+     band down it is authored, as dune's is, or the cast muddies the sunset. Every authored colour sits
+     inside sRGB. The lines may not: at L 0.62 the cyans and blues top out below C 0.21 (celestite's ceiling
+     is 0.13), and the browser maps them in. Every preset's lines read on the sand, warm ones included: they
+     are more saturated than the floor, and citrine's are the faintest, an olive. */
+  --sw-line-h: 355; /* the day lines' own hue (hot pink), for a pale tint; see --sw-follow */
+  /* Day tint cast — how much of the theme tint bleeds into the upper sky. Gated on the tint's chroma, so the
      near-neutral default (c 0.018 → ~9%) keeps the authored scene and jewels/frescoes (c 0.06–0.1) get a
-     gentle atmospheric wash. Day-only; night keeps its authored neon. */
+     gentle atmospheric wash, and per stop on how far the tint's hue agrees with the stop's (tintCast), so a
+     warm theme leaves the blue sky alone. Every scene's cast works this way. Day-only; night keeps its
+     authored neon. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  --sw-line: oklch(0.48 0.08 var(--accent-h, var(--sw-line-h))); /* C 0.08 stays in-gamut at L 0.48 for EVERY accent hue */
-  --sw-sky-a: color-mix(in oklch, oklch(0.85 0.055 235), oklch(0.85 0.07 var(--glass-tint-h, 235)) var(--sw-cast));
-  --sw-sky-b: color-mix(in oklch, oklch(0.88 0.05 275), oklch(0.88 0.06 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-sky-c: color-mix(in oklch, oklch(0.9 0.07 330), oklch(0.9 0.06 var(--glass-tint-h, 330)) var(--sw-cast));
-  --sw-sky-d: color-mix(in oklch, oklch(0.92 0.04 25), oklch(0.92 0.04 var(--glass-tint-h, 25)) var(--sw-cast));
-  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.03 320), oklch(0.93 0.03 var(--glass-tint-h, 320)) var(--sw-cast));
-  --sw-ground-b: color-mix(in oklch, oklch(0.87 0.045 310), oklch(0.87 0.04 var(--glass-tint-h, 310)) var(--sw-cast));
+  --sw-line: oklch(0.62 var(--accent-c, 0.21) var(--accent-h, var(--sw-hue)));
+  --sw-sky-a: ${tintCast(0.85, 0.055, 235, 0.07)};
+  --sw-sky-b: ${tintCast(0.88, 0.05, 275, 0.06)};
+  --sw-sky-c: oklch(0.88 0.06 40);
+  --sw-sky-d: oklch(0.9 0.06 60);
+  --sw-ground-a: oklch(0.86 0.07 60);
+  --sw-ground-b: oklch(0.7 0.11 30);
   --sw-below: var(--sw-ground-a); /* the 58% sky stop = the ground glimpse; MUST match --sw-ground-a or a seam shows */
-  --sw-glow-core: oklch(0.72 0.11 var(--accent-h, var(--sw-line-h)));
-  --sw-glow-bloom: oklch(0.75 0.12 340 / 0.35);
+  --sw-glow-core: oklch(0.8 min(var(--accent-c, 0.12), 0.12) var(--accent-h, var(--sw-hue)));
+  --sw-glow-bloom: oklch(0.85 0.075 30 / 0.5);
   --sw-disc-1: oklch(0.58 0.24 352); /* sun stops, slightly deepened vs night so the disc separates from the peach horizon */
   --sw-disc-2: oklch(0.65 0.22 6);
   --sw-disc-3: oklch(0.72 0.18 42);
@@ -511,8 +712,9 @@ const SYNTHWAVE_STYLES = `
   --sw-stars-o: 0; /* stars hidden by day (also gates the Muse constellation) */
 }
 .dark [data-pattern="synthwave"] {
-  /* NIGHT — the original neon scene, verbatim */
-  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-line-h)));
+  /* NIGHT — the original neon scene, its grid in the chosen colour (Tron cyan for a pale tint) */
+  --sw-line-h: 195;
+  --sw-line: oklch(0.82 0.19 var(--accent-h, var(--sw-hue)));
   --sw-sky-a: oklch(0.12 0.085 285);
   --sw-sky-b: oklch(0.15 0.1 305);
   --sw-sky-c: oklch(0.24 0.14 332);
@@ -532,17 +734,17 @@ const SYNTHWAVE_STYLES = `
 }
 [data-pattern="moonrise"] {
   /* DAY — a pale morning sky with a faint daytime moon */
-  --sw-line-h: 270; /* scene identity hue (violet) */
+  --sw-line-h: 270; /* scene identity hue (violet): the night lines', and the day lines' for a pale tint */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 500%), 32%);
-  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-line-h)));
-  --sw-sky-a: color-mix(in oklch, oklch(0.87 0.04 245), oklch(0.87 0.05 var(--glass-tint-h, 245)) var(--sw-cast));
-  --sw-sky-b: color-mix(in oklch, oklch(0.9 0.045 260), oklch(0.9 0.045 var(--glass-tint-h, 260)) var(--sw-cast));
-  --sw-sky-c: color-mix(in oklch, oklch(0.92 0.035 275), oklch(0.92 0.035 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-sky-d: color-mix(in oklch, oklch(0.94 0.03 300), oklch(0.94 0.03 var(--glass-tint-h, 300)) var(--sw-cast));
-  --sw-ground-a: color-mix(in oklch, oklch(0.93 0.02 275), oklch(0.93 0.025 var(--glass-tint-h, 275)) var(--sw-cast));
-  --sw-ground-b: color-mix(in oklch, oklch(0.88 0.035 280), oklch(0.88 0.035 var(--glass-tint-h, 280)) var(--sw-cast));
+  --sw-line: oklch(0.45 0.13 var(--accent-h, var(--sw-hue)));
+  --sw-sky-a: ${tintCast(0.87, 0.04, 245, 0.05)};
+  --sw-sky-b: ${tintCast(0.9, 0.045, 260, 0.045)};
+  --sw-sky-c: ${tintCast(0.92, 0.035, 275, 0.035)};
+  --sw-sky-d: ${tintCast(0.94, 0.03, 300, 0.03)};
+  --sw-ground-a: ${tintCast(0.93, 0.02, 275, 0.025)};
+  --sw-ground-b: ${tintCast(0.88, 0.035, 280, 0.035)};
   --sw-below: var(--sw-ground-a);
-  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-line-h)));
+  --sw-glow-core: oklch(0.75 0.08 var(--accent-h, var(--sw-hue)));
   --sw-glow-bloom: oklch(0.8 0.07 290 / 0.3);
   --sw-moon-1: oklch(0.94 0.02 270); /* daytime moon: whitish, barely-there */
   --sw-moon-2: oklch(0.9 0.04 278);
@@ -659,6 +861,20 @@ const SYNTHWAVE_STYLES = `
   animation: sw-grid-scroll var(--pat-dur, 8s) linear infinite;
   will-change: var(--pat-wc, transform);
 }
+/* The FLAT floor (see FloorGrid): the same grid projected into the floor's pixels, no 3D. Once it is
+   drawn, the floor's perspective has nothing left to project, and the property alone still made the floor
+   a compositing layer (5 layers, both floors and their masks), so it goes. */
+.sw-floor:has(> .sw-flat) {
+  perspective: none;
+}
+.sw-flat {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
 .sw-grid-rails {
   background-image: linear-gradient(to right, var(--sw-line) 0 2px, transparent 2px);
 }
@@ -688,9 +904,9 @@ const CLOUDS_STYLES = `
 [data-pattern="clouds"] {
   /* DAY — white deck under a deep altitude sky */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --cl-sky-a: color-mix(in oklch, oklch(0.53 0.115 253), oklch(0.53 0.1 var(--glass-tint-h, 253)) var(--sw-cast));
-  --cl-sky-b: color-mix(in oklch, oklch(0.66 0.1 248), oklch(0.66 0.09 var(--glass-tint-h, 248)) var(--sw-cast));
-  --cl-sky-c: color-mix(in oklch, oklch(0.79 0.06 241), oklch(0.79 0.055 var(--glass-tint-h, 241)) var(--sw-cast));
+  --cl-sky-a: ${tintCast(0.53, 0.115, 253, 0.1)};
+  --cl-sky-b: ${tintCast(0.66, 0.1, 248, 0.09)};
+  --cl-sky-c: ${tintCast(0.79, 0.06, 241, 0.055)};
   --cl-sky-d: oklch(0.9 0.025 235); /* the pale stop the deck emerges from — authored, no cast */
   /* Was / 0.75: over the far and mid deck that much near-white turned the whole lower view into fog, so
      the deck read as a white wash with grey smudges rather than as cloud. */
@@ -708,6 +924,8 @@ const CLOUDS_STYLES = `
      because it has to sit against a deep blue altitude sky rather than a violet one. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 34vh;
   /* Sun ramp, synthwave's structure with the ACCENT standing in for its magenta: the chosen colour sits
      at the BOTTOM of the disc — the end nearest the horizon — and mixes through to a warm yellow at the
@@ -726,10 +944,10 @@ const CLOUDS_STYLES = `
   /* NIGHT — a moonlit slate deck under deep navy, and the moon comes forward */
   /* The same theme cast as the day sky (--sw-cast, from the tint's chroma): the night sky ignored the tint
      entirely, the one horizon scene that looked the same in every theme after dark. */
-  --cl-sky-a: color-mix(in oklch, oklch(0.08 0.03 262), oklch(0.08 0.03 var(--glass-tint-h, 262)) var(--sw-cast));
-  --cl-sky-b: color-mix(in oklch, oklch(0.11 0.04 266), oklch(0.11 0.04 var(--glass-tint-h, 266)) var(--sw-cast));
-  --cl-sky-c: color-mix(in oklch, oklch(0.15 0.05 270), oklch(0.15 0.05 var(--glass-tint-h, 270)) var(--sw-cast));
-  --cl-sky-d: color-mix(in oklch, oklch(0.21 0.05 276), oklch(0.21 0.05 var(--glass-tint-h, 276)) var(--sw-cast));
+  --cl-sky-a: ${tintCast(0.08, 0.03, 262, 0.03)};
+  --cl-sky-b: ${tintCast(0.11, 0.04, 266, 0.04)};
+  --cl-sky-c: ${tintCast(0.15, 0.05, 270, 0.05)};
+  --cl-sky-d: ${tintCast(0.21, 0.05, 276, 0.05)};
   --cl-haze: oklch(0.45 0.05 272 / 0.35);
   --cl-f-hi: oklch(0.4 0.04 268);
   --cl-f-lo: oklch(0.345 0.04 266);
@@ -741,6 +959,8 @@ const CLOUDS_STYLES = `
      what it declares — so both gates have to be flipped back here explicitly. */
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   --moon-size: 26vh;
   --moon-bottom: 57%;
   --moon-dip: 0%;
@@ -907,42 +1127,59 @@ ${stopRules(".cl-deck")}`;
 // background period diagonally (right + up) per loop, so the drift is seamless. Day = dusty mauve-brown
 // ridges under a pale sky with the warmth compressed into a band at the skyline; night = cool indigo
 // ridges under a warm desert moon. The moon is a per-mode size: small by day, prominent by night.
-// RIDGE GRAMMAR. The old paths were all-`C`, smooth at every join, 2-3 inflections — a grammar that can
-// only make sine waves, which is what they read as. Real ridges (see the aerial references) have a long
-// shallow windward flank rising to a DEFINED apex, then a short steep slip face: asymmetry plus a corner.
-// So each crest here is `C` (the slow rise) followed by `L` (the fast drop) — the C→L join is the corner,
-// and there was not one of those in the old set. But giving EVERY crest the same treatment read as
-// machined zigzag, so each tier now mixes ONE defined corner with smooth rounded crests at differing
-// amplitudes — landforms are not uniformly sharp. Crests per tile at uneven spacing, amplitude and
-// sharpness growing toward the viewer; the far tiers stay softer because haze erases that detail anyway.
+// RIDGE SHAPE. Each tier is a SKEWED wave: every crest rises over a long windward flank and falls over a
+// shorter, steeper lee, the asymmetry real ridges have, with a smaller harmonic on top so no two crests
+// match. The skew is a phase modulation (sin(t - s·sin t)), so the slope is continuous everywhere: crests are
+// rounded and there is no corner anywhere. The hand-drawn set before it gave each tier one crest that met its
+// slip face at a corner (a curve into a straight drop); repeated tier over tier, those corners read as a
+// jagged zigzag. Amplitude and skew grow toward the viewer; the far tiers stay soft, as haze would leave them.
 // Crests keep headroom above y=0: .du-sh draws this same silhouette nudged UP by --du-off and blurred 8px,
 // and a crest sitting on the top edge would clip its own cast shadow.
-const DUNE_A0 = svgMask("<path d='M0 25 C 24 22 42 20 60 22 C 82 25 100 21 122 19 C 148 17 176 22 200 24 L200 60 L0 60 Z'/>", "0 0 200 60", true);
-const DUNE_A = svgMask(
-  "<path d='M0 28 C 20 25 34 21 50 22 L56 25 C 74 29 92 25 110 22 C 132 19 158 24 178 26 C 188 27 194 27 200 26 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_B = svgMask(
-  "<path d='M0 31 C 16 27 30 21 46 20 L53 26 C 68 31 84 29 98 25 C 116 20 136 25 154 30 C 172 34 188 32 200 30 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_C = svgMask(
-  "<path d='M0 39 C 14 34 26 26 40 23 L48 31 C 60 37 74 35 88 31 C 106 26 122 32 138 38 C 158 44 182 40 200 37 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_D = svgMask(
-  "<path d='M0 45 C 12 38 24 28 38 23 L47 33 C 58 41 72 39 86 34 C 104 28 120 35 136 42 C 158 49 182 45 200 42 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
-const DUNE_E = svgMask(
-  "<path d='M0 41 C 10 32 22 20 36 15 L46 27 C 56 36 70 34 84 28 C 102 21 118 30 134 40 C 156 49 182 44 200 38 L200 60 L0 60 Z'/>",
-  "0 0 200 60",
-  true,
-);
+
+/** One tier's silhouette, in the 200 × 60 box every tier's mask stretches over its own height. `base` is
+ *  the mean crest depth, `amp` the swell above and below it, `crests` how many cross the width, `skew` how
+ *  much longer the windward flank is than the lee (0 = a plain sine). Drawn through the midpoints of
+ *  closely spaced samples with each sample as the control point, so it has no corners. Deterministic. */
+function duneRidge(base: number, amp: number, crests: number, skew: number, seed: number) {
+  const rand = mulberry32(seed);
+  const [p1, p2] = [
+    rand() * Math.PI * 2,
+    rand() * Math.PI * 2,
+  ];
+  const at = (x: number) => {
+    const t = (2 * Math.PI * crests * x) / 200 + p1;
+    return base - amp * Math.sin(t - skew * Math.sin(t)) - amp * 0.22 * Math.sin(2.3 * t + p2);
+  };
+  // Rounded to a tenth (f1 is declared further down, after this runs at module load).
+  const r = (n: number) => String(Math.round(n * 10) / 10);
+  const n = 80;
+  const pts = Array.from(
+    {
+      length: n + 1,
+    },
+    (_, i) =>
+      [
+        (200 * i) / n,
+        at((200 * i) / n),
+      ] as const,
+  );
+  const mid = (i: number) => `${r((pts[i][0] + pts[i + 1][0]) / 2)} ${r((pts[i][1] + pts[i + 1][1]) / 2)}`;
+  let d = `M0 60L0 ${r(pts[0][1])}L${mid(0)}`;
+  for (let i = 1; i < n; i++) d += `Q${r(pts[i][0])} ${r(pts[i][1])} ${mid(i)}`;
+  d += `L200 ${r(pts[n][1])}L200 60Z`;
+  return svgMask(`<path d='${d}'/>`, "0 0 200 60", true);
+}
+/* Spaced in SCENE terms, not box terms: each tier's mask stretches over its own height (58% … 18% of the
+   scene), so a tier's crests land at its top + y/60 of its height. Chosen so each tier's crest band sits
+   mostly below the one behind it (centres at 62, 68, 74.5, 81, 87 and 92.5% of the scene, swells of 2.5 to
+   4 of it) and overlaps it only a little: near tiers that rose well above the far ones' troughs crossed
+   them, and their cast shadows and rims tangled into a knot of lines. */
+const DUNE_A0 = duneRidge(20.7, 2.4, 1.4, 0.3, 61);
+const DUNE_A = duneRidge(23.1, 3.5, 2, 0.45, 67);
+const DUNE_B = duneRidge(26, 4.7, 1.8, 0.5, 71);
+const DUNE_C = duneRidge(29.2, 6.5, 1.5, 0.55, 73);
+const DUNE_D = duneRidge(32.1, 9, 1.3, 0.6, 79);
+const DUNE_E = duneRidge(35, 13, 1.1, 0.62, 83);
 const DUNE_STYLES = `
 [data-pattern="dune"] {
   /* DAY — GOLDEN HOUR, drawn from the aerial reference: a pale blue zenith cooling through a
@@ -950,9 +1187,9 @@ const DUNE_STYLES = `
      apricot into a deeper orange that meets the land. Chroma stays LOW everywhere but that band;
      the photograph's sky is dusty, not a poster sunset. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --du-sky-a: color-mix(in oklch, oklch(0.79 0.05 250), oklch(0.79 0.045 var(--glass-tint-h, 250)) var(--sw-cast));
-  --du-sky-b: color-mix(in oklch, oklch(0.84 0.03 262), oklch(0.84 0.03 var(--glass-tint-h, 262)) var(--sw-cast));
-  --du-sky-c: color-mix(in oklch, oklch(0.87 0.03 70), oklch(0.87 0.03 var(--glass-tint-h, 70)) var(--sw-cast));
+  --du-sky-a: ${tintCast(0.79, 0.05, 250, 0.045)};
+  --du-sky-b: ${tintCast(0.84, 0.03, 262, 0.03)};
+  --du-sky-c: ${tintCast(0.87, 0.03, 70, 0.03)};
   --du-sky-d: oklch(0.86 0.055 64); /* warm band — authored from here down, or the cast pinks it */
   --du-sky-e: oklch(0.82 0.075 52); /* apricot… */
   --du-sky-f: oklch(0.74 0.075 40); /* …into the deeper orange the haze sits in */
@@ -989,6 +1226,8 @@ const DUNE_STYLES = `
      tiers, so the dipped half is covered and a near crest occludes it, as it should. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 40vh;
   /* Sun ramp, synthwave's structure with the ACCENT standing in for its magenta: the chosen colour sits
      at the BOTTOM of the disc — the end nearest the horizon — and mixes through to a warm yellow at the
@@ -1039,6 +1278,8 @@ const DUNE_STYLES = `
   /* Back to a moon — both disc gates flipped explicitly (see the clouds note). */
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   --moon-size: 36vh;
   --moon-bottom: 50%;
   --moon-dip: 0%;
@@ -1297,8 +1538,8 @@ const DUNE_STYLES = `
 }
 ${stopRules(".du-grain-tile", ".du-veil")}`;
 
-// Aurora — the borealis over a MIRROR-CALM WATERLINE, no moon (a moonless sky is when the lights are
-// most vivid; the pattern shares only the stars). Three curtain layers paint slanted ray columns: each is
+// Aurora — the borealis over a MIRROR-CALM WATERLINE, a low sun by day and a moon by night (with its path
+// on the water; the pattern shares the stars). Three curtain layers paint slanted ray columns: each is
 // a repeating tile of vertical color bands (authored borealis hues --au-1..4 — green / teal / violet /
 // pink), leaned by a static skewX so the rays rake like field lines, feathered by a bright-at-the-lip
 // vertical mask INTERSECTED with left/right fades (the real-aurora look: a crisp lower lip dissolving
@@ -1357,23 +1598,30 @@ function rayStops(tile: string): RayStop[] {
   });
 }
 
-/* A tile as the curtain's gradient. --au-crisp scales every band's ramp in and out (as it scales the
-   blur), so at night's 1 this is exactly the authored tile, and by day the ramps shrink toward the band,
-   which leaves clean edges and clear sky between the rays. */
+/* A tile as the curtain's gradient: a REPEATING gradient whose period is the tile (--au-tile, in vh), its
+   stops the tile's percentages of it, held open at 0 and at the full tile so the period is exact (the tiles
+   end short of 100%, in sky). Not a linear-gradient tiled by background-size, which Safari 27.2 paints
+   unskewed under the curtain's skew when the curtain has no layer (see .au-paint). --au-crisp scales every
+   band's ramp in and out (as it scales the blur), so at night's 1 this is exactly the authored tile, and by
+   day the ramps shrink toward the band, which leaves clean edges and clear sky between the rays. */
 function rays(tile: string): string {
   const stops = rayStops(tile);
-  const out: string[] = [];
+  const at = (pct: string | number) => `calc(var(--au-tile) * ${pct} / 100)`;
+  const out: string[] = [
+    "transparent 0",
+  ];
   stops.forEach((s, i) => {
     if (typeof s !== "number") {
-      out.push(`var(${s[0]}) ${s[1]}% ${s[2]}%`);
+      out.push(`var(${s[0]}) ${at(s[1])} ${at(s[2])}`);
       return;
     }
     const prev = stops[i - 1];
     const next = stops[i + 1];
-    if (Array.isArray(prev)) out.push(`transparent calc(${prev[2]}% + ${s - prev[2]}% * var(--au-crisp, 1))`);
-    if (Array.isArray(next)) out.push(`transparent calc(${next[1]}% - ${next[1] - s}% * var(--au-crisp, 1))`);
+    if (Array.isArray(prev)) out.push(`transparent ${at(`(${prev[2]} + ${s - prev[2]} * var(--au-crisp, 1))`)}`);
+    if (Array.isArray(next)) out.push(`transparent ${at(`(${next[1]} - ${next[1] - s} * var(--au-crisp, 1))`)}`);
   });
-  return `linear-gradient(to right, ${out.join(", ")})`;
+  out.push("transparent var(--au-tile)");
+  return `repeating-linear-gradient(to right, ${out.join(", ")})`;
 }
 
 /** The day reflection of one curtain tile: every ray as a straight STREAK down the water. Coordinates are
@@ -1577,10 +1825,11 @@ const AURORA_STYLES = `
      fades into the brightness of a low sun; with the lip on the horizon they buried it. */
   --au-fade: linear-gradient(to top, transparent 3%, rgb(0 0 0 / 0.45) 17%, #000 29%, rgb(0 0 0 / 0.45) 48%, rgb(0 0 0 / 0.1) 69%, transparent 85%);
   --au-mirror-fade: linear-gradient(to top, transparent 5%, rgb(0 0 0 / 0.6) 14%, #000 22%, #000 40%, rgb(0 0 0 / 0.7) 62%, transparent 96%);
-  /* daytime SUN — new to this scene. Aurora stays MOONLESS at night on purpose (a moonless sky is when
-     the lights are most vivid), so the moon gate is off in both modes and only the sun ever shows. */
+  /* daytime SUN — new to this scene. By night the moon takes its place (see the night block). */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 38vh;
   /* The same banded outrun sun as every other scene. Its band gaps are transparent, and here they used to
      show the curtains through the disc, so the sun was made solid; .au-sunsky now paints the sky into
@@ -1629,7 +1878,8 @@ const AURORA_STYLES = `
      in lightness reads as a dull band ruled across the waterline, not as light. */
   --au-glow: oklch(0.84 0.1 180 / 0.28);
   --au-h: var(--accent-h, var(--glass-tint-h, 35));
-  --sw-sun-o: 0; /* moonless AND sunless at night — the curtains carry the scene */
+  --sw-sun-o: 0;
+  --sw-sun-d: none; /* takes the sun out of the tree, not just to opacity 0 */
   /* The lips sit on the horizon again at night: there is no sun for them to fade into. Night keeps its own
      softness and haze too. */
   --au-fade: initial;
@@ -1640,7 +1890,33 @@ const AURORA_STYLES = `
      dark gaps between the curtains as much as under them. The curtains' own lips and their reflections
      carry the horizon, and between them it stays dark; the soft haze band just blends sky into water. */
   --au-haze-o: 0.4;
-  --sw-moon-o: 0;
+  /* The reflection's wavelet (dips of 5-7% in two stripes every 31px) is counted from the mirror's box, which
+     runs 3vh past the waterline, so where its stripes fall at the line depends on the window's height. At
+     night the lips sit ON the line and the reflection is as bright as the sky, so the stripe that landed
+     there drew a dark rule along the horizon. Night drops it: the ripple overlay, which fades in from the
+     line, still textures the water. By day the lip is lifted and nothing bright meets the line. */
+  --au-wavelet: linear-gradient(#000, #000);
+  /* A MOON by night, high over the lights, with its path on the water below. It sits in front of the
+     curtains, as the sun does: behind three layers of translucent light it turned green and stopped
+     reading as a moon. */
+  --sw-moon-o: 1;
+  --sw-moon-d: block;
+  --moon-size: 24vh;
+  --moon-bottom: 60%;
+  --moon-dip: 0%;
+  --sw-moon-1: oklch(0.96 0.012 255);
+  --sw-moon-2: oklch(0.87 0.03 262);
+  --sw-moon-3: oklch(0.74 0.05 270);
+  --sw-maria: 0.66 0.04 268;
+  --sw-disc-glow: oklch(0.85 0.05 230 / 0.45);
+  /* The path on the water is the moon's: silver, narrower, fainter than the sun's. */
+  --au-path-d: block;
+  --au-path-o: 0.42;
+  --au-path-w: calc(var(--moon-size) * 2.4);
+  --au-path-1: oklch(0.96 0.015 250);
+  --au-path-2: oklch(0.9 0.03 255);
+  --au-path-3: oklch(0.82 0.04 262);
+  --au-path-4: oklch(0.74 0.05 268);
   --sw-stars-o: 1;
 }
 .au-scene {
@@ -1688,9 +1964,11 @@ const AURORA_STYLES = `
      the line and the reflection takes over there. (The clip is pre-transform, but sway is a skewX and a
      translateX, neither of which moves a horizontal edge.) */
   clip-path: inset(0 0 3vh 0);
+  /* One REPEATING gradient across the box (rays()), not a tile repeated by background-size + repeat-x:
+     Safari 27.2 paints a TILED background under a skew without the skew when the skewed box has no layer
+     of its own, so a still curtain (Speed: Static, no layers) stood its rays straight up under its slanted
+     outline, and they met their reflections askew at the waterline. A repeating gradient is drawn skewed. */
   background-image: var(--au-rays);
-  background-repeat: repeat-x;
-  background-size: var(--au-tile) 100%;
   filter: blur(calc(var(--au-blur, 1.2vh) * var(--au-blur-m, 1) * var(--au-crisp, 1)));
   -webkit-mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
   mask-image: var(--au-fade, linear-gradient(to top, #000 13%, rgb(0 0 0 / 0.62) 47%, rgb(0 0 0 / 0.2) 81%, transparent 97%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%);
@@ -1797,8 +2075,8 @@ const AURORA_STYLES = `
      dips of only 5-7% at an uneven two-stripe rhythm, so the reflection reads as water catching the
      lights, not as scanline stripes. Deeper dips than this and the mirror turns into a CRT. Strength
      lives in --au-dim (0.8 = a strong mirror), never in the ripple contrast. */
-  -webkit-mask-image: var(--au-mirror-fade, linear-gradient(to top, #000 8%, rgb(0 0 0 / 0.82) 50%, transparent 98%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%), repeating-linear-gradient(to bottom, #000 0 9px, rgb(0 0 0 / 0.93) 9px 13px, #000 13px 27px, rgb(0 0 0 / 0.95) 27px 31px);
-  mask-image: var(--au-mirror-fade, linear-gradient(to top, #000 8%, rgb(0 0 0 / 0.82) 50%, transparent 98%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%), repeating-linear-gradient(to bottom, #000 0 9px, rgb(0 0 0 / 0.93) 9px 13px, #000 13px 27px, rgb(0 0 0 / 0.95) 27px 31px);
+  -webkit-mask-image: var(--au-mirror-fade, linear-gradient(to top, #000 8%, rgb(0 0 0 / 0.82) 50%, transparent 98%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%), var(--au-wavelet, repeating-linear-gradient(to bottom, #000 0 9px, rgb(0 0 0 / 0.93) 9px 13px, #000 13px 27px, rgb(0 0 0 / 0.95) 27px 31px));
+  mask-image: var(--au-mirror-fade, linear-gradient(to top, #000 8%, rgb(0 0 0 / 0.82) 50%, transparent 98%)), linear-gradient(to right, transparent 3%, #000 14% 86%, transparent 97%), var(--au-wavelet, repeating-linear-gradient(to bottom, #000 0 9px, rgb(0 0 0 / 0.93) 9px 13px, #000 13px 27px, rgb(0 0 0 / 0.95) 27px 31px));
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 }
@@ -1816,12 +2094,17 @@ const AURORA_STYLES = `
   height: 100%;
   display: block;
 }
+/* The other mode's reflection is HIDDEN, never removed. display: none stops an element's animations, and
+   showing it again starts them from zero: after a day/night switch the reflection swayed out of step with
+   the sky it mirrors (measured: sky 8.5s into its sway, the new reflection 2.1s), so the curtains met their
+   reflections askew at the waterline until something remounted the scene. Hidden, it keeps swaying in step
+   and draws nothing. */
 [data-pattern="aurora"] .au-flat,
 .dark [data-pattern="aurora"] .au-streaks {
-  display: none;
+  visibility: hidden;
 }
 .dark [data-pattern="aurora"] .au-flat {
-  display: block;
+  visibility: visible;
 }
 /* The ripples FADE IN below the waterline, from nothing at the line to full 6vh down: real ripple lines
    compress to nothing toward the horizon, and starting at full strength they ruled it, a 1px highlight
@@ -1853,23 +2136,23 @@ const AURORA_STYLES = `
   from { transform: translateY(0); }
   to   { transform: translateY(24px); }
 }
-/* SUN PATH — the glitter column a low sun throws across water. Everything else in this scene reflects
-   (the curtains are literally mirrored), so a sun with no reflection was the one element that looked
-   pasted on. Not a mirrored disc: on real water the reflection smears into a vertical column that
-   widens with distance, so this is a tapered gradient broken up by the same ripple rhythm as the
-   mirror. Gated on --sw-sun-o, so it appears and disappears with the sun itself.
-   Its own compositing layer, like the disc it reflects (see .sw-sun): it moves with the disc, and moving a
-   masked, blurred element painted on a shared layer is what left half a disc behind. The glints are drawn
-   by the child (.au-sunpath-paint), so their blur and masks go into the layer once, as a curtain's do. */
+/* SUN / MOON PATH — the glitter column a low sun (or the moon) throws across water. Everything else in
+   this scene reflects (the curtains are literally mirrored), so a disc with no reflection was the one
+   element that looked pasted on. Not a mirrored disc: on real water the reflection smears into a vertical
+   column that widens with distance, so this is a tapered gradient broken up by the same ripple rhythm as
+   the mirror. By day it is the sun's, gated on --sw-sun-o so it appears and disappears with the sun; the
+   night palette repoints it at the moon through --au-path-d / -o / -w and its colours --au-path-1..4.
+   No layer of its own, as the disc it reflects has none (see .sw-sun): the scene remounts when the
+   placement changes, so it never moves in place. Its glints are drawn by the child (.au-sunpath-paint). */
 .au-sunpath {
   position: absolute;
   left: var(--sw-disc-x, 50%);
   top: 58%;
   bottom: 0;
-  width: calc(var(--sun-size, 38vh) * 2.4);
+  width: var(--au-path-w, calc(var(--sun-size, 38vh) * 2.4));
   transform: translateX(-50%);
-  opacity: calc(0.62 * var(--sw-sun-o, 0));
-  will-change: transform;
+  opacity: var(--au-path-o, calc(0.62 * var(--sw-sun-o, 0)));
+  display: var(--au-path-d, var(--sw-sun-d, none));
 }
 .au-sunpath-paint {
   position: absolute;
@@ -1879,13 +2162,13 @@ const AURORA_STYLES = `
      Each ellipse is one band of glints — progressively wider going down, nudged off the centre line so
      the column never lines up perfectly, and blurred so no edge is hard. */
   background-image:
-    radial-gradient(10% 6% at 50% 3%, var(--sw-disc-5) 0 45%, transparent 78%),
-    radial-gradient(15% 7% at 47% 14%, var(--sw-disc-4) 0 42%, transparent 78%),
-    radial-gradient(21% 7.5% at 53% 26%, var(--sw-disc-4) 0 40%, transparent 80%),
-    radial-gradient(28% 8% at 46% 39%, var(--sw-disc-3) 0 38%, transparent 80%),
-    radial-gradient(35% 8.5% at 54% 53%, var(--sw-disc-3) 0 36%, transparent 82%),
-    radial-gradient(42% 9% at 48% 68%, var(--sw-disc-2) 0 34%, transparent 82%),
-    radial-gradient(50% 9.5% at 52% 84%, var(--sw-disc-2) 0 32%, transparent 84%);
+    radial-gradient(10% 6% at 50% 3%, var(--au-path-1, var(--sw-disc-5)) 0 45%, transparent 78%),
+    radial-gradient(15% 7% at 47% 14%, var(--au-path-2, var(--sw-disc-4)) 0 42%, transparent 78%),
+    radial-gradient(21% 7.5% at 53% 26%, var(--au-path-2, var(--sw-disc-4)) 0 40%, transparent 80%),
+    radial-gradient(28% 8% at 46% 39%, var(--au-path-3, var(--sw-disc-3)) 0 38%, transparent 80%),
+    radial-gradient(35% 8.5% at 54% 53%, var(--au-path-3, var(--sw-disc-3)) 0 36%, transparent 82%),
+    radial-gradient(42% 9% at 48% 68%, var(--au-path-4, var(--sw-disc-2)) 0 34%, transparent 82%),
+    radial-gradient(50% 9.5% at 52% 84%, var(--au-path-4, var(--sw-disc-2)) 0 32%, transparent 84%);
   filter: blur(7px);
   -webkit-mask-image:
     linear-gradient(to bottom, #000 0 10%, rgb(0 0 0 / 0.72) 48%, transparent 96%),
@@ -2880,9 +3163,9 @@ const FOREST_STYLES = `
      warm gold band at the treeline, chroma kept low the way a hazy dawn is; the top three stops take
      the theme cast like the other day skies. */
   --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
-  --fo-sky-a: color-mix(in oklch, oklch(0.66 0.06 252), oklch(0.66 0.055 var(--glass-tint-h, 252)) var(--sw-cast));
-  --fo-sky-b: color-mix(in oklch, oklch(0.76 0.05 298), oklch(0.76 0.045 var(--glass-tint-h, 298)) var(--sw-cast));
-  --fo-sky-c: color-mix(in oklch, oklch(0.83 0.05 345), oklch(0.83 0.045 var(--glass-tint-h, 345)) var(--sw-cast));
+  --fo-sky-a: ${tintCast(0.66, 0.06, 252, 0.055)};
+  --fo-sky-b: ${tintCast(0.76, 0.05, 298, 0.045)};
+  --fo-sky-c: ${tintCast(0.83, 0.05, 345, 0.045)};
   --fo-sky-d: oklch(0.87 0.06 45); /* peach — authored from here down, or the cast muddies the dawn */
   --fo-sky-e: oklch(0.9 0.07 72); /* the gold band the sun rises out of */
   /* Ridges, far → near, each a SHADOW / LIT pair (the two facets of every tier): lavender haze to a
@@ -2930,6 +3213,8 @@ const FOREST_STYLES = `
      accent at the bottom of the disc, mixing to a warm yellow crown. */
   --sw-sun-o: 1;
   --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
   --sun-size: 40vh;
   --fo-disc-y: 51.2vh; /* the disc's centre: 58vh horizon - 0.17 × 40vh (the sun dips 33% below it) */
   --sun-h: var(--accent-h, var(--glass-tint-h, 35));
@@ -2984,6 +3269,8 @@ const FOREST_STYLES = `
   --fo-rays-o: 0;
   --sw-sun-o: 0;
   --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
   /* Low enough that the tallest spires cross its lower edge: the moon rises BEHIND the forest. */
   --moon-size: 30vh;
   --moon-bottom: 47%;
@@ -3117,8 +3404,810 @@ ${FOREST_RIDGES.map(
 }
 ${stopRules(".fo-fog")}`;
 
-// Starfield — a deep night field by night, a "morning haze" by day: pastel accent sky, the nebulae as
-// bright wisps, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
+// Peaks — an alpine range at SUNRISE (by night, under the moon), seen down a valley that runs toward the
+// disc. Four ridges recede by aerial perspective; each is open in the middle, wider the nearer it is, so
+// their slopes converge on the far range's COL, where the sun or moon rises. Like forest's ridges, each is
+// one inline SVG (a theme flip refills paths; it re-composites no masks), anchored on the disc placement
+// so the valley follows it. Every peak is two FACETS split down an arête from its summit, and the facet
+// facing the disc takes the light (--pk-lit-l / --pk-lit-r, inline from the placement); the far ranges
+// carry snow caps split the same way. Motion is two valley fog banks drifting one tile per loop, on
+// compositor-only transforms, stopped by stopRules. Nothing tilts in 3D and nothing is filtered: a
+// rotated plane is what made synthwave's floor a WebKit layer in every picker (see `preview`).
+
+type PeakSpec = {
+  /** The SVG's top edge, in vh from the top of the scene; the ridge runs from there to the bottom. */
+  top: number;
+  /** The valley floor (the far range's col), in vh below `top`. */
+  floor: number;
+  /** Half-width of the valley opening, in vh: the ridge stays at its floor this far either side. */
+  open: number;
+  /** Mean peak spacing, in vh. */
+  spacing: number;
+  /** How far a summit can fall short of the crest line, 0–1. */
+  rough: number;
+  /** Snow-cap depth as a fraction of a summit's rise above its higher saddle; 0 for none. */
+  snow: number;
+  /** How far a face dissolves into the valley fog toward the bottom, 0–1. */
+  pool: number;
+  seed: number;
+};
+
+/** A ridge's width, in vh, centred on the disc: the valley may sit anywhere from 26% to 74% across a
+ *  window up to 5× as wide as it is tall, and the ridge still reaches both edges. */
+const PEAK_W = 750;
+
+const PEAK_RIDGES: PeakSpec[] = [
+  {
+    top: 16,
+    floor: 40,
+    open: 9,
+    spacing: 30,
+    rough: 0.5,
+    snow: 0.42,
+    pool: 0.45,
+    seed: 11,
+  },
+  {
+    top: 34,
+    floor: 32,
+    open: 22,
+    spacing: 34,
+    rough: 0.45,
+    snow: 0.26,
+    pool: 0.5,
+    seed: 23,
+  },
+  {
+    top: 46,
+    floor: 30,
+    open: 40,
+    spacing: 40,
+    rough: 0.4,
+    snow: 0,
+    pool: 0.4,
+    seed: 37,
+  },
+  {
+    top: 56,
+    floor: 36,
+    open: 64,
+    spacing: 52,
+    rough: 0.35,
+    snow: 0,
+    pool: 0,
+    seed: 51,
+  },
+];
+
+/** One ridge's facets and snow caps as SVG paths, in vh, from its spec. Deterministic, so the range is
+ *  the same on the server and the client. */
+function peakRidge({ top, floor, open, spacing, rough, snow, seed }: PeakSpec) {
+  const h = 100 - top;
+  const rand = mulberry32(seed);
+  const mid = PEAK_W / 2;
+  // The crest line: the valley floor inside the opening, rising smoothly to 2vh under the top.
+  const crest = (x: number) => {
+    const t = Math.min(1, Math.max(0, (Math.abs(x - mid) - open) / (open * 1.6 + 8)));
+    return floor + (2 - floor) * t * t * (3 - 2 * t);
+  };
+  const summits: Pt[] = [];
+  for (let x = rand() * spacing * 0.5; x < PEAK_W; x += spacing * (0.7 + rand() * 0.6)) {
+    const c = crest(x);
+    summits.push([
+      x,
+      Math.min(h - 3, c + rough * rand() * (h - c) * 0.35),
+    ]);
+  }
+  // A saddle between neighbours, lower than both by a share of their spacing; the ends close at the edges.
+  const saddles: Pt[] = [
+    [
+      0,
+      Math.min(h - 1, summits[0][1] + spacing * 0.3),
+    ],
+  ];
+  for (let i = 1; i < summits.length; i++) {
+    const [a, b] = [
+      summits[i - 1],
+      summits[i],
+    ];
+    saddles.push([
+      a[0] + (b[0] - a[0]) * (0.35 + rand() * 0.3),
+      Math.min(h - 1, Math.max(a[1], b[1]) + (b[0] - a[0]) * (0.18 + rand() * 0.22)),
+    ]);
+  }
+  saddles.push([
+    PEAK_W,
+    Math.min(h - 1, summits[summits.length - 1][1] + spacing * 0.3),
+  ]);
+  // A crag part-way along a flank, pushed off the straight line so the profile breaks.
+  const crag = (from: Pt, to: Pt): Pt => {
+    const f = 0.35 + rand() * 0.3;
+    const [dx, dy] = [
+      to[0] - from[0],
+      to[1] - from[1],
+    ];
+    const k = (rand() - 0.5) * 0.16;
+    return [
+      from[0] + dx * f - dy * k,
+      from[1] + dy * f + dx * k,
+    ];
+  };
+  // Where a flank (summit → crag → saddle) first drops to depth y.
+  const cross = (flank: Pt[], y: number): Pt => {
+    for (let i = 1; i < flank.length; i++) {
+      const [a, b] = [
+        flank[i - 1],
+        flank[i],
+      ];
+      if (b[1] >= y) {
+        const t = (y - a[1]) / (b[1] - a[1] || 1);
+        return [
+          a[0] + (b[0] - a[0]) * t,
+          y,
+        ];
+      }
+    }
+    return flank[flank.length - 1];
+  };
+  const left: string[] = [];
+  const right: string[] = [];
+  const snowLeft: string[] = [];
+  const snowRight: string[] = [];
+  // The whole ridge line, for the shadowed body every facet sits on.
+  const line: Pt[] = [
+    saddles[0],
+  ];
+  summits.forEach((s, i) => {
+    const [sl, sr] = [
+      saddles[i],
+      saddles[i + 1],
+    ];
+    const [cl, cr] = [
+      crag(sl, s),
+      crag(s, sr),
+    ];
+    line.push(cl, s, cr, sr);
+    // The arête runs down from the summit to just below the shoulders, where the two facets meet the
+    // body. Carried to the foot of the ridge it split every peak into a pair of crystal shards.
+    const end: Pt = [
+      Math.min(sr[0] - 2, Math.max(sl[0] + 2, s[0] + (rand() - 0.5) * spacing * 0.3)),
+      Math.min(h - 1, s[1] + (Math.max(sl[1], sr[1]) - s[1]) * (1.1 + rand() * 0.5)),
+    ];
+    left.push(
+      poly([
+        sl,
+        cl,
+        s,
+        end,
+      ]),
+    );
+    right.push(
+      poly([
+        s,
+        cr,
+        sr,
+        end,
+      ]),
+    );
+    const depth = snow * (Math.min(sl[1], sr[1]) - s[1]);
+    if (depth < 1.5) return;
+    const y = s[1] + depth * (0.8 + rand() * 0.4);
+    const [xl, xr] = [
+      cross(
+        [
+          s,
+          cl,
+          sl,
+        ],
+        y,
+      ),
+      cross(
+        [
+          s,
+          cr,
+          sr,
+        ],
+        y,
+      ),
+    ];
+    const split: Pt = [
+      s[0] + (end[0] - s[0]) * Math.min(1, (y - s[1]) / (end[1] - s[1])),
+      y + depth * 0.15,
+    ];
+    // The snow line's lower edge dips below the level in two places on each side, never above it, so the
+    // cap stays inside the rock it lies on.
+    const dips = (from: Pt, to: Pt): Pt[] =>
+      [
+        1 / 3,
+        2 / 3,
+      ].map((f) => [
+        from[0] + (to[0] - from[0]) * f,
+        y + rand() * depth * 0.35,
+      ]);
+    snowLeft.push(
+      poly([
+        xl,
+        ...(cl[1] < y
+          ? [
+              cl,
+            ]
+          : []),
+        s,
+        split,
+        ...dips(split, xl),
+      ]),
+    );
+    snowRight.push(
+      poly([
+        s,
+        ...(cr[1] < y
+          ? [
+              cr,
+            ]
+          : []),
+        xr,
+        ...dips(xr, split),
+        split,
+      ]),
+    );
+  });
+  const body = poly([
+    [
+      0,
+      h,
+    ],
+    ...line,
+    [
+      PEAK_W,
+      h,
+    ],
+  ]);
+  return {
+    h,
+    body,
+    left: left.join(""),
+    right: right.join(""),
+    snowLeft: snowLeft.join(""),
+    snowRight: snowRight.join(""),
+  };
+}
+
+const PEAK_PATHS = PEAK_RIDGES.map(peakRidge);
+
+/** A facet's paint: its shadow tone mixed toward its lit tone by how squarely the disc faces that side.
+ *  In OKLab, not OKLCH: the shadows are cool and the light warm, nearly opposite hues, and an OKLCH mix
+ *  turns the hue through green on the way, so a half-lit facet came out olive. */
+const PEAK_LIT = (side: "l" | "r", shade: string, lit: string) =>
+  `color-mix(in oklab, var(${shade}), var(${lit}) calc(var(--pk-lit-${side}, ${side === "l" ? 0 : 1}) * 100%))`;
+
+/** One ridge as an inline SVG, its valley centred on the disc. The body is the shadow tone, dissolving
+ *  into the valley fog toward the foot by the ridge's `pool`; the summits' two facets sit on it, the one
+ *  facing the disc lit (dawn light reaches the tops first), and snow keeps its colour. */
+function PeakRidge({ index }: { index: number }) {
+  const spec = PEAK_RIDGES[index];
+  const { h, body, left, right, snowLeft, snowRight } = PEAK_PATHS[index];
+  // Per instance: url(#…) resolves to the first matching id in the document (see ForestRidge).
+  const scope = useId().replace(/[^\w-]/g, "");
+  const id = (part: string) => `${scope}pk-${index}-${part}`;
+  const faces = [
+    [
+      "body",
+      body,
+      `var(--pk-r${index})`,
+    ],
+    [
+      "left",
+      left,
+      PEAK_LIT("l", `--pk-r${index}`, `--pk-r${index}-lit`),
+    ],
+    [
+      "right",
+      right,
+      PEAK_LIT("r", `--pk-r${index}`, `--pk-r${index}-lit`),
+    ],
+  ] as const;
+  return (
+    <svg
+      className={`pk-ridge pk-r${index}`}
+      viewBox={`0 0 ${PEAK_W} ${h}`}
+      preserveAspectRatio="none"
+      style={{
+        height: `${h}vh`,
+        width: `${PEAK_W}vh`,
+        left: `calc(var(--sw-disc-x, 50%) - ${PEAK_W / 2}vh)`,
+      }}
+      aria-hidden="true"
+    >
+      <defs>
+        {faces.map(([part, , paint]) => (
+          <linearGradient key={part} id={id(part)} gradientUnits="userSpaceOnUse" x1="0" y1={spec.floor * 0.5} x2="0" y2={h}>
+            <stop
+              offset="0"
+              style={{
+                stopColor: paint,
+              }}
+            />
+            <stop
+              offset="1"
+              style={{
+                stopColor: `color-mix(in oklab, ${paint}, var(--pk-fog) ${spec.pool * 100}%)`,
+              }}
+            />
+          </linearGradient>
+        ))}
+      </defs>
+      {faces.map(([part, d]) => (
+        <path key={part} d={d} fill={`url(#${id(part)})`} />
+      ))}
+      {snowLeft ? (
+        <path
+          d={snowLeft}
+          style={{
+            fill: PEAK_LIT("l", "--pk-snow", "--pk-snow-lit"),
+          }}
+        />
+      ) : null}
+      {snowRight ? (
+        <path
+          d={snowRight}
+          style={{
+            fill: PEAK_LIT("r", "--pk-snow", "--pk-snow-lit"),
+          }}
+        />
+      ) : null}
+    </svg>
+  );
+}
+
+const PEAKS_STYLES = `
+[data-pattern="peaks"] {
+  /* DAY — SUNRISE over the range. A clear, cold zenith warming through lavender and rose to a gold band
+     at the col; the top three stops take the theme cast like the other day skies. The ridges run from a
+     pale violet haze far off to a deeper slate up close, their lit facets warming toward alpenglow, and
+     stay light enough (the nearest shadow at L 0.56) for dark text on a light page. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
+  --pk-sky-a: ${tintCast(0.6, 0.08, 255, 0.07)};
+  --pk-sky-b: ${tintCast(0.73, 0.06, 285, 0.05)};
+  --pk-sky-c: ${tintCast(0.82, 0.06, 335, 0.05)};
+  --pk-sky-d: oklch(0.88 0.065 40);
+  --pk-sky-e: oklch(0.91 0.075 72);
+  --pk-r0: oklch(0.77 0.035 290);
+  --pk-r0-lit: oklch(0.86 0.05 25);
+  --pk-r1: oklch(0.7 0.042 275);
+  --pk-r1-lit: oklch(0.8 0.05 40);
+  --pk-r2: oklch(0.63 0.048 258);
+  --pk-r2-lit: oklch(0.75 0.045 52);
+  --pk-r3: oklch(0.56 0.05 238);
+  --pk-r3-lit: oklch(0.69 0.045 58);
+  --pk-snow: oklch(0.88 0.03 275);
+  --pk-snow-lit: oklch(0.97 0.03 45);
+  --pk-fog: oklch(0.9 0.035 60);
+  --pk-fog-a: oklch(0.93 0.03 62 / 0.55);
+  --pk-glow: oklch(0.93 0.09 75 / 0.55);
+  --sw-sun-o: 1;
+  --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
+  --sun-size: 34vh;
+  --pk-disc-y: 52.2vh; /* the sun's centre: 58vh horizon - 0.17 × 34vh; the col hides its lower third */
+  --sun-h: var(--accent-h, var(--glass-tint-h, 35));
+  --sw-disc-1: oklch(0.6 0.21 var(--sun-h));
+  --sw-disc-2: color-mix(in oklch, oklch(0.68 0.2 var(--sun-h)), oklch(0.74 0.18 48) 30%);
+  --sw-disc-3: color-mix(in oklch, oklch(0.76 0.18 var(--sun-h)), oklch(0.82 0.17 66) 58%);
+  --sw-disc-4: color-mix(in oklch, oklch(0.85 0.15 var(--sun-h)), oklch(0.89 0.15 80) 80%);
+  --sw-disc-5: oklch(0.94 0.13 94);
+  --sw-disc-glow: oklch(0.82 0.16 var(--sun-h) / 0.45);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="peaks"] {
+  /* NIGHT — the range under the moon: navy sky, moonlit snow, the ridge ladder compressed toward black. */
+  --pk-sky-a: oklch(0.09 0.035 262);
+  --pk-sky-b: oklch(0.12 0.045 266);
+  --pk-sky-c: oklch(0.16 0.05 272);
+  --pk-sky-d: oklch(0.2 0.05 276);
+  --pk-sky-e: oklch(0.24 0.045 270);
+  --pk-r0: oklch(0.25 0.04 270);
+  --pk-r0-lit: oklch(0.31 0.045 262);
+  --pk-r1: oklch(0.2 0.038 266);
+  --pk-r1-lit: oklch(0.26 0.042 258);
+  --pk-r2: oklch(0.155 0.034 260);
+  --pk-r2-lit: oklch(0.215 0.04 252);
+  --pk-r3: oklch(0.11 0.028 250);
+  --pk-r3-lit: oklch(0.17 0.034 245);
+  --pk-snow: oklch(0.4 0.03 265);
+  --pk-snow-lit: oklch(0.6 0.035 255);
+  --pk-fog: oklch(0.28 0.04 268);
+  --pk-fog-a: oklch(0.46 0.035 268 / 0.3);
+  --pk-glow: oklch(0.6 0.05 262 / 0.35);
+  --sw-sun-o: 0;
+  --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
+  /* Risen clear of the col, in the gap between the far peaks. */
+  --moon-size: 24vh;
+  --moon-bottom: 41%;
+  --moon-dip: 0%;
+  --pk-disc-y: 47vh;
+  --sw-moon-1: oklch(0.95 0.015 255);
+  --sw-moon-2: oklch(0.85 0.035 262);
+  --sw-moon-3: oklch(0.72 0.06 270);
+  --sw-maria: 0.64 0.05 268;
+  --sw-disc-glow: oklch(0.82 0.05 262 / 0.45);
+  --sw-stars-o: 1;
+}
+.pk-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    var(--pk-sky-a) 0%,
+    var(--pk-sky-b) 24%,
+    var(--pk-sky-c) 38%,
+    var(--pk-sky-d) 48%,
+    var(--pk-sky-e) 56%,
+    var(--pk-fog) 66%
+  );
+}
+.pk-ridge {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  overflow: visible;
+}
+/* The bloom around the disc, over the far range: brightest toward the light. */
+.pk-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(64vh 24vh at var(--sw-disc-x, 50%) calc(var(--pk-disc-y) + 4vh), var(--pk-glow) 0%, transparent 100%);
+}
+/* VALLEY FOG — soft banks drifting one tile per loop (seamless), each overhanging the viewport by a tile
+   per side; every ellipse stays inside its tile, or it clips to an edge that repeats. Banks only: forest's
+   continuous band under them ruled a stripe straight across the mountain faces. */
+.pk-fog {
+  position: absolute;
+  left: calc(-1 * var(--pk-ft));
+  right: calc(-1 * var(--pk-ft));
+  background-repeat: repeat-x;
+  background-size: var(--pk-ft) 100%;
+  animation: pk-drift calc(var(--pat-dur, 8s) * var(--pk-fk)) linear infinite;
+  will-change: var(--pat-wc, transform);
+}
+@keyframes pk-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--pk-ft)); }
+}
+.pk-fog-a {
+  top: 58%;
+  height: 14%;
+  --pk-ft: 160vh;
+  --pk-fk: 11;
+  background-image:
+    radial-gradient(30% 48% at 34% 56%, var(--pk-fog-a) 0 14%, transparent 78%),
+    radial-gradient(18% 40% at 76% 50%, var(--pk-fog-a) 0 12%, transparent 76%);
+}
+.pk-fog-b {
+  opacity: 0.6;
+  top: 70%;
+  height: 16%;
+  --pk-ft: 210vh;
+  --pk-fk: 7;
+  background-image:
+    radial-gradient(28% 46% at 28% 52%, var(--pk-fog-a) 0 14%, transparent 78%),
+    radial-gradient(20% 40% at 70% 56%, var(--pk-fog-a) 0 12%, transparent 76%);
+}
+${stopRules(".pk-fog")}`;
+
+// Meadow — rolling grass hills on a clear morning (by night, under the moon). Four ranges of hills recede
+// by aerial perspective, from a hazy blue-green far off to a deep green up close, the nearest fringed with
+// grass along its crest. Each range is ONE periodic tile of hill, used as a CSS mask and repeated across a
+// strip centred on the disc (as peaks' ridges are), with a dip at every tile's centre, so the sun or moon
+// sits in a saddle between the far hills wherever the placement puts it. The light comes from the disc:
+// each hill glows toward it (a radial wash centred on the disc), carries a lighter crest rim (dune's
+// technique: the same mask, nudged up, behind the fill), and shades toward its foot. Motion is two bands
+// of cumulus drifting across the sky on compositor-only transforms, stopped by stopRules. Nothing tilts
+// in 3D and nothing is filtered (see `preview`).
+
+type HillSpec = {
+  /** The hill strip's top edge, in vh from the top of the scene; it runs from there to the bottom. */
+  top: number;
+  /** The crest line's mean depth below `top`, in vh. */
+  crest: number;
+  /** How far the crest rolls above and below that line, in vh. */
+  amp: number;
+  /** How much deeper the saddle at the tile's centre (under the disc) sits, in vh. */
+  dip: number;
+  /** Grass blade height along the crest, in vh; 0 for none. */
+  grass: number;
+  seed: number;
+};
+
+/** One tile of hill, in vh, repeated across the strip; it divides the strip so a tile is centred on it. */
+const MEADOW_TILE = 150;
+/** The strip's width, in vh, centred on the disc: as peaks' ridges, wide enough for a 5:1 window. */
+const MEADOW_W = 750;
+
+const MEADOW_HILLS: HillSpec[] = [
+  {
+    top: 44,
+    crest: 10,
+    amp: 4,
+    dip: 7,
+    grass: 0,
+    seed: 7,
+  },
+  {
+    top: 54,
+    crest: 9,
+    amp: 4.5,
+    dip: 5,
+    grass: 0,
+    seed: 19,
+  },
+  {
+    top: 64,
+    crest: 8,
+    amp: 5,
+    dip: 4,
+    grass: 0,
+    seed: 29,
+  },
+  {
+    top: 74,
+    crest: 7,
+    amp: 6,
+    dip: 3,
+    grass: 1.4,
+    seed: 43,
+  },
+];
+
+/** A hill tile's silhouette as an SVG mask, in vh. The crest is a sum of three sines that each complete
+ *  whole cycles across the tile, plus a saddle at its centre that has died away by the edges, so the tile
+ *  ends at the height it starts at and repeats without a step. Deterministic, so server and client agree. */
+function meadowHill({ top, crest, amp, dip, grass, seed }: HillSpec) {
+  const w = MEADOW_TILE;
+  const h = 100 - top;
+  const rand = mulberry32(seed);
+  const phase = [
+    rand(),
+    rand(),
+    rand(),
+  ].map((r) => r * Math.PI * 2);
+  const crestAt = (x: number) =>
+    crest +
+    amp *
+      (0.55 * Math.sin((2 * Math.PI * x) / w + phase[0]) +
+        0.3 * Math.sin((4 * Math.PI * x) / w + phase[1]) +
+        0.15 * Math.sin((6 * Math.PI * x) / w + phase[2])) +
+    dip * Math.exp(-(((x - w / 2) / (w / 8)) ** 2));
+  const n = 48;
+  const pts: Pt[] = Array.from(
+    {
+      length: n + 1,
+    },
+    (_, i) => [
+      (w * i) / n,
+      crestAt((w * i) / n),
+    ],
+  );
+  const mid = (a: Pt, b: Pt): Pt => [
+    (a[0] + b[0]) / 2,
+    (a[1] + b[1]) / 2,
+  ];
+  // Through the midpoints with each sample as the control point: a smooth roll with no corners.
+  let d = `M0 ${f1(h)}L0 ${f1(pts[0][1])}L${f1(mid(pts[0], pts[1])[0])} ${f1(mid(pts[0], pts[1])[1])}`;
+  for (let i = 1; i < n; i++) {
+    const m = mid(pts[i], pts[i + 1]);
+    d += `Q${f1(pts[i][0])} ${f1(pts[i][1])} ${f1(m[0])} ${f1(m[1])}`;
+  }
+  d += `L${w} ${f1(pts[n][1])}L${w} ${f1(h)}Z`;
+  // Grass: thin leaning blades rooted just below the crest, kept clear of the tile's edges so none is cut.
+  const blades: string[] = [];
+  if (grass > 0) {
+    for (let x = 0.6; x < w - 0.6; x += 0.42 + rand() * 0.26) {
+      const root = crestAt(x) + 0.35;
+      const half = 0.16 + rand() * 0.08;
+      blades.push(
+        poly([
+          [
+            x - half,
+            root,
+          ],
+          [
+            x + (rand() - 0.5) * 0.7,
+            root - grass * (0.55 + rand() * 0.75),
+          ],
+          [
+            x + half,
+            root,
+          ],
+        ]),
+      );
+    }
+  }
+  return {
+    h,
+    mask: svgMask(`<path d='${d}${blades.join("")}'/>`, `0 0 ${w} ${h}`),
+  };
+}
+
+const MEADOW_PATHS = MEADOW_HILLS.map(meadowHill);
+
+const MEADOW_STYLES = `
+[data-pattern="meadow"] {
+  /* DAY — a clear morning. A deep blue zenith opening to a pale, slightly warm horizon; the top stops take
+     the theme cast like the other day skies. The hills run from a hazy blue-green far off to a deep green
+     up close, their lit sides warming toward a sunlit yellow-green, and stay light enough (the nearest
+     shadow at L 0.58) for dark text on a light page. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
+  --mw-sky-a: ${tintCast(0.66, 0.09, 240, 0.08)};
+  --mw-sky-b: ${tintCast(0.78, 0.065, 228, 0.06)};
+  --mw-sky-c: oklch(0.87 0.045 210);
+  --mw-sky-d: oklch(0.92 0.045 92);
+  --mw-haze: oklch(0.9 0.035 130);
+  --mw-h0: oklch(0.79 0.04 178);
+  --mw-h0-lit: oklch(0.87 0.055 115);
+  --mw-h1: oklch(0.72 0.065 160);
+  --mw-h1-lit: oklch(0.83 0.085 118);
+  --mw-h2: oklch(0.65 0.085 150);
+  --mw-h2-lit: oklch(0.78 0.105 122);
+  --mw-h3: oklch(0.58 0.1 145);
+  --mw-h3-lit: oklch(0.73 0.125 128);
+  --mw-rim-to: oklch(0.96 0.05 100); /* what a crest rim leans toward: low sun on grass tips */
+  --mw-rim-mix: 24%;
+  --mw-foot-far: oklch(0.9 0.035 130 / 0.6);
+  --mw-foot-near: oklch(0.32 0.07 150 / 0.4);
+  --mw-cloud: oklch(0.985 0.008 230 / 0.92);
+  --mw-cloud-lo: oklch(0.88 0.02 235 / 0.85);
+  --mw-cloud-o: 1;
+  --sw-sun-o: 1;
+  --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
+  --sun-size: 34vh;
+  --sun-h: var(--accent-h, var(--glass-tint-h, 35));
+  --sw-disc-1: oklch(0.6 0.21 var(--sun-h));
+  --sw-disc-2: color-mix(in oklch, oklch(0.68 0.2 var(--sun-h)), oklch(0.74 0.18 48) 30%);
+  --sw-disc-3: color-mix(in oklch, oklch(0.76 0.18 var(--sun-h)), oklch(0.82 0.17 66) 58%);
+  --sw-disc-4: color-mix(in oklch, oklch(0.85 0.15 var(--sun-h)), oklch(0.89 0.15 80) 80%);
+  --sw-disc-5: oklch(0.94 0.13 94);
+  --sw-disc-glow: oklch(0.85 0.14 var(--sun-h) / 0.42);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="meadow"] {
+  /* NIGHT — the same hills under the moon: navy sky, dark blue-green hills, faint moonlit crests. */
+  --mw-sky-a: oklch(0.09 0.035 262);
+  --mw-sky-b: oklch(0.12 0.045 266);
+  --mw-sky-c: oklch(0.16 0.05 272);
+  --mw-sky-d: oklch(0.21 0.05 268);
+  --mw-haze: oklch(0.25 0.04 240);
+  --mw-h0: oklch(0.25 0.035 215);
+  --mw-h0-lit: oklch(0.31 0.04 210);
+  --mw-h1: oklch(0.2 0.04 190);
+  --mw-h1-lit: oklch(0.27 0.045 185);
+  --mw-h2: oklch(0.16 0.045 170);
+  --mw-h2-lit: oklch(0.22 0.05 168);
+  --mw-h3: oklch(0.12 0.045 158);
+  --mw-h3-lit: oklch(0.18 0.05 158);
+  --mw-rim-to: oklch(0.45 0.04 225);
+  --mw-rim-mix: 20%;
+  --mw-foot-far: oklch(0.25 0.04 240 / 0.5);
+  --mw-foot-near: oklch(0.04 0.02 160 / 0.5);
+  --mw-cloud: oklch(0.42 0.025 260 / 0.55);
+  --mw-cloud-lo: oklch(0.3 0.025 262 / 0.5);
+  --mw-cloud-o: 0.6;
+  --sw-sun-o: 0;
+  --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
+  /* Risen just above the far hills' saddle. */
+  --moon-size: 22vh;
+  --moon-bottom: 45%;
+  --moon-dip: 0%;
+  --sw-moon-1: oklch(0.95 0.015 255);
+  --sw-moon-2: oklch(0.85 0.035 262);
+  --sw-moon-3: oklch(0.72 0.06 270);
+  --sw-maria: 0.64 0.05 268;
+  --sw-disc-glow: oklch(0.82 0.05 240 / 0.45);
+  --sw-stars-o: 1;
+}
+.mw-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(
+    to bottom,
+    var(--mw-sky-a) 0%,
+    var(--mw-sky-b) 26%,
+    var(--mw-sky-c) 44%,
+    var(--mw-sky-d) 54%,
+    var(--mw-haze) 64%
+  );
+}
+/* A range of hills: a strip MEADOW_W wide centred on the disc, masked by its repeating tile. */
+.mw-hill {
+  position: absolute;
+  bottom: 0;
+  width: ${MEADOW_W}vh;
+  left: calc(var(--sw-disc-x, 50%) - ${MEADOW_W / 2}vh);
+  height: var(--mw-hh);
+  -webkit-mask: var(--mw-m) 0 0 / ${MEADOW_TILE}vh 100% repeat-x;
+  mask: var(--mw-m) 0 0 / ${MEADOW_TILE}vh 100% repeat-x;
+}
+${MEADOW_PATHS.map(
+  ({ h, mask }, i) => `.mw-h${i} {
+  --mw-hh: ${h}vh;
+  --mw-m: ${mask};
+  --mw-c: var(--mw-h${i});
+  --mw-cl: var(--mw-h${i}-lit);
+  --mw-crest: ${MEADOW_HILLS[i].crest}vh;
+  --mw-foot: var(${i < 2 ? "--mw-foot-far" : "--mw-foot-near"});
+}`,
+).join("\n")}
+/* The crest rim: the hill's own silhouette in a lighter tone, nudged up behind the fill so only a sliver
+   shows along the top. Kept faint and thin: at 0.35vh and a 45% mix every crest read as an outline. */
+.mw-rim {
+  background: color-mix(in oklab, var(--mw-cl), var(--mw-rim-to) var(--mw-rim-mix, 24%));
+  transform: translateY(-0.25vh);
+}
+/* The face: brightest toward the disc (an ellipse centred on the strip, which is centred on the disc, at
+   the crest's height), its own shadow tone away from it, and shading toward the foot. Mixed in OKLab: the
+   shadow tones are cool and the light warm, and an OKLCH blend would swing the hue between them. */
+.mw-fill {
+  background:
+    linear-gradient(to bottom, transparent 35%, var(--mw-foot) 100%),
+    radial-gradient(110vh 34vh at 50% var(--mw-crest) in oklab, var(--mw-cl) 0%, var(--mw-c) 100%);
+}
+/* CUMULUS — puffs drifting one tile per loop (seamless), each strip overhanging the viewport by a tile
+   per side; every ellipse stays inside its tile, or it clips to an edge that repeats. */
+.mw-cloud {
+  position: absolute;
+  left: calc(-1 * var(--mw-ct));
+  right: calc(-1 * var(--mw-ct));
+  background-repeat: repeat-x;
+  background-size: var(--mw-ct) 100%;
+  opacity: var(--mw-cloud-o, 1);
+  animation: mw-drift calc(var(--pat-dur, 8s) * var(--mw-ck)) linear infinite;
+  will-change: var(--pat-wc, transform);
+}
+@keyframes mw-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(var(--mw-ct)); }
+}
+.mw-cloud-a {
+  top: 8%;
+  height: 14%;
+  --mw-ct: 150vh;
+  --mw-ck: 16;
+  background-image:
+    radial-gradient(7% 34% at 18% 58%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(6% 42% at 23% 46%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(7% 32% at 28% 60%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(14% 22% at 23% 74%, var(--mw-cloud-lo) 0 50%, transparent 72%),
+    radial-gradient(5% 30% at 66% 52%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(6% 38% at 71% 42%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(5% 28% at 76% 56%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(11% 20% at 71% 70%, var(--mw-cloud-lo) 0 50%, transparent 72%);
+}
+.mw-cloud-b {
+  top: 25%;
+  height: 10%;
+  --mw-ct: 115vh;
+  --mw-ck: 11;
+  background-image:
+    radial-gradient(5% 34% at 38% 56%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(5% 44% at 42% 44%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(5% 32% at 46% 58%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(10% 22% at 42% 72%, var(--mw-cloud-lo) 0 50%, transparent 72%),
+    radial-gradient(4% 30% at 86% 54%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(4% 38% at 89% 44%, var(--mw-cloud) 0 55%, transparent 74%),
+    radial-gradient(7% 20% at 88% 70%, var(--mw-cloud-lo) 0 50%, transparent 72%);
+}
+${stopRules(".mw-cloud")}`;
+
+// Starfield — a deep night field by night, a "morning haze" by day: an azure sky leaning toward the chosen
+// colour where it agrees, the nebulae in that colour, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
 // leave an empty gradient; the Tron scenes can hide theirs because the sun/grid carry the scene).
 // Same mode recipe as the other scenes: --sf-* palette vars, day on [data-pattern="starfield"], night
 // verbatim under .dark. The star dots themselves stay white in both modes — only their layer's opacity
@@ -3141,14 +4230,24 @@ const STARFIELD_STYLES = `
      the 0.1 they asked, so 39% of the colour survived and the wisps rendered near-neutral — the hue had
      nowhere to go. Below the sky it does: capped with min() at 0.10 / 0.09, which holds at EVERY accent
      hue (worst is h200 at 0.106 / 0.099), 7-8 L clear of the sky and now reading as accent-coloured
-     wisps against the blue rather than grey smudges. */
+     wisps against the blue rather than grey smudges.
+     THE CHOSEN COLOUR, by day and by night, lives in the NEBULAE; the sky leans toward it only as far as
+     the two hues agree (the cosine of their distance, nothing at 90° or more: tintCast's rule). At a flat
+     28%, "always blue" held on paper but not on screen: amber's 194 reads teal, and the warm themes'
+     clouds were muddy olive and brown on it; the reds' 290s read lavender. Now a warm theme keeps the
+     azure sky and carries its colour in the clouds, which are stronger to carry it (0.55 / 0.4 → 0.8 /
+     0.65), and a blue or violet theme tints the sky as before. The second cloud turns toward RED
+     (--sf-h2), not a fixed +40°: from amber or citrine +40° landed on olive, and from a blue it heads for
+     violet either way. */
+  --sf-h: var(--accent-h, var(--glass-tint-h, 240));
+  --sf-h2: calc(var(--sf-h) + 40 * sin(calc((20 - var(--sf-h)) * 1deg)));
   --sf-bg: color-mix(
     in oklch,
     oklch(0.78 0.1 240),
-    oklch(0.78 0.1 var(--accent-h, var(--glass-tint-h, 240))) 28%
+    oklch(0.78 0.1 var(--sf-h)) calc(28% * max(0, cos(calc((var(--sf-h) - 240) * 1deg))))
   );
-  --sf-nebula-1: oklch(0.64 min(var(--accent-c, 0.1), 0.1) var(--accent-h, var(--glass-tint-h)) / 0.55);
-  --sf-nebula-2: oklch(0.6 min(var(--accent-c, 0.09), 0.09) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.4);
+  --sf-nebula-1: oklch(0.64 min(var(--accent-c, 0.1), 0.1) var(--sf-h) / 0.8);
+  --sf-nebula-2: oklch(0.6 min(var(--accent-c, 0.09), 0.09) var(--sf-h2) / 0.65);
   --sw-stars-o: 1;
   /* Not faded at all by day: the layer gate is already 1, and this gives each dot a solid core so it
      is genuinely opaque rather than a gradient that is only white at its centre pixel. Mean alpha
@@ -3156,10 +4255,19 @@ const STARFIELD_STYLES = `
   --star-core: 60%;
 }
 .dark [data-pattern="starfield"] {
-  /* NIGHT — the original deep field, verbatim */
-  --sf-bg: oklch(0.19 0.055 var(--accent-h, var(--glass-tint-h)));
-  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--accent-h, var(--glass-tint-h)) / 0.42);
-  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) calc(var(--accent-h, var(--glass-tint-h)) + 40) / 0.3);
+  /* NIGHT — a deep blue field (selenite's, h 250) with the chosen colour in the nebulae, by the day's rule.
+     The sky used to BE the chosen colour at L 0.19, which read as night only for the blues and violets:
+     amber and carnelian made it brown, citrine and peridot olive. Now it leans toward the colour as far as
+     the hues agree, all the way for a blue (sapphire's night is unchanged), none for a warm one; the
+     clouds are stronger to carry the colour (0.42 / 0.3 → 0.75 / 0.55) and glow amber, gold, red or green
+     on the blue, and the second takes --sf-h2 as by day. */
+  --sf-bg: color-mix(
+    in oklch,
+    oklch(0.19 0.055 250),
+    oklch(0.19 0.055 var(--sf-h)) calc(100% * max(0, cos(calc((var(--sf-h) - 250) * 1deg))))
+  );
+  --sf-nebula-1: oklch(0.5 var(--accent-c, 0.17) var(--sf-h) / 0.75);
+  --sf-nebula-2: oklch(0.45 var(--accent-c, 0.16) var(--sf-h2) / 0.55);
   --sw-stars-o: 1;
   /* Pinned back to the original falloff. --star-core lives in the shared base block, which night
      inherits, and night's stars already read fine on a near-black sky — solidifying them there would
@@ -3187,7 +4295,7 @@ const STARFIELD_STYLES = `
 // COMPLEMENT (var(--hue-complement)) ± an offset. `caught: true` lanes let Pac reel the ghost in and eat it
 // (fade out) mid-run; the others let it escape ahead.
 // PELLET-GRID ALIGNMENT: lane top/left values below are NOMINAL — each lane snaps to the nearest pellet
-// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2 (pellet centers sit at
+// row/column center via CSS round(down, <nominal>, var(--pac-cell)) + cell/2, where round() exists (pellet centers sit at
 // (k + 0.5)·cell), so Pac chomps ALONG a dot line at every density and viewport, no JS. Sprites are
 // --pac-sprite = min(cell, 34px): never bigger than one dot cell (dense shrinks them to the cell; sparse
 // keeps them 34px inside the larger cell), Pac and ghost the same size, centered on the row.
@@ -3397,9 +4505,8 @@ function pacVars(lane: (typeof PAC_LANES)[number] | (typeof PAC_VLANES)[number])
 
 const pacLane = (lane: (typeof PAC_LANES)[number]) =>
   ({
-    // Snap the nominal % to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell), so Pac
-    // chomps along an actual dot line at every density and viewport.
-    top: `calc(round(down, ${lane.top}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
+    // The NOMINAL position; .pac-lane snaps it to the pellet grid where round() exists (see there).
+    "--pac-top": lane.top,
     "--pac-x": `${lane.still.pac}vw`,
     "--ghost-x": `${lane.still.ghost}vw`,
     ...pacVars(lane),
@@ -3407,8 +4514,8 @@ const pacLane = (lane: (typeof PAC_LANES)[number]) =>
 
 const pacVlane = (lane: (typeof PAC_VLANES)[number]) =>
   ({
-    // Same pellet-grid snap as the E–W lanes, along the x axis (columns at (k+0.5)·cell).
-    left: `calc(round(down, ${lane.left}, var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2)`,
+    // The NOMINAL position; .pac-vlane snaps it to the pellet columns where round() exists.
+    "--pac-left": lane.left,
     "--pac-y": `${lane.still.pac}vh`,
     "--ghost-y": `${lane.still.ghost}vh`,
     ...pacVars(lane),
@@ -3460,10 +4567,22 @@ const PAC_STYLES = `
 }
 .pac-lane {
   position: absolute;
+  top: var(--pac-top);
   left: 0;
   right: 0;
   height: var(--pac-sprite);
   transform: translateY(-50%);
+}
+/* Each lane SNAPS its nominal position to the nearest pellet-row CENTER below it (rows sit at (k+0.5)·cell),
+   so Pac chomps along an actual dot line at every density and viewport; the N–S lanes snap to columns.
+   Behind a feature query, as the discs' round() is: Chrome and Edge only have round() from 125, and
+   written inline it sat in a calc() with var()s, where an unsupported function does not fall back but
+   leaves the property unset, so every lane piled up at the top. Without round() a lane keeps its
+   nominal position, a little off the dot line. */
+@supports (width: round(1px, 2px)) {
+  .pac-lane {
+    top: calc(round(down, var(--pac-top), var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2);
+  }
 }
 /* Pac rides a runner that translates across. Only transforms animate here. The base transform is the lane's
    STILL pose, which the animation overrides while it runs. */
@@ -3596,10 +4715,18 @@ const PAC_STYLES = `
    Distances are in vh — the column spans the viewport height. */
 .pac-vlane {
   position: absolute;
+  left: var(--pac-left);
   top: 0;
   bottom: 0;
   width: var(--pac-sprite);
   transform: translateX(-50%);
+}
+/* The columns' snap, as .pac-lane's (see there). AFTER .pac-vlane: at equal specificity a snap written
+   before it lost to its nominal left, and the N–S sprites stood 2px off their dot column. */
+@supports (width: round(1px, 2px)) {
+  .pac-vlane {
+    left: calc(round(down, var(--pac-left), var(--pac-cell, 34px)) + var(--pac-cell, 34px) / 2);
+  }
 }
 .pac-vrunner {
   position: absolute;
@@ -3800,6 +4927,16 @@ function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: numb
       return {
         backgroundColor: "oklch(0.09 0.035 262)",
       };
+    case "peaks":
+      // Rendered by its own layered branch in PatternBackground (palettes in PEAKS_STYLES); kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.09 0.035 262)",
+      };
+    case "meadow":
+      // Rendered by its own layered branch in PatternBackground (palettes in MEADOW_STYLES); kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.09 0.035 262)",
+      };
     case "chase":
       // Pac-Man chase is rendered by its own branch in PatternBackground; kept exhaustive here.
       return {
@@ -3808,15 +4945,7 @@ function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: numb
   }
 }
 
-/** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
-export function PatternBackground({
-  style = "dots",
-  density = "medium",
-  speed = 8,
-  disc = "right",
-  sand = "breeze",
-  tileScale,
-}: {
+export type PatternBackgroundProps = {
   style?: PatternStyle;
   density?: PatternDensity;
   speed?: number;
@@ -3826,7 +4955,37 @@ export function PatternBackground({
   /** The geometric tiles' (dots, grid) scale, in place of the density's: a picker chip draws smaller
    *  tiles than the wallpaper, or a 48px chip shows one dot of a 48px-spaced field and no grid line. */
   tileScale?: number;
-}) {
+  /** A miniature of the scene (a picker swatch, a thumbnail) rather than the page's backdrop. A preview
+   *  drops the layer only the full-window wallpaper needs: the root's `glass-backdrop-layer` promotion
+   *  (it is not the ground sheer materials blur). Pair it with `speed={0}` for a still picker, since a
+   *  moving part needs its layer whatever it is drawn in.
+   *  The scene is still `position: fixed`, so the swatch has to contain it: `contain: paint` does,
+   *  without the layer a `transform: translateZ(0)` wrapper forces.
+   *  A still preview of any scene adds no compositing layers: synthwave's and moonrise's floor is drawn
+   *  flat when still (see FloorGrid), so the old advice to draw those two swatches last no longer applies.
+   *  Measured in Safari Technology Preview's WebKit, a 13-swatch picker adds none (it was 109). */
+  preview?: boolean;
+};
+
+/** A full-viewport, pure-CSS pattern wallpaper. Recolors with the live tint; sprites tile a field. */
+export function PatternBackground(props: PatternBackgroundProps) {
+  // The discs have no layers of their own, so moving one in place would meet a WebKit repaint bug (see
+  // .sw-sun). Keyed on the placement, the scene remounts instead, and a new scene paints whole.
+  return <PatternScene key={props.disc ?? "right"} {...props} />;
+}
+
+function PatternScene({
+  style = "dots",
+  density = "medium",
+  speed = 8,
+  disc = "right",
+  sand = "breeze",
+  tileScale,
+  preview = false,
+}: PatternBackgroundProps) {
+  // The scene root. Only the page's own backdrop is promoted (see glass-backdrop-layer in the theme).
+  const root = `fixed inset-0 -z-10 ${preview ? "" : "glass-backdrop-layer "}overflow-hidden pointer-events-none transition-[background-color] duration-500`;
+  const patPreview = preview ? "" : undefined;
   // Animated patterns share one pace: --pat-dur (loop seconds).
   const patDur = speed > 0 ? `${speed}s` : "8s";
   // Static means nothing moves, so the animation is REMOVED, not paused — `data-pat-static`
@@ -3843,7 +5002,7 @@ export function PatternBackground({
   if (style === "chase") {
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--pat-dur": patDur,
@@ -3853,8 +5012,9 @@ export function PatternBackground({
         }
         data-pattern="chase"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{PAC_STYLES}</style>
+        <SceneStyles name="chase" css={PAC_STYLES} />
         <div className="pac-scene">
           <div className="pac-field" />
           {PAC_WALLS.map((w) => (
@@ -3913,7 +5073,7 @@ export function PatternBackground({
     const moon = style === "moonrise";
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             // Scene colors (incl. --sw-line) live in SYNTHWAVE_STYLES' [data-pattern] palette blocks so the
@@ -3927,9 +5087,10 @@ export function PatternBackground({
         }
         data-pattern={style}
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{SYNTHWAVE_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="synthwave" css={SYNTHWAVE_STYLES} />
         <div className="sw-scene">
           <div
             className="sw-stars"
@@ -3943,10 +5104,10 @@ export function PatternBackground({
             <div className="sw-ground" />
             <div className="sw-glow" />
             <div className="sw-floor sw-floor-rungs">
-              <div className="sw-grid sw-grid-rungs" />
+              <FloorGrid kind="rungs" still={speed <= 0} />
             </div>
             <div className="sw-floor sw-floor-rails">
-              <div className="sw-grid sw-grid-rails" />
+              <FloorGrid kind="rails" still={speed <= 0} />
             </div>
           </div>
         </div>
@@ -3957,7 +5118,7 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             // Moon placement (left/center/right) + the shared animated-pattern pace; scene colors live in
@@ -3969,9 +5130,10 @@ export function PatternBackground({
         }
         data-pattern="clouds"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{CLOUDS_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="clouds" css={CLOUDS_STYLES} />
         <div className="cl-scene">
           <div
             className="sw-stars"
@@ -4020,7 +5182,7 @@ export function PatternBackground({
     }[sand];
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--sw-disc-x": discX,
@@ -4033,9 +5195,10 @@ export function PatternBackground({
         }
         data-pattern="dune"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{DUNE_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="dune" css={DUNE_STYLES} />
         <div className="du-scene">
           <div
             className="sw-stars"
@@ -4086,10 +5249,10 @@ export function PatternBackground({
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
-            // Sun placement (day only — the scene is moonless at night) plus the shared pace vars.
+            // Sun (day) / moon (night) placement plus the shared pace vars.
             "--sw-disc-x": discX,
             "--pat-dur": patDur,
             "--pat-wc": patWc,
@@ -4097,9 +5260,10 @@ export function PatternBackground({
         }
         data-pattern="aurora"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{AURORA_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="aurora" css={AURORA_STYLES} />
         <div className="au-scene">
           <div
             className="sw-stars"
@@ -4127,6 +5291,7 @@ export function PatternBackground({
             <div className="au-sunsky" />
           </div>
           <div className="sw-sun" />
+          <div className="scene-moon" />
           <div className="scene-group">
             <div className="au-water-base" />
             <div className="au-water">
@@ -4181,7 +5346,7 @@ export function PatternBackground({
     const ridge = (i: number) => <ForestRidge index={i} />;
     return (
       <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
+        className={root}
         style={
           {
             "--sw-disc-x": discX,
@@ -4193,9 +5358,10 @@ export function PatternBackground({
         }
         data-pattern="forest"
         data-pat-static={patStatic}
+        data-pat-preview={patPreview}
       >
-        <style>{SKY_STYLES}</style>
-        <style>{FOREST_STYLES}</style>
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="forest" css={FOREST_STYLES} />
         <div className="fo-scene">
           <div
             className="sw-stars"
@@ -4227,17 +5393,117 @@ export function PatternBackground({
       </div>
     );
   }
+  if (style === "peaks") {
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    // The facet facing the disc takes the light; centred, both sides catch some (see forest).
+    const [litL, litR] = {
+      left: [
+        "1",
+        "0",
+      ],
+      center: [
+        "0.7",
+        "0.25",
+      ],
+      right: [
+        "0",
+        "1",
+      ],
+    }[disc];
+    const ridge = (i: number) => <PeakRidge index={i} />;
+    return (
+      <div
+        className={root}
+        style={
+          {
+            "--sw-disc-x": discX,
+            "--pk-lit-l": litL,
+            "--pk-lit-r": litR,
+            "--pat-dur": patDur,
+            "--pat-wc": patWc,
+          } as CSSProperties
+        }
+        data-pattern="peaks"
+        data-pat-static={patStatic}
+        data-pat-preview={patPreview}
+      >
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="peaks" css={PEAKS_STYLES} />
+        <div className="pk-scene">
+          <div
+            className="sw-stars"
+            style={{
+              backgroundImage: stars,
+            }}
+          />
+          <MuseConstellation />
+          {/* The disc first: the far range's col hides its lower third, every ridge stands in front. */}
+          <div className="sw-sun" />
+          <div className="scene-moon" />
+          <div className="scene-group">
+            {ridge(0)}
+            <div className="pk-glow" />
+            {ridge(1)}
+            <div className="pk-fog pk-fog-a" />
+            {ridge(2)}
+            <div className="pk-fog pk-fog-b" />
+            {ridge(3)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (style === "meadow") {
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    return (
+      <div
+        className={root}
+        style={
+          {
+            "--sw-disc-x": discX,
+            "--pat-dur": patDur,
+            "--pat-wc": patWc,
+          } as CSSProperties
+        }
+        data-pattern="meadow"
+        data-pat-static={patStatic}
+        data-pat-preview={patPreview}
+      >
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="meadow" css={MEADOW_STYLES} />
+        <div className="mw-scene">
+          <div
+            className="sw-stars"
+            style={{
+              backgroundImage: stars,
+            }}
+          />
+          <MuseConstellation />
+          {/* The disc first: the clouds drift across it and every hill stands in front of it. */}
+          <div className="sw-sun" />
+          <div className="scene-moon" />
+          <div className="scene-group">
+            <div className="mw-cloud mw-cloud-a" />
+            <div className="mw-cloud mw-cloud-b" />
+            {MEADOW_HILLS.map((_, i) => (
+              <Fragment key={i}>
+                <div className={`mw-hill mw-h${i} mw-rim`} />
+                <div className={`mw-hill mw-h${i} mw-fill`} />
+              </Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (style === "starfield") {
     // Scene colors live in STARFIELD_STYLES' palette blocks (an inline background would beat the .dark
     // day/night flip); only the star GLINTS — white in both modes — are painted inline, on their own
     // layer so the palette's --sw-stars-o can dim them by day.
     const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
     return (
-      <div
-        className="fixed inset-0 -z-10 glass-backdrop-layer overflow-hidden pointer-events-none transition-[background-color] duration-500"
-        data-pattern="starfield"
-      >
-        <style>{STARFIELD_STYLES}</style>
+      <div className={root} data-pattern="starfield" data-pat-preview={patPreview}>
+        <SceneStyles name="starfield" css={STARFIELD_STYLES} />
         <div className="sf-scene" />
         <div
           className="sf-stars"
@@ -4249,11 +5515,5 @@ export function PatternBackground({
       </div>
     );
   }
-  return (
-    <div
-      className="fixed inset-0 -z-10 glass-backdrop-layer pointer-events-none transition-[background-color] duration-500"
-      style={styleFor(style, density, tileScale)}
-      data-pattern={style}
-    />
-  );
+  return <div className={root} style={styleFor(style, density, tileScale)} data-pattern={style} data-pat-preview={patPreview} />;
 }

@@ -2,6 +2,7 @@ import { TrayIcon as Inbox } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Button } from "@/components/ui/button";
 import { EmptyState, EmptyStateDescription, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/EmptyState",
@@ -22,10 +23,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

@@ -93,6 +93,14 @@ export const GLASS_TINT_PRESETS = [
     swatch: "oklch(78% 0.13 300)",
   },
   {
+    value: "celestite",
+    label: "Celestite",
+    h: 235,
+    c: 0.064,
+    a: 0.2,
+    swatch: "oklch(80% 0.11 235)",
+  },
+  {
     value: "sapphire",
     label: "Sapphire",
     h: 255,
@@ -101,12 +109,28 @@ export const GLASS_TINT_PRESETS = [
     swatch: "oklch(78% 0.13 255)",
   },
   {
+    value: "sodalite",
+    label: "Sodalite",
+    h: 262,
+    c: 0.08,
+    a: 0.11,
+    swatch: "oklch(66% 0.17 262)",
+  },
+  {
     value: "lapis",
     label: "Lapis",
     h: 268,
     c: 0.085,
     a: 0.13,
     swatch: "oklch(56% 0.21 268)",
+  },
+  {
+    value: "tanzanite",
+    label: "Tanzanite",
+    h: 284,
+    c: 0.093,
+    a: 0.1,
+    swatch: "oklch(67% 0.17 284)",
   },
   {
     value: "aventurine",
@@ -123,6 +147,14 @@ export const GLASS_TINT_PRESETS = [
     c: 0.081,
     a: 0.19,
     swatch: "oklch(78% 0.14 38)",
+  },
+  {
+    value: "citrine",
+    label: "Citrine",
+    h: 100,
+    c: 0.066,
+    a: 0.54,
+    swatch: "oklch(90% 0.16 100)",
   },
   {
     value: "peridot",
@@ -157,3 +189,28 @@ export const GLASS_TINT_PRESETS = [
     swatch: "oklch(76% 0.16 342)",
   },
 ] as const;
+
+type PresetName = (typeof GLASS_TINT_PRESETS)[number]["value"];
+
+/**
+ * Day/night PAIRS: one switcher chip that wears a light-mode preset by day and a dark-mode one by night.
+ * Not a theme preset. The switcher writes the plain preset for the current mode onto <html> and swaps it
+ * when the mode flips, so the theme, AutoForeground and every rule written for selenite or onyx only ever
+ * see a preset they already know. A CSS-only consumer pairs them the same way, from its own mode toggle.
+ */
+export const GLASS_TINT_PAIRS = [
+  {
+    id: "selenite-onyx",
+    label: "Selenite by day, onyx by night",
+    day: "selenite",
+    night: "onyx",
+    // Selenite's white and onyx's black, split on the diagonal.
+    swatch: "linear-gradient(135deg, oklch(90% 0 0) 50%, oklch(18% 0 0) 50%)",
+  },
+] as const satisfies readonly {
+  id: string;
+  label: string;
+  day: PresetName;
+  night: PresetName;
+  swatch: string;
+}[];

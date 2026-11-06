@@ -300,8 +300,8 @@ if (process.argv.includes("--report")) {
   }
 }
 
-/* Sanity floor: if the scrapers matched nothing the check is worthless. 12 jewels + moonstone +
-   4 frescoes + 4 status + selenite = 22 named blocks, x2 modes. */
+/* Sanity floor: if the scrapers matched nothing the check is worthless. 16 jewels + moonstone +
+   4 frescoes + 4 status + selenite + onyx = 27 named blocks, x2 modes. */
 if (report.length < 30) {
   console.error(`✗ contrast guard: scored only ${report.length} preset/mode pairs — the CSS shape changed, fix the parser`);
   process.exit(1);

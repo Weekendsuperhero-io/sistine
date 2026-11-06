@@ -145,7 +145,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
-import { Toaster } from "@/components/ui/sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -1063,7 +1062,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
               Toast with Action
             </Button>
           </div>
-          <Toaster />
+          {/* No <Toaster /> here: the root layout mounts the site's one, and a second showed every toast twice. */}
         </>
       );
 

@@ -1,6 +1,8 @@
+import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import { GLASS_TINT_PRESETS } from "@/lib/glass-presets";
 
 /**
  * A scene stops for two reasons — `prefers-reduced-motion` and Speed 0 — and the
@@ -127,7 +129,7 @@ describe("PatternBackground data-pat-static", () => {
  * 52 masked full-viewport layers while static, and the window server re-applied every mask and blur on any
  * frame where the page above them changed. Two structures keep it to a handful, and these pin both: all
  * that a scene draws in front of its disc sits in ONE `.scene-group` (a stacking context, painted as one
- * layer), and a box that is a layer of its own (a swaying curtain, the sun path that moves with the disc)
+ * layer), and a box that is a layer of its own (a swaying curtain) or moves (the sun path)
  * draws its blur and masks on a child, never on itself.
  */
 describe("scene compositing", () => {
@@ -189,6 +191,530 @@ describe("scene compositing", () => {
     expect(rules.length).toBeGreaterThan(0);
     for (const [, selector, body] of rules) {
       expect(body, selector.trim()).not.toMatch(/filter|mask|clip-path/);
+    }
+  });
+});
+
+/**
+ * A picker draws every scene at once, as miniatures of the full-window wallpaper. What a miniature must not
+ * carry is a promoted layer that only the wallpaper needs: the root's `glass-backdrop-layer` and an
+ * unconditional `will-change` on a part that stands still (the discs, the sun path). Each was one layer per
+ * swatch, a hidden disc another, and every scene re-injected its stylesheets.
+ */
+describe("previews", () => {
+  const rootOf = (html: string) => {
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    return host.querySelector("[data-pattern]")!;
+  };
+
+  it("leaves the page-backdrop promotion off a preview, and only a preview", () => {
+    for (const style of PATTERN_STYLES) {
+      const wallpaper = rootOf(renderToStaticMarkup(<PatternBackground style={style} />));
+      const preview = rootOf(renderToStaticMarkup(<PatternBackground style={style} preview speed={0} />));
+      expect(wallpaper.classList.contains("glass-backdrop-layer"), `${style} wallpaper`).toBe(true);
+      expect(wallpaper.hasAttribute("data-pat-preview"), `${style} wallpaper`).toBe(false);
+      expect(preview.classList.contains("glass-backdrop-layer"), `${style} preview`).toBe(false);
+      expect(preview.getAttribute("data-pat-preview"), `${style} preview`).toBe("");
+    }
+  });
+
+  it("promotes nothing unconditionally, in a preview or a wallpaper", () => {
+    // `var(--pat-wc, …)` is the speed-gated hint (stopRules releases it at Speed 0); a LITERAL
+    // `will-change: transform` promotes whatever the scene is doing, even when nothing moves.
+    const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />))
+      .match(/<style[^>]*>([\s\S]*?)<\/style>/g)!
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+    const rules = [
+      ...css.matchAll(/([^{}]*)\{([^{}]*)\}/g),
+    ].map(([, selector, body]) => ({
+      selectors: selector.split(",").map((s) => s.trim()),
+      body,
+    }));
+    const promoted = rules.filter((r) => /will-change:\s*transform/.test(r.body)).flatMap((r) => r.selectors);
+    // The discs and the sun path were the last: the scene remounts on a placement change instead.
+    expect(promoted).toEqual([]);
+  });
+
+  it("remounts the scene when its disc moves, preview or wallpaper", () => {
+    // A disc has no layer of its own, so moved in place it would meet the WebKit repaint bug (.sw-sun).
+    for (const preview of [
+      true,
+      false,
+    ]) {
+      const view = render(<PatternBackground style="clouds" preview={preview} speed={0} disc="left" />);
+      const before = view.container.querySelector("[data-pattern]");
+      view.rerender(<PatternBackground style="clouds" preview={preview} speed={0} disc="right" />);
+      expect(view.container.querySelector("[data-pattern]"), `preview=${preview}`).not.toBe(before);
+      view.unmount();
+    }
+  });
+
+  it("injects each stylesheet once, however many scenes are mounted", () => {
+    const view = render(
+      <>
+        {PATTERN_STYLES.map((style) => (
+          <PatternBackground key={style} style={style} preview speed={0} />
+        ))}
+        <PatternBackground style="clouds" />
+      </>,
+    );
+    const sheets = [
+      ...document.head.querySelectorAll('style[data-precedence="sistine-pattern"]'),
+    ].map((s) => s.getAttribute("data-href"));
+    expect(new Set(sheets).size, sheets.join(" ")).toBe(sheets.length);
+    // Shared sky, the Muse, and one sheet per scene family (moonrise rides synthwave's; the geometric
+    // tiles have none).
+    expect(sheets.sort()).toEqual(
+      [
+        "aurora",
+        "chase",
+        "clouds",
+        "dune",
+        "forest",
+        "meadow",
+        "muse",
+        "peaks",
+        "sky",
+        "starfield",
+        "synthwave",
+      ].map((name) => `sistine-pattern-${name}`),
+    );
+    expect(view.container.querySelector("style")).toBeNull();
+  });
+});
+
+/**
+ * The horizon scenes render both discs and let the palette pick one per mode. The pick has to take the other
+ * one out of the render tree: at opacity 0 a disc is still a promoted layer, invisible, in the live
+ * wallpaper too. jsdom does not resolve `var()` in `display`, so the gate is resolved by hand from the root.
+ */
+describe("disc display gates", () => {
+  const shownDiscs = (style: (typeof PATTERN_STYLES)[number], dark: boolean) => {
+    const html = document.documentElement;
+    const previous = html.className;
+    const host = document.createElement("div");
+    try {
+      html.classList.toggle("dark", dark);
+      host.innerHTML = renderToStaticMarkup(<PatternBackground style={style} />);
+      document.body.append(host);
+      const root = getComputedStyle(host.querySelector("[data-pattern]")!);
+      return [
+        ...host.querySelectorAll(".sw-sun, .scene-moon"),
+      ]
+        .filter((disc) => {
+          const display = getComputedStyle(disc).display;
+          const gate = /^var\((--[\w-]+),\s*([\w-]+)\)$/.exec(display);
+          return (gate ? root.getPropertyValue(gate[1]).trim() || gate[2] : display) !== "none";
+        })
+        .map((disc) => disc.className);
+    } finally {
+      host.remove();
+      html.className = previous;
+    }
+  };
+
+  it.each([
+    "clouds",
+    "dune",
+    "forest",
+    "peaks",
+    "meadow",
+  ] as const)("%s keeps only the sun by day and only the moon by night", (style) => {
+    expect(shownDiscs(style, false)).toEqual([
+      "sw-sun",
+    ]);
+    expect(shownDiscs(style, true)).toEqual([
+      "scene-moon",
+    ]);
+  });
+
+  it("keeps only aurora's sun by day and only its moon by night", () => {
+    expect(shownDiscs("aurora", false)).toEqual([
+      "sw-sun",
+    ]);
+    expect(shownDiscs("aurora", true)).toEqual([
+      "scene-moon",
+    ]);
+  });
+});
+
+/**
+ * Peaks' ridges are GENERATED, like forest's: per ridge, an inline SVG of facets and snow caps from a
+ * seeded generator. It must draw the same range on the server and the client, keep its valley on the disc,
+ * and light the facet that faces it.
+ */
+describe("peaks", () => {
+  const markup = (disc?: "left" | "center" | "right") => renderToStaticMarkup(<PatternBackground style="peaks" disc={disc} />);
+
+  it("draws the same range on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws four ridges, each centred on the disc, the far two snow-capped", () => {
+    const html = markup();
+    const ridges = [
+      ...html.matchAll(/<svg class="pk-ridge pk-r(\d)"[^>]*style="([^"]*)"[\s\S]*?<\/svg>/g),
+    ];
+    expect(ridges.map((m) => m[1])).toEqual([
+      "0",
+      "1",
+      "2",
+      "3",
+    ]);
+    for (const [svg, , style] of ridges) expect(style, svg.slice(0, 40)).toContain("left:calc(var(--sw-disc-x, 50%) - 375vh)");
+    const capped = ridges.map(([svg]) => svg.includes("--pk-snow"));
+    expect(capped).toEqual([
+      true,
+      true,
+      false,
+      false,
+    ]);
+  });
+
+  it("lights the facets that face the disc", () => {
+    expect(markup("left")).toContain("--pk-lit-l:1;--pk-lit-r:0");
+    expect(markup("right")).toContain("--pk-lit-l:0;--pk-lit-r:1");
+  });
+});
+
+/**
+ * Meadow's hills are GENERATED: per range, one periodic tile of hill (a sum of sines plus a saddle under the
+ * disc), used as a CSS mask and repeated across a strip centred on the disc. The tile has to end at the
+ * height it starts at, or every repeat steps; it has to be the same on the server and the client; and only
+ * the nearest range carries grass.
+ */
+describe("meadow", () => {
+  const markup = () => renderToStaticMarkup(<PatternBackground style="meadow" />);
+  /** Each range's mask path, decoded from its --mw-m custom property. */
+  const masks = (html: string) =>
+    [
+      ...html.matchAll(/--mw-m: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]).match(/d='([^']+)'/)?.[1] ?? "");
+
+  it("draws the same hills on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws four ranges, each tile ending at the height it starts at", () => {
+    const paths = masks(markup());
+    expect(paths).toHaveLength(4);
+    for (const d of paths) {
+      // M0 <foot> L0 <crest start> … L150 <crest end> L150 <foot> Z, then any grass blades.
+      const start = d.match(/^M0 [\d.]+L0 ([\d.]+)/)?.[1];
+      const end = d.match(/L150 ([\d.]+)L150 [\d.]+Z/)?.[1];
+      expect(start).toBeDefined();
+      expect(end).toBe(start);
+    }
+  });
+
+  it("fringes only the nearest range with grass", () => {
+    // A blade is its own closed triangle after the hill's outline: count the subpaths.
+    const subpaths = masks(markup()).map((d) => d.split("M").length - 1);
+    expect(subpaths.slice(0, 3)).toEqual([
+      1,
+      1,
+      1,
+    ]);
+    expect(subpaths[3]).toBeGreaterThan(100);
+  });
+
+  it("centres every range on the disc", () => {
+    const html = markup();
+    expect(html.match(/class="mw-hill mw-h\d mw-fill"/g)).toHaveLength(4);
+    expect(html).toContain("left: calc(var(--sw-disc-x, 50%) - 375vh)");
+  });
+});
+
+/**
+ * Dune's tiers are generated skewed waves (a long windward rise, a shorter lee) with a continuous slope, so
+ * no crest meets its slip face at a corner: the hand-drawn set gave each tier one curve-into-straight-drop
+ * corner, and tier over tier those read as a jagged zigzag. Each crest also keeps room above the box's top
+ * edge for its cast shadow, which is the same silhouette nudged up.
+ */
+describe("dune", () => {
+  const markup = () => renderToStaticMarkup(<PatternBackground style="dune" />);
+  /** Every tier's silhouette path, decoded from its .du-pos-* mask. */
+  const ridges = (html: string) =>
+    [
+      ...html.matchAll(/\.du-pos-[a-z]+ \{[^}]*?-webkit-mask: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]).match(/d='([^']+)'/)?.[1] ?? "");
+
+  it("draws the same dunes on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws every tier as one smooth run of curves, with no corner along the crest", () => {
+    const paths = ridges(markup());
+    expect(paths).toHaveLength(6);
+    for (const d of paths) {
+      // Straight segments only at the box's edges; the crest itself is quadratic curves end to end.
+      expect(d).toMatch(/^M0 60L0 [\d.]+L[\d.]+ [\d.]+(Q[\d.]+ [\d.]+ [\d.]+ [\d.]+)+L200 [\d.]+L200 60Z$/);
+    }
+  });
+
+  it("keeps every crest clear of the top edge, for its cast shadow", () => {
+    for (const d of ridges(markup())) {
+      const ys = [
+        ...d.matchAll(/(?:^|[MLQ ])[\d.]+ ([\d.]+)/g),
+      ].map((m) => Number(m[1]));
+      expect(Math.min(...ys)).toBeGreaterThan(12);
+    }
+  });
+});
+
+/**
+ * Still, synthwave's and moonrise's floor grid is DRAWN in perspective (floorGridPath) rather than tilted in
+ * 3D: a 3D transform always makes its element a compositing layer, and the floor was ~20 of the scene's 26.
+ * The drawing has to be the same grid: the CSS perspective projection of the same plane, lines and cell.
+ */
+describe("synthwave floor, drawn flat", () => {
+  // A 1440 × 900 window, its 42% floor: 1440 × 378.
+  const [vw, vh, w, h] = [
+    1440,
+    900,
+    1440,
+    378,
+  ];
+  const quads = (d: string) =>
+    [
+      ...d.matchAll(/M([^Z]+)Z/g),
+    ].map((m) => m[1].split("L").map((pt) => pt.trim().split(" ").map(Number)));
+
+  it("puts every rung where the CSS perspective puts it, spreading toward the viewer", () => {
+    // Each rung is a band: M0 <top>H<w>V<bottom>H0Z.
+    const tops = [
+      ...floorGridPath("rungs", w, h, vw, vh).matchAll(/M0 (-?[\d.]+)H/g),
+    ].map((m) => Number(m[1]));
+    // The CSS: a plane tilted back 78deg about its top edge, 4vmin (36px) above the floor, under a 75vh
+    // (675px) perspective from the floor's top centre; rungs every round(4vmin) = 36px down the plane.
+    const [d, t] = [
+      675,
+      (78 * Math.PI) / 180,
+    ];
+    const project = (y: number) => ((y * Math.cos(t) - 36) * d) / (d - y * Math.sin(t));
+    const expected: number[] = [];
+    for (let y = 0; project(y) <= h; y += 36) if (project(y + 2) >= 0) expected.push(project(y));
+    expect(tops).toHaveLength(expected.length);
+    tops.forEach((top, i) => expect(top).toBeCloseTo(expected[i], 1));
+    const gaps = tops.slice(1).map((top, i) => top - tops[i]);
+    for (let i = 1; i < gaps.length; i++) expect(gaps[i]).toBeGreaterThan(gaps[i - 1]);
+  });
+
+  it("converges the rails on the plane's vanishing point, cot θ × perspective above the floor", () => {
+    const rails = quads(floorGridPath("rails", w, h, vw, vh));
+    expect(rails.length).toBeGreaterThan(10);
+    // Each rail's left edge, extended upward, passes through (w/2, -d·cot 78°).
+    const vanishY = -0.75 * vh * (Math.cos((78 * Math.PI) / 180) / Math.sin((78 * Math.PI) / 180));
+    for (const q of rails) {
+      const [[x0, y0], , , [x1, y1]] = q;
+      if (Math.abs(x1 - x0) < 1) continue;
+      const atVanish = x0 + ((vanishY - y0) * (x1 - x0)) / (y1 - y0);
+      expect(atVanish).toBeCloseTo(w / 2, 0);
+    }
+  });
+
+  it("draws flat when still, once the floor is measured, and keeps the 3D plane while it moves", async () => {
+    const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+    const height = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+    Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+      configurable: true,
+      get: () => 1440,
+    });
+    Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+      configurable: true,
+      get: () => 378,
+    });
+    try {
+      const still = render(<PatternBackground style="synthwave" speed={0} />);
+      expect(still.container.querySelectorAll("svg.sw-flat")).toHaveLength(2);
+      expect(still.container.querySelector(".sw-grid")).toBeNull();
+      still.unmount();
+      const moving = render(<PatternBackground style="synthwave" speed={8} />);
+      expect(moving.container.querySelectorAll(".sw-grid")).toHaveLength(2);
+      expect(moving.container.querySelector("svg.sw-flat")).toBeNull();
+      moving.unmount();
+    } finally {
+      if (width) Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+      if (height) Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
+    }
+  });
+});
+
+describe("the theme cast in the day skies", () => {
+  // Every cast of the tint into a scene colour (a mix weighted by --sw-cast), across every scene's stylesheet.
+  // Starfield leans its sky toward the accent or tint by the same rule but is no --sw-cast (pinned below).
+  const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />));
+  const casts = [
+    ...new Set(css.match(/color-mix\([^;]*?var\(--glass-tint-h[^;]*?;/g) ?? []),
+  ].filter((mix) => mix.includes("--sw-cast"));
+
+  it("weights every cast by how far the tint's hue agrees with the stop's", () => {
+    // Ungated, a warm tint swung a blue sky round the wheel through teal (in OKLCH) or greyed it (in OKLab).
+    expect(casts).toHaveLength(26);
+    for (const cast of casts) {
+      const m = cast.match(
+        /^color-mix\(in oklch, oklch\(([\d.]+) [\d.]+ (\d+)\), oklch\(([\d.]+) [\d.]+ var\(--glass-tint-h, (\d+)\)\) calc\(var\(--sw-cast\) \* max\(0, cos\(calc\(\(var\(--glass-tint-h, (\d+)\) - (\d+)\) \* 1deg\)\)\)\)\);$/,
+      );
+      expect(m, cast).not.toBeNull();
+      const [, l, h, lTint, ...hues] = m!;
+      expect(lTint, cast).toBe(l);
+      for (const other of hues) expect(other, cast).toBe(h);
+    }
+  });
+});
+
+describe("starfield, the chosen colour in the nebulae", () => {
+  const css = renderToStaticMarkup(<PatternBackground style="starfield" />).replace(/\/\*[\s\S]*?\*\//g, "");
+  const block = (selector: string) =>
+    [
+      ...css.matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].find(([, s]) => s.replace(/\s+/g, " ").trim() === selector)?.[2] ?? "";
+  const decl = (selector: string, name: string) =>
+    block(selector)
+      .match(new RegExp(`${name}:\\s*([^;]+);`))?.[1]
+      .replace(/\s+/g, " ")
+      .trim();
+  const DAY = '[data-pattern="starfield"]';
+  const NIGHT = '.dark [data-pattern="starfield"]';
+  const rad = Math.PI / 180;
+  const [amber, sapphire] = [
+    "amber",
+    "sapphire",
+  ].map((name) => GLASS_TINT_PRESETS.find((p) => p.value === name)!.h);
+
+  it("leans the sky toward the colour only as far as the hues agree, by day and by night", () => {
+    // A flat 28% turned amber's day sky teal; at night the sky WAS the colour, brown for amber.
+    for (const [selector, base, max] of [
+      [
+        DAY,
+        240,
+        28,
+      ],
+      [
+        NIGHT,
+        250,
+        100,
+      ],
+    ] as const) {
+      const bg = decl(selector, "--sf-bg")!;
+      const m = bg.match(
+        /^color-mix\( in oklch, oklch\([\d.]+ [\d.]+ (\d+)\), oklch\([\d.]+ [\d.]+ var\(--sf-h\)\) calc\((\d+)% \* max\(0, cos\(calc\(\(var\(--sf-h\) - (\d+)\) \* 1deg\)\)\)\) \)$/,
+      );
+      expect(m, `${selector} --sf-bg: ${bg}`).not.toBeNull();
+      const [, own, weight, gate] = m!.map(Number);
+      expect([
+        own,
+        gate,
+        weight,
+      ]).toEqual([
+        base,
+        base,
+        max,
+      ]);
+      const lean = (h: number) => weight * Math.max(0, Math.cos((h - base) * rad));
+      expect(lean(amber), `${selector}: amber keeps the blue`).toBe(0);
+      expect(lean(sapphire), `${selector}: sapphire tints it`).toBeGreaterThan(0.9 * max);
+    }
+    expect(decl(DAY, "--sf-h")).toBe("var(--accent-h, var(--glass-tint-h, 240))");
+  });
+
+  it("turns the second cloud toward red, from every preset's hue", () => {
+    // A fixed +40° took amber and citrine to olive; toward red, a warm theme's second cloud is red-orange.
+    const m = decl(DAY, "--sf-h2")!.match(/^calc\(var\(--sf-h\) \+ (\d+) \* sin\(calc\(\((\d+) - var\(--sf-h\)\) \* 1deg\)\)\)$/);
+    expect(m).not.toBeNull();
+    const [, k, red] = m!.map(Number);
+    // The target is a red (OKLCH puts red near 25), and the turn at most the old 40°.
+    expect(red).toBeGreaterThanOrEqual(10);
+    expect(red).toBeLessThanOrEqual(40);
+    expect(k).toBeLessThanOrEqual(40);
+    const h2 = (h: number) => h + k * Math.sin((red - h) * rad);
+    const gap = (h: number) => Math.abs(((((h - red) % 360) + 540) % 360) - 180);
+    for (const preset of GLASS_TINT_PRESETS) {
+      if (gap(preset.h) < 1 || gap(preset.h) > 179) continue; // already red, or exactly opposite
+      expect(gap(h2(preset.h)), `${preset.value} (h ${preset.h})`).toBeLessThan(gap(preset.h));
+    }
+    for (const selector of [
+      DAY,
+      NIGHT,
+    ]) {
+      expect(decl(selector, "--sf-nebula-1"), selector).toMatch(/ var\(--sf-h\) \/ 0\.(8|75)\)$/);
+      expect(decl(selector, "--sf-nebula-2"), selector).toMatch(/ var\(--sf-h2\) \/ 0\.(65|55)\)$/);
+    }
+  });
+});
+
+describe("synthwave and moonrise grid lines, in the chosen colour", () => {
+  // The scenes' rules, keyed by their selector list; comments stripped so their prose cannot match.
+  const css = renderToStaticMarkup(
+    <>
+      <PatternBackground style="synthwave" />
+      <PatternBackground style="moonrise" />
+    </>,
+  ).replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = new Map(
+    [
+      ...css.matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].map(([, selector, body]) => [
+      selector.replace(/\s+/g, " ").trim(),
+      body,
+    ]),
+  );
+  const decl = (selector: string, name: string) =>
+    rules
+      .get(selector)
+      ?.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1]
+      .trim();
+  const BOTH = '[data-pattern="synthwave"], [data-pattern="moonrise"]';
+  const FOLLOWING = [
+    // [the rule, the scene's own hue there]
+    [
+      '[data-pattern="synthwave"]',
+      355,
+    ],
+    [
+      '.dark [data-pattern="synthwave"]',
+      195,
+    ],
+    [
+      '[data-pattern="moonrise"]',
+      270,
+    ],
+  ] as const;
+  // What the user chose: these keep each scene's own colours, and every other preset is followed.
+  const PALE = new Set([
+    "selenite",
+    "onyx",
+    "moonstone",
+  ]);
+
+  it("draws the lines and the horizon glow at the accent's hue, else the tint's, else the scene's", () => {
+    expect(decl(BOTH, "--sw-hue")).toBe("calc(var(--sw-line-h) + (var(--glass-tint-h, 0) - var(--sw-line-h)) * var(--sw-follow))");
+    for (const [rule, own] of FOLLOWING) {
+      expect(decl(rule, "--sw-line-h"), rule).toBe(String(own));
+      expect(decl(rule, "--sw-line"), rule).toMatch(/var\(--accent-h, var\(--sw-hue\)\)\)$/);
+    }
+    expect(decl('[data-pattern="synthwave"]', "--sw-glow-core")).toMatch(/var\(--accent-h, var\(--sw-hue\)\)\)$/);
+    expect(decl('[data-pattern="moonrise"]', "--sw-glow-core")).toMatch(/var\(--accent-h, var\(--sw-hue\)\)\)$/);
+    expect(decl('.dark [data-pattern="synthwave"]', "--sw-glow-core")).toBe("var(--sw-line)");
+    // Moonrise's night keeps its violet: only the accent knob moves it.
+    expect(decl('.dark [data-pattern="moonrise"]', "--sw-line")).toMatch(/var\(--accent-h, var\(--sw-line-h\)\)\)$/);
+  });
+
+  it("follows every preset but the pale ones, which keep the scene's own colours", () => {
+    // The gate is a step on the tint's chroma; a preset between its edges would get a hue partway round
+    // from the scene's, so every preset must sit clear of it on the side the PALE set says.
+    const [, edge, gain] = decl(BOTH, "--sw-follow")!
+      .match(/^clamp\(0, \(var\(--glass-tint-c, 0\) - ([\d.]+)\) \* (\d+), 1\)$/)!
+      .map(Number);
+    const follow = (c: number) => Math.min(1, Math.max(0, (c - edge) * gain));
+    const hue = (own: number, h: number, c: number) => own + (h - own) * follow(c);
+    for (const [rule, own] of FOLLOWING) {
+      expect(hue(own, 250, 0.018), `the default tint (engine.css: h 250, c 0.018) in ${rule}`).toBe(own);
+      for (const preset of GLASS_TINT_PRESETS) {
+        expect(hue(own, preset.h, preset.c), `${preset.value} (c ${preset.c}) in ${rule}`).toBeCloseTo(PALE.has(preset.value) ? own : preset.h, 9);
+      }
     }
   });
 });
@@ -292,6 +818,37 @@ describe("forest treelines", () => {
  * mirrors, generated from the same ray tile, each with a lighter core. Night keeps the gradient mirror, so
  * both sets render and CSS shows one per mode.
  */
+describe("aurora rays", () => {
+  // Safari 27.2 paints a TILED background (background-size + repeat) under a skew without the skew when the
+  // skewed box has no layer of its own, and a still curtain has none: its rays stood straight up under its
+  // slanted outline and met their reflections askew at the waterline. A repeating gradient is drawn skewed.
+  const css = renderToStaticMarkup(<PatternBackground style="aurora" speed={0} />).replace(/\/\*[\s\S]*?\*\//g, "");
+  const rule = (selector: string) =>
+    [
+      ...css.matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].find(([, s]) => s.trim() === selector)?.[2] ?? "";
+
+  it("paints each curtain's rays as one repeating gradient, never a tile", () => {
+    const paint = rule(".au-paint");
+    expect(paint).toContain("background-image: var(--au-rays)");
+    expect(paint).not.toMatch(/background-(size|repeat)\s*:/);
+    for (const layer of [
+      "a",
+      "b",
+      "c",
+    ]) {
+      const rays =
+        rule(`.au-${layer}`)
+          .match(/--au-rays:\s*([^;]+);/)?.[1]
+          .trim() ?? "";
+      // One period per tile: held open at 0 and at the full tile width.
+      expect(rays, layer).toMatch(/^repeating-linear-gradient\(to right, transparent 0, /);
+      expect(rays, layer).toMatch(/, transparent var\(--au-tile\)\)$/);
+      expect(rays, layer).not.toMatch(/\d%/);
+    }
+  });
+});
+
 describe("aurora day reflection", () => {
   const markup = () => renderToStaticMarkup(<PatternBackground style="aurora" />);
   const streaks = (html: string) =>
@@ -326,6 +883,22 @@ describe("aurora day reflection", () => {
     }
   });
 
+  it("hides the other mode's mirror without stopping it, so a day/night switch keeps it in step", () => {
+    // display: none stops an element's animations and showing it restarts them from zero, so after a switch
+    // the reflection swayed out of step with the sky curtains it mirrors. Hidden, it keeps their clock.
+    const rules = [
+      ...markup()
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .matchAll(/([^{}<>]*)\{([^{}]*)\}/g),
+    ].filter(([, selector]) => selector.split(",").some((s) => /\.au-(flat|streaks)$/.test(s.trim())));
+    const gates = rules.filter(([, , body]) => /\b(display|visibility)\s*:/.test(body));
+    expect(gates.map(([, selector]) => selector.replace(/\s+/g, " ").trim())).toEqual([
+      '[data-pattern="aurora"] .au-flat, .dark [data-pattern="aurora"] .au-streaks',
+      '.dark [data-pattern="aurora"] .au-flat',
+    ]);
+    for (const [selector, , body] of gates) expect(body, selector.trim()).not.toMatch(/\bdisplay\s*:/);
+  });
+
   it("draws one straight streak and one core per ray, in the curtain's palette", () => {
     for (const [layer, svg] of Object.entries(streaks(markup()))) {
       const bodies = [
@@ -357,6 +930,66 @@ describe("aurora day reflection", () => {
  */
 describe("chase", () => {
   const html = renderToStaticMarkup(<PatternBackground style="chase" speed={0} />);
+
+  it("snaps the lanes to the pellet grid only where round() exists", () => {
+    // round() reached Chrome and Edge in 125, below the floor. Written inline inside a calc() with var()s it
+    // did not fall back: the property was left unset and every lane piled up at the top. The inline style
+    // carries the nominal place; the stylesheet puts the lane there and snaps it under @supports, and the
+    // snap must come AFTER the lane's own rule, or that rule's nominal place wins at equal specificity (the
+    // N–S lanes once stood 2px off their dot column that way).
+    const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? []).join("\n").replace(/\/\*[\s\S]*?\*\//g, "");
+    const lanes = [
+      ...html.matchAll(/class="pac-(v?)lane[^"]*" style="([^"]*)"/g),
+    ];
+    expect(lanes.length).toBeGreaterThan(0);
+    for (const [, vertical, style] of lanes) {
+      expect(style, style).toContain(vertical ? "--pac-left:" : "--pac-top:");
+      expect(style, style).not.toContain("round(");
+    }
+    // Each @supports block, as [start, end, body], by brace matching.
+    const supports: [
+      number,
+      number,
+      string,
+    ][] = [];
+    for (const m of css.matchAll(/@supports \(width: round\(1px, 2px\)\)\s*\{/g)) {
+      const from = m.index ?? 0;
+      let depth = 1;
+      let i = from + m[0].length;
+      for (; i < css.length && depth > 0; i++) {
+        if (css[i] === "{") depth++;
+        else if (css[i] === "}") depth--;
+      }
+      supports.push([
+        from,
+        i,
+        css.slice(from, i),
+      ]);
+    }
+    const guarded = (needle: RegExp) => supports.find(([, , body]) => needle.test(body));
+    for (const [rule, prop, nominal] of [
+      [
+        "pac-lane",
+        "top",
+        "--pac-top",
+      ],
+      [
+        "pac-vlane",
+        "left",
+        "--pac-left",
+      ],
+    ] as const) {
+      const base = css.search(new RegExp(`\\.${rule}\\s*\\{[^}]*\\b${prop}:\\s*var\\(${nominal}\\)`));
+      expect(base, `.${rule} places the lane at its nominal ${prop}`).toBeGreaterThanOrEqual(0);
+      const snap = guarded(new RegExp(`\\.${rule}\\s*\\{\\s*${prop}:\\s*calc\\(round\\(down, var\\(${nominal}\\)`));
+      expect(snap, `.${rule}'s snap sits under @supports`).toBeDefined();
+      expect(snap?.[0], `.${rule}'s snap comes after its rule`).toBeGreaterThan(base);
+    }
+    // No round() anywhere else in the scene's CSS.
+    let unguarded = css;
+    for (const [, , body] of supports) unguarded = unguarded.replace(body, "");
+    expect(unguarded).not.toContain("round(");
+  });
 
   it("paints every wake before any sprite", () => {
     const lastWake = Math.max(html.lastIndexOf('class="pac-wake-runner"'), html.lastIndexOf('class="pac-vwake-runner"'));

@@ -16,7 +16,7 @@ const parts = (value?: number) => {
 describe("Progress", () => {
   it("offsets the indicator by the remaining fraction", () => {
     expect(parts(66).indicator.style.transform).toBe("translateX(-34%)");
-    expect(parts(100).indicator.style.transform).toBe("translateX(-0%)");
+    expect(parts(100).indicator.style.transform).toBe("translateX(0%)");
   });
 
   it("treats a missing value as empty", () => {

@@ -3,35 +3,16 @@
 import { MagnifyingGlass as Search } from "@phosphor-icons/react";
 import Link from "next/link";
 import * as React from "react";
-import { ReadableText } from "@/components/readable-text";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MATERIALS } from "@/lib/material";
 import { type OklchColor, rampAxisColors } from "@/lib/oklch-utils";
-import { getComponents } from "@/lib/registry";
+import { getUiComponents, getUtilities } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 
-const components = getComponents();
-
-// New components that should show NEW badge
-const newComponents = new Set([
-  "spinner",
-  "button-group",
-  "input-group",
-  "empty-state",
-  "menu-bar",
-  "date-picker-input",
-  "context-menu",
-  "carousel",
-  "kbd",
-  "empty",
-  "progress",
-  "item",
-  "field",
-  "menubar",
-  "combobox",
-]);
+const components = getUiComponents();
+const utilities = getUtilities();
 
 // Semantic Button variants (behavior styles), shown side-by-side.
 const buttonVariantNames = [
@@ -43,14 +24,9 @@ const buttonVariantNames = [
   "link",
 ] as const;
 
-// The five materials, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
-const buttonMaterialNames = [
-  "glass",
-  "frosted",
-  "crystal",
-  "chakra",
-  "lucite",
-] as const;
+// Every material, rendered via the `material` prop — the gradient accent is its own axis (`gradient`).
+// From MATERIALS, so a new material shows here without an edit (Lustre was missing from a hand-kept list).
+const buttonMaterialNames = MATERIALS;
 
 // gradient fill strengths to compare — the engine's --gradient construction (--gradient-l/-c envelope,
 // --glass-fg-h + 63.53° sweep) at three alphas, so Medium (0.5) IS the accent token at every theme/mode,
@@ -79,14 +55,9 @@ const solidIntensities = [
   },
 ] as const;
 
-// The main glass surface types — the gradient gets overlaid on each, at each intensity.
-const glassTypes = [
-  "glass",
-  "frosted",
-  "crystal",
-  "chakra",
-  "lucite",
-] as const;
+// Every material — the gradient gets overlaid on each, at each intensity. From MATERIALS, as the button row
+// above is: the hand-kept list had left Lustre out.
+const glassTypes = MATERIALS;
 
 // The four ramp axes the gradient can follow — computed in JS from the real lib/oklch-utils ramps.
 const GRADIENT_AXES = [
@@ -177,11 +148,24 @@ export default function ComponentsPage() {
     p3,
   ]);
 
-  const filteredComponents = components.filter(
-    (component) =>
-      component.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      component.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      component.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+  const matches = (item: (typeof components)[number]) =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredComponents = components.filter(matches);
+  const filteredUtilities = utilities.filter(matches);
+  const card = (item: (typeof components)[number]) => (
+    <Link key={item.name} href={`/docs/components/${item.name}`} className="group">
+      <Card className="flex h-full flex-col transition-opacity hover:opacity-90">
+        <CardHeader>
+          <CardTitle className="mb-1 text-foreground">{item.title || item.name}</CardTitle>
+          <CardDescription className="text-muted-foreground">{item.description || "No description available"}</CardDescription>
+        </CardHeader>
+        <CardContent className="mt-auto">
+          <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">View &rarr;</span>
+        </CardContent>
+      </Card>
+    </Link>
   );
 
   return (
@@ -225,8 +209,8 @@ export default function ComponentsPage() {
           <CardHeader>
             <CardTitle className="text-foreground">Button materials</CardTitle>
             <CardDescription className="text-muted-foreground">
-              The five materials via the <code className="text-xs">material</code> prop, plus the <code className="text-xs">gradient</code> axis
-              layering the theme-aware brand gradient over the material.
+              Every material via the <code className="text-xs">material</code> prop, plus the <code className="text-xs">gradient</code> axis layering
+              the theme-aware brand gradient over the material.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -366,30 +350,17 @@ export default function ComponentsPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredComponents.map((component) => (
-            <Link key={component.name} href={`/docs/components/${component.name}`} className="group">
-              <Card className="flex h-full flex-col transition-opacity hover:opacity-90">
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-1">
-                    <CardTitle className="text-foreground">{component.title || component.name}</CardTitle>
-                    {newComponents.has(component.name) && (
-                      <Badge className="border-primary/40">
-                        <ReadableText accent="--primary">NEW</ReadableText>
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription className="text-muted-foreground">{component.description || "No description available"}</CardDescription>
-                </CardHeader>
-                <CardContent className="mt-auto">
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">View &rarr;</span>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{filteredComponents.map(card)}</div>
 
-        {filteredComponents.length === 0 && (
+        {filteredUtilities.length > 0 && (
+          <section className="mt-14">
+            <h2 className="mb-2 text-2xl font-semibold text-foreground">Utilities</h2>
+            <p className="mb-6 text-muted-foreground">Theme utilities and effects: readable text colour, backgrounds and gradient text.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{filteredUtilities.map(card)}</div>
+          </section>
+        )}
+
+        {filteredComponents.length === 0 && filteredUtilities.length === 0 && (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-lg">No components found matching your search.</p>
           </div>

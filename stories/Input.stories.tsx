@@ -1,6 +1,7 @@
 import { EnvelopeSimpleIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Input } from "@/components/ui/input";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Input",
@@ -21,10 +22,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

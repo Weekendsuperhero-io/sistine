@@ -3,37 +3,16 @@
 import { CaretRightIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReadableText } from "@/components/readable-text";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getComponents } from "@/lib/registry";
+import { getUiComponents, getUtilities } from "@/lib/registry";
 import { cn } from "@/lib/utils";
 
-const components = getComponents();
-
-// New components that should show NEW badge
-const newComponents = new Set([
-  "spinner",
-  "button-group",
-  "input-group",
-  "empty-state",
-  "menu-bar",
-  "date-picker-input",
-  "context-menu",
-  "carousel",
-  "kbd",
-  "empty",
-  "progress",
-  "item",
-  "field",
-  "menubar",
-  "combobox",
-]);
+const components = getUiComponents();
+const utilities = getUtilities();
 
 type NavItem = {
   title: string;
   href: string;
-  isNew?: boolean;
 };
 
 const docsNav = [
@@ -100,7 +79,14 @@ const docsNav = [
     items: components.map((comp) => ({
       title: comp.title || comp.name,
       href: `/docs/components/${comp.name}`,
-      isNew: newComponents.has(comp.name),
+    })) as NavItem[],
+  },
+  {
+    // Theme utilities and effects (AutoForeground, the backgrounds, …): in the registry, not UI components.
+    title: "Utilities",
+    items: utilities.map((item) => ({
+      title: item.title || item.name,
+      href: `/docs/components/${item.name}`,
     })) as NavItem[],
   },
 ];
@@ -131,11 +117,6 @@ export function DocsSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
                         >
                           {isActive && <CaretRightIcon className="h-4 w-4 text-foreground-ui" />}
                           <span className="truncate flex-1">{item.title}</span>
-                          {item.isNew === true && (
-                            <Badge className="border-primary/40 text-xs px-1.5 py-0.5">
-                              <ReadableText accent="--primary">NEW</ReadableText>
-                            </Badge>
-                          )}
                         </Link>
                       </li>
                     );

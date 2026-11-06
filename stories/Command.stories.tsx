@@ -10,6 +10,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Command",
@@ -30,10 +31,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

@@ -20,6 +20,10 @@
  *     stylesheet that declares an animation at all, so a new scene cannot honour one condition and not
  *     the other (the original bug).
  *
+ * And how a scene HIDES a disc: [disc-gates] pairs every --sw-sun-o / --sw-moon-o opacity gate with its
+ * --sw-*-d display twin, so the disc a mode hides leaves the render tree instead of staying an invisible
+ * promoted layer.
+ *
  * Run: node scripts/check-patterns.mjs   (wired into `bun run test`)
  */
 import { readFileSync } from "node:fs";
@@ -84,10 +88,35 @@ for (const st of sceneStyles) {
   }
 }
 
+/* [disc-gates] Each disc's opacity gate (--sw-sun-o / --sw-moon-o) has a display twin (--sw-sun-d /
+   --sw-moon-d) that takes the hidden disc out of the render tree: at opacity 0 it is still a promoted,
+   invisible layer. A palette block that declares either of a pair must declare both, and they must agree
+   (0 ↔ none, anything else ↔ block), or a mode shows a disc it means to hide, or hides one it shows. */
+let gatedBlocks = 0;
+for (const st of sceneStyles) {
+  /* Template placeholders out too: a declaration's `${tintCast(…)}` brings braces into the block, and split
+     there the block's gates went unseen (12 of the 24 at the time, and the check still passed). */
+  const body = st.body.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\$\{[^{}]*\}/g, "0");
+  for (const [, selector, decls] of body.matchAll(/([^{}]*)\{([^{}]*)\}/g)) {
+    for (const disc of ["sun", "moon"]) {
+      const o = decls.match(new RegExp(`--sw-${disc}-o:\\s*([^;]+);`))?.[1].trim();
+      const d = decls.match(new RegExp(`--sw-${disc}-d:\\s*([^;]+);`))?.[1].trim();
+      if (o === undefined && d === undefined) continue;
+      gatedBlocks++;
+      const where = `${st.name} ${selector.trim()}`;
+      if (o === undefined || d === undefined) {
+        fail.push(`[disc-gates] ${where} sets --sw-${disc}-${o === undefined ? "d" : "o"} without --sw-${disc}-${o === undefined ? "o" : "d"}`);
+      } else if ((Number(o) === 0) !== (d === "none")) {
+        fail.push(`[disc-gates] ${where}: --sw-${disc}-o: ${o} disagrees with --sw-${disc}-d: ${d}`);
+      }
+    }
+  }
+}
+
 if (fail.length > 0) {
   console.error(`✗ pattern registry drift:\n${fail.map((f) => `  ${f}`).join("\n")}`);
   process.exit(1);
 }
 console.log(
-  `✓ pattern lists in sync — ${array.length} styles (${animated.length} animated, each stopped by stopRules), ${densArray.length} densities; union == array`,
+  `✓ pattern lists in sync — ${array.length} styles (${animated.length} animated, each stopped by stopRules), ${densArray.length} densities; union == array; ${gatedBlocks} disc gates paired`,
 );

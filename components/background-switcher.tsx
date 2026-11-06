@@ -69,7 +69,9 @@ const SIZE_SHORT: Record<string, string> = {
   "closest-side": "c-side",
 };
 
-const segmentButton = "inline-flex h-7 items-center justify-center rounded-md transition-colors";
+/* 28px for a mouse, 36px for a finger: on a touch screen (pointer: coarse) every control grows, and the square
+   icon buttons (w-7 pointer-coarse:w-9) grow in width too, so a phone gets targets it can hit. */
+const segmentButton = "inline-flex h-7 pointer-coarse:h-9 items-center justify-center rounded-md transition-colors";
 const active = "bg-foreground/10 text-foreground";
 const idle = "text-muted-foreground hover:bg-foreground/5 hover:text-foreground";
 
@@ -95,7 +97,7 @@ function AxisPicker({
           aria-label={labelFor(axis)}
           aria-pressed={value === axis}
           onClick={() => onSelect(axis)}
-          className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", value === axis ? active : idle)}
+          className={cn(segmentButton, "w-7 pointer-coarse:w-9 text-[11px] font-semibold uppercase", value === axis ? active : idle)}
         >
           {axis[0]}
         </button>
@@ -158,7 +160,12 @@ export function BackgroundSwitcher() {
     <div
       role="group"
       aria-label="Background style"
-      className="hidden items-center gap-0.5 rounded-lg border border-[var(--glass-border)] p-0.5 sm:flex"
+      /* Shown at every width. It was `hidden sm:flex`, so on a phone the scene, speed and placement controls
+         did not exist, while the header still kept their row (a divider over an empty strip). At least the
+         row's width (min-w-full: the pill spans the row, as it always has), and as wide as its controls
+         (w-max) where those are wider: on a phone the header's row then scrolls sideways (overflow-x-auto)
+         with every control inside the pill, instead of squeezing them or spilling past its border. */
+      className="flex w-max min-w-full items-center gap-0.5 rounded-lg border border-[var(--glass-border)] p-0.5"
     >
       {options.map(({ value, label, Icon }) => (
         <button
@@ -168,7 +175,7 @@ export function BackgroundSwitcher() {
           aria-label={`${label} background`}
           aria-pressed={background === value}
           onClick={() => setBackground(value)}
-          className={cn(segmentButton, "w-7", background === value ? active : idle)}
+          className={cn(segmentButton, "w-7 pointer-coarse:w-9", background === value ? active : idle)}
         >
           <Icon className="h-4 w-4" weight={background === value ? "fill" : "regular"} />
         </button>
@@ -199,7 +206,7 @@ export function BackgroundSwitcher() {
               title={`Center: ${gradientPosition}`}
               aria-label={`Gradient center ${gradientPosition}`}
               onClick={cycleGradientPosition}
-              className={cn(segmentButton, "w-7 text-[13px]", idle)}
+              className={cn(segmentButton, "w-7 pointer-coarse:w-9 text-[13px]", idle)}
             >
               {POS_SYMBOL[gradientPosition] ?? "•"}
             </button>
@@ -300,7 +307,7 @@ export function BackgroundSwitcher() {
             title="Shuffle canvas"
             aria-label="Shuffle canvas style, ramp, and layout"
             onClick={shuffleCanvas}
-            className={cn(segmentButton, "w-7", idle)}
+            className={cn(segmentButton, "w-7 pointer-coarse:w-9", idle)}
           >
             <ShuffleIcon className="h-4 w-4" />
           </button>
@@ -310,7 +317,7 @@ export function BackgroundSwitcher() {
             aria-label={canvasAnimated ? "Pause canvas animation" : "Animate canvas"}
             aria-pressed={canvasAnimated}
             onClick={toggleCanvasAnimated}
-            className={cn(segmentButton, "w-7", canvasAnimated ? active : idle)}
+            className={cn(segmentButton, "w-7 pointer-coarse:w-9", canvasAnimated ? active : idle)}
           >
             {canvasAnimated ? <PauseIcon className="h-4 w-4" weight="fill" /> : <PlayIcon className="h-4 w-4" />}
           </button>
@@ -359,7 +366,7 @@ export function BackgroundSwitcher() {
               title={`Sun/moon placement: ${patternDisc} (click to change)`}
               aria-label={`Sun and moon placement ${patternDisc}, click to change`}
               onClick={cyclePatternDisc}
-              className={cn(segmentButton, "w-7 text-[11px] font-semibold uppercase", idle)}
+              className={cn(segmentButton, "w-7 pointer-coarse:w-9 text-[11px] font-semibold uppercase", idle)}
             >
               {patternDisc[0]}
             </button>

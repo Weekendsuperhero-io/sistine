@@ -105,11 +105,13 @@ export function CanvasBackground({
     if (animated && speed > 0) {
       let last = 0;
       const paint = (now: number) => {
-        frameRef.current = requestAnimationFrame(paint);
         // ~30fps cap — the gradient repaint / gooey blur are costly and the motion is slow.
-        if (now - last < 33) return;
-        last = now;
-        step(ctx, now / 1000);
+        if (now - last >= 33) {
+          last = now;
+          step(ctx, now / 1000);
+        }
+        // Scheduled after the draw, so a step that throws ends the loop rather than rethrowing every frame.
+        frameRef.current = requestAnimationFrame(paint);
       };
       frameRef.current = requestAnimationFrame(paint);
     } else {

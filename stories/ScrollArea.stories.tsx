@@ -63,7 +63,7 @@ export const WithContent: Story = {
       <h4 className="mb-4 text-sm font-medium leading-none">Sistine Documentation</h4>
       <div className="space-y-4 text-sm">
         <p>Sistine is a glassmorphic component library built on filtered light, with Next.js 16, React 19, and the shadcn-ui registry.</p>
-        <p>It provides 40+ glass components across five materials: glass, frosted, crystal, chakra, and opaque.</p>
+        <p>It provides 40+ glass components across six materials: glass, frosted, crystal, lustre, chakra, and lucite.</p>
         <Separator className="my-4" />
         <h5 className="font-medium">Features</h5>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">

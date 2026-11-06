@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputGroup } from "@/components/ui/input-group";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/InputGroup",
@@ -23,10 +24,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

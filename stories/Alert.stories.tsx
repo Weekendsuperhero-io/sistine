@@ -1,6 +1,7 @@
 import { CheckCircleIcon, Terminal, WarningCircleIcon, XCircle } from "@phosphor-icons/react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/Alert",
@@ -25,10 +26,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

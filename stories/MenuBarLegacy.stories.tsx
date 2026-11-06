@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MenuBar, MenuBarItem } from "@/components/ui/menu-bar";
+import { MATERIALS } from "@/lib/material";
 
 const meta = {
   title: "Sistine/MenuBarLegacy",
@@ -20,10 +21,7 @@ const meta = {
     material: {
       control: "select",
       options: [
-        "glass",
-        "frosted",
-        "crystal",
-        "lucite",
+        ...MATERIALS,
       ],
     },
     border: {

@@ -4,7 +4,8 @@ description: Install bun and the project dependencies (frozen lockfile).
 # Bun's version comes from .bun-version, as in refresh-registry.yml, so every workflow and every dev
 # machine runs the same one. It must be at least 1.4.3: `bun run typecheck` is `bun check`, new in 1.4.3.
 # Node is still installed because the theme checks run under `node --experimental-strip-types`,
-# which is what type-strips the .ts files they import.
+# which is what type-strips the .ts files they import. Its version comes from .node-version (26, the
+# active LTS, which @types/node describes) the same way, so CI and dev machines agree.
 runs:
   using: composite
   steps:
@@ -14,7 +15,7 @@ runs:
 
     - uses: actions/setup-node@v4
       with:
-        node-version: 22
+        node-version-file: .node-version
 
     - run: bun install --frozen-lockfile
       shell: bash

@@ -227,12 +227,17 @@ export default function ThemingPage() {
             <div>
               <h3 className="mb-2 font-semibold">Presets</h3>
               <p className="mb-2 text-muted-foreground">
-                <strong>Jewels</strong> (single hue): selenite, onyx, rose, goldstone, carnelian, amber, moonstone, peridot, aventurine, turquoise,
-                aquamarine, sapphire, lapis, amethyst, tourmaline.
+                <strong>Jewels</strong> (single hue): selenite, onyx, rose, goldstone, carnelian, amber, moonstone, citrine, peridot, aventurine,
+                turquoise, aquamarine, celestite, sapphire, sodalite, lapis, tanzanite, amethyst, tourmaline.
               </p>
               <p className="mb-2 text-muted-foreground">
                 <strong>Onyx</strong> keeps every material near-black with light text in both page modes. Set <IC>data-glass-tint="onyx"</IC> on the
                 page or a panel; pair it with <IC>material="lustre"</IC> for a polished silver reflection.
+              </p>
+              <p className="mb-2 text-muted-foreground">
+                <strong>Day/night pairs</strong> are not presets. The demo switcher's half-white, half-black swatch writes{" "}
+                <IC>data-glass-tint="selenite"</IC> in light mode and <IC>"onyx"</IC> in dark, and swaps them when the mode changes; set the attribute
+                from your own theme toggle to do the same.
               </p>
               <p className="mb-2 text-muted-foreground">
                 <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.

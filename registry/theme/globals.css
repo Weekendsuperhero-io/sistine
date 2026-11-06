@@ -1248,9 +1248,12 @@
     linear-gradient(calc(125deg * var(--glass-gloss-hue-dir, 1)), transparent 32%, oklch(var(--glass-lustre-ink) / 0.16) 48%, transparent 64%)
   );
   --glass-lustre-glow: var(--glass-gloss-glow-hue, radial-gradient(circle at 50% 120%, oklch(var(--glass-lustre-ink) / 0.2), transparent 70%));
+  /* The POLISH (highlights and fresco) apart from the pigment (tint wash and dense body): a filled control
+     wears only the polish over its own fill (--srf-fill-image), as its fill is the colour it must show. */
+  --glass-lustre-polish-bg: var(--glass-lustre-top), var(--glass-lustre-glow), var(--glass-lustre-streak), var(--glass-crystal-fresco, none);
   --glass-lustre-stack-bg:
-    var(--glass-lustre-top), var(--glass-lustre-glow), var(--glass-lustre-streak), var(--glass-crystal-fresco, none),
-    linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)), linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
+    var(--glass-lustre-polish-bg), linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)),
+    linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
   --glass-lustre-border: oklch(calc(var(--glass-lustre-edge-l) * 1%) min(var(--glass-tint-c), 0.085) var(--glass-tint-h) / 0.38);
   --glass-lustre-shadow:
     0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18),
@@ -1455,7 +1458,10 @@
    position:fixed descendants and no background-attachment:fixed; a transform/will-change would
    otherwise become their containing block and reparent them. Re-check that before adding children.
    will-change (rather than a translateZ hack) because the hint is honest here: this layer is on screen
-   and being sampled for the whole session, so there is nothing to hint OFF later. */
+   and being sampled for the whole session, so there is nothing to hint OFF later.
+   Only the page's OWN backdrop takes it. A preview of a scene (PatternBackground `preview`: a picker
+   swatch, a thumbnail) leaves it off: no sheer material blurs it, and a picker of a dozen miniatures
+   would otherwise be a dozen full layers. */
 @utility glass-backdrop-layer {
   will-change: transform;
 }
@@ -1576,7 +1582,7 @@
   }
 }
 /* ── Materials — [data-material] token sets + gloss flavors ───────────────────
-   Four materials, one attribute. Each block declares the FULL --srf-* pin set ON the element, so an
+   One block per material (MATERIALS in lib/material.ts), one attribute. Each block declares the FULL --srf-* pin set ON the element, so an
    explicit material always beats an inherited [data-glass] page remap (element-declared custom props
    beat inherited ones). One material per element is structural: attributes can't stack, so there is
    no !important anywhere in the system.
@@ -1592,6 +1598,7 @@
      PAGE remap can never leak its dropped layer into an explicit material. */
   --srf-solidify: initial;
   --srf-bg-image: var(--glass-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: transparent;
   /* Composed on the element, so the glass-sm/glass-lg axes still resolve here (same-element
      setter/reader is safe — the composition gotcha only bites pre-composed inherited values). */
@@ -1609,6 +1616,7 @@
      PAGE remap can never leak its dropped layer into an explicit material. */
   --srf-solidify: initial;
   --srf-bg-image: var(--frosted-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-frosted), var(--dif, 0px))) saturate(200%);
   --srf-border-color: var(--glass-frosted-border);
@@ -1626,6 +1634,7 @@
      PAGE remap can never leak its dropped layer into an explicit material. */
   --srf-solidify: initial;
   --srf-bg-image: var(--crystal-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
@@ -1651,6 +1660,7 @@
 [data-material="lustre"] {
   --srf-solidify: initial;
   --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-fill-image: var(--glass-lustre-polish-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
   --srf-border-color: var(--glass-lustre-border);
@@ -1685,6 +1695,7 @@
      PAGE remap can never leak its dropped layer into an explicit material. */
   --srf-solidify: initial;
   --srf-bg-image: var(--glass-chakra-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
   --srf-border-color: var(--glass-chakra-border);
@@ -1742,6 +1753,7 @@
      entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
      codes, so it rasterises without the dither the sheet was dropped for. */
   --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   /* The material's own edge. A page outline (--glass-outline / -w) overrides it in `glass`'s --srf-edge,
@@ -1826,6 +1838,7 @@
    when it also applies glass-veil). Everything ABOVE is inherited tokens and needs no marker. */
 :where([data-glass="frosted"], [data-glass="frosted"] [data-glass-tint], [data-glass="frosted"][data-glass-tint]) {
   --srf-bg-image: var(--frosted-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
      as the frosted material — a color-channel copy double-washed tinted presets and stole the veil
      floor's channel. */
@@ -1838,6 +1851,7 @@
   /* Gloss rides inside --crystal-stack-bg (baked — sticky/fixed-safe). Shimmer stays the opt-in
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-crystal-bg);
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
@@ -1854,6 +1868,7 @@
 }
 :where([data-glass="lustre"], [data-glass="lustre"] [data-glass-tint], [data-glass="lustre"][data-glass-tint]) {
   --srf-bg-image: var(--glass-lustre-stack-bg);
+  --srf-fill-image: var(--glass-lustre-polish-bg);
   --srf-bg-color: transparent;
   --srf-filter: blur(max(var(--blur-lustre), var(--dif, 0px)));
   --srf-border-color: var(--glass-lustre-border);
@@ -1878,6 +1893,7 @@
    follows each surface's own border-radius with nothing to keep in sync. */
 :where([data-glass="chakra"], [data-glass="chakra"] [data-glass-tint], [data-glass="chakra"][data-glass-tint]) {
   --srf-bg-image: var(--glass-chakra-stack-bg);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-chakra-bg);
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
   --srf-border-color: var(--glass-chakra-border);
@@ -1906,6 +1922,7 @@
      makes opaque the glass stack at full opacity rather than a greyer cousin of it, and the sheet stays
      out because with --srf-filter: none nothing masks the dither of its 2–7 code gradient. */
   --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+  --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
@@ -2057,6 +2074,15 @@
   --foreground-ui-lustre: oklch(0.86 0 0);
   --muted-foreground-lustre: oklch(0.9 0 0);
 }
+[data-glass-tint="celestite"] {
+  /* Celestite — pale sky blue, the widest gap on the glass (aquamarine h215 → sapphire h255, 19.6 apart
+     as washes). h235's sRGB chroma peaks at L74, between aquamarine's L82 and sapphire's L62. */
+  --glass-tint-h: 235;
+  --glass-tint-c: 0.064;
+  --glass-tint-a: 0.2;
+  --glass-wash-l: 74%;
+  --glass-opaque-c-max: 0.065;
+}
 [data-glass-tint="sapphire"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
@@ -2070,6 +2096,15 @@
   --glass-tint-a: 0.54;
   --glass-wash-l: 88%;
   --glass-opaque-c-max: 0.195;
+}
+[data-glass-tint="tanzanite"] {
+  /* Tanzanite — blue-violet, between lapis (h268, L46) and amethyst (h300, L55). h284's sRGB chroma peaks
+     at L50, so its wash lands on the step between them, and the picker's last row of jewels fills. */
+  --glass-tint-h: 284;
+  --glass-tint-c: 0.093;
+  --glass-tint-a: 0.1;
+  --glass-wash-l: 50%;
+  --glass-opaque-c-max: 0.057;
 }
 [data-glass-tint="amethyst"] {
   --glass-tint-h: 300;
@@ -2099,6 +2134,17 @@
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.062;
 }
+[data-glass-tint="citrine"] {
+  /* Citrine — true yellow, the gap between amber (h75) and peridot (h128). Yellow's sRGB chroma peaks
+     LIGHT (L91 at h100, against amber's L80), so it washes like peridot: a pale wash near the light
+     floor, which takes high alpha by day and little at night. Its chroma is bound by the DARK end
+     instead: the dark opaque floor asks c × 0.98 at L33.4, where h100's sRGB ceiling is 0.0676. */
+  --glass-tint-h: 100;
+  --glass-tint-c: 0.066;
+  --glass-tint-a: 0.54;
+  --glass-wash-l: 91%;
+  --glass-opaque-c-max: 0.173;
+}
 [data-glass-tint="peridot"] {
   --glass-tint-h: 128;
   --glass-tint-c: 0.083;
@@ -2126,6 +2172,15 @@
   --glass-tint-a: 0.18;
   --glass-wash-l: 67%;
   --glass-opaque-c-max: 0.079;
+}
+[data-glass-tint="sodalite"] {
+  /* Sodalite — royal blue, between sapphire (h255, L62) and lapis (h268, L46): only 13° of hue apart but
+     17.1 as washes, almost all of it lightness. h262 peaks at L54, so it lands on the step between them. */
+  --glass-tint-h: 262;
+  --glass-tint-c: 0.08;
+  --glass-tint-a: 0.11;
+  --glass-wash-l: 54%;
+  --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="lapis"] {
   /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
@@ -2185,6 +2240,10 @@
 .dark [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
 }
+.dark[data-glass-tint="citrine"],
+.dark [data-glass-tint="citrine"] {
+  --glass-tint-a: 0.2;
+}
 .dark[data-glass-tint="peridot"],
 .dark [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
@@ -2205,8 +2264,20 @@
 .dark [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
 }
+.dark[data-glass-tint="celestite"],
+.dark [data-glass-tint="celestite"] {
+  --glass-tint-a: 0.3;
+}
+.dark[data-glass-tint="sodalite"],
+.dark [data-glass-tint="sodalite"] {
+  --glass-tint-a: 0.54;
+}
 .dark[data-glass-tint="lapis"],
 .dark [data-glass-tint="lapis"] {
+  --glass-tint-a: 0.54;
+}
+.dark[data-glass-tint="tanzanite"],
+.dark [data-glass-tint="tanzanite"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="amethyst"],

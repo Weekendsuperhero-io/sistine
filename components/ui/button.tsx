@@ -6,7 +6,7 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 
 /* SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
-   the material system (materialSurface below). The five materials + axes are the material/border/veil/
+   the material system (materialSurface below). The materials (lib/material.ts) + axes are the material/border/veil/
    gradient/glow/sheen props, not variants. */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
@@ -26,9 +26,13 @@ const buttonVariants = cva(
            room. Measured worst there was Lc 55.5 with text-foreground and no better with any other
            tier or alpha, against an ARC Bronze body floor of 60.
            It deliberately does NOT take the `glass` utility: that utility writes background-color, which
-           would override bg-primary and leave the fill fighting it for nothing. */
+           would override bg-primary and leave the fill fighting it for nothing.
+           Over the fill it wears --srf-fill-image, not the full --srf-bg-image: every material pins both,
+           and they are the same but for LUSTRE, whose dense pigmented body (and tint wash) covered the
+           fill, so the label, solved for --primary, sat on lustre's own floor instead: white on its
+           near-white day body, near-black on its dark night body. Lustre's fill image is its polish alone. */
         default:
-          "bg-primary text-primary-foreground [background-image:var(--srf-bg-image,var(--glass-stack-bg))] shadow-[var(--srf-shadow,var(--glass-shadow))] hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
+          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow))] hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
           "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
