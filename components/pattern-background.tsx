@@ -4850,7 +4850,7 @@ ${stopRules(
 )}`;
 
 /** The geometric tiles' size at scale 1, in px: the grid's cell and the dots' spacing. Exported so a
- *  preview can size its tiles from the same numbers the wallpaper uses (Agent Muse's PatternSwatch). */
+ *  preview can size its tiles from the same numbers the wallpaper uses (HERO's PatternSwatch). */
 export const GEOMETRIC_TILE = {
   grid: 44,
   dots: 24,
