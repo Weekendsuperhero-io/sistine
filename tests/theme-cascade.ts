@@ -271,15 +271,23 @@ export function numberOf(name: string, chain: ModelElement[]): number {
 }
 
 /**
+ * A theme token selector: :root / .dark / [data-glass-tint…] / [data-gloss…], alone, compounded, or as a
+ * descendant. A compound is a run of those tokens, and compounds are separated by required whitespace, so
+ * every selector has exactly one way to match. The earlier form put an optional space inside two nested
+ * repeats, `(?:(?:…)+\s*)+`, which backtracks exponentially on a long run of tokens (code scanning).
+ */
+const SCOPE_TOKEN = String.raw`(?::root|\.dark|\[data-glass-tint(?:="[a-z-]*")?\]|\[data-gloss(?:="[a-z-]*")?\])`;
+export const SCOPE_SELECTOR = new RegExp(String.raw`^${SCOPE_TOKEN}+(?:\s+${SCOPE_TOKEN}+)*\s*$`);
+
+/**
  * The theme's token rules as plain CSS, for a jsdom <style>: every top-level rule whose selectors are all
  * :root / .dark / [data-glass-tint…] / [data-gloss…] (alone, compounded, or as a descendant), in source
  * order. jsdom cascades these onto <html>, so a component that reads leaf knobs through getComputedStyle
  * (AutoForeground) sees the shipped values for a preset and a mode rather than a hand-copied fixture.
  */
 export function themeTokenCss(): string {
-  const SCOPE = /^(?:(?::root|\.dark|\[data-glass-tint(?:="[a-z-]*")?\]|\[data-gloss(?:="[a-z-]*")?\])+\s*)+$/;
   return rules()
-    .filter((r) => r.selectors.every((s) => SCOPE.test(s)))
+    .filter((r) => r.selectors.every((s) => SCOPE_SELECTOR.test(s)))
     .map((r) => `${r.selectors.join(",\n")} {\n${r.decls.map((d) => `  ${d.name}: ${d.value};`).join("\n")}\n}`)
     .join("\n");
 }

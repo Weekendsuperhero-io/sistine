@@ -23,7 +23,16 @@ import { browserslistToTargets, transform } from "lightningcss";
 import { describe, expect, it } from "vitest";
 import { maxSrgbChroma, NIGHT_WASH_CAP, nightWashCap } from "@/lib/oklch-utils";
 import { evaluate } from "../scripts/lib/css-math.mjs";
-import { colorOf, computedVars as computedVarsOf, html, type ModelElement, numberOf, presetNames, type ResolvedOklch } from "./theme-cascade";
+import {
+  colorOf,
+  computedVars as computedVarsOf,
+  html,
+  type ModelElement,
+  numberOf,
+  presetNames,
+  type ResolvedOklch,
+  SCOPE_SELECTOR,
+} from "./theme-cascade";
 
 const SNAPSHOT = "tests/fixtures/deep-night-day.json";
 const NIGHT_DEPTH = 35;
@@ -381,5 +390,49 @@ describe("deep night: the night role tokens", () => {
     ];
     expect(colorOf(TOKENS.border, lapisInOnyx).l).toBeCloseTo(38, 6);
     expect(colorOf(TOKENS.input, lapisInOnyx).l).toBeCloseTo(30, 6);
+  });
+});
+
+describe("the token-selector pattern the cascade helper filters with", () => {
+  it("matches the selector shapes the theme uses, and nothing else", () => {
+    for (const s of [
+      ":root",
+      ".dark",
+      '[data-glass-tint="lapis"]',
+      "[data-glass-tint]",
+      '[data-gloss="hue"]',
+      ".dark [data-glass-tint]",
+      '.dark[data-glass-tint="onyx"]',
+      ':root .dark [data-glass-tint="lapis"][data-gloss="hue"] ',
+    ]) {
+      expect(SCOPE_SELECTOR.test(s), s).toBe(true);
+    }
+    for (const s of [
+      " :root",
+      ".dark > [data-glass-tint]",
+      "html",
+      '[data-glass-tint="Lapis"]',
+      ".darker",
+      "",
+    ]) {
+      expect(SCOPE_SELECTOR.test(s), s).toBe(false);
+    }
+  });
+
+  // The four inputs code scanning named for the earlier nested-repeat form: a run of one token that then
+  // fails to match. The earlier form took about 1 s on 26 tokens (4x per two more), so 26 is enough to fail
+  // it here rather than hang; a pattern with one way to match answers in microseconds.
+  it("rejects a long run of tokens that fails at the end without backtracking", () => {
+    for (const run of [
+      ":root",
+      ".dark",
+      '[data-glass-tint="a"]',
+      '[data-gloss="a"]',
+    ]) {
+      const input = `${run.repeat(26)}!`;
+      const start = performance.now();
+      expect(SCOPE_SELECTOR.test(input)).toBe(false);
+      expect(performance.now() - start).toBeLessThan(50);
+    }
   });
 });
