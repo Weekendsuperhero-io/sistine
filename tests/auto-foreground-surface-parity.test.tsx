@@ -23,7 +23,18 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, compositeSurface, glassSolidSurface, nightWashCap, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import {
+  apcaContrast,
+  compositeSurface,
+  dayBackingCap,
+  dayGlossCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
+  glassSolidSurface,
+  nightWashCap,
+  type OklchColor,
+  parseOklch,
+} from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -45,8 +56,7 @@ const lcOn = (token: string, surface: OklchColor) => Math.abs(apcaContrast(fg(to
 const H = 255;
 /* A REAL tint, set inline the way a preset does. These used to be left at jsdom's 0 fallback, which made
    every layer achromatic and silently skipped the whole cap system: --glass-tint-c-hi on the crystal
-   floor, the derived --glass-solidify-c-max, --glass-chakra-c-max, and the gloss ink's own
-   --glass-gloss-c-max. Those caps are the part most likely to drift, since each is a different formula
+   floor, --glass-solidify-c-max, --glass-chakra-c-max, and the gloss ink's own --glass-gloss-c-max. Those caps are the part most likely to drift, since each is a different formula
    over the same tint chroma. 0.09 exceeds every light cap, so all four of them bind. */
 const TINT_C = 0.09;
 const TINT_A = 0.15;
@@ -68,12 +78,13 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
      because they genuinely differ: opaque SCALES then caps, chakra caps the raw chroma, crystal uses the
      near-white -c-hi budget, and the gloss multiplies by --glass-gloss-tint before its own cap. */
   const opaqueC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.55);
-  // --glass-solidify-c-max: the opaque cap × 0.65 in light, pinned back to the opaque cap in dark.
-  const solidifyC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.65);
+  /* The backing: by day its own scale (×1.36) under a cap that follows the hue (92% of the L92 ceiling);
+     at night the opaque floor's scale and cap. */
+  const solidifyC = Math.min(TINT_C * (dark ? 0.98 : GLASS_SOLIDIFY_C_SCALE_DAY), dark ? 0.12 : dayBackingCap(h));
   const tintCHi = Math.min(TINT_C, 0.017); // --glass-tint-c-hi
-  const glossC = Math.min(TINT_C * 4.25, dark ? 0.057 : 0.013); // --glass-gloss-tint × cap (the L35 ceiling at night)
-  // The wash chroma cap: at night the L35 sRGB ceiling for the wash's own hue (tokens.css); nothing by day.
-  const washC = Math.min(TINT_C * 2.5, dark ? nightWashCap(h) : 0.4);
+  const glossC = Math.min(TINT_C * 4.25, dark ? 0.057 : dayGlossCap(h)); // --glass-gloss-tint × cap (the L35 ceiling at night, 95% of the hue's L97 one by day)
+  // The wash chroma cap, which follows the wash's own hue: 99.5% of the L35 ceiling at night, 95% of the L72 one by day.
+  const washC = Math.min(TINT_C * 2.5, dark ? nightWashCap(h) : dayWashCap(h));
   const chakraC = Math.min(TINT_C, dark ? 0.046 : 0.055); // --glass-chakra-c-max
   /* The backing under SHEER glass is --glass-solidify-l, its own value in both modes (92 light, 36.4
      dark), split from the opaque card floor. */
@@ -115,7 +126,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       2.5,
       solidify,
       dark ? 18 : 99,
-      dark ? nightWashCap(h) : 0.4,
+      dark ? nightWashCap(h) : dayWashCap(h),
     ),
     // The opaque card: its floor under the same tint wash every material carries (materials.css).
     "-opaque": compositeSurface(

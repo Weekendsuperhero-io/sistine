@@ -257,7 +257,17 @@ export default function ThemingPage() {
                 <IC>--glass-wash-c-max</IC>, a function of the hue each tint scope evaluates), so every preset and custom colour keeps its hue and
                 nothing clips. The role tokens drawn against glass are re-placed against the deep floor: the edges (<IC>--border</IC>,{" "}
                 <IC>--input</IC>) and the focus ring are lit lines, the hover and secondary fills lift visibly above the surface, and the muted fill,
-                which carries body text, recesses under it, with the text on them still at its floor. Day and light mode are unchanged.
+                which carries body text, recesses under it, with the text on them still at its floor. Deep night moves nothing by day.
+              </p>
+            </div>
+            <div>
+              <h3 className="mb-2 font-semibold">Day follows the hue</h3>
+              <p className="text-muted-foreground">
+                By day the backing under sheer glass, the tonal crystal gloss and the tint wash each take a share of their own hue&apos;s sRGB ceiling
+                (92% at L92, 95% at L97, 95% at L72), rather than one flat cap sized for the tightest hue: <IC>--glass-solidify-c-max</IC>,{" "}
+                <IC>--glass-gloss-c-max</IC> and <IC>--glass-wash-c-max</IC>, functions of the hue each tint scope evaluates. On green, yellow and
+                teal themes, the status tints and the frescoes the gloss carries 1.7–5× the colour and the backing up to 3.3×, and a custom
+                colour&apos;s wash no longer clips. Body text keeps its floor on every preset, moonstone keeps its cream, and night is unchanged.
               </p>
             </div>
             <div>

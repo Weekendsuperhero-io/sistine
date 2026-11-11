@@ -210,7 +210,15 @@ export function computedVars(chain: ModelElement[]): Map<string, string> {
     });
   }
   const own = new Map(inherited);
-  for (const [name, w] of winners) own.set(name, w.value);
+  for (const [name, w] of winners) {
+    /* `inherit` takes the parent's computed value (already substituted); with no parent value the
+       property is unset, as a custom property's initial value is. */
+    if (w.value.trim() === "inherit") {
+      const parent = inherited.get(name);
+      if (parent === undefined) own.delete(name);
+      else own.set(name, parent);
+    } else own.set(name, w.value);
+  }
   const out = new Map<string, string>();
   for (const [name, raw] of own) {
     try {

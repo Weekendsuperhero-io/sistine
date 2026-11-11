@@ -1,7 +1,16 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, compositeSurface, LC_MARGIN, parseOklch } from "@/lib/oklch-utils";
+import {
+  apcaContrast,
+  compositeSurface,
+  dayBackingCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
+  LC_MARGIN,
+  nightWashCap,
+  parseOklch,
+} from "@/lib/oklch-utils";
 
 afterEach(() => {
   cleanup();
@@ -36,7 +45,7 @@ describe("Lustre tint-wash foregrounds", () => {
         [
           {
             l: dark ? 36.4 : 92,
-            c: Math.min(0.09 * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.65),
+            c: Math.min(0.09 * (dark ? 0.98 : GLASS_SOLIDIFY_C_SCALE_DAY), dark ? 0.12 : dayBackingCap(255)),
             h: 255,
             a: 0.7,
           },
@@ -48,7 +57,7 @@ describe("Lustre tint-wash foregrounds", () => {
           },
           {
             l: dark ? 58 : 72,
-            c: 0.09 * 2.5,
+            c: Math.min(0.09 * 2.5, dark ? nightWashCap(255) : dayWashCap(255)),
             h: 255,
             a: washA,
           },

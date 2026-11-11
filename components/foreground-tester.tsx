@@ -8,10 +8,12 @@ import { Slider } from "@/components/ui/slider";
 import {
   apcaContrast,
   boostBand,
+  dayBackingCap,
+  dayWashCap,
   deepen,
   foregroundRamp,
   formatOklch,
-  GLASS_WASH_C_MAX_DAY,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   glassSolidSurface,
   HARMONIC_NAMES,
   type HarmonicName,
@@ -193,6 +195,8 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       // Deep night: the wash paints at the darker of its own lightness and --glass-night-depth, under its
       // own chroma cap, exactly as AutoForeground models it.
       const nightDepth = num("--glass-night-depth", isDark ? 35 : 100);
+      // The surface hue the hue-following caps are evaluated at, as tokens.css evaluates them.
+      const surfaceH = num("--glass-tint-h", 255);
       setEnv({
         h: num("--glass-fg-h", num("--glass-tint-h", 255)),
         c: tintC,
@@ -201,11 +205,11 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         onyx: root.dataset.glassTint === "onyx",
         washL: deepen(num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72), nightDepth),
         washCMult: num("--glass-wash-c-mult", moonstone && isDark ? 2 : 2.5),
-        washCMax: num("--glass-wash-c-max", isDark ? nightWashCap(num("--glass-tint-h", 255)) : GLASS_WASH_C_MAX_DAY),
+        washCMax: num("--glass-wash-c-max", isDark ? nightWashCap(surfaceH) : dayWashCap(surfaceH)),
         solidifyL: num("--glass-solidify-l", isDark ? 36.4 : 92),
         solidifyC: Math.min(
-          tintC * num("--glass-opaque-c-scale", isDark ? 0.98 : 0.85),
-          num("--glass-solidify-c-max", isDark ? opaqueCMax : opaqueCMax * 0.65),
+          tintC * num("--glass-solidify-c-scale", isDark ? num("--glass-opaque-c-scale", 0.98) : GLASS_SOLIDIFY_C_SCALE_DAY),
+          num("--glass-solidify-c-max", isDark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(surfaceH)),
         ),
         glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
         pageSolidA: Math.min(Math.max(num("--glass-solid-a", 0.65), 0), 1),

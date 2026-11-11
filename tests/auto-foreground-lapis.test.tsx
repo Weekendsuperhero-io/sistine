@@ -23,6 +23,8 @@ import { AutoForeground, FG_EVENT } from "@/components/auto-foreground";
 import {
   apcaContrast,
   compositeSurface,
+  dayBackingCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   glassSolidSurface,
   nightWashCap,
   type OklchColor,
@@ -34,18 +36,20 @@ import {
 } from "@/lib/oklch-utils";
 import { colorOf, html, numberOf, themeTokenCss } from "./theme-cascade";
 
-/* presets.css, [data-glass-tint="lapis"] (light). */
+/* presets.css, [data-glass-tint="lapis"] (light), its own day wash cap included (the browser hands the
+   pin back as a number, so AutoForeground reads it live). */
 const LAPIS = {
   h: 268,
   c: 0.085,
   a: 0.13,
   washL: 46,
+  washCMax: 0.2829,
   opaqueCMax: 0.055,
 };
-/* tokens.css :root: the solid floor alpha, the solidify floor's chroma scale and its derived cap. */
+/* tokens.css: the solid floor alpha, and the backing's day chroma scale and hue-following cap. */
 const SOLID_A = 0.65;
-const OPAQUE_C_SCALE = 0.85;
-const SOLIDIFY_C_MAX = LAPIS.opaqueCMax * 0.65;
+const SOLIDIFY_C_SCALE = GLASS_SOLIDIFY_C_SCALE_DAY;
+const SOLIDIFY_C_MAX = dayBackingCap(LAPIS.h);
 /* check-contrast's [margin]: the floor plus 1.5 Lc of slack. */
 const BODY_WITH_MARGIN = READABLE_USAGE.body.floor + 1.5;
 
@@ -66,9 +70,11 @@ function lapisSurface(solidifyL: number, opacity: number): OklchColor {
     2.5,
     {
       l: solidifyL,
-      c: Math.min(LAPIS.c * OPAQUE_C_SCALE, SOLIDIFY_C_MAX),
+      c: Math.min(LAPIS.c * SOLIDIFY_C_SCALE, SOLIDIFY_C_MAX),
       a: opacity,
     },
+    99,
+    LAPIS.washCMax,
   );
 }
 
@@ -78,6 +84,7 @@ async function mountLapis(opts: { solidifyL?: number; opacity?: number } = {}) {
   s.setProperty("--glass-tint-c", String(LAPIS.c));
   s.setProperty("--glass-tint-a", String(LAPIS.a));
   s.setProperty("--glass-wash-l", `${LAPIS.washL}%`);
+  s.setProperty("--glass-wash-c-max", String(LAPIS.washCMax));
   s.setProperty("--glass-opaque-c-max", String(LAPIS.opaqueCMax));
   if (opts.solidifyL !== undefined) s.setProperty("--glass-solidify-l", String(opts.solidifyL));
   if (opts.opacity !== undefined) s.setProperty("--glass-opacity", String(opts.opacity));

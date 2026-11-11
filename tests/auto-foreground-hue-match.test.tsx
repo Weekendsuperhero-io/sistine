@@ -19,7 +19,16 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { compositeSurface, glassSolidSurface, nightWashCap, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import {
+  compositeSurface,
+  dayBackingCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
+  glassSolidSurface,
+  nightWashCap,
+  type OklchColor,
+  parseOklch,
+} from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -48,10 +57,10 @@ const normalSurface = (h: number) =>
     72,
     2.5,
     {
-      // The SOLIDIFY floor (--glass-solidify-l / -c-max), not the opaque one — the backing under sheer
-      // glass is its own surface. Light lifts it to 92 with the cap derived as opaque-c-max × 0.65.
+      // The SOLIDIFY floor (--glass-solidify-l / -c-scale / -c-max), not the opaque one — the backing under
+      // sheer glass is its own surface. Light lifts it to 92, at ×1.36 under a cap that follows the hue.
       l: 92,
-      c: Math.min(TINT_C * 0.85, 0.055 * 0.65),
+      c: Math.min(TINT_C * GLASS_SOLIDIFY_C_SCALE_DAY, dayBackingCap(h)),
       a: 0.7,
     },
   );
@@ -67,7 +76,7 @@ const opaqueSurface = (h: number) =>
     [
       {
         l: 72,
-        c: TINT_C * 2.5,
+        c: Math.min(TINT_C * 2.5, dayWashCap(h)),
         h,
         a: TINT_A,
       },

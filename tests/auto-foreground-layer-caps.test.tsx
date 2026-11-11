@@ -6,11 +6,14 @@
  *   - crystal floor  `--glass-tint-c-hi × 0.6`  — the NEAR-WHITE budget, min(tint-c, 0.017)
  *   - gloss ink      `min(tint-c × --glass-gloss-tint, --glass-gloss-c-max)`  — multiply THEN cap
  *   - chakra body    `min(tint-c, --glass-chakra-c-max)`  — cap the raw chroma, no multiplier
- *   - solidify floor `min(tint-c × --glass-opaque-c-scale, --glass-solidify-c-max)` — scale THEN cap
+ *   - solidify floor `min(tint-c × --glass-solidify-c-scale, --glass-solidify-c-max)` — scale THEN cap
+ * By day the gloss and the solidify caps follow the hue (95% of the L97 ceiling, 92% of the L92 one), and
+ * so does the wash's (95% of the L72 ceiling): lib/oklch-utils' dayGlossCap / dayBackingCap / dayWashCap.
  * The surface-parity suite cannot see any of them: it asserts Lc SPREAD across surfaces, and a cap
  * regression moves every surface together by far less than that threshold.
  *
- * What each cap is actually worth on the composited surface (measured, tint-c 0.09, light):
+ * What each cap is actually worth on the composited surface (measured, tint-c 0.09, light, under the flat
+ * 0.013 gloss cap the hue-following one replaced; h255's is 0.0132, so the picture is the same):
  *   gloss    capped 0.013 vs uncapped 0.3825  →  L90.50 → L87.03, chroma 0.0425 → 0.0794   (large)
  *   crystal  capped 0.0102 vs uncapped 0.054  →  L90.50 → L90.46                          (diluted)
  *   chakra   capped 0.055  vs uncapped 0.09   →  L89.57 → L89.47                          (diluted)
@@ -24,7 +27,17 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, compositeSurface, LC_MARGIN, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import {
+  apcaContrast,
+  compositeSurface,
+  dayBackingCap,
+  dayGlossCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
+  LC_MARGIN,
+  type OklchColor,
+  parseOklch,
+} from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -48,19 +61,19 @@ const stacks = (opacity: number) => {
   };
   const solidify = {
     l: 92,
-    c: Math.min(TINT_C * 0.85, 0.055 * 0.65),
+    c: Math.min(TINT_C * GLASS_SOLIDIFY_C_SCALE_DAY, dayBackingCap(H)),
     h: H,
     a: opacity,
   };
   const wash = {
     l: 72,
-    c: TINT_C * 2.5,
+    c: Math.min(TINT_C * 2.5, dayWashCap(H)),
     h: H,
     a: TINT_A,
   };
   const gloss = {
     l: 97,
-    c: Math.min(TINT_C * 4.25, 0.013),
+    c: Math.min(TINT_C * 4.25, dayGlossCap(H)),
     h: H,
     a: 0.2,
   };
@@ -123,7 +136,7 @@ const chakraAim = (opacity: number) => aim((1 - 0.62) * (1 - TINT_A) * (1 - 0.2)
 
 describe("AutoForeground: sheer-layer chroma caps", () => {
   it("caps the GLOSS ink at --glass-gloss-c-max, not tint-c × --glass-gloss-tint", async () => {
-    /* The cap that matters: 0.09 × 4.25 = 0.3825 asked against a 0.013 ceiling, so leaving it off makes
+    /* The cap that matters: 0.09 × 4.25 = 0.3825 asked against a 0.0132 ceiling, so leaving it off makes
        the gloss ~29× too colourful and drags the crystal surface 3.5 L darker. Banding against that wrong
        surface moves the emitted ink far past this tolerance. */
     await mount();
