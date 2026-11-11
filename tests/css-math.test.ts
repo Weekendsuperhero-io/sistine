@@ -89,6 +89,29 @@ describe("css-math: compile agrees with evaluate", () => {
       ).toEqual(outcome(() => evaluate(expr.replaceAll("HUE", String(h))), false));
   });
 
+  it("evaluates a call that recurs verbatim once per evaluation, and never carries it to the next", () => {
+    const expr = "calc(sin(HUE * 1deg) + sin(HUE * 1deg) * 2 - max(HUE, 3) + max(HUE, 3) * min(sin(HUE * 1deg), 0.5))";
+    const f = compile(expr, [
+      "HUE",
+    ]);
+    for (const h of [
+      10,
+      -5,
+      10,
+      400,
+      3,
+      3,
+      3.5,
+      -720,
+    ])
+      expect(
+        f({
+          HUE: h,
+        }),
+        `h${h}`,
+      ).toEqual(evaluate(expr.replaceAll("HUE", String(h))));
+  });
+
   it("gives a placeholder a declared unit, checks units when compiling, and refuses a missing value", () => {
     const pct = compile(
       "min(L, calc(35 * 1%))",

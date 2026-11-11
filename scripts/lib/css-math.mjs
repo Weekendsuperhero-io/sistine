@@ -191,6 +191,32 @@ export function compile(expr, names = [], units = {}) {
   const same = (a, b, op) => {
     if (unit(a) !== unit(b)) throw new Error(`css-math: ${op} mixes "${unit(a)}" and "${unit(b)}" in "${expr}"`);
   };
+  /* A function call that recurs verbatim is one node, evaluated once per call of the compiled function: a
+     substituted cap repeats its wrapped hue, calc(sin(atan2(…)) …), in every tangent, and that trigonometry
+     dominated the arithmetic. `call` numbers each evaluation, so a cached value never outlives one. */
+  let call = 0;
+  const calls = new Map();
+  /** @param {number} from the token the call starts at @param {Node} node @returns {Node} */
+  const intern = (from, node) => {
+    const text = tokens.slice(from, pos).join(" ");
+    const seen = calls.get(text);
+    if (seen) return seen;
+    let at = -1;
+    let value = 0;
+    const { f } = node;
+    const shared = {
+      s: node.s,
+      f: (vars) => {
+        if (at !== call) {
+          value = f(vars);
+          at = call;
+        }
+        return value;
+      },
+    };
+    calls.set(text, shared);
+    return shared;
+  };
   /** @returns {Node[]} */
   const args = () => {
     const out = [sum()];
@@ -203,6 +229,7 @@ export function compile(expr, names = [], units = {}) {
   };
   /** @returns {Node} */
   function factor() {
+    const from = pos;
     const t = take();
     if (t === undefined) throw new Error(`css-math: unexpected end of "${expr}"`);
     if (t === "-") {
@@ -228,7 +255,11 @@ export function compile(expr, names = [], units = {}) {
         },
       };
     }
-    const fn = t.toLowerCase();
+    return intern(from, callOf(t.toLowerCase(), t));
+  }
+  /** The function call token `t` opens (`fn`, lowercased), parsed to its closing parenthesis.
+   *  @param {string} fn @param {string} t @returns {Node} */
+  function callOf(fn, t) {
     if (fn === "calc(") {
       const e = sum();
       if (take() !== ")") throw new Error(`css-math: unbalanced calc() in "${expr}"`);
@@ -296,5 +327,8 @@ export function compile(expr, names = [], units = {}) {
   const root = sum();
   if (pos !== tokens.length) throw new Error(`css-math: trailing input in "${expr}"`);
   const { s, f } = root;
-  return (vars = {}) => ({ v: f(vars), ...s });
+  return (vars = {}) => {
+    call++;
+    return { v: f(vars), ...s };
+  };
 }
