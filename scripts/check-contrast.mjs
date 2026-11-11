@@ -48,7 +48,7 @@
  *
  * Run: bun run test:contrast   (needs Node >= 22 to type-strip the imported .ts)
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -101,6 +101,117 @@ const INPUT_FILL_A = (() => {
   }
   return Number(alphas[0]) / 100;
 })();
+
+/* ── The role-fill AUDIT: every --accent / --secondary / --muted fill in components/ui, and what it carries
+   at night. Keyed "file class"; each value lists [fill, alpha, ink] for the pairings that class paints:
+     accent-fg / secondary-fg — the fill's own -foreground (tokens.css decides which page tier that is);
+     body — the page's body text (it inherits, or says text-foreground);
+     muted — the muted tier (text-muted-foreground);
+     chip / chip-strong — body / strong text on the selected-control chip (--active-bg) laid over the fill
+       (an active tab);
+     icon / icon-muted — an icon in the body / muted colour, held to the ui band floor;
+     none — nothing on it (a separator, a skeleton, a handle, a dot): only its step from the surface counts.
+   A class that paints at night under a dark: twin is listed as it renders then. The scan below fails if a
+   component gains a fill this table does not list, or the table lists one that is gone, so it stays the
+   truth about what each fill has to carry. */
+const FILL_AUDIT = new Map(
+  Object.entries({
+    "accordion.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // default variant; dark:hover:text-accent-foreground
+    "accordion.tsx hover:bg-muted/50": [["muted", 0.5, "body"]], // glass variant trigger hover
+    "alert-dialog.tsx bg-muted": [["muted", 1, "icon"]], // AlertDialogMedia tile
+    "badge.tsx [a&]:hover:bg-accent": [["accent", 1, "accent-fg"]],
+    "button.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // ghost; at night dark:hover paints /50 over it
+    "button.tsx dark:hover:bg-accent/50": [["accent", 0.5, "accent-fg"]],
+    "button.tsx active:bg-accent/80": [["accent", 0.8, "accent-fg"]],
+    "button.tsx dark:active:bg-accent/60": [["accent", 0.6, "accent-fg"]],
+    "calendar.tsx bg-accent": [["accent", 1, "none"]], // range start/end cell, under the day's own primary fill
+    "calendar.tsx aria-selected:bg-accent": [["accent", 1, "accent-fg"]],
+    "calendar.tsx bg-accent/50": [["accent", 0.5, "accent-fg"]], // today
+    "calendar.tsx data-[range-middle=true]:bg-accent": [["accent", 1, "accent-fg"]],
+    "calendar.tsx hover:bg-accent/50": [["accent", 0.5, "accent-fg"]], // a day under the cursor; dark:hover:text-accent-foreground
+    "combobox.tsx data-highlighted:bg-accent": [["accent", 1, "accent-fg"]],
+    "combobox.tsx bg-muted": [["muted", 1, "none"]], // separator
+    "command.tsx aria-selected:bg-accent": [["accent", 1, "accent-fg"]],
+    "command.tsx data-[selected=true]:bg-accent": [["accent", 1, "accent-fg"]],
+    "context-menu.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "context-menu.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]],
+    "context-menu.tsx bg-muted": [["muted", 1, "none"]], // separator
+    "dialog.tsx data-[state=open]:bg-accent": [["accent", 1, "icon-muted"]], // the close X
+    "drawer.tsx bg-muted": [["muted", 1, "none"]], // handle
+    "dropdown-menu.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "dropdown-menu.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]],
+    "dropdown-menu.tsx bg-muted": [["muted", 1, "none"]], // separator
+    "item.tsx [a]:hover:bg-accent": [["accent", 1, "accent-fg"]], // link items; dark:[a]:hover:text-accent-foreground
+    "menu-bar.tsx bg-accent": [["accent", 1, "accent-fg"]],
+    "menubar.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // trigger; dark:hover:text-accent-foreground
+    "menubar.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "menubar.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]],
+    "menubar.tsx bg-muted": [["muted", 1, "none"]], // separator
+    "navigation-menu.tsx hover:bg-accent": [["accent", 1, "accent-fg"]],
+    "navigation-menu.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "navigation-menu.tsx data-[active]:bg-accent/50": [["accent", 0.5, "accent-fg"]], // the current trigger; dark:data-[active]:text-accent-foreground
+    "navigation-menu.tsx data-[state=open]:bg-accent/50": [["accent", 0.5, "accent-fg"]],
+    "navigation-menu.tsx data-[state=open]:hover:bg-accent": [["accent", 1, "accent-fg"]],
+    "navigation-menu.tsx data-[state=open]:focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "navigation-menu.tsx data-[active=true]:bg-accent/50": [["accent", 0.5, "accent-fg"]],
+    "navigation-menu.tsx data-[active=true]:hover:bg-accent": [["accent", 1, "accent-fg"]],
+    "navigation-menu.tsx data-[active=true]:focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "select.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
+    "select.tsx bg-muted": [["muted", 1, "none"]], // separator
+    "sheet.tsx data-[state=open]:bg-secondary": [["secondary", 1, "icon"]], // the close X
+    "skeleton.tsx bg-muted": [["muted", 1, "none"]],
+    "table.tsx [&_tbody_tr:nth-child(even):hover]:bg-muted/50": [["muted", 0.5, "body"]],
+    "table.tsx bg-muted/50": [["muted", 0.5, "body"]], // footer
+    "table.tsx hover:bg-muted/50": [["muted", 0.5, "body"]], // a row under the cursor
+    "table.tsx has-aria-expanded:bg-muted/50": [["muted", 0.5, "body"]],
+    "table.tsx data-[state=selected]:bg-muted": [["muted", 1, "body"]], // a selected row
+    "tabs.tsx bg-muted": [
+      ["muted", 1, "muted"], // the list's inactive triggers
+      ["muted", 1, "chip-strong"], // the active trigger, strong at night (dark:data-[state=active]:text-foreground-strong)
+    ],
+    "toggle-group.tsx hover:bg-accent/50": [["accent", 0.5, "accent-fg"]],
+    "toggle.tsx hover:bg-accent": [["accent", 1, "accent-fg"]],
+    "toggle.tsx glass-hover-accent": [["accent", 0.7, "accent-fg"]], // --glass-hover-wash, the accent at 70%
+  }),
+);
+/* The selected-control CHIP (--active-bg, a white lift at night) over the bare glass surface: the active
+   tab of the glass list, the on-state of a toggle and of a toggle-group item. Not a role fill, but the
+   same question (what does the text on it read), so it is audited the same way; fill "surface" means the
+   chip sits straight on the ground. */
+const CHIP_AUDIT = new Map(
+  Object.entries({
+    // Each says dark:…:text-foreground-strong, so the night text on the chip is the strong tier.
+    "tabs.tsx data-[state=active]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "toggle.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "toggle-group.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+  }),
+);
+/* The shadcn role contract, which holds whatever a component does: each fill carries its own text. */
+const CONTRACT = [
+  ["accent", 1, "accent-fg", "the shadcn contract"],
+  ["secondary", 1, "secondary-fg", "the shadcn contract"],
+  ["muted", 1, "muted", "the shadcn contract"],
+];
+const PAIRINGS = [
+  ...CONTRACT,
+  ...[...FILL_AUDIT, ...CHIP_AUDIT].flatMap(([where, list]) => list.filter(([, , kind]) => kind !== "none").map(([f, alpha, kind]) => [f, alpha, kind, where])),
+];
+const auditFailures = [];
+{
+  const found = new Set();
+  const dir = "components/ui";
+  for (const file of readdirSync(join(ROOT, dir)).filter((f) => f.endsWith(".tsx"))) {
+    const src = read(`${dir}/${file}`)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    for (const m of src.matchAll(/(?<=^|[\s"'`])([^\s"'`]*?(?:bg-(?:muted|secondary|accent)(?:\/\d+)?|glass-hover-accent|bg-\[var\(--active-bg\)\]))(?=[\s"'`]|$)/gm)) {
+      found.add(`${file} ${m[1]}`);
+    }
+  }
+  const audited = new Map([...FILL_AUDIT, ...CHIP_AUDIT]);
+  for (const key of found) if (!audited.has(key)) auditFailures.push(`[role-audit] ${key} — a role fill the audit does not list. Add it to FILL_AUDIT / CHIP_AUDIT with the text it carries.`);
+  for (const key of audited.keys()) if (!found.has(key)) auditFailures.push(`[role-audit] ${key} — listed in the audit but no longer in the component. Drop it.`);
+}
 
 /**
  * Known, DESIGN-level exceptions: pinned at their measured value so they cannot silently get worse, and
@@ -191,11 +302,12 @@ if (!darkRing) {
   console.error("✗ contrast guard: could not read the night --ring from tokens.css — fix the parser");
   process.exit(1);
 }
-const failures = [];
+const failures = [...auditFailures];
 const report = [];
 const inkReport = [];
 const edgeReport = [];
 const roleReport = [];
+const pairReport = [];
 
 for (const p of all) {
   for (const mode of ["light", "dark"]) {
@@ -393,36 +505,79 @@ for (const p of all) {
           );
         }
       }
-      /* [role] the fills, each with the ink it carries, read from tokens.css: --accent-foreground and
-         --secondary-foreground name the page's STRONG tier at night (the small band, solved on the sheer
-         surface: they resolve on <html>) or its body tier, and muted carries the page's muted tier. */
+      /* [role] the FILLS and the text they carry. Every pairing comes from FILL_AUDIT (the component audit:
+         which fill, at what alpha, under which text tier) plus the shadcn role contract (accent and
+         secondary carry their own -foreground, muted carries muted text), each composited over both
+         surfaces at the alpha it is painted at. --accent-foreground / --secondary-foreground resolve from
+         tokens.css to the page's STRONG tier (the small band, solved on the sheer surface: they resolve on
+         <html>) or its body tier. */
       const boost = LC_MARGIN * showThrough(solidA, a, 0.7);
       const solve = (band) => (p.name === "onyx" ? readableTonal(textSurface, boostBand(band, boost), { hue: h, chroma: 0 }) : pickTonalInBand(ramp, textSurface, boostBand(band, boost)));
       const strong = solve(READABLE_USAGE.small);
       const mutedInk = solve(MUTED_BAND);
-      const inkOf = (token) => (fillInk(token) === "strong" ? strong : fg);
-      for (const [token, lKey, cKey, ink, inkFloor] of [
-        ["accent", "accent-bg-l", "accent-bg-c-max", inkOf("--accent-foreground"), BODY_FLOOR + MARGIN],
-        ["secondary", "secondary-l", "secondary-c-max", inkOf("--secondary-foreground"), BODY_FLOOR + MARGIN],
-        ["muted", "muted-l", "muted-c-max", mutedInk, MUTED_BAND.floor + MARGIN],
-      ]) {
-        const fill = roleColor(lKey, cKey, 0);
-        const steps = grounds.map(([, g]) => fill.l - g.l);
-        const lcText = Math.abs(apcaContrast(ink, fill));
-        roleReport.push({ name: p.name, where: "both", token, value: Math.min(...steps.map(Math.abs)) * Math.sign(steps[0]), unit: "L", l: fill.l, lcText });
-        if (lcText < inkFloor) {
-          failures.push(`[role] ${p.name} (night) — text on --${token} (L${fill.l.toFixed(0)}) reaches only ${lcText.toFixed(1)} Lc, under ${inkFloor}. Lower its night --${lKey}.`);
+      const INKS = {
+        "accent-fg": [fillInk("--accent-foreground") === "strong" ? strong : fg, BODY_FLOOR + MARGIN],
+        "secondary-fg": [fillInk("--secondary-foreground") === "strong" ? strong : fg, BODY_FLOOR + MARGIN],
+        body: [fg, BODY_FLOOR + MARGIN],
+        chip: [fg, BODY_FLOOR + MARGIN],
+        "chip-strong": [strong, BODY_FLOOR + MARGIN],
+        muted: [mutedInk, MUTED_BAND.floor + MARGIN],
+        icon: [fg, READABLE_USAGE.ui.floor],
+        "icon-muted": [mutedInk, READABLE_USAGE.ui.floor],
+      };
+      const FILLS = {
+        accent: roleColor("accent-bg-l", "accent-bg-c-max", 0),
+        secondary: roleColor("secondary-l", "secondary-c-max", 0),
+        muted: roleColor("muted-l", "muted-c-max", 0),
+      };
+      /* The selected-control chip (--active-bg) a tab paints over the muted list: white at --active-a. */
+      const activeBg = { l: resolve(p, mode, vars, "active-l", 100), c: 0, h, a: resolve(p, mode, vars, "active-a", 0.2) };
+      /** The surface a pairing's text sits on: the fill at its alpha over the ground (and the chip over that). */
+      const isChip = (kind) => kind === "chip" || kind === "chip-strong";
+      const under = (fillName, alpha, kind, ground) => {
+        const s = fillName === "surface" ? ground : compositeSurface(ground, [{ ...FILLS[fillName], a: alpha }]);
+        return isChip(kind) ? compositeSurface(s, [activeBg]) : s;
+      };
+      for (const [fillName, alpha, kind, where] of PAIRINGS) {
+        const [ink, floor] = INKS[kind];
+        for (const [side, ground] of grounds) {
+          const lcPair = Math.abs(apcaContrast(ink, under(fillName, alpha, kind, ground)));
+          pairReport.push({ name: p.name, side, fill: fillName, alpha, kind, where, lc: lcPair, floor });
+          if (lcPair < floor) {
+            failures.push(
+              `[role] ${p.name} (night, ${side}) — ${kind} text on --${fillName} at ${alpha} (${where}) reaches only ${lcPair.toFixed(1)} Lc, under ${floor}. ` +
+                `Move the night --${fillName === "accent" ? "accent-bg" : fillName}-l, or give that pairing a stronger tier.`,
+            );
+          }
         }
-        /* Above both surfaces wherever a lift of FILL_STEP can still carry the text; below both only where
-           it cannot. Either way, at least FILL_STEP clear of each. */
-        const top = Math.max(...grounds.map(([, g]) => g.l));
-        const liftable = Math.abs(apcaContrast(ink, { ...fill, l: top + FILL_STEP })) >= inkFloor;
+      }
+      /* Each fill sits at least FILL_STEP clear of both surfaces: ABOVE them wherever a fill that far up still
+         carries every pairing it has (at its alpha), BELOW them only where it cannot. */
+      const top = Math.max(...grounds.map(([, g]) => g.l));
+      for (const [fillName, lKey] of [
+        ["accent", "accent-bg-l"],
+        ["secondary", "secondary-l"],
+        ["muted", "muted-l"],
+      ]) {
+        const fill = FILLS[fillName];
+        const steps = grounds.map(([, g]) => fill.l - g.l);
+        const lifted = { ...fill, l: top + FILL_STEP };
+        const liftable = PAIRINGS.filter(([f]) => f === fillName).every(([, alpha, kind]) =>
+          grounds.every(([, ground]) => {
+            const [ink, floor] = INKS[kind];
+            const s = compositeSurface(ground, [{ ...lifted, a: alpha }]);
+            return Math.abs(apcaContrast(ink, isChip(kind) ? compositeSurface(s, [activeBg]) : s)) >= floor;
+          }),
+        );
+        roleReport.push({ name: p.name, where: "both", token: fillName, value: Math.min(...steps.map(Math.abs)) * Math.sign(steps[0]), unit: "L", l: fill.l });
         const above = steps.every((d) => d >= FILL_STEP);
         const below = steps.every((d) => d <= -FILL_STEP);
         if (!(above || (below && !liftable))) {
           failures.push(
-            `[role] ${p.name} (night) — --${token} (L${fill.l.toFixed(1)}) sits ${steps.map((d) => d.toFixed(1)).join(" / ")} L from its sheer / opaque surface: ` +
-              (liftable ? `it must sit at least ${FILL_STEP} L ABOVE both (a lift there still carries its text).` : `it must sit at least ${FILL_STEP} L clear of both, on one side.`),
+            `[role] ${p.name} (night) — --${fillName} (L${fill.l.toFixed(1)}) sits ${steps.map((d) => d.toFixed(1)).join(" / ")} L from its sheer / opaque surface: ` +
+              (liftable
+                ? `it must sit at least ${FILL_STEP} L ABOVE both (a lift there still carries every pairing).`
+                : `it must sit at least ${FILL_STEP} L clear of both, on one side (night --${lKey}).`),
           );
         }
       }
@@ -465,6 +620,14 @@ if (process.argv.includes("--report")) {
   for (const r of [...edgeReport].sort((x, y) => x.lc - y.lc)) {
     console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where.padEnd(6)} ${r.token} L${r.l.toFixed(0)}`);
   }
+  console.log("  night fill pairings (the lowest Lc across presets and both surfaces, against its floor):");
+  const byPair = new Map();
+  for (const r of pairReport) {
+    const k = `${r.where} | ${r.fill}${r.alpha < 1 ? ` at ${r.alpha}` : ""} | ${r.kind}`;
+    const prev = byPair.get(k);
+    if (!prev || r.lc < prev.lc) byPair.set(k, r);
+  }
+  for (const [k, r] of [...byPair].sort((x, y) => x[1].lc - y[1].lc)) console.log(`  ${r.lc.toFixed(1)} Lc (floor ${r.floor})  ${k}  [${r.name} ${r.side}]`);
   console.log("  night role tokens (ring / field text: Lc; fills: L from the nearer surface, and the Lc of their text):");
   for (const r of [...roleReport].sort((x, y) => x.token.localeCompare(y.token) || x.value - y.value)) {
     console.log(`  ${r.token.padEnd(10)} ${r.name.padEnd(12)} ${r.where.padEnd(6)} ${r.value.toFixed(1)} ${r.unit}  (L${r.l.toFixed(1)}${r.lcText !== undefined ? `, text ${r.lcText.toFixed(1)} Lc` : ""})`);
@@ -488,11 +651,13 @@ const worst = scored.reduce((a, b) => (b.lc < a.lc ? b : a));
 const inkWorst = inkReport.reduce((a, b) => (b.lc < a.lc ? b : a));
 const edgeWorst = edgeReport.filter((r) => r.mode === "dark").reduce((a, b) => (b.lc < a.lc ? b : a));
 const roleWorst = (token) => roleReport.filter((r) => r.token === token).reduce((a, b) => (Math.abs(b.value) < Math.abs(a.value) ? b : a));
+const pairWorst = pairReport.reduce((a, b) => (b.lc - b.floor < a.lc - a.floor ? b : a));
 console.log(
   `✓ preset contrast — ${scored.length} preset/mode pairs clear the ${BODY_FLOOR} Lc body floor ` +
     `(tightest ${worst.name} ${worst.mode} at ${worst.lc.toFixed(1)})` +
     (KNOWN.size ? `; ${KNOWN.size} pinned exception${KNOWN.size > 1 ? "s" : ""}: ${[...KNOWN.keys()].join(", ")}` : "") +
     `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})` +
     `; night edge ≥ ${EDGE_FLOOR} Lc on ${edgeReport.filter((r) => r.mode === "dark").length} surfaces (tightest ${edgeWorst.name} ${edgeWorst.token} ${edgeWorst.where} at ${edgeWorst.lc.toFixed(1)})` +
-    `; night roles: ring ≥ ${roleWorst("ring").value.toFixed(1)} Lc, field text ≥ ${roleWorst("input text").value.toFixed(1)} Lc, fills ≥ ${FILL_STEP} L clear (tightest ${["accent", "secondary", "muted"].map((t) => `${t} ${Math.abs(roleWorst(t).value).toFixed(1)}`).join(", ")})`,
+    `; night roles: ring ≥ ${roleWorst("ring").value.toFixed(1)} Lc, field text ≥ ${roleWorst("input text").value.toFixed(1)} Lc, fills ≥ ${FILL_STEP} L clear (tightest ${["accent", "secondary", "muted"].map((t) => `${t} ${Math.abs(roleWorst(t).value).toFixed(1)}`).join(", ")})` +
+    `; ${PAIRINGS.length} audited fill pairings hold their floors (closest: ${pairWorst.kind} on ${pairWorst.fill} in ${pairWorst.where}, ${pairWorst.lc.toFixed(1)} against ${pairWorst.floor})`,
 );

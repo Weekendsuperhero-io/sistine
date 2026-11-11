@@ -48,8 +48,9 @@
  *   6. [coverage] The load-bearing surfaces (the wash, the gloss, the edges, primary, the opaque floor)
  *                were actually scraped, so a new CSS shape cannot drop one from the sweep silently.
  *   7. [guard]   The night wash cap is a function of hue (tokens.css evaluates it per tint scope), so it is
- *                swept around the whole hue circle as the browser would evaluate it: at no hue does it pass
- *                the sRGB ceiling at the night depth, and at every whole degree it holds GUARD_FLOOR of it.
+ *                swept as the browser would evaluate it, over -720 to 1080 (a tint hue is not always 0–360):
+ *                at no hue does it pass the sRGB ceiling at the night depth, and at every whole degree it
+ *                holds GUARD_FLOOR of it.
  *                A cap is how a scope keeps its hue at night; one that greys (a flat number sized for the
  *                tightest hue) fails the floor, one that clips fails the ceiling.
  *
@@ -150,33 +151,44 @@ function lightnessVars() {
   return { light: grab(rootBody), dark: grab(darkBody) };
 }
 
-/* A cap DECLARED AS A FUNCTION OF HUE, per mode: a token whose value composes var(--glass-tint-h) (the
-   night wash cap). It cannot be resolved once per mode like the numeric knobs above; it is evaluated at
-   each preset's own hue, with scripts/lib/css-math, as the browser evaluates it per tint scope. */
+/* A cap DECLARED AS A FUNCTION OF HUE, per mode: a token whose value depends on var(--glass-tint-h),
+   directly or through another token the mode declares (the night wash cap reads --glass-wash-hue, the
+   tint hue wrapped into (-180, 180]). It cannot be resolved once per mode like the numeric knobs above;
+   it is evaluated at each preset's own hue, with scripts/lib/css-math, as the browser evaluates it per
+   tint scope. */
 function hueCaps() {
   const bare = css.tokens.replace(/\/\*[\s\S]*?\*\//g, "");
-  const out = { light: new Map(), dark: new Map() };
+  const out = {};
   for (const [mode, body] of [
     ["light", bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"))],
     ["dark", bare.slice(bare.indexOf(".dark {"))],
   ]) {
-    for (const m of body.matchAll(/--([a-z0-9-]+-c-max):/g)) {
+    /* Every declaration the mode makes (first wins), its value read to the `;` at paren depth 0. */
+    const decls = new Map();
+    for (const m of body.matchAll(/(--[a-z0-9-]+):/g)) {
       let depth = 0;
       let end = m.index + m[0].length;
       for (; end < body.length; end++) {
         if (body[end] === "(") depth++;
         else if (body[end] === ")") depth--;
-        else if (body[end] === ";" && depth === 0) break;
+        else if ((body[end] === ";" || body[end] === "}") && depth <= 0) break;
       }
-      const value = body.slice(m.index + m[0].length, end).trim();
-      if (value.includes("var(--glass-tint-h)") && !out[mode].has(m[1])) out[mode].set(m[1], value);
+      if (!decls.has(m[1])) decls.set(m[1], body.slice(m.index + m[0].length, end).trim());
     }
+    const onHue = (value, seen = new Set()) =>
+      value.includes("var(--glass-tint-h)") ||
+      [...value.matchAll(/var\((--[a-z0-9-]+)/g)].some(([, n]) => decls.has(n) && !seen.has(n) && onHue(decls.get(n), new Set([...seen, n])));
+    const caps = new Map();
+    for (const [name, value] of decls) if (name.endsWith("-c-max") && onHue(value)) caps.set(name.slice(2), value);
+    out[mode] = { decls, caps };
   }
   return out;
 }
-const HUE_CAPS = hueCaps();
-/** Evaluate a hue-dependent cap at hue `h`. */
-const hueCapAt = (expr, h) => evaluate(substitute(expr, new Map([["--glass-tint-h", String(h)]]))).v;
+const HUE_CAPS_BY_MODE = hueCaps();
+const HUE_CAPS = { light: HUE_CAPS_BY_MODE.light.caps, dark: HUE_CAPS_BY_MODE.dark.caps };
+/** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations. */
+const hueCapAt = (expr, h, mode = "dark") =>
+  evaluate(substitute(expr, new Map([...HUE_CAPS_BY_MODE[mode].decls, ["--glass-tint-h", String(h)]]))).v;
 
 /* Split a stylesheet into top-level rule bodies so a block-LOCAL override is honoured. A flavor block
    may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and
@@ -495,7 +507,7 @@ for (const s of surfaces) {
       let want = base * (pinnedMult ?? s.mult);
       const ask = want;
       const hueCap = s.capName ? HUE_CAPS[s.mode].get(s.capName) : undefined;
-      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : hueCap !== undefined ? hueCapAt(hueCap, p.h) : s.hardCap;
+      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : hueCap !== undefined ? hueCapAt(hueCap, p.h, s.mode) : s.hardCap;
       if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
@@ -612,10 +624,11 @@ const guardReport = [];
     let lo = { r: Infinity, h: 0 };
     let hi = { r: 0, h: 0 };
     /* Never past the ceiling, at a tenth of a degree (the blue cusp jumps 0.036 in a quarter degree); the
-       floor at every whole degree, the resolution a hue control offers. */
-    for (let tenth = 0; tenth < 3600; tenth++) {
+       floor at every whole degree, the resolution a hue control offers. From -720 to 1080, not 0–360: a
+       tint hue is anything a scope is given, and the harmonic hues run past 360 (theme + up to 270). */
+    for (let tenth = -7200; tenth <= 10800; tenth++) {
       const h = tenth / 10;
-      const r = hueCapAt(expr, h) / maxSrgbChroma(depth, h);
+      const r = hueCapAt(expr, h) / maxSrgbChroma(depth, ((h % 360) + 360) % 360);
       if (r > hi.r) hi = { r, h };
       if (tenth % 10 === 0 && r < lo.r) lo = { r, h };
     }
@@ -627,7 +640,7 @@ const guardReport = [];
         `[guard] the night wash cap holds only ${(100 * lo.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${lo.h}, under the ${100 * GUARD_FLOOR}% floor: a colour at that hue is greyed at night. Refit it (scripts/fit-night-wash-cap.mjs).`,
       );
     }
-    guardReport.push(`night wash cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${depth} ceiling around the hue circle (lowest h${lo.h}, highest h${hi.h})`);
+    guardReport.push(`night wash cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${depth} ceiling at every hue from -720 to 1080 (lowest h${lo.h}, highest h${hi.h})`);
   }
 }
 

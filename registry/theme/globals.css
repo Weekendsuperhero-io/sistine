@@ -740,7 +740,10 @@
   --secondary-foreground: var(--foreground-strong);
 
   /* Muted colors — dark mode */
-  --muted-c-max: 0.071; /* ≤ 0.0710, the L-43 ceiling floor (h200) */
+  /* Muted RECESSES at night: it is the one fill body text sits on directly (a selected table row, a hovered
+     row, the table footer), and a lift that body text could still be read on (~L37) is too small to see,
+     so it sits 7+ L UNDER the deep surface instead, where every tier on it reads more strongly, not less. */
+  --muted-c-max: 0.039; /* ≤ 0.0399, the L-24 ceiling floor (h200) */
   --muted-foreground: oklch(0.9 0.031 var(--glass-fg-h)); /* Level 1 — one ramp step toward the chosen color */
 
   /* Accent colors — dark mode. The lightness is a night role token (after this block); see the secondary
@@ -806,11 +809,18 @@
       lies on or under it, so each arc is the MAX of a few tangents, cut off at its cusps by two steep lines,
       and the cap is the max over the arcs (the third arc runs past 360, so it appears twice, once shifted by
       -360). Each tangent sits 0.5% under the ceiling, which is lib/oklch-utils' maxSrgbChroma, already 3%
-      inside the boundary. Measured: 91.9–99.5% of the ceiling at every hue (check-gamut [guard] sweeps it),
-      and 98.7–99.5% at every preset's hue, within 1.3% of the per-preset pins it replaces, so no preset pins
-      anything and a new preset needs nothing. Valid for a --glass-tint-h of -95 to 389 (the switcher and
-      every preset use 0–360). scripts/fit-night-wash-cap.mjs generates it, and lib/oklch-utils'
-      NIGHT_WASH_CAP mirrors it for AutoForeground (tests/deep-night.test.ts holds the two equal).
+      inside the boundary. ANY HUE: a tint hue need not be 0–360 (the harmonic hues are the theme's plus up
+      to 270, and a consumer tints scopes with them), so the arcs read --glass-wash-hue, the tint hue
+      wrapped into (-180, 180]. mod() would do it but needs Chrome 125 against the floor's 120; atan2(sin h,
+      cos h) wraps it on every engine in the floor (Chrome 111) and returns an angle, which a small-angle
+      sine reads back as a number (sin(θ / 10000) is θ/10000 rad to 2e-8, so the hue lands within 3e-6°).
+      Under the fit sits a floor of 0.057, below the tightest ceiling on the circle (0.0579, h200), so no
+      hue is ever greyed to nothing. (A minifier may round the 572957.795 multiplier, Lightning CSS to
+      572958; that moves the cap by at most 3.6e-6, inside the 0.5% margin.) Measured: 91.9–99.5% of the ceiling at every hue from -720 to 1080
+      (check-gamut [guard] sweeps it), and 98.7–99.5% at every preset's hue, within 1.3% of the per-preset
+      pins it replaced, so no preset pins anything and a new preset needs nothing.
+      scripts/fit-night-wash-cap.mjs generates it, and lib/oklch-utils' NIGHT_WASH_CAP mirrors it for
+      AutoForeground (tests/deep-night.test.ts holds the two equal).
 
    3. The night ROLE tokens drawn against glass: the border, the input rim and the three fills. Deep night
       put the surfaces at L31–34 (sheer glass and the opaque card), and the night values these were placed
@@ -822,70 +832,77 @@
           1.4.11's 3:1 for a control's boundary, which needs L >= ~0.6 here). The input rim takes the
           border's 0.65, as it takes the border's 0.85 by day. The field's own fill is the input at 10%
           (dark:bg-input/10), so the typed text keeps the body floor inside it.
-        - the FILLS (accent, the hover; secondary; muted, the tabs well, the skeleton): at least 7 L above
-          both surfaces in OKLab lightness. APCA cannot score two large dark areas (it reads anything under
-          ~7.5 Lc as 0, and puts this whole range there), and 7 L is more than shadcn's own dark theme
-          lifts its hover over its popover (6.4 L). Their text keeps its floor plus margin: the strong ink
-          on the accent and secondary fills holds the body floor (see --accent-foreground), the muted tier
-          on muted its own 60.
+        - the FILLS (accent, the hover; secondary; muted, the selected row, the tabs well): at least 7 L clear
+          of both surfaces in OKLab lightness, ABOVE them wherever a fill that far up still carries every
+          text it is paired with, BELOW them where it cannot. APCA cannot score two large dark areas (it
+          reads anything under ~7.5 Lc as 0, and puts this whole range there), and 7 L is more than shadcn's
+          own dark theme lifts its hover over its popover (6.4 L). Accent and secondary lift (their own
+          -foreground is the strong ink at night; see --accent-foreground); muted recesses, because body
+          text sits on it directly (a selected table row) and no visible lift keeps it at its floor.
+          Every pairing comes from an audit of the components (check-contrast FILL_AUDIT).
       The near-black preset (an L16 floor) and the pale warm stone (L41–46) pin their own night values in
       presets.css; the stone's fills recess instead, since nothing that far above L46 carries text. */
 .dark,
 .dark[data-glass-tint],
 .dark [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
+  --glass-wash-hue: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572957.7951308232);
   --glass-wash-c-max: max(
+    0.057,
     min(
       max(
-        calc(0.13883 - 0.004206 * (var(--glass-tint-h) - 29.3)),
-        calc(0.11097 - 0.002422 * (var(--glass-tint-h) - 38)),
-        calc(0.08818 - 0.001213 * (var(--glass-tint-h) - 51.15)),
-        calc(0.0715 - 0.0003214 * (var(--glass-tint-h) - 75)),
-        calc(0.06946 - 0.00009153 * (var(--glass-tint-h) - 85)),
-        calc(0.07046 + 0.0002299 * (var(--glass-tint-h) - 100)),
-        calc(0.08861 + 0.001235 * (var(--glass-tint-h) - 128))
+        calc(0.13883 - 0.004206 * (var(--glass-wash-hue) - 29.3)),
+        calc(0.11097 - 0.002422 * (var(--glass-wash-hue) - 38)),
+        calc(0.08818 - 0.001213 * (var(--glass-wash-hue) - 51.15)),
+        calc(0.0715 - 0.0003214 * (var(--glass-wash-hue) - 75)),
+        calc(0.06946 - 0.00009153 * (var(--glass-wash-hue) - 85)),
+        calc(0.07046 + 0.0002299 * (var(--glass-wash-hue) - 100)),
+        calc(0.08861 + 0.001235 * (var(--glass-wash-hue) - 128))
       ),
-      calc(0.13891 + 20 * (var(--glass-tint-h) - 29.281)),
-      calc(0.11527 + 20 * (142.484 - var(--glass-tint-h)))
+      calc(0.13891 + 20 * (var(--glass-wash-hue) - 29.281)),
+      calc(0.11527 + 20 * (142.484 - var(--glass-wash-hue)))
     ),
     min(
       max(
-        calc(0.09326 - 0.002224 * (var(--glass-tint-h) - 150)),
-        calc(0.07921 - 0.001377 * (var(--glass-tint-h) - 158)),
-        calc(0.05848 - 0.0001873 * (var(--glass-tint-h) - 190)),
-        calc(0.05783 + 0.0001 * (var(--glass-tint-h) - 205)),
-        calc(0.05983 + 0.0003065 * (var(--glass-tint-h) - 215)),
-        calc(0.06749 + 0.0007599 * (var(--glass-tint-h) - 230)),
-        calc(0.0959 + 0.002531 * (var(--glass-tint-h) - 250)),
-        calc(0.11159 + 0.00391 * (var(--glass-tint-h) - 255)),
-        calc(0.15698 + 0.01186 * (var(--glass-tint-h) - 262)),
-        calc(0.20655 + 0.1035 * (var(--glass-tint-h) - 264.12))
+        calc(0.09326 - 0.002224 * (var(--glass-wash-hue) - 150)),
+        calc(0.07921 - 0.001377 * (var(--glass-wash-hue) - 158)),
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) - 190))
       ),
-      calc(0.11527 + 20 * (var(--glass-tint-h) - 142.484)),
-      calc(0.23411 + 20 * (264.135 - var(--glass-tint-h)))
+      calc(0.11527 + 20 * (var(--glass-wash-hue) - 142.484)),
+      calc(0.23411 + 20 * (264.135 - var(--glass-wash-hue)))
     ),
     min(
       max(
-        calc(0.23406 - 0.002322 * (var(--glass-tint-h) - 264.15)),
-        calc(0.19897 - 0.001345 * (var(--glass-tint-h) - 284)),
-        calc(0.1806 - 0.001 * (var(--glass-tint-h) - 300)),
-        calc(0.14578 - 0.0006322 * (var(--glass-tint-h) - 342)),
-        calc(0.13556 - 0.0001171 * (var(--glass-tint-h) - 368))
+        calc(0.23406 - 0.002322 * (var(--glass-wash-hue) + 95.85)),
+        calc(0.19897 - 0.001345 * (var(--glass-wash-hue) + 76)),
+        calc(0.1806 - 0.001 * (var(--glass-wash-hue) + 60)),
+        calc(0.14578 - 0.0006322 * (var(--glass-wash-hue) + 18)),
+        calc(0.13556 - 0.0001171 * (var(--glass-wash-hue) - 8)),
+        calc(0.1389 + 0.0004619 * (var(--glass-wash-hue) - 29.26))
       ),
-      calc(0.23411 + 20 * (var(--glass-tint-h) - 264.135)),
-      calc(0.13891 + 20 * (389.281 - var(--glass-tint-h)))
+      calc(0.23411 + 20 * (var(--glass-wash-hue) + 95.865)),
+      calc(0.13891 + 20 * (29.281 - var(--glass-wash-hue)))
     ),
     min(
-      max(calc(0.13556 - 0.0001171 * (var(--glass-tint-h) - 8)), calc(0.1389 + 0.0004619 * (var(--glass-tint-h) - 29.26))),
-      calc(0.23411 + 20 * (var(--glass-tint-h) + 95.865)),
-      calc(0.13891 + 20 * (29.281 - var(--glass-tint-h)))
+      max(
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) + 170)),
+        calc(0.05783 + 0.0001 * (var(--glass-wash-hue) + 155)),
+        calc(0.05983 + 0.0003065 * (var(--glass-wash-hue) + 145)),
+        calc(0.06749 + 0.0007599 * (var(--glass-wash-hue) + 130)),
+        calc(0.0959 + 0.002531 * (var(--glass-wash-hue) + 110)),
+        calc(0.11159 + 0.00391 * (var(--glass-wash-hue) + 105)),
+        calc(0.15698 + 0.01186 * (var(--glass-wash-hue) + 98)),
+        calc(0.20655 + 0.1035 * (var(--glass-wash-hue) + 95.88))
+      ),
+      calc(0.11527 + 20 * (var(--glass-wash-hue) + 217.516)),
+      calc(0.23411 + 20 * (-95.865 - var(--glass-wash-hue)))
     )
   );
   --border-l: 0.65;
   --input-l: 0.65;
   --accent-bg-l: 0.45;
   --secondary-l: 0.44;
-  --muted-l: 0.42;
+  --muted-l: 0.24;
 }
 
 @layer base {
@@ -2507,6 +2524,10 @@
   --accent-bg-l: 0.33;
   --secondary-l: 0.33;
   --muted-l: 0.33;
+  /* The selected chip (an active tab, an on toggle) darkens here instead of lifting: a white lift over this
+     pale floor lands at L55–58, where even the strong ink reads 68–73 Lc; a black one at the same alpha
+     keeps it 88+, and recesses like the fills. */
+  --active-l: 0%;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
      pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
      The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the

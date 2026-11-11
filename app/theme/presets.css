@@ -385,6 +385,10 @@
   --accent-bg-l: 0.33;
   --secondary-l: 0.33;
   --muted-l: 0.33;
+  /* The selected chip (an active tab, an on toggle) darkens here instead of lifting: a white lift over this
+     pale floor lands at L55–58, where even the strong ink reads 68–73 Lc; a black one at the same alpha
+     keeps it 88+, and recesses like the fills. */
+  --active-l: 0%;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
      pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
      The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the

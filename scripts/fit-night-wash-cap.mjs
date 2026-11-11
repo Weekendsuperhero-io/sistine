@@ -16,8 +16,16 @@
  *
  *   cap(h) = max over arcs of min( max(tangents), cutFrom(h), cutTo(h) )
  *
- * The third arc runs over 360, so it is written twice, once shifted by -360. Every tangent sits SAFE under
- * the ceiling (which is already lib/oklch-utils' maxSrgbChroma, 3% inside the boundary).
+ * Every tangent sits SAFE under the ceiling (which is already lib/oklch-utils' maxSrgbChroma, 3% inside the
+ * boundary).
+ *
+ * ANY hue. The tint hue is not always 0–360: the harmonic hues are the theme's plus up to 270, and a
+ * consumer feeds them into tint scopes (theme 250 → a tool card at 430). mod() would wrap it, but it needs
+ * Chrome 125 and the floor is 120. atan2(sin h, cos h) wraps it into (-180°, 180°] on every engine in the
+ * floor (Chrome 111); it returns an ANGLE, and the only angle-to-number functions are trigonometric, so the
+ * angle is read back through a small-angle sine: sin(θ / 10000) is θ/10000 rad to within 2e-8. That is
+ * --glass-wash-hue, and the arcs are laid out over (-180, 180]. Under all of it sits a safety floor of
+ * 0.057, below the tightest ceiling anywhere on the circle (0.0579, h200), so no hue is ever greyed to 0.
  *
  * Tangent points: one at every preset hue (so each preset's cap lands within 1–2% of its own ceiling and
  * no preset needs a pin), plus the fewest more that hold FLOOR of the ceiling at every hue; lines that
@@ -105,17 +113,20 @@ for (let pass = 0; pass < 3; pass++) {
 }
 for (const a of arcs) a.lines.sort((p, q) => p[0] - q[0]);
 
-/* The groups the CSS evaluates for a hue in 0–360: the two arcs as they are, the third as it is (its part
-   up to 360) and shifted by -360 (its part from 0). Each group keeps only the lines that win somewhere in
-   its own 0–360 range. */
+/* The groups the CSS evaluates. The cap reads --glass-wash-hue, the tint hue NORMALIZED to (-180, 180]
+   (any hue at all, tokens.css), so it needs the arcs over that range only: the first two as they are (the
+   second up to 180), the third shifted by -360 (it runs past 360, so it covers -95.9 to 29.3), and the
+   second again, shifted by -360 (-217.5 to -95.9, for -180 to -95.9). Each group keeps only the lines that
+   win somewhere in its own part of (-180, 180]. */
+const DOMAIN = [-180, 180];
 const groups = [
   { ...arcs[0], shift: 0 },
   { ...arcs[1], shift: 0 },
-  { ...arcs[2], shift: 0 },
   { ...arcs[2], shift: -360 },
+  { ...arcs[1], shift: -360 },
 ].map((g) => {
-  const lo = Math.max(0, g.from + g.shift);
-  const hi = Math.min(360, g.to + g.shift);
+  const lo = Math.max(DOMAIN[0], g.from + g.shift);
+  const hi = Math.min(DOMAIN[1], g.to + g.shift);
   const used = new Set();
   for (let h = lo; h <= hi; h += 0.01) {
     let best = -1;
@@ -136,16 +147,25 @@ const groups = [
   };
 });
 
-/* Verify the TABLE (rounded, grouped) — the thing that ships — not the fit above. */
-const shipped = (h) =>
-  Math.max(
+/* The safety floor under the fit: the tightest ceiling anywhere on the hue circle is 0.0579 (h200), so
+   0.057 sits under every hue's ceiling, and a hue the arcs somehow missed still gets colour, never 0. */
+const FLOOR_C = 0.057;
+/* The hue normalization the CSS does with atan2 (an angle in (-180°, 180°]) and a small-angle sine to read
+   that angle back as a number (sin(x/10000) is x/10000 to 2e-8, so the hue lands within 3e-6°). */
+const normalize = (h) => Math.sin(Math.atan2(Math.sin((h * Math.PI) / 180), Math.cos((h * Math.PI) / 180)) / 10000) * (1800000 / Math.PI);
+/* Verify the TABLE (rounded, grouped, normalized, floored) — the thing that ships — not the fit above. */
+const shipped = (h) => {
+  const x = normalize(h);
+  return Math.max(
+    FLOOR_C,
     ...groups.map((g) =>
-      Math.min(Math.max(...g.lines.map(([t, y, s]) => y + s * (h - t))), g.from[1] + CUT * (h - g.from[0]), g.to[1] + CUT * (g.to[0] - h)),
+      Math.min(Math.max(...g.lines.map(([t, y, s]) => y + s * (x - t))), g.from[1] + CUT * (x - g.from[0]), g.to[1] + CUT * (g.to[0] - x)),
     ),
   );
+};
 let lo = { r: Infinity };
 let hi = { r: 0 };
-for (let h = 0; h <= 360; h += 0.01) {
+for (let h = -720; h <= 1080; h += 0.01) {
   const r = shipped(h) / ceil(h);
   if (r < lo.r) lo = { r, h };
   if (r > hi.r) hi = { r, h };
@@ -155,10 +175,14 @@ console.log(
     `${(100 * lo.r).toFixed(1)}%–${(100 * hi.r).toFixed(1)}% of the L${L} sRGB ceiling at every hue ` +
     `(lowest h${lo.h.toFixed(2)}); preset hues ${presetHues.map((h) => `${h}:${((100 * shipped(h)) / ceil(h)).toFixed(1)}`).join(" ")} */`,
 );
-const H = "var(--glass-tint-h)";
+const H = "var(--glass-wash-hue)";
 const num = (x) => (x < 0 ? `- ${-x}` : `+ ${x}`);
 const minus = (t) => (t < 0 ? `${H} + ${-t}` : `${H} - ${t}`);
+console.log(
+  "--glass-wash-hue: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572957.7951308232);",
+);
 console.log("--glass-wash-c-max: max(");
+console.log(`  ${FLOOR_C},`);
 console.log(
   groups
     .map(
@@ -169,4 +193,4 @@ console.log(
     .join(",\n"),
 );
 console.log(");");
-console.log(`\nNIGHT_WASH_CAP = ${JSON.stringify({ cut: CUT, groups })}`);
+console.log(`\nNIGHT_WASH_CAP = ${JSON.stringify({ floor: FLOOR_C, cut: CUT, groups })}`);

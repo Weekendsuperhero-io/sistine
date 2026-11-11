@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { maxSrgbChroma, NIGHT_WASH_CAP, nightWashCap } from "@/lib/oklch-utils";
+import { evaluate } from "../scripts/lib/css-math.mjs";
 import { colorOf, computedVars as computedVarsOf, html, type ModelElement, numberOf, presetNames, type ResolvedOklch } from "./theme-cascade";
 
 const SNAPSHOT = "tests/fixtures/deep-night-day.json";
@@ -152,24 +153,57 @@ const customNight = (h: number, c = 0.09, parentTint?: string): ModelElement[] =
 ];
 
 describe("deep night: the night wash cap follows the hue", () => {
-  it("evaluates, in CSS, to exactly lib/oklch-utils' nightWashCap at every tenth of a degree", () => {
+  it("evaluates, in CSS, to exactly lib/oklch-utils' nightWashCap from -720 to 1080", () => {
     /* The mirror AutoForeground models a custom colour's wash with. A drag's snapshot carries only the
-       hue, so if the two drift, text is solved against a wash the browser does not paint. */
-    for (let tenth = 0; tenth < 3600; tenth += 7) {
+       hue, so if the two drift, text is solved against a wash the browser does not paint. Past 0–360 on
+       purpose: the harmonic hues are the theme's plus up to 270, and a consumer tints scopes with them. */
+    /* The cascade once, with the hue left as a placeholder, then the substituted expression at every tenth of
+       a degree (resolving the cascade 18,000 times would take minutes). */
+    const expr = computedVarsOf(customNight("HUE" as unknown as number)).get("--glass-wash-c-max");
+    if (!expr) throw new Error("--glass-wash-c-max does not compute on a custom night scope");
+    for (let tenth = -7200; tenth <= 10800; tenth++) {
       const h = tenth / 10;
-      expect(numberOf("--glass-wash-c-max", customNight(h)), `h${h}`).toBeCloseTo(nightWashCap(h), 9);
+      expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(nightWashCap(h), 9);
     }
+    // And the full cascade agrees with the placeholder route at a few hues.
+    for (const h of [
+      -500,
+      0,
+      264.2,
+      430,
+      999,
+    ])
+      expect(numberOf("--glass-wash-c-max", customNight(h)), `h${h}`).toBeCloseTo(nightWashCap(h), 9);
   });
 
-  it("never passes the L35 sRGB ceiling, and holds at least 90% of it at every whole degree", () => {
+  it("never passes the L35 sRGB ceiling, and holds at least 90% of it at every whole degree, at any hue", () => {
     let lo = Number.POSITIVE_INFINITY;
-    for (let h = 0; h < 360; h++) {
+    for (let h = -720; h <= 1080; h++) {
       const cap = nightWashCap(h);
-      const ceiling = maxSrgbChroma(NIGHT_DEPTH, h);
+      const ceiling = maxSrgbChroma(NIGHT_DEPTH, ((h % 360) + 360) % 360);
       expect(cap, `h${h}: past the ceiling`).toBeLessThanOrEqual(ceiling);
       lo = Math.min(lo, cap / ceiling);
     }
     expect(lo).toBeGreaterThanOrEqual(0.9);
+  });
+
+  it("keeps a harmonic hue past 360 coloured: a tool card at theme 250 + 180 = 430 is h70", () => {
+    /* The reported case: the tint hue is a harmony hue the consumer did not wrap. Before the wrap every
+       tangent was negative out here and the cap clamped the wash to chroma 0. */
+    const card = colorOf(TOKENS.wash, customNight(430, 0.07));
+    expect(card.c).toBeCloseTo(Math.min(0.07 * 2.5, nightWashCap(70)), 9);
+    expect(card.c).toBeGreaterThan(0.06);
+    for (const h of [
+      -120,
+      -96,
+      390,
+      420,
+      630,
+      750,
+    ]) {
+      expect(nightWashCap(h), `h${h}`).toBeGreaterThanOrEqual(0.057);
+      expect(nightWashCap(h), `h${h} is h${h - 360 * Math.floor(h / 360)}`).toBeCloseTo(nightWashCap(h - 360 * Math.floor(h / 360)), 5);
+    }
   });
 
   it("gives a custom colour its own hue's cap, not a shared number, even inside a preset page", () => {
@@ -187,6 +221,7 @@ describe("deep night: the night wash cap follows the hue", () => {
     // The structure tokens.css and the fit script document; a reshaped table should say so here first.
     expect(NIGHT_WASH_CAP.groups.length).toBe(4);
     expect(NIGHT_WASH_CAP.cut).toBe(20);
+    expect(NIGHT_WASH_CAP.floor).toBe(0.057);
   });
 });
 
@@ -200,7 +235,7 @@ describe("deep night: the night role tokens", () => {
       input: 65,
       accent: 45,
       secondary: 44,
-      muted: 42,
+      muted: 24,
     },
     onyx: {
       border: 61,

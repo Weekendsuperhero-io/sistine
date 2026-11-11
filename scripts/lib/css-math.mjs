@@ -7,8 +7,9 @@
  * circle). jsdom cascades custom properties but evaluates neither, and the browser is not in the loop.
  *
  * Deliberately strict: an unknown function, a unit mismatch (min(58%, 35) is invalid CSS) or an undeclared
- * var() with no fallback is an error, never a guess. Numbers and percentages only, + - * /, calc(), min()
- * and max(): the whole vocabulary the colour tokens use.
+ * var() with no fallback is an error, never a guess. Numbers, percentages and angles in degrees; + - * /;
+ * calc(), min(), max(), and the trigonometry the night wash cap wraps its hue with (sin(), cos(), atan2()):
+ * the whole vocabulary the colour tokens use.
  */
 
 /**
@@ -54,33 +55,47 @@ export function substitute(value, vars, seen = new Set()) {
 }
 
 /**
- * Evaluate a substituted CSS math expression to a number, remembering whether it is a percentage.
+ * Evaluate a substituted CSS math expression to a number, remembering its unit: `pct` for a percentage,
+ * `deg` for an angle (a value in degrees). A number has neither.
  * @param {string} expr
- * @returns {{ v: number, pct: boolean }}
+ * @returns {{ v: number, pct: boolean, deg?: boolean }}
  */
 export function evaluate(expr) {
-  const tokens = expr.match(/[\d.]+%?|[a-z-]+\(|[()*/+,-]/gi) ?? [];
+  const tokens = expr.match(/[\d.]+(?:%|deg)?|[a-z0-9-]+\(|[()*/+,-]/gi) ?? [];
   let pos = 0;
   const peek = () => tokens[pos];
   const take = () => tokens[pos++];
-  /** @param {{ pct: boolean }} a @param {{ pct: boolean }} b @param {string} op */
+  /** @typedef {{ v: number, pct: boolean, deg?: boolean }} Num */
+  /** @param {Num} a */
+  const unit = (a) => (a.pct ? "%" : a.deg ? "deg" : "");
+  /** @param {Num} a @param {Num} b @param {string} op */
   const same = (a, b, op) => {
-    if (a.pct !== b.pct) throw new Error(`css-math: ${op} mixes a percentage and a number in "${expr}"`);
+    if (unit(a) !== unit(b)) throw new Error(`css-math: ${op} mixes "${unit(a)}" and "${unit(b)}" in "${expr}"`);
   };
-  /** @returns {{ v: number, pct: boolean }} */
+  /** @returns {Num[]} */
+  const args = () => {
+    const out = [sum()];
+    while (peek() === ",") {
+      take();
+      out.push(sum());
+    }
+    if (take() !== ")") throw new Error(`css-math: unbalanced arguments in "${expr}"`);
+    return out;
+  };
+  /** @returns {Num} */
   function factor() {
     const t = take();
     if (t === undefined) throw new Error(`css-math: unexpected end of "${expr}"`);
     if (t === "-") {
       const f = factor();
-      return { v: -f.v, pct: f.pct };
+      return { ...f, v: -f.v };
     }
     if (t === "(") {
       const e = sum();
       if (take() !== ")") throw new Error(`css-math: unbalanced "${expr}"`);
       return e;
     }
-    if (/^[\d.]+%?$/.test(t)) return { v: Number.parseFloat(t), pct: t.endsWith("%") };
+    if (/^[\d.]+(?:%|deg)?$/i.test(t)) return { v: Number.parseFloat(t), pct: t.endsWith("%"), deg: /deg$/i.test(t) };
     const fn = t.toLowerCase();
     if (fn === "calc(") {
       const e = sum();
@@ -88,41 +103,49 @@ export function evaluate(expr) {
       return e;
     }
     if (fn === "min(" || fn === "max(") {
-      const args = [sum()];
-      while (peek() === ",") {
-        take();
-        args.push(sum());
-      }
-      if (take() !== ")") throw new Error(`css-math: unbalanced ${fn}) in "${expr}"`);
-      for (const a of args) same(args[0], a, fn);
-      return { v: (fn === "min(" ? Math.min : Math.max)(...args.map((a) => a.v)), pct: args[0].pct };
+      const a = args();
+      for (const x of a) same(a[0], x, fn);
+      return { ...a[0], v: (fn === "min(" ? Math.min : Math.max)(...a.map((x) => x.v)) };
+    }
+    if (fn === "sin(" || fn === "cos(") {
+      const [a, extra] = args();
+      if (extra || a.pct) throw new Error(`css-math: ${fn}) takes one angle or number in "${expr}"`);
+      /* An angle is in degrees; a bare number is radians, as CSS reads it. */
+      const r = a.deg ? (a.v * Math.PI) / 180 : a.v;
+      return { v: fn === "sin(" ? Math.sin(r) : Math.cos(r), pct: false };
+    }
+    if (fn === "atan2(") {
+      const [y, x, extra] = args();
+      if (extra || !x) throw new Error(`css-math: atan2() takes two arguments in "${expr}"`);
+      same(y, x, fn);
+      return { v: (Math.atan2(y.v, x.v) * 180) / Math.PI, pct: false, deg: true };
     }
     throw new Error(`css-math: cannot evaluate "${t}" in "${expr}"`);
   }
-  /** @returns {{ v: number, pct: boolean }} */
+  /** @returns {Num} */
   function product() {
     let a = factor();
     while (peek() === "*" || peek() === "/") {
       const op = take();
       const b = factor();
       if (op === "*") {
-        if (a.pct && b.pct) throw new Error(`css-math: % * % in "${expr}"`);
-        a = { v: a.v * b.v, pct: a.pct || b.pct };
+        if (unit(a) && unit(b)) throw new Error(`css-math: "${unit(a)}" * "${unit(b)}" in "${expr}"`);
+        a = { v: a.v * b.v, pct: a.pct || b.pct, deg: a.deg || b.deg };
       } else {
-        if (b.pct) throw new Error(`css-math: division by a percentage in "${expr}"`);
-        a = { v: a.v / b.v, pct: a.pct };
+        if (unit(b)) throw new Error(`css-math: division by a "${unit(b)}" in "${expr}"`);
+        a = { ...a, v: a.v / b.v };
       }
     }
     return a;
   }
-  /** @returns {{ v: number, pct: boolean }} */
+  /** @returns {Num} */
   function sum() {
     let a = product();
     while (peek() === "+" || peek() === "-") {
       const op = take();
       const b = product();
       same(a, b, op);
-      a = { v: op === "+" ? a.v + b.v : a.v - b.v, pct: a.pct };
+      a = { ...a, v: op === "+" ? a.v + b.v : a.v - b.v };
     }
     return a;
   }

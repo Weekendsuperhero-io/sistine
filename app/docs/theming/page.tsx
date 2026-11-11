@@ -256,8 +256,8 @@ export default function ThemingPage() {
                 status tints and custom colours alike. The night wash&apos;s chroma is capped at its own hue&apos;s sRGB ceiling at that depth (
                 <IC>--glass-wash-c-max</IC>, a function of the hue each tint scope evaluates), so every preset and custom colour keeps its hue and
                 nothing clips. The role tokens drawn against glass are re-placed against the deep floor: the edges (<IC>--border</IC>,{" "}
-                <IC>--input</IC>) and the focus ring are lit lines, and the hover, secondary and muted fills sit visibly above the surface, with the
-                text on them still at its floor. Day and light mode are unchanged.
+                <IC>--input</IC>) and the focus ring are lit lines, the hover and secondary fills lift visibly above the surface, and the muted fill,
+                which carries body text, recesses under it, with the text on them still at its floor. Day and light mode are unchanged.
               </p>
             </div>
             <div>
