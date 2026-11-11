@@ -25,13 +25,13 @@ import {
   type HueCapTable,
   maxSrgbChroma,
 } from "@/lib/oklch-utils";
-import { evaluate } from "../scripts/lib/css-math.mjs";
-import { colorOf, computedVars, html, type ModelElement, numberOf, presetNames } from "./theme-cascade";
+import { compile } from "../scripts/lib/css-math.mjs";
+import { colorOf, compileOklch, computedVars, html, type ModelElement, numberOf, presetNames } from "./theme-cascade";
 
 const ceiling = (l: number, h: number) => maxSrgbChroma(l, ((h % 360) + 360) % 360);
 
 /** <html> by day with a custom colour inline (hue, chroma, alpha), the way the switcher applies one. */
-const customDay = (h: number | string, c = 0.09, a = 0.5): ModelElement[] => [
+const customDay = (h: number | string, c: number | string = 0.09, a = 0.5): ModelElement[] => [
   {
     attrs: {
       "data-glass-tint": "",
@@ -44,10 +44,51 @@ const customDay = (h: number | string, c = 0.09, a = 0.5): ModelElement[] => [
   },
 ];
 /** A consumer's re-tint scope (a tool card): a custom colour on an element inside a day page. */
-const nestedDay = (h: number, c: number, a: number, page?: string): ModelElement[] => [
+const nestedDay = (h: number | string, c: number | string, a: number, page?: string): ModelElement[] => [
   ...html(false, page),
-  ...customDay(h, c, a),
+  {
+    attrs: {
+      "data-glass-tint": "",
+    },
+    style: {
+      "--glass-tint-h": String(h),
+      "--glass-tint-c": String(c),
+      "--glass-tint-a": String(a),
+    },
+  },
 ];
+
+/* Sweeps resolve the cascade ONCE per scope shape, with the swept values left as placeholders (HUE, C, L),
+   and evaluate the compiled expression at each sample (scripts/lib/css-math compile, held to evaluate by
+   tests/css-math.test.ts): re-resolving or re-parsing per sample is what made them take seconds. */
+/** A token of `chain`, compiled with `names` as placeholders. */
+const compiledToken = (chain: ModelElement[], token: string, names: string[]) => {
+  const raw = computedVars(chain).get(token);
+  if (!raw) throw new Error(`${token} does not compute on this scope`);
+  return compile(raw, names);
+};
+/** A colour token of `chain`, compiled per channel with `names` as placeholders. */
+const compiledColor = (chain: ModelElement[], token: string, names: string[]) => {
+  const raw = computedVars(chain).get(token);
+  if (!raw) throw new Error(`${token} does not compute on this scope`);
+  return compileOklch(raw, names);
+};
+/** The largest |a - b| over the samples, with where it is, so a sweep asserts once. */
+const worstDifference = <T>(samples: Iterable<T>, a: (x: T) => number, b: (x: T) => number) => {
+  let worst = {
+    d: 0,
+    at: undefined as T | undefined,
+  };
+  for (const x of samples) {
+    const d = Math.abs(a(x) - b(x));
+    if (!(d <= worst.d))
+      worst = {
+        d,
+        at: x,
+      };
+  }
+  return worst;
+};
 
 const CAPS: Array<{
   token: string;
@@ -118,15 +159,29 @@ describe("vibrant day: the day caps follow the hue", () => {
         ] as const,
     ),
   )("%s evaluates, in CSS, to its lib/oklch-utils mirror at any hue", (_, cap) => {
-    /* The cascade once, with the hue left as a placeholder, then the expression at every tenth of a degree
-       and every ten-thousandth near the breakpoints. */
-    const expr = computedVars(customDay("HUE")).get(cap.token);
-    if (!expr) throw new Error(`${cap.token} does not compute on a custom day scope`);
-    for (let tenth = -7200; tenth <= 10800; tenth++) {
-      const h = tenth / 10;
-      expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(cap.mirror(h), 9);
-    }
-    for (const h of breakpointSamples(cap.table)) expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(cap.mirror(h), 9);
+    /* The cascade once, with the hue left as a placeholder, then the compiled expression at every tenth of a
+       degree and every ten-thousandth near the breakpoints, held to toBeCloseTo(…, 9)'s bound at the worst. */
+    const css = compiledToken(customDay("HUE"), cap.token, [
+      "HUE",
+    ]);
+    const hues = [
+      ...Array.from(
+        {
+          length: 18001,
+        },
+        (_, i) => (i - 7200) / 10,
+      ),
+      ...breakpointSamples(cap.table),
+    ];
+    const worst = worstDifference(
+      hues,
+      (h) =>
+        css({
+          HUE: h,
+        }).v,
+      cap.mirror,
+    );
+    expect(worst.d, `CSS and the mirror differ most at h${worst.at}`).toBeLessThan(5e-10);
     // The full cascade agrees with the placeholder route at a few hues.
     for (const h of [
       -500,
@@ -147,10 +202,21 @@ describe("vibrant day: the day caps follow the hue", () => {
         ] as const,
     ),
   )("%s never passes its share of its surface's ceiling, at any hue", (_, cap) => {
-    for (let h = -720; h <= 1080; h += 0.5) {
-      expect(cap.mirror(h) / ceiling(cap.l, h), `h${h}`).toBeLessThanOrEqual(cap.share + SHARE_TOLERANCE);
-    }
-    for (const h of breakpointSamples(cap.table)) expect(cap.mirror(h) / ceiling(cap.l, h), `h${h}`).toBeLessThanOrEqual(cap.share + SHARE_TOLERANCE);
+    const hues = [
+      ...Array.from(
+        {
+          length: 3601,
+        },
+        (_, i) => -720 + i / 2,
+      ),
+      ...breakpointSamples(cap.table),
+    ];
+    const worst = worstDifference(
+      hues,
+      (h) => cap.mirror(h) / ceiling(cap.l, h),
+      () => 0,
+    );
+    expect(worst.d, `the cap's share of the ceiling is largest at h${worst.at}`).toBeLessThanOrEqual(cap.share + SHARE_TOLERANCE);
   });
 });
 
@@ -176,13 +242,24 @@ describe("vibrant day: every preset's backing and gloss take their own hue's sha
   });
 
   it("and a custom colour's, at every whole degree", () => {
+    const backingAt = compiledColor(customDay("HUE"), "--glass-solidify-bg", [
+      "HUE",
+    ]);
+    const glossAt = compiledColor(customDay("HUE"), "--glass-gloss-ink-tonal", [
+      "HUE",
+    ]);
+    const short: string[] = [];
     for (let h = 0; h < 360; h++) {
-      const scope = customDay(h);
-      const backing = colorOf("--glass-solidify-bg", scope);
-      const gloss = colorOf("--glass-gloss-ink-tonal", scope);
-      expect(backing.c, `h${h} backing`).toBeGreaterThanOrEqual(DELIVERS * Math.min(0.09 * 1.36, 0.92 * ceiling(92, h)));
-      expect(gloss.c, `h${h} gloss`).toBeGreaterThanOrEqual(DELIVERS * Math.min(0.09 * 4.25, 0.95 * ceiling(97, h)));
+      const backing = backingAt({
+        HUE: h,
+      });
+      const gloss = glossAt({
+        HUE: h,
+      });
+      if (backing.c < DELIVERS * Math.min(0.09 * 1.36, 0.92 * ceiling(92, h))) short.push(`h${h} backing ${backing.c.toFixed(4)}`);
+      if (gloss.c < DELIVERS * Math.min(0.09 * 4.25, 0.95 * ceiling(97, h))) short.push(`h${h} gloss ${gloss.c.toFixed(4)}`);
     }
+    expect(short).toEqual([]);
   });
 
   it("leaves the opaque card's floor on its own scale and cap", () => {
@@ -210,61 +287,60 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
     },
     (_, i) => i * 10,
   );
-  /** Every section on a day page: each preset scoped inside it, and custom colours (a consumer's re-tint). */
-  const onPage = (
-    page: string,
-  ): Array<
-    [
-      string,
-      ModelElement[],
-    ]
-  > => [
-    ...sections.map(
-      (
-        s,
-      ): [
-        string,
-        ModelElement[],
-      ] => [
-        s,
-        [
-          ...html(false, page),
-          {
-            attrs: {
-              "data-glass-tint": s,
-            },
-          },
-        ],
-      ],
-    ),
-    ...customs.flatMap((h) =>
-      [
-        0.09,
-        0.15,
-      ].map(
-        (
-          c,
-        ): [
-          string,
-          ModelElement[],
-        ] => [
-          `custom h${h} c${c}`,
-          nestedDay(h, c, 0.35, page),
-        ],
-      ),
-    ),
-  ];
   /* Held to the backing's 92% share; the pale warm stone keeps the cap it had (its exemption), which on the
-     near-black page is 95% of its L18 ceiling, under the ceiling itself, exactly as before. */
+     near-black page is 95% of its L18 ceiling, under the ceiling itself, exactly as before. Each page is
+     swept once and its result shared by the tests below: every preset scoped inside it (the cascade per
+     section, its page resolved once), and custom colours (a consumer's re-tint) at every 10° and two
+     chromas, from one cascade with the hue and chroma left as placeholders. */
+  const swept = new Map<string, string[]>();
   const holds = (page: string) => {
-    const over: string[] = [];
-    for (const [name, chain] of onPage(page)) {
-      const backing = colorOf("--glass-solidify-bg", chain);
-      if (backing.c === 0) continue;
-      const ceil = ceiling(backing.l, backing.h);
-      const share = name === "moonstone" ? 1 : 0.92 + SHARE_TOLERANCE;
-      if (backing.c > share * ceil)
-        over.push(`${name}: C ${backing.c.toFixed(4)} at L${backing.l}, ${((100 * backing.c) / ceil).toFixed(1)}% of the ceiling`);
+    let over = swept.get(page);
+    if (!over) {
+      over = [];
+      const check = (
+        name: string,
+        backing: {
+          l: number;
+          c: number;
+          h: number;
+        },
+      ) => {
+        if (backing.c === 0) return;
+        const ceil = ceiling(backing.l, backing.h);
+        const share = name === "moonstone" ? 1 : 0.92 + SHARE_TOLERANCE;
+        if (backing.c > share * ceil)
+          over?.push(`${name}: C ${backing.c.toFixed(4)} at L${backing.l}, ${((100 * backing.c) / ceil).toFixed(1)}% of the ceiling`);
+      };
+      for (const section of sections) {
+        check(
+          section,
+          colorOf("--glass-solidify-bg", [
+            ...html(false, page),
+            {
+              attrs: {
+                "data-glass-tint": section,
+              },
+            },
+          ]),
+        );
+      }
+      const custom = compiledColor(nestedDay("HUE", "C", 0.35, page), "--glass-solidify-bg", [
+        "HUE",
+        "C",
+      ]);
+      for (const h of customs)
+        for (const c of [
+          0.09,
+          0.15,
+        ])
+          check(
+            `custom h${h} c${c}`,
+            custom({
+              HUE: h,
+              C: c,
+            }),
+          );
+      swept.set(page, over);
     }
     expect(over, `sections on a ${page} page past their share`).toEqual([]);
   };
@@ -282,13 +358,29 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
     const pages = presetNames().filter((p) => numberOf("--glass-solidify-l", html(false, p)) !== 92);
     expect(pages.length, "no page paints its backing off L92: this sweep would test nothing").toBeGreaterThan(0);
     for (const page of pages) holds(page);
-  }, 60_000);
+  });
 
-  it("and on every other page, for every section and custom hue", () => {
-    for (const page of presetNames()) holds(page);
-  }, 120_000);
+  /* Every page, one test each: 27 sections and 72 custom colours per page, so no single test carries the
+     whole sweep. */
+  it.each(presetNames())("and on the %s page, for every section and custom hue", (page) => holds(page));
 
   it("evaluates, in CSS, to lib/oklch-utils' dayBackingCap at any backing lightness", () => {
+    /* One cascade with both the hue and the backing lightness left as placeholders, compiled once. */
+    const scope = customDay("HUE");
+    scope[0].style = {
+      ...scope[0].style,
+      "--glass-solidify-l": "L",
+    };
+    const css = compiledToken(scope, "--glass-solidify-c-max", [
+      "HUE",
+      "L",
+    ]);
+    const hues = Array.from(
+      {
+        length: 1441,
+      },
+      (_, i) => -180 + i / 2,
+    );
     for (const l of [
       0,
       9,
@@ -300,25 +392,30 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
       96,
       100,
     ]) {
-      const scope = customDay("HUE");
-      scope[0].style = {
-        ...scope[0].style,
-        "--glass-solidify-l": String(l),
-      };
-      const expr = computedVars(scope).get("--glass-solidify-c-max");
-      if (!expr) throw new Error("--glass-solidify-c-max does not compute on a custom day scope");
-      for (let h = -180; h <= 540; h += 0.5) expect(evaluate(expr.replaceAll("HUE", String(h))).v, `L${l} h${h}`).toBeCloseTo(dayBackingCap(h, l), 9);
+      const worst = worstDifference(
+        hues,
+        (h) =>
+          css({
+            HUE: h,
+            L: l,
+          }).v,
+        (h) => dayBackingCap(h, l),
+      );
+      expect(worst.d, `L${l}: CSS and dayBackingCap differ most at h${worst.at}`).toBeLessThan(5e-10);
     }
+    // The full cascade, with the lightness a scope actually inherits, agrees with the placeholder route.
+    expect(colorOf("--glass-solidify-bg", nestedDay(190, 0.15, 0.35, "onyx")).c).toBeCloseTo(Math.min(0.15 * 1.36, dayBackingCap(190, 18)), 12);
   });
 
   it("never passes the ceiling at any whole backing lightness, at every whole degree", () => {
+    const over: string[] = [];
     for (let l = 0; l <= 100; l++) {
       for (let h = 0; h < 360; h++) {
         const ceil = ceiling(l, h);
-        if (ceil < 0.005) continue;
-        expect(dayBackingCap(h, l), `L${l} h${h}`).toBeLessThanOrEqual(ceil);
+        if (ceil >= 0.005 && dayBackingCap(h, l) > ceil) over.push(`L${l} h${h}`);
       }
     }
+    expect(over).toEqual([]);
   });
 });
 
@@ -350,18 +447,49 @@ describe("vibrant day: the day wash never clips", () => {
   it("caps a custom colour at 95% of its own hue's L72 ceiling, at every whole degree and any chroma", () => {
     /* The reported case: nothing capped the day wash, so a custom colour asked up to twice its ceiling and
        clipped per channel (its hue drifted). */
+    const washAt = compiledColor(customDay("HUE", "C"), "--glass-tint-wash", [
+      "HUE",
+      "C",
+    ]);
+    const wrong: string[] = [];
     for (const c of [
       0.05,
       0.09,
       0.15,
     ]) {
       for (let h = 0; h < 360; h++) {
-        const wash = colorOf("--glass-tint-wash", customDay(h, c));
-        expect(wash.l).toBe(72);
-        expect(wash.c, `c${c} h${h}`).toBeLessThanOrEqual((0.95 + SHARE_TOLERANCE) * ceiling(72, h));
-        expect(wash.c, `c${c} h${h}: greyed`).toBeGreaterThanOrEqual(0.85 * Math.min(c * 2.5, 0.95 * ceiling(72, h)));
+        const wash = washAt({
+          HUE: h,
+          C: c,
+        });
+        if (wash.l !== 72) wrong.push(`c${c} h${h}: L${wash.l}`);
+        if (wash.c > (0.95 + SHARE_TOLERANCE) * ceiling(72, h)) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} past 95%`);
+        if (wash.c < 0.85 * Math.min(c * 2.5, 0.95 * ceiling(72, h))) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} greyed`);
       }
     }
+    expect(wrong).toEqual([]);
+    // The full cascade agrees with the placeholder route at a few points.
+    for (const [h, c] of [
+      [
+        30,
+        0.15,
+      ],
+      [
+        190,
+        0.09,
+      ],
+      [
+        268,
+        0.05,
+      ],
+    ])
+      expect(colorOf("--glass-tint-wash", customDay(h, c)).c).toBeCloseTo(
+        washAt({
+          HUE: h,
+          C: c,
+        }).c,
+        12,
+      );
   });
 
   it("caps a consumer's re-tint scope (a tool card at alpha 0.35) on a default page the same way, past 360 too", () => {

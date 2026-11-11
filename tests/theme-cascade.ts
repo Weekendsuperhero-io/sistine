@@ -15,7 +15,7 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { evaluate, substitute } from "../scripts/lib/css-math.mjs";
+import { compile, evaluate, substitute } from "../scripts/lib/css-math.mjs";
 
 /** An element in the model: its classes, its attributes and its inline custom properties. */
 export interface ModelElement {
@@ -170,8 +170,23 @@ function matchSelector(selector: string, chain: ModelElement[]): number | null {
   return spec;
 }
 
-/** The custom properties an element computes, inherited from its parent and cascaded from the theme. */
+/* computedVars is a pure function of the chain (the partials are read once), and every nested scope recomputes
+   its parents, so results are kept by the chain's shape: a section inside a page resolves the page once. */
+const computedCache = new Map<string, Map<string, string>>();
+
+/** The custom properties an element computes, inherited from its parent and cascaded from the theme. The
+ *  returned map is shared between callers with the same chain: read it, never write to it. */
 export function computedVars(chain: ModelElement[]): Map<string, string> {
+  const key = JSON.stringify(chain);
+  let vars = computedCache.get(key);
+  if (!vars) {
+    vars = resolveVars(chain);
+    computedCache.set(key, vars);
+  }
+  return vars;
+}
+
+function resolveVars(chain: ModelElement[]): Map<string, string> {
   const inherited = chain.length > 1 ? computedVars(chain.slice(0, -1)) : new Map<string, string>();
   const winners = new Map<
     string,
@@ -261,6 +276,33 @@ export function evalOklch(value: string): ResolvedOklch {
     c: evaluate(c).v,
     h: evaluate(h).v,
     a: alpha === undefined ? 1 : evaluate(alpha).v,
+  };
+}
+
+/**
+ * An `oklch(L C H / A)` value whose channels still hold placeholders (a scope resolved once with its hue or
+ * chroma left as a name), compiled once per channel: the function evaluates it as evalOklch would the value
+ * with the placeholders substituted, for a sweep over thousands of values.
+ */
+export function compileOklch(value: string, names: string[]): (vars: Record<string, number>) => ResolvedOklch {
+  const body = value.trim().replace(/^oklch\(([\s\S]*)\)$/, "$1");
+  const [channels, alpha] = splitTop(body, "/");
+  const [l, c, h] = splitTop(channels, /\s/);
+  if (h === undefined) throw new Error(`theme-cascade: "${value}" is not an L C H triple`);
+  const [L, C, H] = [
+    l,
+    c,
+    h,
+  ].map((x) => compile(x, names));
+  const A = alpha === undefined ? undefined : compile(alpha, names);
+  return (vars) => {
+    const lv = L(vars);
+    return {
+      l: lv.pct ? lv.v : lv.v * 100,
+      c: C(vars).v,
+      h: H(vars).v,
+      a: A ? A(vars).v : 1,
+    };
   };
 }
 
