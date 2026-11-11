@@ -283,7 +283,8 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          at night 99.5% of the sRGB ceiling at the depth, by day 95% of it at L72. The browser evaluates it
          per scope but hands it back as an expression, not a number; nightWashCap / dayWashCap are the same
          fits, so the model is exact on the DOM path and on a drag's snapshot alike. A number set directly
-         wins: a preset whose day wash sits at another lightness pins its own, and a consumer may override.
+         wins: a preset whose day wash sits at another lightness pins its own (the switcher's snapshot
+         carries it, with the preset's --glass-wash-l), and a consumer may override.
          Uncapped, the model would band against up to 2.4× the chroma the wash paints. */
       const washCMax = num("--glass-wash-c-max", dark ? nightWashCap(tintSurfaceH) : dayWashCap(tintSurfaceH));
       const washC = Math.min(tintC * washCMult, washCMax);
@@ -308,15 +309,16 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       /* --glass-solidify-*, NOT --glass-opaque-*: the backing under sheer glass is its own surface (see
          tokens.css). It is the one high-weight term in the composite that is not part of a preset's
          declared identity, which is why LIGHT lifts it to 92 to buy body-text contrast without touching
-         a single tint token. By day it has its own scale (×1.36) and a cap that follows the hue (92% of
-         the L92 ceiling, dayBackingCap, which the browser hands back unevaluated); the pale warm stone
-         pins the flat cap it had (check-theme [moonstone-sync] holds the mirror). At night tokens.css
-         hands it the opaque floor's scale and cap. */
+         a single tint token. By day it has its own scale (×1.36) and a cap that follows the hue and the
+         backing's lightness (92% of the ceiling there, dayBackingCap, which the browser hands back
+         unevaluated); the pale warm stone keeps the cap it had (check-theme [moonstone-sync] holds the
+         mirror). At night tokens.css hands it the opaque floor's scale and cap. */
+      const solidifyL = num("--glass-solidify-l", dark ? 36.4 : 92);
       const solidifyFloor = {
-        l: num("--glass-solidify-l", dark ? 36.4 : 92),
+        l: solidifyL,
         c: Math.min(
           tintC * num("--glass-solidify-c-scale", dark ? num("--glass-opaque-c-scale", 0.98) : GLASS_SOLIDIFY_C_SCALE_DAY),
-          num("--glass-solidify-c-max", dark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(tintSurfaceH)),
+          num("--glass-solidify-c-max", dark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(tintSurfaceH, solidifyL)),
         ),
         a: glassOpacity,
       };

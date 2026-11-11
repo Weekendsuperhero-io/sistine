@@ -186,8 +186,46 @@ const FRESCOES = new Set([
   "aurora",
   "gloaming",
 ]);
-function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: number; accOn: boolean; accH: number; accC: number }) {
-  const detail = FRESCOES.has(v.base)
+/* A named preset's own wash knobs, as the stylesheet resolves them on <html> (its --glass-wash-l, and the
+   day --glass-wash-c-max it pins where its wash is not at the default L72: lapis paints 0.2125 at L46, where
+   the L72 fit a snapshot would otherwise fall back to allows 0.133). Read once per preset and mode, so a drag
+   pays one style read rather than one per frame; a value the browser hands back as an expression (the
+   hue-following fits) is left out, and AutoForeground evaluates its own mirror of it. */
+const presetWash = new Map<string, Record<string, number>>();
+function presetWashKnobs(base: PresetValue): Record<string, number> {
+  if (base === "custom") return {};
+  const root = document.documentElement;
+  if (root.dataset.glassTint !== base) return {};
+  const key = `${base}|${root.classList.contains("dark") ? "dark" : "light"}`;
+  let knobs = presetWash.get(key);
+  if (!knobs) {
+    const cs = getComputedStyle(root);
+    knobs = {};
+    for (const name of [
+      "--glass-wash-l",
+      "--glass-wash-c-max",
+    ]) {
+      const v = cs.getPropertyValue(name).trim();
+      if (/^[\d.]+%?$/.test(v)) knobs[name] = Number.parseFloat(v);
+    }
+    presetWash.set(key, knobs);
+  }
+  return knobs;
+}
+
+/** The snapshot emitFg hands AutoForeground: the tint, the lightness and the accent, plus a named preset's own
+ *  wash knobs. Undefined for a fresco (see above). */
+export function fgSnapshot(v: {
+  h: number;
+  c: number;
+  a: number;
+  base: PresetValue;
+  l: number;
+  accOn: boolean;
+  accH: number;
+  accC: number;
+}): Record<string, number> | undefined {
+  return FRESCOES.has(v.base)
     ? undefined
     : {
         "--glass-fg-h": v.h,
@@ -198,10 +236,14 @@ function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: numb
         "--glass-opaque-l": v.l,
         "--accent-h": v.accOn ? v.accH : Number.NaN,
         "--accent-c": v.accC,
+        ...presetWashKnobs(v.base),
       };
+}
+
+function emitFg(v: { h: number; c: number; a: number; base: PresetValue; l: number; accOn: boolean; accH: number; accC: number }) {
   window.dispatchEvent(
     new CustomEvent(FG_EVENT, {
-      detail,
+      detail: fgSnapshot(v),
     }),
   );
 }

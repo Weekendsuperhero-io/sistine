@@ -274,7 +274,10 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
     }
     const glossPin = dayPin("--glass-gloss-c-max");
     if (!backingPin || !glossPin) fail("[moonstone-sync] moonstone's day --glass-solidify-c-max / --glass-gloss-c-max pins are missing from presets.css.");
-    const dayScale = rules.find((r) => r.selector.trim() === ":root")?.body.match(/--glass-solidify-c-scale:\s*([\d.]+)/)?.[1];
+    /* Declared in the hue-following caps rule (`:root, [data-glass-tint]`), so every tint scope resets it. */
+    const dayScale = rules
+      .find((r) => splitTop(r.selector).includes(":root") && splitTop(r.selector).includes("[data-glass-tint]"))
+      ?.body.match(/--glass-solidify-c-scale:\s*([\d.]+)/)?.[1];
     const dayScaleConst = readFileSync(join(root, "lib/oklch-utils.ts"), "utf8").match(/export const GLASS_SOLIDIFY_C_SCALE_DAY = ([\d.]+);/)?.[1];
     if (!dayScale || dayScale !== dayScaleConst)
       fail(`[moonstone-sync] tokens.css's day --glass-solidify-c-scale (${dayScale}) and lib/oklch-utils' GLASS_SOLIDIFY_C_SCALE_DAY (${dayScaleConst}) differ.`);
@@ -293,8 +296,8 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
       }
       if (!src.includes(`num("--glass-solidify-c-scale", ${isDark} ? num("--glass-opaque-c-scale", `) || !src.includes(": GLASS_SOLIDIFY_C_SCALE_DAY)"))
         fail(`[moonstone-sync] ${file} must fall back to num("--glass-solidify-c-scale", ${isDark} ? num("--glass-opaque-c-scale", …) : GLASS_SOLIDIFY_C_SCALE_DAY): the backing has its own scale by day and the opaque floor's at night.`);
-      if (backingPin && !new RegExp(`num\\("--glass-solidify-c-max", ${isDark} \\? \\w+ : moonstone \\? ${backingPin.replace(".", "\\.")} : dayBackingCap\\(${hueVar}\\)\\)`).test(src))
-        fail(`[moonstone-sync] ${file} must fall back to num("--glass-solidify-c-max", ${isDark} ? … : moonstone ? ${backingPin} : dayBackingCap(h)): moonstone pins ${backingPin} by day and every other scope's cap follows the hue.`);
+      if (backingPin && !new RegExp(`num\\("--glass-solidify-c-max", ${isDark} \\? \\w+ : moonstone \\? ${backingPin.replace(".", "\\.")} : dayBackingCap\\(${hueVar}, \\w+\\)\\)`).test(src))
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-solidify-c-max", ${isDark} ? … : moonstone ? ${backingPin} : dayBackingCap(h, backingL)): moonstone keeps ${backingPin} by day and every other scope's cap follows the hue and the backing's lightness.`);
       if (file === "auto-foreground.tsx" && glossPin && !new RegExp(`num\\("--glass-gloss-c-max", dark \\? [\\d.]+ : moonstone \\? ${glossPin.replace(".", "\\.")} : dayGlossCap\\(${hueVar}\\)\\)`).test(src))
         fail(`[moonstone-sync] auto-foreground.tsx must fall back to num("--glass-gloss-c-max", dark ? … : moonstone ? ${glossPin} : dayGlossCap(h)): moonstone pins ${glossPin} by day and every other scope's cap follows the hue.`);
       if (!/deepen\(num\("--glass-wash-l"/.test(src))

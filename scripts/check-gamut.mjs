@@ -65,7 +65,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inSrgbGamut, maxSrgbChroma } from "../lib/oklch-utils.ts";
 import { evaluate, substitute } from "./lib/css-math.mjs";
-import { breakpoints, HUE_CAPS as HUE_CAP_PROFILES, locateBreakpoint } from "./lib/hue-caps.mjs";
+import { BACKING_L, breakpoints, HUE_CAPS as HUE_CAP_PROFILES, locateBreakpoint } from "./lib/hue-caps.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -207,16 +207,23 @@ function hueCaps() {
       value.includes("var(--glass-tint-h)") ||
       [...value.matchAll(/var\((--[a-z0-9-]+)/g)].some(([, n]) => decls.has(n) && !seen.has(n) && onHue(decls.get(n), new Set([...seen, n])));
     const caps = new Map();
-    for (const [name, value] of decls) if (name.endsWith("-c-max") && onHue(value)) caps.set(name.slice(2), value);
+    /* A cap is a -c-max, or one of the fits a cap blends (-c-max-at-92: the day backing's, at a lightness). */
+    for (const [name, value] of decls) if (/-c-max(?:-at-\d+)?$/.test(name) && onHue(value)) caps.set(name.slice(2), value);
     out[mode] = { decls, caps };
   }
   return out;
 }
 const HUE_CAPS_BY_MODE = hueCaps();
 const HUE_CAPS = { light: HUE_CAPS_BY_MODE.light.caps, dark: HUE_CAPS_BY_MODE.dark.caps };
-/** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations. */
-const hueCapAt = (expr, h, mode = "dark") =>
-  evaluate(substitute(expr, new Map([...HUE_CAPS_BY_MODE[mode].decls, ["--glass-tint-h", String(h)]]))).v;
+/** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations, with any knob a
+ *  scope sets for itself (`own`, name without dashes → number: a preset's backing lightness) in place. */
+const hueCapAt = (expr, h, mode = "dark", own = new Map()) =>
+  evaluate(
+    substitute(
+      expr,
+      new Map([...HUE_CAPS_BY_MODE[mode].decls, ...[...own].map(([k, v]) => [`--${k}`, String(v)]), ["--glass-tint-h", String(h)]]),
+    ),
+  ).v;
 
 /* Split a stylesheet into top-level rule bodies so a block-LOCAL override is honoured. A flavor block
    may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and
@@ -548,7 +555,9 @@ for (const s of surfaces) {
       let want = base * (pinnedMult ?? s.mult);
       const ask = want;
       const hueCap = s.capName ? HUE_CAPS[s.mode].get(s.capName) : undefined;
-      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : hueCap !== undefined ? hueCapAt(hueCap, p.h, s.mode) : s.hardCap;
+      /* A hue cap is evaluated with the preset's own knobs in place: the day backing's follows the backing
+         lightness, which the near-black preset sets for itself. */
+      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : hueCap !== undefined ? hueCapAt(hueCap, p.h, s.mode, p.vars ?? new Map()) : s.hardCap;
       if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
@@ -658,11 +667,13 @@ for (const f of fixed) {
 const guardReport = [];
 for (const [name, profile] of Object.entries(HUE_CAP_PROFILES)) {
   const token = profile.token.slice(2);
-  const l = vars[profile.mode].get(profile.lToken.slice(2));
+  /* The lightness the surface paints at, from the CSS; a fit with no token of its own (the day backing's L18,
+     which the blended cap below uses) is swept at the lightness it was fitted at. */
+  const l = profile.lToken ? vars[profile.mode].get(profile.lToken.slice(2)) : profile.l;
   const expr = HUE_CAPS[profile.mode].get(token);
   if (l === undefined || expr === undefined) {
     failures.push(
-      `[guard] ${name}: could not read ${profile.lToken} or a hue-dependent ${profile.mode} ${profile.token} from tokens.css — if it moved, update this rule rather than dropping it.`,
+      `[guard] ${name}: could not read ${profile.lToken ?? "its lightness"} or a hue-dependent ${profile.mode} ${profile.token} from tokens.css — if it moved, update this rule rather than dropping it.`,
     );
     continue;
   }
@@ -719,6 +730,49 @@ for (const [name, profile] of Object.entries(HUE_CAP_PROFILES)) {
   guardReport.push(
     `${profile.what} cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${l} ceiling (h${lo.h} / h${+hi.h.toFixed(4)}; breakpoints h${cusps.map((c) => c.toFixed(4)).join(", h")})`,
   );
+}
+
+/* [guard] the day backing cap at the lightness the backing actually paints at. Every preset's day backing is
+   L92, but a scope keeps the --glass-solidify-l it inherits, so a section inside the near-black preset's page
+   paints its backing at L18; tokens.css blends the L92 and L18 fits by that lightness. Swept at every whole
+   lightness from 0 to 100 (each preset's own day backing lightness among them) and every whole degree:
+   never past the ceiling there, and at the lightnesses it was fitted at (92, 18), never past its share,
+   which the two fits' own guards above sweep at every tenth of a degree and near every breakpoint. */
+{
+  const expr = HUE_CAPS.light.get("glass-solidify-c-max");
+  const share = HUE_CAP_PROFILES["day-backing"].share;
+  if (!expr || !expr.includes("--glass-solidify-l")) {
+    failures.push(
+      "[guard] the day backing cap does not follow --glass-solidify-l: a scope inside the near-black preset's page paints its backing at L18, where a cap fitted at L92 clips (tokens.css).",
+    );
+  } else {
+    const inPlay = new Set([BACKING_L.light, BACKING_L.dark, ...presets.filter((p) => !p.dark && p.vars?.has("glass-solidify-l")).map((p) => p.vars.get("glass-solidify-l"))]);
+    let worst = { r: 0, l: 0, h: 0 };
+    /* The two fits once per hue (the blend is plain arithmetic over them), then the blend at every lightness. */
+    const fitsAt = Array.from({ length: 360 }, (_, h) => [
+      ["glass-solidify-c-max-at-18", hueCapAt(HUE_CAPS.light.get("glass-solidify-c-max-at-18"), h, "light")],
+      ["glass-solidify-c-max-at-92", hueCapAt(HUE_CAPS.light.get("glass-solidify-c-max-at-92"), h, "light")],
+    ]);
+    let over;
+    for (let l = 0; l <= 100; l++) {
+      for (let h = 0; h < 360; h++) {
+        const ceiling = maxSrgbChroma(l, h);
+        if (ceiling < CEILING_FLOOR) continue;
+        const r = hueCapAt(expr, h, "light", new Map([...fitsAt[h], ["glass-solidify-l", l]])) / ceiling;
+        if (r > worst.r) worst = { r, l, h };
+        const limit = inPlay.has(l) ? share + SHARE_TOLERANCE : 1.0001;
+        if (r > limit && (!over || r / limit > over.r / over.limit)) over = { r, l, h, limit };
+      }
+    }
+    if (over) {
+      failures.push(
+        `[guard] the day backing cap reaches ${(100 * over.r).toFixed(1)}% of the L${over.l} sRGB ceiling at h${over.h}${inPlay.has(over.l) ? ` (a backing lightness in play, held to ${100 * share}%)` : ""}: a backing there clips.`,
+      );
+    }
+    guardReport.push(
+      `the day backing cap at its own lightness ≤ ${(100 * worst.r).toFixed(1)}% of the ceiling at every whole L and degree (L${worst.l} h${worst.h}; in play: L${[...inPlay].join(", L")})`,
+    );
+  }
 }
 
 if (process.argv.includes("--report")) {

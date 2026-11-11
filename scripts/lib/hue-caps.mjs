@@ -10,6 +10,9 @@
  *
  *   night-wash   the tint wash at night, painted at the night depth (L35): 99.5% of the ceiling.
  *   day-backing  the solidify backing under sheer glass by day (L92): 92%.
+ *   day-backing-dark  the same at L18, the near-black preset's backing. A tint scope inside its page paints
+ *                its backing there, so the backing cap (tokens.css) blends the two fits by the backing
+ *                lightness the scope paints at (BACKING_L below), rather than taking L92's everywhere.
  *   day-gloss    the tonal crystal gloss by day (L97): 95%.
  *   day-wash     the tint wash by day at the default and custom wash lightness (L72): 95%. A preset that
  *                paints its wash at another lightness pins its own cap (presets.css, frescoes.css), 95% of
@@ -21,7 +24,7 @@
  */
 import { maxSrgbChroma } from "../../lib/oklch-utils.ts";
 
-/** @typedef {{ token: string, mode: "light" | "dark", lToken: string, l: number, share: number, floor: number, presetFloor: number, table: string, what: string }} HueCapProfile */
+/** @typedef {{ token: string, mode: "light" | "dark", lToken: string | null, l: number, share: number, floor: number, presetFloor: number, table: string, what: string }} HueCapProfile */
 
 /** @type {Record<string, HueCapProfile>} */
 export const HUE_CAPS = {
@@ -37,7 +40,7 @@ export const HUE_CAPS = {
     what: "the night wash",
   },
   "day-backing": {
-    token: "--glass-solidify-c-max",
+    token: "--glass-solidify-c-max-at-92",
     mode: "light",
     lToken: "--glass-solidify-l",
     l: 92,
@@ -45,7 +48,18 @@ export const HUE_CAPS = {
     floor: 0.828,
     presetFloor: 0.906,
     table: "DAY_BACKING_CAP",
-    what: "the day backing",
+    what: "the day backing at L92",
+  },
+  "day-backing-dark": {
+    token: "--glass-solidify-c-max-at-18",
+    mode: "light",
+    lToken: null,
+    l: 18,
+    share: 0.92,
+    floor: 0.828,
+    presetFloor: 0.906,
+    table: "DAY_BACKING_CAP_DARK",
+    what: "the day backing at L18",
   },
   "day-gloss": {
     token: "--glass-gloss-c-max",
@@ -70,6 +84,9 @@ export const HUE_CAPS = {
     what: "the day wash",
   },
 };
+
+/** The two lightnesses the day backing cap is fitted at, which it blends between by --glass-solidify-l. */
+export const BACKING_L = { dark: HUE_CAPS["day-backing-dark"].l, light: HUE_CAPS["day-backing"].l };
 
 /** The share of its own ceiling a preset's pinned day wash cap takes (day-wash's, at the preset's wash L). */
 export const PRESET_WASH_SHARE = HUE_CAPS["day-wash"].share;

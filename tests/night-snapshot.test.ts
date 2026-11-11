@@ -29,6 +29,11 @@ const NEW_AT_NIGHT: Record<string, string> = {
      tokens.css's night rule sets it to var(--glass-opaque-c-scale), so --glass-solidify-bg (pinned here)
      is what it was. */
   "--glass-solidify-c-scale": "the backing's day scale; at night it is the opaque floor's",
+  /* The day backing cap's two hue fits (at L92 and L18), which the day cap blends by the backing's
+     lightness. The night rule redeclares --glass-solidify-c-max at every night scope, so nothing reads
+     them at night. */
+  "--glass-solidify-c-max-at-92": "a day backing fit; unread at night",
+  "--glass-solidify-c-max-at-18": "a day backing fit; unread at night",
 };
 
 const r9 = (x: number) => {

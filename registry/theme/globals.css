@@ -351,14 +351,15 @@
   --glass-solidify-l: 92;
   /* The backing's chroma: the tint's × this, capped at 92% of its own hue's L92 ceiling
      (--glass-solidify-c-max, a hue-following cap declared with the others in the rule after this
-     block). It used to share the opaque floor's ×0.85 and take 65% of the preset's L88 opaque cap
+     block, which follows the backing's lightness too). It used to share the opaque floor's ×0.85 and take 65% of the preset's L88 opaque cap
      (0.036 where a scope pins none: the frescoes, the status tints), which left the hues that peak light
      at a fraction of what L92 holds: green, yellow and teal jewels at 32–51% of the ceiling, the status
      tints and frescoes at 26–56%. Its own knob, so the opaque card (which reads --glass-opaque-c-scale) is
      unchanged; the night token rule hands the backing the opaque scale and cap back, so night is too.
      1.36 lets a jewel's tint reach the cap; the default glass (0.018) lands at 0.024. Body text by day
-     keeps its floor plus margin everywhere (scripts/check-contrast.mjs). */
-  --glass-solidify-c-scale: 1.36;
+     keeps its floor plus margin everywhere (scripts/check-contrast.mjs). The scale is declared in that
+     rule too, at every tint scope, so a preset that keeps its own (the pale warm stone) does not hand it
+     to a section scoped inside its page. */
   /* ── Chakra — the step-cut material (between opaque and crystal) ─────────────
      Every other material is lit from ONE direction: --glass-shadow carries a bright top bevel and a
      dark bottom shade, so surfaces read as a lit dome. Chakra lights all FOUR edges as mitered facets
@@ -580,9 +581,16 @@
    breakpoint.
 
    The DAY caps; the night token rule after this one declares the night values at every night scope.
-     --glass-solidify-c-max: the backing under sheer glass (L92), 92% of the ceiling. The cap it replaced
-       (65% of the preset's L88 opaque cap, 0.036 where a scope pins none) held the hues that peak light to
-       26–56% of theirs. Measured: 83.3–92.0% of the ceiling at every hundredth of a degree.
+     --glass-solidify-c-max: the backing under sheer glass, 92% of the ceiling AT THE LIGHTNESS IT PAINTS.
+       Every preset's day backing is L92, but a tint scope inside the near-black preset's page inherits that
+       preset's L18 backing, where a cap sized for L92 would ask up to 3.5× what sRGB holds. So there are
+       two fits, at L92 (-at-92, 83.3–92.0% of the ceiling at every hundredth of a degree) and at L18
+       (-at-18, 85.1–92.0%), blended by the scope's --glass-solidify-l and tapered to 0 toward black under
+       18 and toward white over 92. At L92 and L18 the cap is the fit; between them it stays under the
+       ceiling at every whole lightness and degree (at most 95.3% of it), and check-gamut [guard] sweeps
+       every lightness from 0 to 100. The cap it replaced (65% of the preset's L88 opaque cap, 0.036 where
+       a scope pins none) held the hues that peak light to 26–56% of theirs. --glass-solidify-c-scale,
+       the backing's ×1.36, is declared here too, so it is reset at every tint scope.
      --glass-gloss-c-max: the tonal crystal gloss (L97), 95%. It was a flat 0.013, lapis's ceiling, which
        held peridot, citrine, aventurine and turquoise to 19–31% of theirs. 85.8–95.1%.
      --glass-wash-c-max: the tint wash at the default and custom wash lightness (L72), 95%. Nothing capped
@@ -595,7 +603,8 @@
 :root,
 [data-glass-tint] {
   --glass-wash-hue: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572958);
-  --glass-solidify-c-max: max(
+  --glass-solidify-c-scale: 1.36;
+  --glass-solidify-c-max-at-92: max(
     0.034,
     min(
       max(calc(0.17196 + 0.0006711 * (var(--glass-wash-hue) - 102.02)), calc(0.21096 + 0.002805 * (var(--glass-wash-hue) - 126.7))),
@@ -646,6 +655,65 @@
       calc(0.21101 + 200 * (var(--glass-wash-hue) + 233.276)),
       calc(0.11363 + 200 * (-164.833 - var(--glass-wash-hue)))
     )
+  );
+  --glass-solidify-c-max-at-18: max(
+    0.027,
+    min(
+      max(
+        calc(0.0669 - 0.002005 * (var(--glass-wash-hue) - 29.61)),
+        calc(0.05394 - 0.001179 * (var(--glass-wash-hue) - 38)),
+        calc(0.04288 - 0.0005924 * (var(--glass-wash-hue) - 51.1)),
+        calc(0.03473 - 0.0001574 * (var(--glass-wash-hue) - 75)),
+        calc(0.03373 - 0.00004527 * (var(--glass-wash-hue) - 85)),
+        calc(0.03421 + 0.0001102 * (var(--glass-wash-hue) - 100)),
+        calc(0.043 + 0.0005983 * (var(--glass-wash-hue) - 128))
+      ),
+      calc(0.06694 + 200 * (var(--glass-wash-hue) - 29.589)),
+      calc(0.05582 + 200 * (142.417 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.04505 - 0.001075 * (var(--glass-wash-hue) - 150)),
+        calc(0.03826 - 0.0006652 * (var(--glass-wash-hue) - 158)),
+        calc(0.02825 - 0.00009053 * (var(--glass-wash-hue) - 190))
+      ),
+      calc(0.05582 + 200 * (var(--glass-wash-hue) - 142.417)),
+      calc(0.11232 + 200 * (263.856 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.11229 - 0.001112 * (var(--glass-wash-hue) + 96.12)),
+        calc(0.08674 - 0.0004684 * (var(--glass-wash-hue) + 60)),
+        calc(0.07027 - 0.0003031 * (var(--glass-wash-hue) + 18)),
+        calc(0.06531 - 0.00005904 * (var(--glass-wash-hue) - 8)),
+        calc(0.06693 + 0.0002224 * (var(--glass-wash-hue) - 29.57))
+      ),
+      calc(0.11232 + 200 * (var(--glass-wash-hue) + 96.144)),
+      calc(0.06694 + 200 * (29.589 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.02825 - 0.00009053 * (var(--glass-wash-hue) + 170)),
+        calc(0.02794 + 0.0000492 * (var(--glass-wash-hue) + 155)),
+        calc(0.02891 + 0.0001496 * (var(--glass-wash-hue) + 145)),
+        calc(0.03263 + 0.00037 * (var(--glass-wash-hue) + 130)),
+        calc(0.04645 + 0.001236 * (var(--glass-wash-hue) + 110)),
+        calc(0.05414 + 0.001923 * (var(--glass-wash-hue) + 105)),
+        calc(0.07698 + 0.006223 * (var(--glass-wash-hue) + 98)),
+        calc(0.10024 + 0.07556 * (var(--glass-wash-hue) + 96.16))
+      ),
+      calc(0.05582 + 200 * (var(--glass-wash-hue) + 217.583)),
+      calc(0.11232 + 200 * (-96.144 - var(--glass-wash-hue)))
+    )
+  );
+  --glass-solidify-c-max: calc(
+    (
+      var(--glass-solidify-c-max-at-18) +
+      (var(--glass-solidify-c-max-at-92) - var(--glass-solidify-c-max-at-18)) *
+      (max(18, min(var(--glass-solidify-l), 92)) - 18) /
+      74
+    ) *
+    min(1, var(--glass-solidify-l) / 18, ((100 - var(--glass-solidify-l)) / 8) * ((100 - var(--glass-solidify-l)) / 8))
   );
   --glass-gloss-c-max: max(
     0.012,

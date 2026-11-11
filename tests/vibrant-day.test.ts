@@ -16,6 +16,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DAY_BACKING_CAP,
+  DAY_BACKING_CAP_DARK,
   DAY_GLOSS_CAP,
   DAY_WASH_CAP,
   dayBackingCap,
@@ -56,10 +57,17 @@ const CAPS: Array<{
   share: number;
 }> = [
   {
-    token: "--glass-solidify-c-max",
+    token: "--glass-solidify-c-max-at-92",
     table: DAY_BACKING_CAP,
-    mirror: dayBackingCap,
+    mirror: (h) => dayBackingCap(h, 92),
     l: 92,
+    share: 0.92,
+  },
+  {
+    token: "--glass-solidify-c-max-at-18",
+    table: DAY_BACKING_CAP_DARK,
+    mirror: (h) => dayBackingCap(h, 18),
+    l: 18,
     share: 0.92,
   },
   {
@@ -188,6 +196,147 @@ describe("vibrant day: every preset's backing and gloss take their own hue's sha
       );
       expect(colorOf("--glass-opaque-bg", day).c, tint).toBeCloseTo(want, 9);
     }
+  });
+});
+
+describe("vibrant day: the backing is capped at the lightness it paints", () => {
+  /* Every preset's day backing is L92, but a scope keeps the --glass-solidify-l it inherits: a section inside
+     the near-black preset's page paints its backing at L18, where a cap fitted at L92 asked up to 3.5× what
+     sRGB holds. The cap blends its L92 and L18 fits by that lightness (tokens.css). */
+  const sections = presetNames();
+  const customs = Array.from(
+    {
+      length: 36,
+    },
+    (_, i) => i * 10,
+  );
+  /** Every section on a day page: each preset scoped inside it, and custom colours (a consumer's re-tint). */
+  const onPage = (
+    page: string,
+  ): Array<
+    [
+      string,
+      ModelElement[],
+    ]
+  > => [
+    ...sections.map(
+      (
+        s,
+      ): [
+        string,
+        ModelElement[],
+      ] => [
+        s,
+        [
+          ...html(false, page),
+          {
+            attrs: {
+              "data-glass-tint": s,
+            },
+          },
+        ],
+      ],
+    ),
+    ...customs.flatMap((h) =>
+      [
+        0.09,
+        0.15,
+      ].map(
+        (
+          c,
+        ): [
+          string,
+          ModelElement[],
+        ] => [
+          `custom h${h} c${c}`,
+          nestedDay(h, c, 0.35, page),
+        ],
+      ),
+    ),
+  ];
+  /* Held to the backing's 92% share; the pale warm stone keeps the cap it had (its exemption), which on the
+     near-black page is 95% of its L18 ceiling, under the ceiling itself, exactly as before. */
+  const holds = (page: string) => {
+    const over: string[] = [];
+    for (const [name, chain] of onPage(page)) {
+      const backing = colorOf("--glass-solidify-bg", chain);
+      if (backing.c === 0) continue;
+      const ceil = ceiling(backing.l, backing.h);
+      const share = name === "moonstone" ? 1 : 0.92 + SHARE_TOLERANCE;
+      if (backing.c > share * ceil)
+        over.push(`${name}: C ${backing.c.toFixed(4)} at L${backing.l}, ${((100 * backing.c) / ceil).toFixed(1)}% of the ceiling`);
+    }
+    expect(over, `sections on a ${page} page past their share`).toEqual([]);
+  };
+
+  it("on the near-black preset's page (backing L18), for every section and custom hue", () => {
+    expect(numberOf("--glass-solidify-l", html(false, "onyx"))).toBe(18);
+    holds("onyx");
+    // And the cap there is the L18 fit, not a greyed fallback: a custom teal gets what L18 holds at h190.
+    const teal = colorOf("--glass-solidify-bg", nestedDay(190, 0.15, 0.35, "onyx"));
+    expect(teal.c).toBeCloseTo(dayBackingCap(190, 18), 9);
+    expect(teal.c).toBeGreaterThan(0.85 * 0.92 * ceiling(18, 190));
+  });
+
+  it("on every page whose backing is not at L92", () => {
+    const pages = presetNames().filter((p) => numberOf("--glass-solidify-l", html(false, p)) !== 92);
+    expect(pages.length, "no page paints its backing off L92: this sweep would test nothing").toBeGreaterThan(0);
+    for (const page of pages) holds(page);
+  }, 60_000);
+
+  it("and on every other page, for every section and custom hue", () => {
+    for (const page of presetNames()) holds(page);
+  }, 120_000);
+
+  it("evaluates, in CSS, to lib/oklch-utils' dayBackingCap at any backing lightness", () => {
+    for (const l of [
+      0,
+      9,
+      18,
+      30,
+      52,
+      75,
+      92,
+      96,
+      100,
+    ]) {
+      const scope = customDay("HUE");
+      scope[0].style = {
+        ...scope[0].style,
+        "--glass-solidify-l": String(l),
+      };
+      const expr = computedVars(scope).get("--glass-solidify-c-max");
+      if (!expr) throw new Error("--glass-solidify-c-max does not compute on a custom day scope");
+      for (let h = -180; h <= 540; h += 0.5) expect(evaluate(expr.replaceAll("HUE", String(h))).v, `L${l} h${h}`).toBeCloseTo(dayBackingCap(h, l), 9);
+    }
+  });
+
+  it("never passes the ceiling at any whole backing lightness, at every whole degree", () => {
+    for (let l = 0; l <= 100; l++) {
+      for (let h = 0; h < 360; h++) {
+        const ceil = ceiling(l, h);
+        if (ceil < 0.005) continue;
+        expect(dayBackingCap(h, l), `L${l} h${h}`).toBeLessThanOrEqual(ceil);
+      }
+    }
+  });
+});
+
+describe("vibrant day: the backing scale is reset at every tint scope", () => {
+  it("a section on the pale warm stone's page takes the day scale, not the stone's own", () => {
+    /* The stone keeps its old scale (its opaque floor's 0.92); a peridot section on its page must not inherit
+       it. Peridot's backing is scale-bound (0.083 × 1.36 = 0.113, under its cap), so the scale shows. */
+    const section: ModelElement[] = [
+      ...html(false, "moonstone"),
+      {
+        attrs: {
+          "data-glass-tint": "peridot",
+        },
+      },
+    ];
+    expect(numberOf("--glass-solidify-c-scale", section)).toBe(1.36);
+    expect(colorOf("--glass-solidify-bg", section).c).toBeCloseTo(colorOf("--glass-solidify-bg", html(false, "peridot")).c, 9);
+    expect(numberOf("--glass-solidify-c-scale", html(false, "moonstone"))).toBeCloseTo(0.92, 9);
   });
 });
 

@@ -197,6 +197,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       const nightDepth = num("--glass-night-depth", isDark ? 35 : 100);
       // The surface hue the hue-following caps are evaluated at, as tokens.css evaluates them.
       const surfaceH = num("--glass-tint-h", 255);
+      const solidifyL = num("--glass-solidify-l", isDark ? 36.4 : 92);
       setEnv({
         h: num("--glass-fg-h", num("--glass-tint-h", 255)),
         c: tintC,
@@ -206,10 +207,10 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
         washL: deepen(num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72), nightDepth),
         washCMult: num("--glass-wash-c-mult", moonstone && isDark ? 2 : 2.5),
         washCMax: num("--glass-wash-c-max", isDark ? nightWashCap(surfaceH) : dayWashCap(surfaceH)),
-        solidifyL: num("--glass-solidify-l", isDark ? 36.4 : 92),
+        solidifyL,
         solidifyC: Math.min(
           tintC * num("--glass-solidify-c-scale", isDark ? num("--glass-opaque-c-scale", 0.98) : GLASS_SOLIDIFY_C_SCALE_DAY),
-          num("--glass-solidify-c-max", isDark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(surfaceH)),
+          num("--glass-solidify-c-max", isDark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(surfaceH, solidifyL)),
         ),
         glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
         pageSolidA: Math.min(Math.max(num("--glass-solid-a", 0.65), 0), 1),
