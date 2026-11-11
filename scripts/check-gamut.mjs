@@ -64,7 +64,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inSrgbGamut, maxSrgbChroma } from "../lib/oklch-utils.ts";
-import { evaluate, substitute } from "./lib/css-math.mjs";
+import { compile, substitute } from "./lib/css-math.mjs";
 import { BACKING_L, breakpoints, HUE_CAPS as HUE_CAP_PROFILES, locateBreakpoint } from "./lib/hue-caps.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -216,14 +216,25 @@ function hueCaps() {
 const HUE_CAPS_BY_MODE = hueCaps();
 const HUE_CAPS = { light: HUE_CAPS_BY_MODE.light.caps, dark: HUE_CAPS_BY_MODE.dark.caps };
 /** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations, with any knob a
- *  scope sets for itself (`own`, name without dashes → number: a preset's backing lightness) in place. */
-const hueCapAt = (expr, h, mode = "dark", own = new Map()) =>
-  evaluate(
-    substitute(
-      expr,
-      new Map([...HUE_CAPS_BY_MODE[mode].decls, ...[...own].map(([k, v]) => [`--${k}`, String(v)]), ["--glass-tint-h", String(h)]]),
-    ),
-  ).v;
+ *  scope sets for itself (`own`, name without dashes → number: a preset's backing lightness) in place. Each
+ *  cap is substituted and compiled once per mode and set of own knobs, with the hue and those knobs as
+ *  placeholders (scripts/lib/css-math compile, held to evaluate by tests/css-math.test.ts), so a sweep of
+ *  tens of thousands of samples parses it once rather than each time. */
+const COMPILED_CAPS = new Map();
+const placeholder = (k) => `OWN_${k.replace(/-/g, "_")}`;
+const hueCapAt = (expr, h, mode = "dark", own = new Map()) => {
+  const keys = [...own.keys()].sort();
+  const key = `${mode}\n${keys.join(",")}\n${expr}`;
+  let cap = COMPILED_CAPS.get(key);
+  if (!cap) {
+    const decls = new Map([...HUE_CAPS_BY_MODE[mode].decls, ...keys.map((k) => [`--${k}`, placeholder(k)]), ["--glass-tint-h", "HUE"]]);
+    cap = compile(substitute(expr, decls), ["HUE", ...keys.map(placeholder)]);
+    COMPILED_CAPS.set(key, cap);
+  }
+  const vars = { HUE: h };
+  for (const k of keys) vars[placeholder(k)] = own.get(k);
+  return cap(vars).v;
+};
 
 /* Split a stylesheet into top-level rule bodies so a block-LOCAL override is honoured. A flavor block
    may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and
