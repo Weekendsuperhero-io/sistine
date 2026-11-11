@@ -82,6 +82,10 @@ const RAMP_CHROMA = 0.15;
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
 
+/* NaN-SAFE floors. A failure condition written `lc < floor` is false when lc is NaN (a token that resolves to
+   nothing numeric, a model that breaks), so the check would pass silently. Each is written as the negation
+   of its passing condition instead: below(x, floor) is true on NaN. */
+const below = (x, floor) => !(x >= floor);
 const BODY_FLOOR = READABLE_USAGE.body.floor; // 75 — read from the source of truth, never hardcoded
 const MARGIN = 1.5; // Lc of slack required on top of the floor
 /* APCA's level for non-text elements that must be perceived (outlines, focus rings, dividers that carry
@@ -438,7 +442,7 @@ for (const p of all) {
     const lustreText = limitingSurface(lustreSurface, stops);
     const lustreInk = readableTonal(lustreText, boostBand(READABLE_USAGE.body, LC_MARGIN * (1 - lustreBodyA) * (1 - lustreWashA) * 0.79 * 0.3), { hue: lustreSurface.h, chroma: c > 0 ? RAMP_CHROMA : 0 });
     const lustreLc = Math.abs(apcaContrast(lustreInk, lustreText));
-    if (lustreLc < BODY_FLOOR + MARGIN) {
+    if (below(lustreLc, BODY_FLOOR + MARGIN)) {
       failures.push(`[lustre] ${p.name} (${mode}) — body text reaches only ${lustreLc.toFixed(1)} Lc on its polished surface.`);
     }
     /* Assert LIGHTNESS, not chroma. At L≈0 the shared gamut test is eps-tolerant and reports PHANTOM
@@ -446,13 +450,13 @@ for (const p of all) {
        passes the exact colour it is meant to catch (lib/oklch-utils documents this inside
        readableForeground's minChroma branch, which rejects it with a tighter eps). The clip bounds are
        the honest test: inside them the colour renders tinted, outside it does not. */
-    if (c > 0 && (opaqueInk.l < TONAL_MIN_L || opaqueInk.l > TONAL_MAX_L)) {
+    if (c > 0 && !(opaqueInk.l >= TONAL_MIN_L && opaqueInk.l <= TONAL_MAX_L)) {
       failures.push(
         `[opaque] ${p.name} (${mode}) — --foreground-opaque solved to L${opaqueInk.l.toFixed(1)}, past the tonal clip ` +
           `(${TONAL_MIN_L}–${TONAL_MAX_L}), on an L${opaqueL} floor whose reach is ${opaqueLc.toFixed(1)} Lc. ` +
           `That is the achromatic extreme — the clip should have caught it.`,
       );
-    } else if (opaqueLc < BODY_FLOOR) {
+    } else if (below(opaqueLc, BODY_FLOOR)) {
       failures.push(
         `[opaque] ${p.name} (${mode}) — opaque-card body text reaches only ${opaqueLc.toFixed(1)} Lc on its L${opaqueL} floor, under the ${BODY_FLOOR} floor.`,
       );
@@ -468,7 +472,7 @@ for (const p of all) {
     ]) {
       const line = compositeSurface(ground, [{ ...ink, a: inkA }]);
       const inkLc = Math.abs(apcaContrast(line, ground));
-      if (inkLc < INK_FLOOR) {
+      if (below(inkLc, INK_FLOOR)) {
         failures.push(
           `[ink] ${p.name} (${mode}, ${where}) — the ink border reaches only ${inkLc.toFixed(1)} Lc against its surface, under the ${INK_FLOOR} non-text floor. Raise --glass-border-ink-a (${inkA}).`,
         );
@@ -499,7 +503,7 @@ for (const p of all) {
       for (const [where, ground] of grounds) {
         const edgeLc = Math.abs(apcaContrast(edge, ground));
         edgeReport.push({ name: p.name, mode, where, token, lc: edgeLc, l: edge.l });
-        if (dark && edgeLc < EDGE_FLOOR) {
+        if (dark && below(edgeLc, EDGE_FLOOR)) {
           failures.push(
             `[edge] ${p.name} (night, ${where}) — --${token} (L${edge.l.toFixed(0)}) reaches only ${edgeLc.toFixed(1)} Lc against its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor. Raise its night --${lKey}.`,
           );
@@ -512,7 +516,7 @@ for (const p of all) {
       for (const [where, ground] of grounds) {
         const lcRing = Math.abs(apcaContrast(ring, ground));
         roleReport.push({ name: p.name, where, token: "ring", value: lcRing, unit: "Lc", l: ring.l });
-        if (lcRing < EDGE_FLOOR) {
+        if (below(lcRing, EDGE_FLOOR)) {
           failures.push(`[role] ${p.name} (night, ${where}) — the focus ring (L${ring.l.toFixed(0)}) reaches only ${lcRing.toFixed(1)} Lc on its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor.`);
         }
       }
@@ -525,7 +529,7 @@ for (const p of all) {
         const inside = compositeSurface(ground, [{ ...rim, a: INPUT_FILL_A }]);
         const lcIn = Math.abs(apcaContrast(ink, inside));
         roleReport.push({ name: p.name, where, token: "input text", value: lcIn, unit: "Lc", l: inside.l });
-        if (lcIn < BODY_FLOOR + MARGIN) {
+        if (below(lcIn, BODY_FLOOR + MARGIN)) {
           failures.push(
             `[role] ${p.name} (night, ${where}) — body text inside a default field (--input at ${INPUT_FILL_A}) reaches only ${lcIn.toFixed(1)} Lc, under ${BODY_FLOOR + MARGIN}. Lower the field's night fill or its --input-l.`,
           );
@@ -569,7 +573,7 @@ for (const p of all) {
         for (const [side, ground] of grounds) {
           const lcPair = Math.abs(apcaContrast(ink, under(fillName, alpha, kind, ground)));
           pairReport.push({ name: p.name, side, fill: fillName, alpha, kind, where, lc: lcPair, floor });
-          if (lcPair < floor) {
+          if (below(lcPair, floor)) {
             failures.push(
               `[role] ${p.name} (night, ${side}) — ${kind} text on --${fillName} at ${alpha} (${where}) reaches only ${lcPair.toFixed(1)} Lc, under ${floor}. ` +
                 `Move the night --${fillName === "accent" ? "accent-bg" : fillName}-l, or give that pairing a stronger tier.`,
@@ -613,7 +617,7 @@ for (const p of all) {
     if (known) {
       /* Pinned: must not get WORSE than the value recorded when it was accepted. If it improves past the
          floor the entry is stale and should be deleted, so say so rather than passing silently. */
-      if (lc < known.lc - 0.5) {
+      if (below(lc, known.lc - 0.5)) {
         failures.push(
           `[known] ${p.name} (${mode}) — a pinned exception got worse: ${lc.toFixed(1)} Lc, was ${known.lc}. ` + `Reason on file: ${known.why}.`,
         );
@@ -623,13 +627,13 @@ for (const p of all) {
       continue;
     }
 
-    if (worstLc < BODY_FLOOR) {
+    if (below(worstLc, BODY_FLOOR)) {
       failures.push(
         `[body] ${p.name} (${mode}) — body text reaches only ${worstLc.toFixed(1)} Lc on its own surface${stops.length ? " at its fresco's hardest stop" : ""}, under the ${BODY_FLOOR} floor. ` +
           `Surface L${surface.l.toFixed(1)} from wash L${washL} at alpha ${a}. Alpha slides the surface toward the wash: ` +
           `lower it, or move --glass-wash-l closer to this mode's floor.`,
       );
-    } else if (lc < BODY_FLOOR + MARGIN) {
+    } else if (below(lc, BODY_FLOOR + MARGIN)) {
       failures.push(
         `[margin] ${p.name} (${mode}) — ${lc.toFixed(1)} Lc clears the ${BODY_FLOOR} floor by less than ${MARGIN}. ` +
           `Too close to the line to survive a rounding change; back the alpha (${a}) off a step.`,

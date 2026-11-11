@@ -25,6 +25,7 @@ import { browserslistToTargets, transform } from "lightningcss";
 import { describe, expect, it } from "vitest";
 import { maxSrgbChroma, NIGHT_WASH_CAP, nightWashCap } from "@/lib/oklch-utils";
 import { compile } from "../scripts/lib/css-math.mjs";
+import { expectWithin, worstDifference } from "./sweep";
 import {
   colorOf,
   computedVars as computedVarsOf,
@@ -200,26 +201,29 @@ describe("deep night: the night wash cap follows the hue", () => {
     const cap = compile(expr, [
       "HUE",
     ]);
-    let worst = {
-      d: 0,
-      h: 0,
-    };
-    const check = (h: number) => {
-      const d = Math.abs(
-        cap({
-          HUE: h,
-        }).v - nightWashCap(h),
-      );
-      if (d > worst.d)
-        worst = {
-          d,
-          h,
-        };
-    };
-    for (let tenth = -7200; tenth <= 10800; tenth++) check(tenth / 10);
-    for (const h of CUSP_SAMPLES) check(h);
-    // toBeCloseTo(…, 9)'s bound, at the worst of the 21,016 hues.
-    expect(worst.d, `CSS and nightWashCap differ most at h${worst.h}`).toBeLessThan(5e-10);
+    const hues = [
+      ...Array.from(
+        {
+          length: 18001,
+        },
+        (_, i) => (i - 7200) / 10,
+      ),
+      ...CUSP_SAMPLES,
+    ];
+    /* toBeCloseTo(…, 9)'s bound, at the worst of the 21,016 hues, with every value on both sides finite
+       (tests/sweep: a worst-of that a NaN cannot slip past). */
+    expectWithin(
+      worstDifference(
+        hues,
+        (h) =>
+          cap({
+            HUE: h,
+          }).v,
+        nightWashCap,
+      ),
+      5e-10,
+      "CSS and nightWashCap",
+    );
     // And the full cascade agrees with the placeholder route at a few hues.
     for (const h of [
       -500,
