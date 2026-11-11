@@ -1,14 +1,16 @@
 /**
  * Deep night: at night every tint's wash, the tonal gloss and the border go deep, so white text reads on
- * dark tint. By day nothing moves.
+ * dark tint. By day nothing moved (vibrant day later moved day on purpose; see the snapshot below).
  *
  * Measured from the shipped CSS through tests/theme-cascade (the cascade, var() and the engine's math),
  * on <html> in each page mode with each preset, and on a preset scoped inside a dark page.
  *
- *   - Day is pinned to a snapshot of the tree BEFORE deep night (tests/fixtures/deep-night-day.json, taken
- *     from 18568e6's partials): the wash, the lustre wash, the tonal gloss, the edges, the three role fills,
- *     the focus ring and the text the fills carry, on every preset, by value. Regenerate it only for a
- *     deliberate day-mode change, from the tree it should describe:
+ *   - Day is pinned to a snapshot (tests/fixtures/deep-night-day.json): the wash, the lustre wash, the
+ *     tonal gloss, the backing under sheer glass, the opaque card's floor, the edges, the three role fills,
+ *     the focus ring and the text the fills carry, on every preset, by value. Taken from 18568e6's partials
+ *     for deep night (which moved no day value), and regenerated for vibrant day, which deliberately moved
+ *     day's backing, gloss and wash (tests/vibrant-day.test.ts; the commit lists every change). Regenerate
+ *     it only for a deliberate day-mode change, from the tree it should describe:
  *       UPDATE_DAY_SNAPSHOT=1 THEME_ROOT=<a checkout's root> bun run test:dom tests/deep-night.test.ts
  *   - Night: the wash and the tonal gloss take the darker of their own lightness and the night depth
  *     (35), so a preset already deeper keeps its own (Onyx's wash, 16). The wash keeps its hue and stays
@@ -42,6 +44,8 @@ const TOKENS = {
   wash: "--glass-tint-wash",
   lustreWash: "--glass-lustre-tint-wash",
   gloss: "--glass-gloss-ink-tonal",
+  backing: "--glass-solidify-bg",
+  opaque: "--glass-opaque-bg",
   border: "--border",
   input: "--input",
   accent: "--accent",
@@ -98,7 +102,7 @@ const SCOPES: Array<string | undefined> = [
 ];
 const label = (tint: string | undefined) => tint ?? "(default)";
 
-describe("deep night: day is unchanged", () => {
+describe("deep night: day is pinned", () => {
   const day = Object.fromEntries(
     SCOPES.map((t) => [
       label(t),
@@ -112,7 +116,7 @@ describe("deep night: day is unchanged", () => {
     expect(Object.keys(day).sort()).toEqual(Object.keys(before).sort());
   });
 
-  it.each(SCOPES.map(label))("%s: the day wash, gloss, edges, fills and ring equal their values before deep night", (name) => {
+  it.each(SCOPES.map(label))("%s: the day wash, gloss, backing, edges, fills and ring equal the snapshot", (name) => {
     expect(day[name]).toEqual(before[name]);
   });
 
@@ -281,15 +285,25 @@ describe("deep night: the night wash cap follows the hue", () => {
     expect(NIGHT_WASH_CAP.floor).toBe(0.057);
   });
 
-  it("ships as written: Lightning CSS leaves every number in the night token rule as it is", () => {
+  it.each([
+    [
+      "the hue-following caps rule",
+      ":root,\n[data-glass-tint] {",
+    ],
+    [
+      "the night token rule",
+      ".dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint] {",
+    ],
+  ])("ships as written: Lightning CSS leaves every number in %s as it is", (_, opener) => {
     /* The build minifies with Lightning CSS, which rounds a long number (it shipped 1800000/π as 572958, so
-       the browser's cap was not the one checked, by up to 6.9e-4 at the blue cusp). The rule is written in
-       numbers it keeps, so the source, the mirror and the checks all evaluate what ships. Minified as the
-       build does, for the package's browserslist. */
+       the browser's cap was not the one checked, by up to 6.9e-4 at the blue cusp). The rules are written
+       in numbers it keeps, so the source, the mirrors and the checks all evaluate what ships. Minified as
+       the build does, for the package's browserslist. */
     const tokens = readFileSync("app/theme/tokens.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
-    const start = tokens.indexOf(".dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint] {");
+    const start = tokens.indexOf(opener);
+    expect(start, `${opener} not found in tokens.css`).toBeGreaterThan(-1);
     const rule = tokens.slice(start, tokens.indexOf("\n}", start) + 2);
-    expect(rule).toContain("--glass-wash-c-max:");
+    expect(rule).toContain("-c-max:");
     const pkg = JSON.parse(readFileSync("package.json", "utf8"));
     const built = transform({
       filename: "tokens.css",

@@ -56,7 +56,9 @@ import {
   boostBand,
   compositeSurface,
   deepen,
-  GLASS_WASH_C_MAX_DAY,
+  dayBackingCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   limitingSurface,
   nightWashCap,
   parseGradientStops,
@@ -264,6 +266,12 @@ function presets() {
       const rec = out.get(name) ?? { name, light: new Map(), dark: new Map(), fresco: { light: "", dark: "" } };
       const target = darkSel ? rec.dark : rec.light;
       for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) target.set(k, +v);
+      /* A knob written over another one: `var(--y)` or `calc(var(--y, d) * k)` (the pale warm stone keeps
+         its backing's old scale and cap that way). Resolved per mode once the mode knobs are read. */
+      rec.formulas ??= { light: [], dark: [] };
+      for (const [, k, y, d, f] of body.matchAll(/--([a-z0-9-]+):\s*(?:calc\(\s*)?var\(--([a-z0-9-]+)(?:,\s*([\d.]+))?\)(?:\s*\*\s*([\d.]+)\s*\))?\s*;/g)) {
+        rec.formulas[darkSel ? "dark" : "light"].push({ k, y, d: d === undefined ? undefined : +d, f: f === undefined ? 1 : +f });
+      }
       /* A fresco points --glass-crystal-fresco at its own --glass-bg sheet, per mode: keep that gradient's
          text so its stops can be scored (limitingSurface). */
       if (/--glass-crystal-fresco:\s*var\(--glass-bg\)/.test(body)) {
@@ -277,9 +285,23 @@ function presets() {
 
 /** Resolve a token for a preset in a mode: its own dark block > its light block > the mode knob. */
 const resolve = (p, mode, vars, key, fallback) => (mode === "dark" ? p.dark.get(key) : undefined) ?? p.light.get(key) ?? vars[mode].get(key) ?? fallback;
+/** A token tokens.css's night rule declares at EVERY night scope, which outranks a preset's unscoped
+ *  block: by day the preset's pin, else `day`; at night only the preset's own dark block, else `night`. */
+const resolveDayPin = (p, mode, key, day, night) => (mode === "dark" ? (p.dark.get(key) ?? night) : (p.light.get(key) ?? day));
 
 const vars = modeVars();
 const all = presets();
+/* The formula knobs, evaluated against what the preset (or the mode) resolves their operand to. By day only
+   the unscoped block applies; at night the night rule outranks it for the knobs it declares, which
+   resolveDayPin already honours by reading only the dark block there. */
+for (const p of all) {
+  for (const mode of ["light", "dark"]) {
+    for (const { k, y, d, f } of p.formulas?.[mode] ?? []) {
+      const v = resolve(p, mode, vars, y, d);
+      if (v !== undefined) p[mode].set(k, v * f);
+    }
+  }
+}
 
 /** An `oklch(L C H)` literal to numbers (L as 0–1 or a percentage). */
 const parseOklchLiteral = (s) => {
@@ -323,14 +345,15 @@ for (const p of all) {
     if (h === undefined || c === undefined || a === undefined) continue; // an incomplete scrape, not a preset
 
     /* Deep night: the wash paints at the darker of the preset's own lightness and --glass-night-depth
-       (100 by day, 35 at night), under its chroma cap: at night the L35 sRGB ceiling for its own hue
-       (tokens.css evaluates the fit per scope; nightWashCap is the same fit, held equal to the CSS by
-       tests/deep-night.test.ts), by day the engine's 0.4 fallback, which binds nothing. The same min and
-       cap AutoForeground models. */
+       (100 by day, 35 at night), under its chroma cap, which follows its own hue: at night 99.5% of the
+       L35 sRGB ceiling (nightWashCap), by day the preset's own pin (95% of its ceiling at its own wash
+       lightness) or, at the default L72, dayWashCap. tokens.css evaluates the fits per scope; the mirrors
+       are held equal to the CSS by tests/deep-night.test.ts and tests/vibrant-day.test.ts. The same min
+       and cap AutoForeground models. */
     const depth = resolve(p, mode, vars, "glass-night-depth", dark ? 35 : 100);
     const washL = deepen(resolve(p, mode, vars, "glass-wash-l", dark ? 58 : 72), depth);
     const washCMult = resolve(p, mode, vars, "glass-wash-c-mult", 2.5);
-    const washCMax = resolve(p, mode, vars, "glass-wash-c-max", dark ? nightWashCap(h) : GLASS_WASH_C_MAX_DAY);
+    const washCMax = resolveDayPin(p, mode, "glass-wash-c-max", dayWashCap(h), nightWashCap(h));
     const washC = Math.min(c * washCMult, washCMax);
     const opaqueL = resolve(p, mode, vars, "glass-opaque-l", dark ? 33.4 : 93);
     const cScale = resolve(p, mode, vars, "glass-opaque-c-scale", dark ? 0.98 : 0.85);
@@ -342,16 +365,18 @@ for (const p of all) {
     const solidA = vars[mode].get("glass-solid-a") ?? 0.65;
 
     /* The backing under sheer glass is --glass-solidify-*, its own surface since the split (tokens.css)
-       — NOT --glass-opaque-*, which is what an opaque CARD paints. Light lifts it to 92 with a derived
-       cap; dark pins both back to the opaque floor, so this resolves identically there. */
+       — NOT --glass-opaque-*, which is what an opaque CARD paints. By day it sits at L92 with its own
+       scale (×1.36) under a cap that follows the hue (92% of the L92 ceiling, dayBackingCap; the pale warm
+       stone pins the flat one it had); at night tokens.css hands it the opaque floor's scale and cap. */
     const solidifyL = resolve(p, mode, vars, "glass-solidify-l", dark ? 36.4 : 92);
-    const solidifyCMax = resolve(p, mode, vars, "glass-solidify-c-max", dark ? cMax : cMax * 0.65);
+    const solidifyCScale = dark ? cScale : resolve(p, mode, vars, "glass-solidify-c-scale", GLASS_SOLIDIFY_C_SCALE_DAY);
+    const solidifyCMax = resolveDayPin(p, mode, "glass-solidify-c-max", dayBackingCap(h), cMax);
 
     /* The same composition components/auto-foreground.tsx models: the veil/solid floor, the solidify
        layer (--glass-opacity, 0.7 fallback) over it, then the tint wash on top. */
     const surface = glassSolidSurface(dark, { h, c, a }, solidA, washL, washCMult, {
       l: solidifyL,
-      c: Math.min(c * cScale, solidifyCMax),
+      c: Math.min(c * solidifyCScale, solidifyCMax),
       a: 0.7,
     }, resolve(p, mode, vars, "glass-solid-l", dark ? 18 : 99), washCMax);
     /* Measure THE TOKEN THAT SHIPS, not a parallel solve. The normal surface does NOT use
@@ -399,7 +424,7 @@ for (const p of all) {
     const lustreBodyA = resolve(p, mode, vars, "glass-lustre-a", 0.8);
     const lustreWashA = a * resolve(p, mode, vars, "glass-lustre-wash-strength", dark ? 0 : 1);
     const lustreSurface = compositeSurface({ l: dark ? 20 : 95, c: 0, h }, [
-      { l: solidifyL, c: Math.min(c * cScale, solidifyCMax), h, a: 0.7 },
+      { l: solidifyL, c: Math.min(c * solidifyCScale, solidifyCMax), h, a: 0.7 },
       {
         l: resolve(p, mode, vars, "glass-lustre-l", dark ? 22 : 93),
         c: Math.min(c * 1.4, resolve(p, mode, vars, "glass-lustre-c-max", dark ? 0.035 : 0.025)),

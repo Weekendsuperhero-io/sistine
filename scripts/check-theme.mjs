@@ -39,6 +39,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { evaluate, substitute } from "./lib/css-math.mjs";
 import { flattenTheme } from "./lib/flatten-theme.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -243,10 +244,13 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
 //     bands against the wrong surface model again (the exact bug the mirror fixes). Deep night adds two
 //     things to hold, for moonstone and every other scope: the mirrored lightness only means anything
 //     through the night depth, so the wash fallback must reach the model through deepen(…), the min the
-//     engine composes; and the night wash CHROMA cap, a function of hue in tokens.css that the browser
-//     hands back unevaluated, must fall back to nightWashCap (its mirror, held equal to the CSS by
-//     tests/deep-night.test.ts) at night and to the engine's day fallback by day. foreground-tester.tsx
-//     mirrors the same model and is held to the same.
+//     engine composes; and the wash CHROMA cap, a function of hue in tokens.css that the browser hands back
+//     unevaluated, must fall back to its mirrors (nightWashCap at night, dayWashCap by day, held equal to
+//     the CSS by tests/deep-night.test.ts and tests/vibrant-day.test.ts) at the surface hue. Vibrant day
+//     adds moonstone's DAY pins: it keeps the flat backing and gloss caps it had (presets.css), which the
+//     fallbacks must mirror on a drag's snapshot, where the browser's value is not there to read; and the
+//     backing's scale falls back to the day knob by day and the opaque floor's at night.
+//     foreground-tester.tsx mirrors the same model and is held to the same.
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
   const tester = readFileSync(join(root, "components/foreground-tester.tsx"), "utf8");
@@ -254,10 +258,29 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
   if (moonstoneDark) {
     const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
-    /* The engine's day fallback for the cap, which the JS day constant must equal. */
-    const dayCap = rules.flatMap((r) => decls(r.body)).find((d) => d.name === "--glass-tint-wash")?.value.match(/var\(--glass-wash-c-max,\s*([\d.]+)\)/)?.[1];
-    const dayConst = readFileSync(join(root, "lib/oklch-utils.ts"), "utf8").match(/export const GLASS_WASH_C_MAX_DAY = ([\d.]+);/)?.[1];
-    if (!dayCap || dayCap !== dayConst) fail(`[moonstone-sync] the engine's day wash-cap fallback (${dayCap}) and lib/oklch-utils' GLASS_WASH_C_MAX_DAY (${dayConst}) differ.`);
+    /* Moonstone's day pins (its unscoped block), and the backing's day scale (tokens.css), which the JS
+       fallbacks mirror. */
+    const moonstoneDay = rules.find((r) => splitTop(r.selector).includes('[data-glass-tint="moonstone"]') && !r.selector.includes(".dark"));
+    const dayPin = (name) => moonstoneDay?.body.match(new RegExp(`${name}:\\s*([\\d.]+)`))?.[1];
+    /* The backing cap it keeps is a formula over the opaque cap it inherits; on its own page that is
+       :root's, which is the number a drag's snapshot (no live value to read) has to fall back to. */
+    const rootOpaqueCMax = rules.find((r) => r.selector.trim() === ":root")?.body.match(/--glass-opaque-c-max:\s*([\d.]+)/)?.[1];
+    const backingFormula = moonstoneDay?.body.match(/--glass-solidify-c-max:\s*([^;]+);/)?.[1];
+    let backingPin;
+    try {
+      backingPin = backingFormula && rootOpaqueCMax ? String(+evaluate(substitute(backingFormula, new Map([["--glass-opaque-c-max", rootOpaqueCMax]]))).v.toFixed(6)) : undefined;
+    } catch {
+      backingPin = undefined;
+    }
+    const glossPin = dayPin("--glass-gloss-c-max");
+    if (!backingPin || !glossPin) fail("[moonstone-sync] moonstone's day --glass-solidify-c-max / --glass-gloss-c-max pins are missing from presets.css.");
+    /* Declared in the hue-following caps rule (`:root, [data-glass-tint]`), so every tint scope resets it. */
+    const dayScale = rules
+      .find((r) => splitTop(r.selector).includes(":root") && splitTop(r.selector).includes("[data-glass-tint]"))
+      ?.body.match(/--glass-solidify-c-scale:\s*([\d.]+)/)?.[1];
+    const dayScaleConst = readFileSync(join(root, "lib/oklch-utils.ts"), "utf8").match(/export const GLASS_SOLIDIFY_C_SCALE_DAY = ([\d.]+);/)?.[1];
+    if (!dayScale || dayScale !== dayScaleConst)
+      fail(`[moonstone-sync] tokens.css's day --glass-solidify-c-scale (${dayScale}) and lib/oklch-utils' GLASS_SOLIDIFY_C_SCALE_DAY (${dayScaleConst}) differ.`);
     for (const [file, src, isDark] of [
       ["auto-foreground.tsx", autoFg, "dark"],
       ["foreground-tester.tsx", tester, "isDark"],
@@ -266,9 +289,17 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
         fail(`[moonstone-sync] presets.css moonstone night --glass-wash-l is ${washL}% but ${file}'s mirrored fallback differs.`);
       if (cMult && !src.includes(`moonstone && ${isDark} ? ${cMult} :`))
         fail(`[moonstone-sync] presets.css moonstone night --glass-wash-c-mult is ${cMult} but ${file}'s mirrored fallback differs.`);
-      if (!new RegExp(`num\\("--glass-wash-c-max", ${isDark} \\? nightWashCap\\(num\\("--glass-tint-h", [\\w.]+\\)\\) : GLASS_WASH_C_MAX_DAY\\)`).test(src)) {
-        fail(`[moonstone-sync] ${file} must fall back to num("--glass-wash-c-max", ${isDark} ? nightWashCap(num("--glass-tint-h", …)) : GLASS_WASH_C_MAX_DAY) — the night cap is a function of the wash's own hue.`);
+      /* The surface hue: --glass-tint-h, read once into a variable that both mirrors take. */
+      const hueVar = new RegExp(`const (\\w+) = num\\("--glass-tint-h", [\\w.]+\\);`).exec(src)?.[1];
+      if (!hueVar || !new RegExp(`num\\("--glass-wash-c-max", ${isDark} \\? nightWashCap\\(${hueVar}\\) : dayWashCap\\(${hueVar}\\)\\)`).test(src)) {
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-wash-c-max", ${isDark} ? nightWashCap(h) : dayWashCap(h)) at the surface hue h = num("--glass-tint-h", …) — the cap is a function of the wash's own hue in both modes.`);
       }
+      if (!src.includes(`num("--glass-solidify-c-scale", ${isDark} ? num("--glass-opaque-c-scale", `) || !src.includes(": GLASS_SOLIDIFY_C_SCALE_DAY)"))
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-solidify-c-scale", ${isDark} ? num("--glass-opaque-c-scale", …) : GLASS_SOLIDIFY_C_SCALE_DAY): the backing has its own scale by day and the opaque floor's at night.`);
+      if (backingPin && !new RegExp(`num\\("--glass-solidify-c-max", ${isDark} \\? \\w+ : moonstone \\? ${backingPin.replace(".", "\\.")} : dayBackingCap\\(${hueVar}, \\w+\\)\\)`).test(src))
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-solidify-c-max", ${isDark} ? … : moonstone ? ${backingPin} : dayBackingCap(h, backingL)): moonstone keeps ${backingPin} by day and every other scope's cap follows the hue and the backing's lightness.`);
+      if (file === "auto-foreground.tsx" && glossPin && !new RegExp(`num\\("--glass-gloss-c-max", dark \\? [\\d.]+ : moonstone \\? ${glossPin.replace(".", "\\.")} : dayGlossCap\\(${hueVar}\\)\\)`).test(src))
+        fail(`[moonstone-sync] auto-foreground.tsx must fall back to num("--glass-gloss-c-max", dark ? … : moonstone ? ${glossPin} : dayGlossCap(h)): moonstone pins ${glossPin} by day and every other scope's cap follows the hue.`);
       if (!/deepen\(num\("--glass-wash-l"/.test(src))
         fail(`[moonstone-sync] ${file} reads --glass-wash-l without deepen(…, night depth): the engine paints the wash at the darker of the two, so the model would band night text against a wash it does not paint.`);
     }
@@ -694,18 +725,19 @@ for (const [value, tint] of presetTint) {
   /* glass-night-depth / glass-gloss-l / glass-gloss-c-max: deep night's mode values. A drifted depth
      fallback would band every jsdom and snapshot-path night surface at the wrong lightness. */
   for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max", "glass-opaque-cap-scale", "glass-night-depth", "glass-gloss-l", "glass-gloss-c-max"]) {
-    /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
-    const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
+    /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. The day gloss cap follows
+       the hue (a function, held by [moonstone-sync]), so only its night number is compared. */
+    const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+|moonstone \\? [\\d.]+ : \\w+\\(\\w+\\))\\)`).exec(af);
     if (!m) {
       fail(`[fallback-sync] auto-foreground.tsx has no \`num("--${name}", dark ? … : …)\` fallback pair to check — if the call was reshaped, update this rule rather than dropping the guard.`);
       continue;
     }
-    const [jsDark, jsLight] = [Number(m[1]), Number(m[2])];
+    const [jsDark, jsLight] = [Number(m[1]), /^[\d.]+$/.test(m[2]) ? Number(m[2]) : null];
     const [cssDark, cssLight] = [cssVal(darkBody, name), cssVal(lightBody, name)];
     if (cssDark !== null && jsDark !== cssDark) {
       fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsDark} in DARK but tokens.css ships ${cssDark}. jsdom tests would model a surface the theme does not paint.`);
     }
-    if (cssLight !== null && jsLight !== cssLight) {
+    if (cssLight !== null && jsLight !== null && jsLight !== cssLight) {
       fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsLight} in LIGHT but tokens.css ships ${cssLight}. jsdom tests would model a surface the theme does not paint.`);
     }
   }

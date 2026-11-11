@@ -20,9 +20,12 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground, FG_EVENT } from "@/components/auto-foreground";
+import { fgSnapshot } from "@/components/glass-tint-switcher";
 import {
   apcaContrast,
   compositeSurface,
+  dayBackingCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   glassSolidSurface,
   nightWashCap,
   type OklchColor,
@@ -34,18 +37,20 @@ import {
 } from "@/lib/oklch-utils";
 import { colorOf, html, numberOf, themeTokenCss } from "./theme-cascade";
 
-/* presets.css, [data-glass-tint="lapis"] (light). */
+/* presets.css, [data-glass-tint="lapis"] (light), its own day wash cap included (the browser hands the
+   pin back as a number, so AutoForeground reads it live). */
 const LAPIS = {
   h: 268,
   c: 0.085,
   a: 0.13,
   washL: 46,
+  washCMax: 0.2829,
   opaqueCMax: 0.055,
 };
-/* tokens.css :root: the solid floor alpha, the solidify floor's chroma scale and its derived cap. */
+/* tokens.css: the solid floor alpha, and the backing's day chroma scale and hue-following cap. */
 const SOLID_A = 0.65;
-const OPAQUE_C_SCALE = 0.85;
-const SOLIDIFY_C_MAX = LAPIS.opaqueCMax * 0.65;
+const SOLIDIFY_C_SCALE = GLASS_SOLIDIFY_C_SCALE_DAY;
+const SOLIDIFY_C_MAX = dayBackingCap(LAPIS.h);
 /* check-contrast's [margin]: the floor plus 1.5 Lc of slack. */
 const BODY_WITH_MARGIN = READABLE_USAGE.body.floor + 1.5;
 
@@ -66,9 +71,11 @@ function lapisSurface(solidifyL: number, opacity: number): OklchColor {
     2.5,
     {
       l: solidifyL,
-      c: Math.min(LAPIS.c * OPAQUE_C_SCALE, SOLIDIFY_C_MAX),
+      c: Math.min(LAPIS.c * SOLIDIFY_C_SCALE, SOLIDIFY_C_MAX),
       a: opacity,
     },
+    99,
+    LAPIS.washCMax,
   );
 }
 
@@ -78,6 +85,7 @@ async function mountLapis(opts: { solidifyL?: number; opacity?: number } = {}) {
   s.setProperty("--glass-tint-c", String(LAPIS.c));
   s.setProperty("--glass-tint-a", String(LAPIS.a));
   s.setProperty("--glass-wash-l", `${LAPIS.washL}%`);
+  s.setProperty("--glass-wash-c-max", String(LAPIS.washCMax));
   s.setProperty("--glass-opaque-c-max", String(LAPIS.opaqueCMax));
   if (opts.solidifyL !== undefined) s.setProperty("--glass-solidify-l", String(opts.solidifyL));
   if (opts.opacity !== undefined) s.setProperty("--glass-opacity", String(opts.opacity));
@@ -304,5 +312,70 @@ describe("AutoForeground on a drag off lapis, night (snapshot path)", () => {
     );
     const ink = parseOklch(read("--foreground-opaque")) as OklchColor;
     expect(Math.abs(apcaContrast(ink, card(0.057)))).not.toBeCloseTo(84, 0);
+  });
+});
+
+/**
+ * A DAY drag on lapis (the Lightness or accent slider, which keep the preset): the switcher hands
+ * AutoForeground a snapshot instead of letting it read the DOM. Lapis paints its day wash at its own L46
+ * under its own pinned cap (0.2829, so all of its 0.2125), where the L72 fit a snapshot would otherwise fall
+ * back to allows 0.133. The snapshot carries the preset's own wash knobs, so the drag solves the surface the
+ * DOM path does, tier for tier.
+ */
+describe("AutoForeground on a lapis day drag (snapshot path)", () => {
+  let style: HTMLStyleElement | undefined;
+  afterEach(() => {
+    style?.remove();
+    style = undefined;
+    delete root().dataset.glassTint;
+  });
+
+  it("carries lapis's own day wash knobs and solves the surface the DOM path solves", async () => {
+    style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    root().dataset.glassTint = "lapis";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    const TIERS = [
+      "--foreground",
+      "--foreground-opaque",
+      "--foreground-crystal",
+      "--foreground-chakra",
+      "--foreground-lustre",
+    ];
+    const dom = Object.fromEntries(
+      TIERS.map((t) => [
+        t,
+        read(t),
+      ]),
+    );
+    const detail = fgSnapshot({
+      h: 268,
+      c: 0.085,
+      a: 0.13,
+      base: "lapis",
+      l: 93,
+      accOn: false,
+      accH: 0,
+      accC: 0.15,
+    });
+    expect(detail?.["--glass-wash-l"]).toBe(46);
+    expect(detail?.["--glass-wash-c-max"]).toBe(0.2829);
+    for (const t of TIERS) root().style.removeProperty(t);
+    window.dispatchEvent(
+      new CustomEvent(FG_EVENT, {
+        detail,
+      }),
+    );
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    expect(
+      Object.fromEntries(
+        TIERS.map((t) => [
+          t,
+          read(t),
+        ]),
+      ),
+    ).toEqual(dom);
   });
 });

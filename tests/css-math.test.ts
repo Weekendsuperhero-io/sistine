@@ -183,4 +183,73 @@ describe("css-math: compile agrees with evaluate", () => {
         `h${h}`,
       ).toEqual(evaluate(expr.replaceAll("HUE", String(h))));
   });
+  it.each([
+    "--glass-solidify-c-max-at-92",
+    "--glass-solidify-c-max-at-18",
+    "--glass-gloss-c-max",
+    "--glass-wash-c-max",
+  ])("matches evaluate on the shipped day cap %s, at hues from -720 to 1080", (token) => {
+    const scope: ModelElement[] = [
+      {
+        attrs: {
+          "data-glass-tint": "",
+        },
+        style: {
+          "--glass-tint-h": "HUE",
+          "--glass-tint-c": "0.09",
+          "--glass-tint-a": "0.5",
+        },
+      },
+    ];
+    const expr = computedVars(scope).get(token);
+    if (!expr) throw new Error(`${token} does not compute on a custom day scope`);
+    const f = compile(expr, [
+      "HUE",
+    ]);
+    for (let h = -720; h <= 1080; h += 9.7)
+      expect(
+        f({
+          HUE: h,
+        }),
+        `h${h}`,
+      ).toEqual(evaluate(expr.replaceAll("HUE", String(h))));
+  });
+
+  it("matches evaluate on the day backing cap's blend, at every backing lightness from 0 to 100", () => {
+    /* The blend reads the scope's --glass-solidify-l: left as a second placeholder. */
+    const scope: ModelElement[] = [
+      {
+        attrs: {
+          "data-glass-tint": "",
+        },
+        style: {
+          "--glass-tint-h": "HUE",
+          "--glass-tint-c": "0.09",
+          "--glass-tint-a": "0.5",
+          "--glass-solidify-l": "L",
+        },
+      },
+    ];
+    const expr = computedVars(scope).get("--glass-solidify-c-max");
+    if (!expr) throw new Error("--glass-solidify-c-max does not compute on a custom day scope");
+    const f = compile(expr, [
+      "HUE",
+      "L",
+    ]);
+    for (let l = 0; l <= 100; l += 4.5)
+      for (const h of [
+        -95.9,
+        29.6,
+        110,
+        263.86,
+        430,
+      ])
+        expect(
+          f({
+            HUE: h,
+            L: l,
+          }),
+          `L${l} h${h}`,
+        ).toEqual(evaluate(expr.replaceAll("HUE", String(h)).replaceAll("L", String(l))));
+  });
 });

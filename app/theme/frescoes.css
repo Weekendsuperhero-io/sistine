@@ -2,7 +2,9 @@
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
    shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
    Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
-   --glass-fg-h are CSS-only — no preset counterpart.) */
+   --glass-fg-h are CSS-only — no preset counterpart.)
+   Each pins its own DAY wash cap, 95% of its hue's sRGB ceiling at its own wash lightness, as the
+   presets do (presets.css explains why). */
 
 /* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
    day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
@@ -29,6 +31,9 @@
   --glass-tint-c: 0.056;
   --glass-tint-a: 0.1;
   --glass-wash-l: 66%;
+  /* Day wash cap: 95% of h230's ceiling at L66 (tokens.css). Its ask, 0.14, is 110% of that ceiling and
+     clipped; this keeps the hue. */
+  --glass-wash-c-max: 0.1212;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(85% 0.1 222 / 0.3) 0%,
@@ -57,6 +62,7 @@
   --glass-tint-c: 0.062;
   --glass-tint-a: 0.16;
   --glass-wash-l: 81%;
+  --glass-wash-c-max: 0.1547;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(90% 0.11 75 / 0.34) 0%,
@@ -129,6 +135,7 @@
   --glass-tint-c: 0.054;
   --glass-tint-a: 0.16;
   --glass-wash-l: 86%;
+  --glass-wash-c-max: 0.1353;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(76.3% 0.124 235 / 0.4) 0%,
@@ -165,6 +172,7 @@
      even in pure black (74.6). 0.14 reached it only in black; 0.12 keeps the ink tinted. */
   --glass-tint-a: 0.12;
   --glass-wash-l: 64%;
+  --glass-wash-c-max: 0.2236;
   --glass-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.32) 0%, oklch(84% 0.14 350 / 0.3) 50%, oklch(78% 0.13 278 / 0.3) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(89% 0.12 62 / 0.44) 0%, oklch(84% 0.14 350 / 0.42) 50%, oklch(78% 0.13 278 / 0.42) 100%);
   --glass-crystal-fresco: var(--glass-bg);
