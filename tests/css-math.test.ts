@@ -89,37 +89,32 @@ describe("css-math: compile agrees with evaluate", () => {
       ).toEqual(outcome(() => evaluate(expr.replaceAll("HUE", String(h))), false));
   });
 
-  it("takes a unit with a placeholder, and refuses one with no value", () => {
-    const f = compile("min(L, calc(35 * 1%))", [
-      "L",
-    ]);
+  it("gives a placeholder a declared unit, checks units when compiling, and refuses a missing value", () => {
+    const pct = compile(
+      "min(L, calc(35 * 1%))",
+      [
+        "L",
+      ],
+      {
+        L: "%",
+      },
+    );
     expect(
-      f({
-        L: {
-          v: 58,
-          pct: true,
-        },
+      pct({
+        L: 58,
       }),
     ).toEqual(evaluate("min(58%, calc(35 * 1%))"));
+    // A unitless L against a percentage: the unit error evaluate raises, raised once, when compiling.
     expect(
       outcome(
         () =>
-          f({
-            L: 58,
-          }),
+          compile("min(L, calc(35 * 1%))", [
+            "L",
+          ]),
         false,
       ),
     ).toEqual(outcome(() => evaluate("min(58, calc(35 * 1%))"), false));
-    expect(
-      outcome(
-        () =>
-          f({
-            L: 58,
-          }),
-        false,
-      ).error,
-    ).toBe('css-math: min( mixes "" and "%"');
-    expect(() => f({})).toThrow(/L has no value/);
+    expect(() => pct({})).toThrow(/L has no value/);
   });
 
   it("matches evaluate on the shipped night wash cap, at hues from -720 to 1080 and at the cusps", () => {

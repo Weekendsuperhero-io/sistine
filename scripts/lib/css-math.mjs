@@ -161,16 +161,19 @@ export function evaluate(expr) {
  * Compile a substituted CSS math expression ONCE into a function of named placeholders, for a sweep that
  * evaluates the same expression at thousands of values (a hue-following cap at every tenth of a degree):
  * `compile(expr, ["HUE"])` tokenizes and parses `expr` a single time, and the function it returns evaluates
- * it with `{ HUE: 264.13 }` (a number is unitless; pass `{ v, pct, deg }` for a percentage or an angle).
- * Same vocabulary, units and errors as {@link evaluate}: a malformed expression throws when compiled, a unit
- * mismatch when evaluated, each with evaluate's message. evaluate stays a separate implementation on purpose:
- * it is the reference tests/css-math.test.ts holds this to, at every operator and on the real cap
- * expressions. A placeholder name must not occur in the expression as anything else.
+ * it with `{ HUE: 264.13 }`. A placeholder is a number; give it a unit with `units` (`{ L: "%" }`).
+ * Units are static in CSS math, so they are checked here, once: the function only does arithmetic.
+ * Same vocabulary, units, results and errors as {@link evaluate}: a malformed expression or a unit mismatch
+ * throws when compiled, with evaluate's message, and the result has evaluate's shape. evaluate stays a
+ * separate implementation on purpose: it is the reference tests/css-math.test.ts holds this to, at every
+ * operator and on the real cap expressions. A placeholder name must not occur in the expression as anything
+ * else.
  * @param {string} expr
  * @param {string[]} [names]
- * @returns {(vars?: Record<string, number | { v: number, pct: boolean, deg?: boolean }>) => { v: number, pct: boolean, deg?: boolean }}
+ * @param {Record<string, "%" | "deg">} [units]
+ * @returns {(vars?: Record<string, number>) => { v: number, pct: boolean, deg?: boolean }}
  */
-export function compile(expr, names = []) {
+export function compile(expr, names = [], units = {}) {
   const known = new Set(names);
   const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const placeholder = names.length ? `(?<![\\w-])(?:${names.map(escape).join("|")})(?![\\w(-])|` : "";
@@ -178,11 +181,13 @@ export function compile(expr, names = []) {
   let pos = 0;
   const peek = () => tokens[pos];
   const take = () => tokens[pos++];
-  /** @typedef {{ v: number, pct: boolean, deg?: boolean }} Num */
-  /** @typedef {(vars: Record<string, number | Num>) => Num} Node */
-  /** @param {Num} a */
+  /* A node: its unit SHAPE, which is static ({ pct, deg } exactly as evaluate would build it, deg left out
+     where evaluate leaves it out), and the arithmetic that gives its value. */
+  /** @typedef {{ pct: boolean, deg?: boolean }} Shape */
+  /** @typedef {{ s: Shape, f: (vars: Record<string, number>) => number }} Node */
+  /** @param {Shape} a */
   const unit = (a) => (a.pct ? "%" : a.deg ? "deg" : "");
-  /** @param {Num} a @param {Num} b @param {string} op */
+  /** @param {Shape} a @param {Shape} b @param {string} op */
   const same = (a, b, op) => {
     if (unit(a) !== unit(b)) throw new Error(`css-math: ${op} mixes "${unit(a)}" and "${unit(b)}" in "${expr}"`);
   };
@@ -201,11 +206,8 @@ export function compile(expr, names = []) {
     const t = take();
     if (t === undefined) throw new Error(`css-math: unexpected end of "${expr}"`);
     if (t === "-") {
-      const f = factor();
-      return (vars) => {
-        const x = f(vars);
-        return { ...x, v: -x.v };
-      };
+      const { s, f } = factor();
+      return { s, f: (vars) => -f(vars) };
     }
     if (t === "(") {
       const e = sum();
@@ -213,16 +215,17 @@ export function compile(expr, names = []) {
       return e;
     }
     if (/^[\d.]+(?:%|deg)?$/i.test(t)) {
-      const n = Object.freeze({ v: Number.parseFloat(t), pct: t.endsWith("%"), deg: /deg$/i.test(t) });
-      return () => n;
+      const v = Number.parseFloat(t);
+      return { s: { pct: t.endsWith("%"), deg: /deg$/i.test(t) }, f: () => v };
     }
     if (known.has(t)) {
-      return (vars) => {
-        const x = vars[t];
-        /* Shaped as a literal is (evaluate reads "58" as { v: 58, pct: false, deg: false }). */
-        if (typeof x === "number") return { v: x, pct: false, deg: false };
-        if (x && typeof x.v === "number") return { v: x.v, pct: !!x.pct, deg: !!x.deg };
-        throw new Error(`css-math: ${t} has no value in "${expr}"`);
+      return {
+        s: { pct: units[t] === "%", deg: units[t] === "deg" },
+        f: (vars) => {
+          const x = vars[t];
+          if (typeof x !== "number") throw new Error(`css-math: ${t} has no value in "${expr}"`);
+          return x;
+        },
       };
     }
     const fn = t.toLowerCase();
@@ -233,33 +236,31 @@ export function compile(expr, names = []) {
     }
     if (fn === "min(" || fn === "max(") {
       const a = args();
+      for (const x of a) same(a[0].s, x.s, fn);
+      const fs = a.map((x) => x.f);
       const pick = fn === "min(" ? Math.min : Math.max;
-      return (vars) => {
-        const xs = a.map((f) => f(vars));
-        for (const x of xs) same(xs[0], x, fn);
-        return { ...xs[0], v: pick(...xs.map((x) => x.v)) };
+      return {
+        s: a[0].s,
+        f: (vars) => {
+          let v = fs[0](vars);
+          for (let i = 1; i < fs.length; i++) v = pick(v, fs[i](vars));
+          return v;
+        },
       };
     }
     if (fn === "sin(" || fn === "cos(") {
       const [a, extra] = args();
-      if (extra) throw new Error(`css-math: ${fn}) takes one angle or number in "${expr}"`);
+      if (extra || a.s.pct) throw new Error(`css-math: ${fn}) takes one angle or number in "${expr}"`);
       const trig = fn === "sin(" ? Math.sin : Math.cos;
-      return (vars) => {
-        const x = a(vars);
-        if (x.pct) throw new Error(`css-math: ${fn}) takes one angle or number in "${expr}"`);
-        /* An angle is in degrees; a bare number is radians, as CSS reads it. */
-        return { v: trig(x.deg ? (x.v * Math.PI) / 180 : x.v), pct: false };
-      };
+      const { f } = a;
+      /* An angle is in degrees; a bare number is radians, as CSS reads it. */
+      return { s: { pct: false }, f: a.s.deg ? (vars) => trig((f(vars) * Math.PI) / 180) : (vars) => trig(f(vars)) };
     }
     if (fn === "atan2(") {
-      const [fy, fx, extra] = args();
-      if (extra || !fx) throw new Error(`css-math: atan2() takes two arguments in "${expr}"`);
-      return (vars) => {
-        const y = fy(vars);
-        const x = fx(vars);
-        same(y, x, fn);
-        return { v: (Math.atan2(y.v, x.v) * 180) / Math.PI, pct: false, deg: true };
-      };
+      const [y, x, extra] = args();
+      if (extra || !x) throw new Error(`css-math: atan2() takes two arguments in "${expr}"`);
+      same(y.s, x.s, fn);
+      return { s: { pct: false, deg: true }, f: (vars) => (Math.atan2(y.f(vars), x.f(vars)) * 180) / Math.PI };
     }
     throw new Error(`css-math: cannot evaluate "${t}" in "${expr}"`);
   }
@@ -268,22 +269,15 @@ export function compile(expr, names = []) {
     let a = factor();
     while (peek() === "*" || peek() === "/") {
       const op = take();
-      const left = a;
-      const right = factor();
-      a =
-        op === "*"
-          ? (vars) => {
-              const x = left(vars);
-              const y = right(vars);
-              if (unit(x) && unit(y)) throw new Error(`css-math: "${unit(x)}" * "${unit(y)}" in "${expr}"`);
-              return { v: x.v * y.v, pct: x.pct || y.pct, deg: x.deg || y.deg };
-            }
-          : (vars) => {
-              const x = left(vars);
-              const y = right(vars);
-              if (unit(y)) throw new Error(`css-math: division by a "${unit(y)}" in "${expr}"`);
-              return { ...x, v: x.v / y.v };
-            };
+      const b = factor();
+      const [fa, fb] = [a.f, b.f];
+      if (op === "*") {
+        if (unit(a.s) && unit(b.s)) throw new Error(`css-math: "${unit(a.s)}" * "${unit(b.s)}" in "${expr}"`);
+        a = { s: { pct: a.s.pct || b.s.pct, deg: a.s.deg || b.s.deg }, f: (vars) => fa(vars) * fb(vars) };
+      } else {
+        if (unit(b.s)) throw new Error(`css-math: division by a "${unit(b.s)}" in "${expr}"`);
+        a = { s: a.s, f: (vars) => fa(vars) / fb(vars) };
+      }
     }
     return a;
   }
@@ -292,18 +286,15 @@ export function compile(expr, names = []) {
     let a = product();
     while (peek() === "+" || peek() === "-") {
       const op = take();
-      const left = a;
-      const right = product();
-      a = (vars) => {
-        const x = left(vars);
-        const y = right(vars);
-        same(x, y, op);
-        return { ...x, v: op === "+" ? x.v + y.v : x.v - y.v };
-      };
+      const b = product();
+      same(a.s, b.s, op);
+      const [fa, fb] = [a.f, b.f];
+      a = { s: a.s, f: op === "+" ? (vars) => fa(vars) + fb(vars) : (vars) => fa(vars) - fb(vars) };
     }
     return a;
   }
   const root = sum();
   if (pos !== tokens.length) throw new Error(`css-math: trailing input in "${expr}"`);
-  return (vars = {}) => root(vars);
+  const { s, f } = root;
+  return (vars = {}) => ({ v: f(vars), ...s });
 }
