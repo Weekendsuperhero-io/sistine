@@ -26,6 +26,7 @@ import {
   maxSrgbChroma,
 } from "@/lib/oklch-utils";
 import { compile } from "../scripts/lib/css-math.mjs";
+import { expectAtMost, expectWithin, worstDifference, worstValue } from "./sweep";
 import { colorOf, compileOklch, computedVars, html, type ModelElement, numberOf, presetNames } from "./theme-cascade";
 
 const ceiling = (l: number, h: number) => maxSrgbChroma(l, ((h % 360) + 360) % 360);
@@ -73,22 +74,9 @@ const compiledColor = (chain: ModelElement[], token: string, names: string[]) =>
   if (!raw) throw new Error(`${token} does not compute on this scope`);
   return compileOklch(raw, names);
 };
-/** The largest |a - b| over the samples, with where it is, so a sweep asserts once. */
-const worstDifference = <T>(samples: Iterable<T>, a: (x: T) => number, b: (x: T) => number) => {
-  let worst = {
-    d: 0,
-    at: undefined as T | undefined,
-  };
-  for (const x of samples) {
-    const d = Math.abs(a(x) - b(x));
-    if (!(d <= worst.d))
-      worst = {
-        d,
-        at: x,
-      };
-  }
-  return worst;
-};
+/* Every sweep asserts once, on the worst sample, through tests/sweep: NaN-safe, and every compared value is
+   asserted finite. A threshold collected sample by sample is written as the negation of its passing
+   condition (`!(c <= bound)`), which is true on NaN, so a NaN fails it rather than slipping past. */
 
 const CAPS: Array<{
   token: string;
@@ -173,15 +161,18 @@ describe("vibrant day: the day caps follow the hue", () => {
       ),
       ...breakpointSamples(cap.table),
     ];
-    const worst = worstDifference(
-      hues,
-      (h) =>
-        css({
-          HUE: h,
-        }).v,
-      cap.mirror,
+    expectWithin(
+      worstDifference(
+        hues,
+        (h) =>
+          css({
+            HUE: h,
+          }).v,
+        cap.mirror,
+      ),
+      5e-10,
+      `${cap.token}: CSS and the mirror`,
     );
-    expect(worst.d, `CSS and the mirror differ most at h${worst.at}`).toBeLessThan(5e-10);
     // The full cascade agrees with the placeholder route at a few hues.
     for (const h of [
       -500,
@@ -211,12 +202,11 @@ describe("vibrant day: the day caps follow the hue", () => {
       ),
       ...breakpointSamples(cap.table),
     ];
-    const worst = worstDifference(
-      hues,
-      (h) => cap.mirror(h) / ceiling(cap.l, h),
-      () => 0,
+    expectAtMost(
+      worstValue(hues, (h) => cap.mirror(h) / ceiling(cap.l, h)),
+      cap.share + SHARE_TOLERANCE,
+      `${cap.token}: the cap's share of the ceiling`,
     );
-    expect(worst.d, `the cap's share of the ceiling is largest at h${worst.at}`).toBeLessThanOrEqual(cap.share + SHARE_TOLERANCE);
   });
 });
 
@@ -256,8 +246,8 @@ describe("vibrant day: every preset's backing and gloss take their own hue's sha
       const gloss = glossAt({
         HUE: h,
       });
-      if (backing.c < DELIVERS * Math.min(0.09 * 1.36, 0.92 * ceiling(92, h))) short.push(`h${h} backing ${backing.c.toFixed(4)}`);
-      if (gloss.c < DELIVERS * Math.min(0.09 * 4.25, 0.95 * ceiling(97, h))) short.push(`h${h} gloss ${gloss.c.toFixed(4)}`);
+      if (!(backing.c >= DELIVERS * Math.min(0.09 * 1.36, 0.92 * ceiling(92, h)))) short.push(`h${h} backing ${backing.c.toFixed(4)}`);
+      if (!(gloss.c >= DELIVERS * Math.min(0.09 * 4.25, 0.95 * ceiling(97, h)))) short.push(`h${h} gloss ${gloss.c.toFixed(4)}`);
     }
     expect(short).toEqual([]);
   });
@@ -308,7 +298,7 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
         if (backing.c === 0) return;
         const ceil = ceiling(backing.l, backing.h);
         const share = name === "moonstone" ? 1 : 0.92 + SHARE_TOLERANCE;
-        if (backing.c > share * ceil)
+        if (!(backing.c <= share * ceil))
           over?.push(`${name}: C ${backing.c.toFixed(4)} at L${backing.l}, ${((100 * backing.c) / ceil).toFixed(1)}% of the ceiling`);
       };
       for (const section of sections) {
@@ -392,16 +382,19 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
       96,
       100,
     ]) {
-      const worst = worstDifference(
-        hues,
-        (h) =>
-          css({
-            HUE: h,
-            L: l,
-          }).v,
-        (h) => dayBackingCap(h, l),
+      expectWithin(
+        worstDifference(
+          hues,
+          (h) =>
+            css({
+              HUE: h,
+              L: l,
+            }).v,
+          (h) => dayBackingCap(h, l),
+        ),
+        5e-10,
+        `L${l}: CSS and dayBackingCap`,
       );
-      expect(worst.d, `L${l}: CSS and dayBackingCap differ most at h${worst.at}`).toBeLessThan(5e-10);
     }
     // The full cascade, with the lightness a scope actually inherits, agrees with the placeholder route.
     expect(colorOf("--glass-solidify-bg", nestedDay(190, 0.15, 0.35, "onyx")).c).toBeCloseTo(Math.min(0.15 * 1.36, dayBackingCap(190, 18)), 12);
@@ -412,7 +405,7 @@ describe("vibrant day: the backing is capped at the lightness it paints", () => 
     for (let l = 0; l <= 100; l++) {
       for (let h = 0; h < 360; h++) {
         const ceil = ceiling(l, h);
-        if (ceil >= 0.005 && dayBackingCap(h, l) > ceil) over.push(`L${l} h${h}`);
+        if (!(ceil < 0.005) && !(dayBackingCap(h, l) <= ceil)) over.push(`L${l} h${h}`);
       }
     }
     expect(over).toEqual([]);
@@ -463,8 +456,8 @@ describe("vibrant day: the day wash never clips", () => {
           C: c,
         });
         if (wash.l !== 72) wrong.push(`c${c} h${h}: L${wash.l}`);
-        if (wash.c > (0.95 + SHARE_TOLERANCE) * ceiling(72, h)) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} past 95%`);
-        if (wash.c < 0.85 * Math.min(c * 2.5, 0.95 * ceiling(72, h))) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} greyed`);
+        if (!(wash.c <= (0.95 + SHARE_TOLERANCE) * ceiling(72, h))) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} past 95%`);
+        if (!(wash.c >= 0.85 * Math.min(c * 2.5, 0.95 * ceiling(72, h)))) wrong.push(`c${c} h${h}: C ${wash.c.toFixed(4)} greyed`);
       }
     }
     expect(wrong).toEqual([]);
