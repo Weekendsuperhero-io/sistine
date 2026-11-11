@@ -3,7 +3,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { AutoForeground, FG_EVENT } from "@/components/auto-foreground";
 import { ForegroundTester } from "@/components/foreground-tester";
-import { apcaContrast, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, compositeSurface, parseOklch } from "@/lib/oklch-utils";
+import { colorOf, html, themeTokenCss } from "./theme-cascade";
 
 // Read the shipped preset, rather than replacing its floor numbers with a parallel test fixture.
 const presets = readFileSync("app/theme/presets.css", "utf8");
@@ -84,4 +85,39 @@ describe("Onyx foregrounds", () => {
       expect(parseOklch(root.style.getPropertyValue("--foreground-lustre"))!.l).toBeGreaterThan(75);
     });
   }
+});
+
+/**
+ * Onyx at NIGHT keeps its own wash. Deep night paints every wash at the DARKER of its own lightness and the
+ * night depth (35), and Onyx's is already 16, so it must stay 16 — in the CSS and in AutoForeground's
+ * model. Replacing the min with the depth outright would lift Onyx's night wash to 35 (and its day wash to
+ * 100); this pins both halves, with the shipped tokens cascaded by jsdom.
+ */
+describe("Onyx at night (deep night)", () => {
+  it("keeps Onyx's L16 wash at night, in the CSS and in the model", async () => {
+    const night = html(true, "onyx");
+    const wash = colorOf("--glass-tint-wash", night);
+    expect(wash.l).toBeCloseTo(16, 6);
+    const card = (washL: number) =>
+      compositeSurface(colorOf("--glass-opaque-bg", night), [
+        {
+          ...wash,
+          l: washL,
+        },
+      ]);
+
+    style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    const root = document.documentElement;
+    root.dataset.glassTint = "onyx";
+    root.classList.add("dark");
+    render(<AutoForeground />);
+    await waitFor(() => expect(root.style.getPropertyValue("--foreground-opaque")).not.toBe(""));
+    const ink = parseOklch(root.style.getPropertyValue("--foreground-opaque"))!;
+    /* The opaque tier aims 84 Lc on the card it modelled: the L16 one, not the L35 one the depth alone
+       would give. */
+    expect(Math.abs(apcaContrast(ink, card(16)))).toBeCloseTo(84, 0);
+    expect(Math.abs(apcaContrast(ink, card(35)))).not.toBeCloseTo(84, 0);
+  });
 });

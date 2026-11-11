@@ -92,10 +92,12 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
         "group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         // Inactive state - transparent, blends with background
         "text-muted-foreground",
-        // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (the old
-        // hardcoded bg-white/80 read as flat white in light mode: at 80% only 20% of the tinted surface
-        // survived, so the theme hue never came through).
-        "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-foreground",
+        // Active state — the selected-control pair, both mode-aware tokens, so the FILL needs no dark: twin
+        // (the old hardcoded bg-white/80 read as flat white in light mode: at 80% only 20% of the tinted
+        // surface survived, so the theme hue never came through). The text has one, below.
+        /* At night the chip is a white lift over a deep surface (~L50), where the body ink reads 60–77 Lc, under
+           the body floor; the strong ink holds it (check-contrast [role]). Day is untouched. */
+        "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-foreground dark:data-[state=active]:text-foreground-strong",
         "data-[state=active]:shadow-[var(--active-shadow)]",
         // `line` lists: no active fill, a bar under (or beside, when vertical) the active trigger instead.
         "group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none",

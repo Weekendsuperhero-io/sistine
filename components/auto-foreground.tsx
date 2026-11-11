@@ -6,8 +6,13 @@ import {
   boostBand,
   type ContrastBand,
   compositeSurface,
+  dayBackingCap,
+  dayGlossCap,
+  dayWashCap,
+  deepen,
   foregroundRamp,
   formatOklch,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   glassSolidSurface,
   HARMONIC_OFFSETS,
   type HarmonicName,
@@ -15,6 +20,7 @@ import {
   LC_AIM_KNOWN,
   LC_MARGIN,
   limitingSurface,
+  nightWashCap,
   parseGradientStops,
   pickTonalInBand,
   READABLE_USAGE,
@@ -253,7 +259,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // LEVEL with them; the full LC_MARGIN here would pin body+muted to the band ceiling and just invert the
       // asymmetry (opaque becomes the harshest surface). Ceilings still cap the pick.
       const solidA = num("--glass-solid-a", 0.65);
-      // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 72%,
+      // Wash knobs — moonstone is the ONE preset that overrides them at night (--glass-wash-l: 64%,
       // --glass-wash-c-mult: 2 — its pale-cream character), which the hardcoded model missed and
       // every moonstone-night surface banded ~3 L too dark (bright page, faint text). num() reads the
       // truth on the computed path; snapshots can't carry these, so the FALLBACK is moonstone-aware via
@@ -261,8 +267,27 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // to the standard mode values either way — this is a moonstone-only correction by construction.
       // check-theme [moonstone-sync] keeps these mirrored constants equal to presets.css.
       const moonstone = root.dataset.glassTint === "moonstone";
-      const washL = num("--glass-wash-l", moonstone && dark ? 64 : dark ? 58 : 72);
+      /* DEEP NIGHT (tokens.css --glass-night-depth: 100 by day, 35 at night). engine.css paints the wash
+         and the tonal gloss at the DARKER of their own lightness and the depth, so the model takes the same
+         min (deepen) or it bands night text against a wash up to 57 L lighter than the one on screen. A
+         snapshot carries neither token. The depth's fallback is exact there (no preset sets its own), and
+         at night it makes the wash's exact too, for every scope but onyx (already deeper), which always
+         reads the DOM. check-theme [fallback-sync] holds 35 / 100 to tokens.css. */
+      const nightDepth = num("--glass-night-depth", dark ? 35 : 100);
+      const washL = deepen(num("--glass-wash-l", moonstone && dark ? 64 : dark ? 58 : 72), nightDepth);
       const washCMult = num("--glass-wash-c-mult", moonstone && dark ? 2 : 2.5);
+      /* The surface hue the hue-following caps are evaluated at (tokens.css evaluates them at
+         --glass-tint-h, not at tintH: a fresco's text hue is its own). A drag's snapshot carries it. */
+      const tintSurfaceH = num("--glass-tint-h", tintH);
+      /* The wash's chroma CAP (--glass-wash-c-max). It follows the wash's OWN hue in both modes (tokens.css):
+         at night 99.5% of the sRGB ceiling at the depth, by day 95% of it at L72. The browser evaluates it
+         per scope but hands it back as an expression, not a number; nightWashCap / dayWashCap are the same
+         fits, so the model is exact on the DOM path and on a drag's snapshot alike. A number set directly
+         wins: a preset whose day wash sits at another lightness pins its own (the switcher's snapshot
+         carries it, with the preset's --glass-wash-l), and a consumer may override.
+         Uncapped, the model would band against up to 2.4× the chroma the wash paints. */
+      const washCMax = num("--glass-wash-c-max", dark ? nightWashCap(tintSurfaceH) : dayWashCap(tintSurfaceH));
+      const washC = Math.min(tintC * washCMult, washCMax);
       // THE SOLIDIFY FLOOR — `glass` paints --glass-solidify (the --glass-opacity dial, default 0.7) as the
       // bottom background-image layer of EVERY sheer material, so it is 70% of what text actually sits on.
       // The models below used to skip it entirely and band against the sheer floor alone. On most themes the
@@ -284,11 +309,17 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       /* --glass-solidify-*, NOT --glass-opaque-*: the backing under sheer glass is its own surface (see
          tokens.css). It is the one high-weight term in the composite that is not part of a preset's
          declared identity, which is why LIGHT lifts it to 92 to buy body-text contrast without touching
-         a single tint token. Dark pins both back to the opaque floor, so this reads identically there.
-         Fallbacks mirror tokens.css: the derived cap is --glass-opaque-c-max × 0.65 in light. */
+         a single tint token. By day it has its own scale (×1.36) and a cap that follows the hue and the
+         backing's lightness (92% of the ceiling there, dayBackingCap, which the browser hands back
+         unevaluated); the pale warm stone keeps the cap it had (check-theme [moonstone-sync] holds the
+         mirror). At night tokens.css hands it the opaque floor's scale and cap. */
+      const solidifyL = num("--glass-solidify-l", dark ? 36.4 : 92);
       const solidifyFloor = {
-        l: num("--glass-solidify-l", dark ? 36.4 : 92),
-        c: Math.min(tintC * num("--glass-opaque-c-scale", dark ? 0.98 : 0.85), num("--glass-solidify-c-max", dark ? opaqueCMax : opaqueCMax * 0.65)),
+        l: solidifyL,
+        c: Math.min(
+          tintC * num("--glass-solidify-c-scale", dark ? num("--glass-opaque-c-scale", 0.98) : GLASS_SOLIDIFY_C_SCALE_DAY),
+          num("--glass-solidify-c-max", dark ? opaqueCMax : moonstone ? 0.03575 : dayBackingCap(tintSurfaceH, solidifyL)),
+        ),
         a: glassOpacity,
       };
       /** The solidify floor as a compositable layer — the layer order `glass` paints. */
@@ -312,13 +343,22 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          the title zone, and the streak's mean there is a geometry estimate rather than a measurement.
          Both would only ADD light, so omitting them is the conservative direction. */
       const GLOSS_TOP_A = 0.2;
+      /* Only the TONAL ink takes the night depth (engine.css block C); the white and hue flavors keep their
+         own lightness, so they are modelled as they were. */
+      const tonalGloss = root.dataset.gloss !== "white" && root.dataset.gloss !== "hue";
+      const glossL = num("--glass-gloss-l", dark ? 66 : 97);
       const glossLayer = {
         /* Mode-aware fallback: --glass-gloss-l is a twin (97 light / 66 dark), so a single 66 here would
-           model the light crystal surface ~6 L darker than it renders and band text too weak. */
-        l: num("--glass-gloss-l", dark ? 66 : 97),
+           model the light crystal surface ~6 L darker than it renders and band text too weak. Deep night
+           then caps the tonal ink at the depth, an inline value (the demo's Light slider) included. */
+        l: tonalGloss ? deepen(glossL, nightDepth) : glossL,
         // --glass-gloss-ink is TINTED — min(--glass-tint-c × --glass-gloss-tint, --glass-gloss-c-max).
-        // Modeling it achromatic dropped the gloss's colour from every crystal/chakra band.
-        c: Math.min(tintC * num("--glass-gloss-tint", 4.25), num("--glass-gloss-c-max", dark ? 0.109 : 0.013)),
+        // Modeling it achromatic dropped the gloss's colour from every crystal/chakra band. By day the cap
+        // follows the hue (95% of the L97 ceiling, dayGlossCap); the pale warm stone pins the flat 0.013.
+        c: Math.min(
+          tintC * num("--glass-gloss-tint", 4.25),
+          num("--glass-gloss-c-max", dark ? 0.057 : moonstone ? 0.013 : dayGlossCap(tintSurfaceH)),
+        ),
         h: tintH,
         a: GLOSS_TOP_A,
       };
@@ -340,6 +380,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         washCMult,
         solidifyFloor,
         num("--glass-solid-l", dark ? 18 : 99),
+        washCMax,
       );
       /* TEXT FOLLOWS THE SURFACE'S HUE, NOT THE TINT TOKEN'S. --glass-tint-h is what the WASH declares;
          what a reader sees is the wash composited over the solid/solidify floor, and that mix does not
@@ -516,7 +557,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         compositeSurface(opaqueFloor, [
           {
             l: washL,
-            c: tintC * washCMult,
+            c: washC,
             h: tintH,
             a: tintA,
           },
@@ -560,7 +601,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
               solidifyLayer,
               {
                 l: washL,
-                c: tintC * washCMult,
+                c: washC,
                 h: tintH,
                 a: tintA,
               },
@@ -595,7 +636,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
             },
             {
               l: washL,
-              c: tintC * washCMult,
+              c: washC,
               h: tintH,
               a: washA,
             },
@@ -647,7 +688,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
               solidifyLayer,
               {
                 l: washL,
-                c: tintC * washCMult,
+                c: washC,
                 h: tintH,
                 a: tintA,
               },

@@ -110,6 +110,10 @@ export function CrystalGlossDemo() {
      day/night moved every other token and left the gloss behind. */
   const [l, setL] = React.useState(97);
   const [lAuto, setLAuto] = React.useState(true);
+  /* Deep night: the engine paints the TONAL gloss at the darker of --glass-gloss-l and
+     --glass-night-depth (100 by day, 35 at night), so at night a Light value above the depth changes
+     nothing. Read live so the row can say so instead of showing a number the surface is not painted at. */
+  const [depth, setDepth] = React.useState(100);
   const [tint, setTint] = React.useState(4.25);
   /* Whether Tint is still the theme's (a preset may override --glass-gloss-tint), mirroring lAuto.
      While auto, apply() must NOT write the inline prop — that is what shadowed moonstone's override. */
@@ -145,6 +149,8 @@ export function CrystalGlossDemo() {
   const syncL = React.useCallback(() => {
     const root = document.documentElement;
     const scheme = root.classList.contains("dark") ? "dark" : "light";
+    const d = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-night-depth"));
+    setDepth(Number.isFinite(d) ? d : 100);
     const stored = readLmap()[scheme];
     if (typeof stored === "number") {
       root.style.setProperty("--glass-gloss-l", String(stored));
@@ -305,8 +311,14 @@ export function CrystalGlossDemo() {
         {mode !== "white" && (
           <SliderRow
             label="Light"
-            value={`${Math.round(l)}%${lAuto ? " · auto" : ""}`}
-            hint={lAuto ? "follows the theme (day/night)" : "lower = bolder. Click Light to follow the theme again"}
+            value={`${Math.round(mode === "tonal" ? Math.min(l, depth) : l)}%${lAuto ? " · auto" : ""}`}
+            hint={
+              mode === "tonal" && l > depth
+                ? `night caps the tonal gloss at L${depth} (--glass-night-depth), so values above it change nothing`
+                : lAuto
+                  ? "follows the theme (day/night)"
+                  : "lower = bolder. Click Light to follow the theme again"
+            }
             onLabelClick={
               lAuto
                 ? undefined

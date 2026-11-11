@@ -24,7 +24,7 @@ function ItemSeparator({ className, ...props }: React.ComponentProps<typeof Sepa
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. The plain variants keep a
    transparent 1px border so all three share one box size with `outline`, whose edge is glass-border. */
 const itemVariants = cva(
-  "group/item flex w-full flex-wrap items-center rounded-xl text-sm text-foreground transition-colors duration-100 outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [a]:transition-colors [a]:hover:bg-accent",
+  "group/item flex w-full flex-wrap items-center rounded-xl text-sm text-foreground transition-colors duration-100 outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [a]:transition-colors [a]:hover:bg-accent dark:[a]:hover:text-accent-foreground",
   {
     variants: {
       variant: {

@@ -19,10 +19,15 @@
  */
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AutoForeground } from "@/components/auto-foreground";
+import { AutoForeground, FG_EVENT } from "@/components/auto-foreground";
+import { fgSnapshot } from "@/components/glass-tint-switcher";
 import {
   apcaContrast,
+  compositeSurface,
+  dayBackingCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
   glassSolidSurface,
+  nightWashCap,
   type OklchColor,
   oklchToSrgb,
   parseOklch,
@@ -30,19 +35,22 @@ import {
   TONAL_HUE_SLACK_LC,
   TONAL_MIN_L,
 } from "@/lib/oklch-utils";
+import { colorOf, html, numberOf, themeTokenCss } from "./theme-cascade";
 
-/* presets.css, [data-glass-tint="lapis"] (light). */
+/* presets.css, [data-glass-tint="lapis"] (light), its own day wash cap included (the browser hands the
+   pin back as a number, so AutoForeground reads it live). */
 const LAPIS = {
   h: 268,
   c: 0.085,
   a: 0.13,
   washL: 46,
+  washCMax: 0.2829,
   opaqueCMax: 0.055,
 };
-/* tokens.css :root: the solid floor alpha, the solidify floor's chroma scale and its derived cap. */
+/* tokens.css: the solid floor alpha, and the backing's day chroma scale and hue-following cap. */
 const SOLID_A = 0.65;
-const OPAQUE_C_SCALE = 0.85;
-const SOLIDIFY_C_MAX = LAPIS.opaqueCMax * 0.65;
+const SOLIDIFY_C_SCALE = GLASS_SOLIDIFY_C_SCALE_DAY;
+const SOLIDIFY_C_MAX = dayBackingCap(LAPIS.h);
 /* check-contrast's [margin]: the floor plus 1.5 Lc of slack. */
 const BODY_WITH_MARGIN = READABLE_USAGE.body.floor + 1.5;
 
@@ -63,9 +71,11 @@ function lapisSurface(solidifyL: number, opacity: number): OklchColor {
     2.5,
     {
       l: solidifyL,
-      c: Math.min(LAPIS.c * OPAQUE_C_SCALE, SOLIDIFY_C_MAX),
+      c: Math.min(LAPIS.c * SOLIDIFY_C_SCALE, SOLIDIFY_C_MAX),
       a: opacity,
     },
+    99,
+    LAPIS.washCMax,
   );
 }
 
@@ -75,6 +85,7 @@ async function mountLapis(opts: { solidifyL?: number; opacity?: number } = {}) {
   s.setProperty("--glass-tint-c", String(LAPIS.c));
   s.setProperty("--glass-tint-a", String(LAPIS.a));
   s.setProperty("--glass-wash-l", `${LAPIS.washL}%`);
+  s.setProperty("--glass-wash-c-max", String(LAPIS.washCMax));
   s.setProperty("--glass-opaque-c-max", String(LAPIS.opaqueCMax));
   if (opts.solidifyL !== undefined) s.setProperty("--glass-solidify-l", String(opts.solidifyL));
   if (opts.opacity !== undefined) s.setProperty("--glass-opacity", String(opts.opacity));
@@ -158,5 +169,213 @@ describe("AutoForeground on lapis, light mode", () => {
     });
     expect(body.l).toBeLessThan(TONAL_MIN_L);
     expect(Math.abs(apcaContrast(body, surface))).toBeGreaterThanOrEqual(READABLE_USAGE.body.floor);
+  });
+});
+
+/**
+ * Lapis at NIGHT, deep night: the wash paints at the darker of lapis's own L46 and the night depth (35),
+ * so text has to be solved against THAT surface. Lapis is the closest call in the palette (its own wash is
+ * only 11 L above the depth, where aventurine's is 53), so a model that skipped the min would be wrong by
+ * the least here, and this is where the discriminator below is tightest.
+ *
+ * Mounted on the SHIPPED tokens, not a copy: the theme's token rules go into a <style>, jsdom cascades
+ * them onto <html class="dark" data-glass-tint="lapis">, and AutoForeground reads them as it does in a
+ * browser. The surface it should solve against comes from the same CSS through tests/theme-cascade.
+ */
+describe("AutoForeground on lapis, night (deep night)", () => {
+  let style: HTMLStyleElement | undefined;
+  afterEach(() => {
+    style?.remove();
+    delete root().dataset.glassTint;
+  });
+
+  const NIGHT = html(true, "lapis");
+  /** The opaque card as the CSS paints it: --glass-opaque-bg under --glass-tint-wash. */
+  const opaqueCard = (washL: number): OklchColor => {
+    const floor = colorOf("--glass-opaque-bg", NIGHT);
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    return compositeSurface(floor, [
+      {
+        ...wash,
+        l: washL,
+      },
+    ]);
+  };
+
+  async function mountLapisNight() {
+    style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    root().className = "dark";
+    root().dataset.glassTint = "lapis";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+  }
+
+  it("paints lapis's night wash at the depth, in gamut, at lapis's own chroma", () => {
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    expect(numberOf("--glass-wash-l", NIGHT)).toBe(46);
+    expect(wash.l).toBeCloseTo(35, 6);
+    // Lapis asks 0.085 × 2.5 = 0.2125, under its own L35 ceiling: its night pin keeps all of it.
+    expect(wash.c).toBeCloseTo(0.2125, 6);
+  });
+
+  it("solves the opaque card against the deep wash (L35), not lapis's own L46", async () => {
+    await mountLapisNight();
+    const ink = parseOklch(read("--foreground-opaque"));
+    if (!ink) throw new Error(`--foreground-opaque is not oklch: ${read("--foreground-opaque")}`);
+    /* The opaque tier aims body 80 + LC_AIM_KNOWN 4 = 84 on whichever surface it modelled. Modelled at the
+       depth, it reads 84 on the card the CSS paints; modelled at L46 (no min), it reads 84 on a card the
+       CSS does not paint, and several Lc off on the real one. */
+    expect(Math.abs(apcaContrast(ink, opaqueCard(35)))).toBeCloseTo(84, 0);
+    expect(Math.abs(apcaContrast(ink, opaqueCard(46)))).not.toBeCloseTo(84, 0);
+  });
+
+  it("keeps night body text light and over the floor on the deep surface", async () => {
+    await mountLapisNight();
+    const body = parseOklch(read("--foreground"));
+    if (!body) throw new Error(`--foreground is not oklch: ${read("--foreground")}`);
+    const solidify = colorOf("--glass-solidify-bg", NIGHT);
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    const surface = glassSolidSurface(
+      true,
+      {
+        h: wash.h,
+        c: numberOf("--glass-tint-c", NIGHT),
+        a: wash.a,
+      },
+      numberOf("--glass-solid-a", NIGHT),
+      wash.l,
+      numberOf("--glass-wash-c-mult", NIGHT),
+      {
+        l: solidify.l,
+        c: solidify.c,
+        a: 0.7,
+      },
+      numberOf("--glass-solid-l", NIGHT),
+      numberOf("--glass-wash-c-max", NIGHT),
+    );
+    expect(body.l).toBeGreaterThan(80);
+    expect(Math.abs(apcaContrast(body, surface))).toBeGreaterThanOrEqual(BODY_WITH_MARGIN);
+  });
+});
+
+/**
+ * A DRAG off lapis at night. The switcher's tweak() drops the attribute (the tint becomes a custom colour)
+ * and hands AutoForeground a snapshot of the tint, with no DOM read. The night wash cap is a function of
+ * the wash hue (tokens.css), so the snapshot's --glass-tint-h is all the model needs: it must band the
+ * opaque card against the wash the browser paints, at lapis's own hue ceiling, not the 0.057 flat guard
+ * that used to cut a custom blue to a quarter of what its hue holds.
+ */
+describe("AutoForeground on a drag off lapis, night (snapshot path)", () => {
+  const H = 268;
+  const C = 0.086; // one step of the chroma slider off lapis's 0.085
+  const A = 0.54;
+  /** The opaque card the CSS paints at night for this custom tint: the L33.4 floor under the deep wash. */
+  const card = (washCap: number): OklchColor =>
+    compositeSurface(
+      {
+        l: 33.4,
+        c: Math.min(C * 0.98, 0.12),
+        h: H,
+      },
+      [
+        {
+          l: 35,
+          c: Math.min(C * 2.5, washCap),
+          h: H,
+          a: A,
+        },
+      ],
+    );
+
+  it("models the painted wash from the snapshot's hue", async () => {
+    root().className = "dark";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    window.dispatchEvent(
+      new CustomEvent(FG_EVENT, {
+        detail: {
+          "--glass-fg-h": H,
+          "--glass-tint-h": H,
+          "--glass-tint-c": C,
+          "--glass-tint-a": A,
+          "--harmony-h": H,
+          "--glass-opaque-l": 33.4,
+          "--accent-h": Number.NaN,
+          "--accent-c": 0.15,
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(Math.abs(apcaContrast(parseOklch(read("--foreground-opaque")) as OklchColor, card(nightWashCap(H))))).toBeCloseTo(84, 0),
+    );
+    const ink = parseOklch(read("--foreground-opaque")) as OklchColor;
+    expect(Math.abs(apcaContrast(ink, card(0.057)))).not.toBeCloseTo(84, 0);
+  });
+});
+
+/**
+ * A DAY drag on lapis (the Lightness or accent slider, which keep the preset): the switcher hands
+ * AutoForeground a snapshot instead of letting it read the DOM. Lapis paints its day wash at its own L46
+ * under its own pinned cap (0.2829, so all of its 0.2125), where the L72 fit a snapshot would otherwise fall
+ * back to allows 0.133. The snapshot carries the preset's own wash knobs, so the drag solves the surface the
+ * DOM path does, tier for tier.
+ */
+describe("AutoForeground on a lapis day drag (snapshot path)", () => {
+  let style: HTMLStyleElement | undefined;
+  afterEach(() => {
+    style?.remove();
+    style = undefined;
+    delete root().dataset.glassTint;
+  });
+
+  it("carries lapis's own day wash knobs and solves the surface the DOM path solves", async () => {
+    style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    root().dataset.glassTint = "lapis";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    const TIERS = [
+      "--foreground",
+      "--foreground-opaque",
+      "--foreground-crystal",
+      "--foreground-chakra",
+      "--foreground-lustre",
+    ];
+    const dom = Object.fromEntries(
+      TIERS.map((t) => [
+        t,
+        read(t),
+      ]),
+    );
+    const detail = fgSnapshot({
+      h: 268,
+      c: 0.085,
+      a: 0.13,
+      base: "lapis",
+      l: 93,
+      accOn: false,
+      accH: 0,
+      accC: 0.15,
+    });
+    expect(detail?.["--glass-wash-l"]).toBe(46);
+    expect(detail?.["--glass-wash-c-max"]).toBe(0.2829);
+    for (const t of TIERS) root().style.removeProperty(t);
+    window.dispatchEvent(
+      new CustomEvent(FG_EVENT, {
+        detail,
+      }),
+    );
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    expect(
+      Object.fromEntries(
+        TIERS.map((t) => [
+          t,
+          read(t),
+        ]),
+      ),
+    ).toEqual(dom);
   });
 });

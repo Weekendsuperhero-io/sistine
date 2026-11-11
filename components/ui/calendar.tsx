@@ -181,8 +181,14 @@ function CalendarDayButton({
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
+      /* A day is a ghost Button, whose `hover:text-accent-foreground` already gives a hovered day the accent's
+         own text, and loses to a state's text, since Tailwind emits data-* after hover. Its NIGHT twins do not:
+         Tailwind emits every dark: utility after every built-in one, so `dark:hover:bg-accent/50` (and the
+         pressed /60) would paint over a selected or range day at night and take its fill. The dark:data-*
+         re-assertions come later still (data after hover within dark:), so a selected day keeps its pill and
+         its text however it is hovered or pressed (tests/night-state-collisions.test.tsx). */
       className={cn(
-        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 font-normal leading-none transition-colors hover:bg-accent/50 group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-r-(--cell-radius) data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:rounded-l-(--cell-radius) data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground [&>span]:text-xs [&>span]:opacity-70",
+        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 font-normal leading-none transition-colors hover:bg-accent/50 group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-r-(--cell-radius) data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:rounded-l-(--cell-radius) data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground dark:data-[selected-single=true]:bg-primary dark:data-[selected-single=true]:text-primary-foreground dark:data-[range-start=true]:bg-primary dark:data-[range-start=true]:text-primary-foreground dark:data-[range-end=true]:bg-primary dark:data-[range-end=true]:text-primary-foreground dark:data-[range-middle=true]:bg-accent dark:data-[range-middle=true]:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className,
       )}

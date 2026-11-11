@@ -2,7 +2,11 @@
    Set data-glass-tint on any element (commonly <html>) to recolor the glass in that subtree.
    Most presets just move the tint hue/chroma; "sistine" is a bespoke multi-hue fresco (gilded
    gold → terracotta flesh tones → azure sky), echoing the Sistine Chapel ceiling.
-   Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above. */
+   Wash + all tint-derived tokens re-resolve per-scope via the :root,[data-glass-tint] split above.
+   --glass-wash-c-max: each tinted preset whose wash is not at the default L72 pins its own DAY wash cap,
+   95% of its hue's sRGB ceiling at its own wash lightness (`node scripts/fit-hue-cap.mjs pins` prints
+   them; check-gamut [cap] holds each to its ceiling). The hue-following day cap in tokens.css is fitted
+   at L72 and would grey a wash painted elsewhere. Night outranks every pin (tokens.css's night rule). */
 /* Selenite — the neutral stone: no chroma and no wash, so the glass is the plain clear sheet. The tint
    values equal the engine default's hue with the colour switched off; the block exists so a CSS-only
    consumer (no tint switcher) gets selenite's colour-wheel anchor, which a hue-less theme needs. */
@@ -80,6 +84,26 @@
   --foreground-ui-lustre: oklch(0.86 0 0);
   --muted-foreground-lustre: oklch(0.9 0 0);
 }
+/* This preset at night. The night role tokens are reset at every tint scope (tokens.css), which outranks
+   the block above, so it states its own here; by day it keeps the values above. Its floor is L16, not the
+   jewels' L31–34.
+   - Edge and input rim 0.61: its 0.38 measured 8.9 Lc over L16 against the other presets' 34–37
+     (scripts/check-contrast.mjs [edge]); 0.61 lands it at 35.9, level with them. The app-wide 0.65 would
+     read heavier on the darker floor (41.8).
+   - Fills: its own day values, already 7.9–11.9 L above its floor (accent 0.28, secondary 0.24), and muted
+     up from 0.20 to 0.24, which was 3.9 L above it ([role] holds each fill 7 L clear).
+   Its wash needs nothing: at 16 it is already deeper than the night depth. */
+.dark[data-glass-tint="onyx"],
+.dark [data-glass-tint="onyx"] {
+  /* Its gloss carries no chroma, as by day: tokens.css's night rule declares the night gloss cap at every
+     tint scope, which outranks the block above. */
+  --glass-gloss-c-max: 0;
+  --border-l: 0.61;
+  --input-l: 0.61;
+  --accent-bg-l: 0.28;
+  --secondary-l: 0.24;
+  --muted-l: 0.24;
+}
 [data-glass-tint="celestite"] {
   /* Celestite — pale sky blue, the widest gap on the glass (aquamarine h215 → sapphire h255, 19.6 apart
      as washes). h235's sRGB chroma peaks at L74, between aquamarine's L82 and sapphire's L62. */
@@ -87,6 +111,9 @@
   --glass-tint-c: 0.064;
   --glass-tint-a: 0.2;
   --glass-wash-l: 74%;
+  /* Day wash cap: 95% of h235's ceiling at L74 (tokens.css). Its ask, 0.16, is 105% of that ceiling and
+     clipped; this keeps the hue. */
+  --glass-wash-c-max: 0.1446;
   --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="sapphire"] {
@@ -94,6 +121,7 @@
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.19;
   --glass-wash-l: 63%;
+  --glass-wash-c-max: 0.1864;
   --glass-opaque-c-max: 0.056;
 }
 [data-glass-tint="aventurine"] {
@@ -101,6 +129,7 @@
   --glass-tint-c: 0.076;
   --glass-tint-a: 0.54;
   --glass-wash-l: 88%;
+  --glass-wash-c-max: 0.1897;
   --glass-opaque-c-max: 0.195;
 }
 [data-glass-tint="tanzanite"] {
@@ -110,6 +139,7 @@
   --glass-tint-c: 0.093;
   --glass-tint-a: 0.1;
   --glass-wash-l: 50%;
+  --glass-wash-c-max: 0.2709;
   --glass-opaque-c-max: 0.057;
 }
 [data-glass-tint="amethyst"] {
@@ -117,6 +147,7 @@
   --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
   --glass-wash-l: 55%;
+  --glass-wash-c-max: 0.2706;
   --glass-opaque-c-max: 0.065;
 }
 [data-glass-tint="rose"] {
@@ -124,6 +155,7 @@
   --glass-tint-c: 0.095;
   --glass-tint-a: 0.17;
   --glass-wash-l: 64%;
+  --glass-wash-c-max: 0.2362;
   --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="amber"] {
@@ -131,6 +163,7 @@
   --glass-tint-c: 0.062;
   --glass-tint-a: 0.38;
   --glass-wash-l: 81%;
+  --glass-wash-c-max: 0.1547;
   --glass-opaque-c-max: 0.096;
 }
 [data-glass-tint="carnelian"] {
@@ -138,6 +171,7 @@
   --glass-tint-c: 0.081;
   --glass-tint-a: 0.19;
   --glass-wash-l: 67%;
+  --glass-wash-c-max: 0.2022;
   --glass-opaque-c-max: 0.062;
 }
 [data-glass-tint="citrine"] {
@@ -149,6 +183,7 @@
   --glass-tint-c: 0.066;
   --glass-tint-a: 0.54;
   --glass-wash-l: 91%;
+  --glass-wash-c-max: 0.1731;
   --glass-opaque-c-max: 0.173;
 }
 [data-glass-tint="peridot"] {
@@ -156,6 +191,7 @@
   --glass-tint-c: 0.083;
   --glass-tint-a: 0.54;
   --glass-wash-l: 92%;
+  --glass-wash-c-max: 0.2071;
   --glass-opaque-c-max: 0.218;
 }
 [data-glass-tint="turquoise"] {
@@ -163,6 +199,7 @@
   --glass-tint-c: 0.057;
   --glass-tint-a: 0.54;
   --glass-wash-l: 90%;
+  --glass-wash-c-max: 0.1432;
   --glass-opaque-c-max: 0.144;
 }
 [data-glass-tint="aquamarine"] {
@@ -170,6 +207,7 @@
   --glass-tint-c: 0.053;
   --glass-tint-a: 0.5;
   --glass-wash-l: 82%;
+  --glass-wash-c-max: 0.1335;
   --glass-opaque-c-max: 0.091;
 }
 [data-glass-tint="tourmaline"] {
@@ -177,6 +215,7 @@
   --glass-tint-c: 0.106;
   --glass-tint-a: 0.18;
   --glass-wash-l: 67%;
+  --glass-wash-c-max: 0.2659;
   --glass-opaque-c-max: 0.079;
 }
 [data-glass-tint="sodalite"] {
@@ -186,6 +225,7 @@
   --glass-tint-c: 0.08;
   --glass-tint-a: 0.11;
   --glass-wash-l: 54%;
+  --glass-wash-c-max: 0.2304;
   --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="lapis"] {
@@ -204,6 +244,7 @@
   --glass-tint-c: 0.085;
   --glass-tint-a: 0.13;
   --glass-wash-l: 46%;
+  --glass-wash-c-max: 0.2829;
   --glass-opaque-c-max: 0.055;
 }
 [data-glass-tint="goldstone"] {
@@ -211,6 +252,7 @@
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.17;
   --glass-wash-l: 63%;
+  --glass-wash-c-max: 0.2339;
   --glass-opaque-c-max: 0.06;
 }
 /* ── Per-mode wash ALPHA ──────────────────────────────────────────────────────
@@ -311,6 +353,15 @@
      still put moonstone's highlight at 2.3× its declared chroma, i.e. amber on a stone that is supposed
      to be pale. 1× holds the specular at the tint's own chroma and lets its LIGHTNESS do the work. */
   --glass-gloss-tint: 1;
+  /* Its day backing and gloss stay as they were. The cream is the point, and the hue-following day caps
+     (tokens.css) would lift both at h75: the backing from 0.036 to 0.059, the gloss from 0.013 to 0.022.
+     So it keeps the formulas the engine used before they followed the hue, written here: the backing on
+     the opaque floor's scale under 65% of the opaque cap it inherits (0.036 on its own page, and what it
+     was inside another preset's page too), the gloss under the flat 0.013. Night outranks all three
+     (tokens.css's night rule). */
+  --glass-solidify-c-scale: var(--glass-opaque-c-scale);
+  --glass-solidify-c-max: calc(var(--glass-opaque-c-max, 0.055) * 0.65);
+  --glass-gloss-c-max: 0.013;
   /* Moonstone daytime body lightness. Fitted for the retired opaque sheet (tokens.css) on moonstone's OWN
      floor rather than the global pair: this cream is already near-white, where a near-white sheet moved it
      far less than it moved the standard L90 floor. dE 0.0002 — indistinguishable from the old surface. */
@@ -348,9 +399,30 @@
      out the top. Only the bottom exit is reachable. L52 is the PALEST value where both surfaces clear:
      sheer body text lands 80.0 Lc (was 65.4) and the opaque card 82.9 (was 77.1), and it also restores
      --foreground-strong, which could not reach its 90 target on the cream floor either. Still stone —
-     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4. */
+     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4.
+     Deep night: the wash paints at the darker of this 64 and --glass-night-depth, i.e. at L35 (64 applies
+     only if the depth is raised above it), and its chroma, 0.047 × 2 = 0.094, is capped at h75's L35
+     ceiling by the hue-following night cap (tokens.css). AutoForeground mirrors both wash knobs (check-theme
+     [moonstone-sync]). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
+  /* Night role tokens, this preset's own (tokens.css resets them at every tint scope): its night floor is
+     the palest (sheer L41, opaque card L46, against the jewels' L31–34).
+     - Edge and input rim 0.72: the app-wide 0.65 measured 28.5 / 23.3 Lc where every other preset reaches
+       34–37 (scripts/check-contrast.mjs [edge]); 0.72 puts the opaque card level with them (34.4) and the
+       sheer surface at 39.6.
+     - Fills 0.33, RECESSED: no fill can sit 8 L above an L46 card and still carry readable text (the strong
+       ink drops under the body floor past ~L52), so its fills go 8 L under its L41 glass instead, as all
+       of them did before deep night ([role] accepts either side, held consistently). */
+  --border-l: 0.72;
+  --input-l: 0.72;
+  --accent-bg-l: 0.33;
+  --secondary-l: 0.33;
+  --muted-l: 0.33;
+  /* The selected chip (an active tab, an on toggle) darkens here instead of lifting: a white lift over this
+     pale floor lands at L55–58, where even the strong ink reads 68–73 Lc; a black one at the same alpha
+     keeps it 88+, and recesses like the fills. */
+  --active-l: 0%;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
      pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
      The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the
@@ -393,22 +465,26 @@
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.18;
   --glass-wash-l: 63%;
+  --glass-wash-c-max: 0.1864;
 }
 [data-glass-tint="success"] {
   --glass-tint-h: 150;
   --glass-tint-c: 0.088;
   --glass-tint-a: 0.18;
   --glass-wash-l: 87%;
+  --glass-wash-c-max: 0.2208;
 }
 [data-glass-tint="warning"] {
   --glass-tint-h: 85;
   --glass-tint-c: 0.063;
   --glass-tint-a: 0.18;
   --glass-wash-l: 84%;
+  --glass-wash-c-max: 0.1586;
 }
 [data-glass-tint="destructive"] {
   --glass-tint-h: 25;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.18;
   --glass-wash-l: 63%;
+  --glass-wash-c-max: 0.2353;
 }

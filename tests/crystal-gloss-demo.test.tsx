@@ -231,3 +231,37 @@ describe("CrystalGlossDemo: tint auto-toggle", () => {
     expect(localStorage.getItem(TINT_KEY)).toBeNull();
   });
 });
+
+describe("CrystalGlossDemo: the night depth caps the tonal Light", () => {
+  it("shows the capped value at night, and says why, rather than a number the gloss is not painted at", async () => {
+    /* Deep night: the engine paints the tonal gloss at the darker of --glass-gloss-l and
+       --glass-night-depth. A dark override of 70 is stored, and still written (it is the user's value),
+       but the surface sits at 35, so the readout shows 35 and names the cap. */
+    localStorage.setItem(
+      L_KEY,
+      JSON.stringify({
+        dark: 70,
+      }),
+    );
+    root().classList.add("dark");
+    root().style.setProperty("--glass-night-depth", "35");
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(inlineL()).toBe("70"));
+    expect(screen.getByText("35%")).toBeInTheDocument();
+    expect(screen.getByText(/night caps the tonal gloss at L35/)).toBeInTheDocument();
+  });
+
+  it("leaves day untouched: the depth is 100 there and binds nothing", async () => {
+    localStorage.setItem(
+      L_KEY,
+      JSON.stringify({
+        light: 80,
+      }),
+    );
+    root().style.setProperty("--glass-night-depth", "100");
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(inlineL()).toBe("80"));
+    expect(screen.getByText("80%")).toBeInTheDocument();
+    expect(screen.queryByText(/night caps/)).not.toBeInTheDocument();
+  });
+});

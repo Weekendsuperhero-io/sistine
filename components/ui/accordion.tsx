@@ -35,7 +35,9 @@ const AccordionTrigger = React.forwardRef<
 >(({ className, variant = "glass", glow, children, ...props }, ref) => {
   // No glass surface here — the variants are hover tints only, so no resolveMaterial.
   const variants = {
-    default: "hover:bg-accent",
+    /* At night the accent hover carries the accent's own (strong) text: the inherited body ink reads
+       68.5 Lc on it, under the body floor (check-contrast [role]). Day is untouched. */
+    default: "hover:bg-accent dark:hover:text-accent-foreground",
     glass: "hover:bg-muted/50",
   };
 

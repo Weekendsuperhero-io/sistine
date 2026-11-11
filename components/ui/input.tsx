@@ -4,10 +4,13 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
+/* The default (shadcn) field: --input is its rim AND, at 10%, its night fill. Deep night lifted the rim to
+   the border's lightness so the field reads against the deep floor (tokens.css); at the old 30% that fill
+   would lift the field past where the typed text keeps the body floor, so it is a 10% tint now. */
 const inputVariants = cva("", {
   variants: {
     variant: {
-      default: "dark:bg-input/30 border-input bg-transparent shadow-xs",
+      default: "dark:bg-input/10 border-input bg-transparent shadow-xs",
       glass: "",
     },
   },

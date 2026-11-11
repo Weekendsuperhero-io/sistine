@@ -19,7 +19,16 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import {
+  compositeSurface,
+  dayBackingCap,
+  dayWashCap,
+  GLASS_SOLIDIFY_C_SCALE_DAY,
+  glassSolidSurface,
+  nightWashCap,
+  type OklchColor,
+  parseOklch,
+} from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -48,10 +57,10 @@ const normalSurface = (h: number) =>
     72,
     2.5,
     {
-      // The SOLIDIFY floor (--glass-solidify-l / -c-max), not the opaque one — the backing under sheer
-      // glass is its own surface. Light lifts it to 92 with the cap derived as opaque-c-max × 0.65.
+      // The SOLIDIFY floor (--glass-solidify-l / -c-scale / -c-max), not the opaque one — the backing under
+      // sheer glass is its own surface. Light lifts it to 92, at ×1.36 under a cap that follows the hue.
       l: 92,
-      c: Math.min(TINT_C * 0.85, 0.055 * 0.65),
+      c: Math.min(TINT_C * GLASS_SOLIDIFY_C_SCALE_DAY, dayBackingCap(h)),
       a: 0.7,
     },
   );
@@ -67,7 +76,7 @@ const opaqueSurface = (h: number) =>
     [
       {
         l: 72,
-        c: TINT_C * 2.5,
+        c: Math.min(TINT_C * 2.5, dayWashCap(h)),
         h,
         a: TINT_A,
       },
@@ -194,5 +203,46 @@ describe("AutoForeground: ink follows its surface's hue", () => {
     ]) {
       expect(Math.abs(hueGap(fg(tier).h, hue)), `${tier} sat back at the tint hue`).toBeGreaterThan(1);
     }
+  });
+});
+
+/**
+ * NIGHT, deep night: the wash paints at the darker of its own lightness and the night depth (35) under the
+ * night chroma cap, its own hue's sRGB ceiling there (nightWashCap), so the composite lands at a different
+ * angle again, and the ink must follow THAT surface, not the bright L58 one the night wash used to be.
+ */
+describe("AutoForeground: ink follows its surface's hue at night", () => {
+  const nightSurface = (h: number) =>
+    glassSolidSurface(
+      true,
+      {
+        h,
+        c: TINT_C,
+        a: TINT_A,
+      },
+      0.65,
+      35,
+      2.5,
+      {
+        l: 36.4,
+        c: Math.min(TINT_C * 0.98, 0.12),
+        a: 0.7,
+      },
+      18,
+      nightWashCap(h),
+    );
+
+  it.each([
+    8,
+    22,
+    75,
+    145,
+    268,
+  ])("puts night --foreground at the deep composite's hue (h%s)", async (hue) => {
+    root().classList.add("dark");
+    await mountTinted(hue);
+    const surface = nightSurface(hue);
+    const ink = fg("--foreground");
+    expect(Math.abs(hueGap(ink.h, surface.h)), `ink h${ink.h.toFixed(2)} vs surface h${surface.h.toFixed(2)}`).toBeLessThan(1);
   });
 });
