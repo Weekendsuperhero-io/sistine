@@ -240,17 +240,38 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
 
 // 5b. [moonstone-sync] moonstone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
 //     fg snapshots can't carry them) — the JS constants must equal presets.css, or moonstone-night text
-//     bands against the wrong surface model again (the exact bug the mirror fixes).
+//     bands against the wrong surface model again (the exact bug the mirror fixes). Deep night adds two
+//     things to hold: its night wash CHROMA cap is mirrored the same way (with the .dark guard and the
+//     engine's day fallback behind it), and the mirrored lightness only means anything through the night
+//     depth, so the wash fallback must reach the model through deepen(…), the min the engine composes.
+//     foreground-tester.tsx mirrors the same model and is held to the same constants.
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
+  const tester = readFileSync(join(root, "components/foreground-tester.tsx"), "utf8");
   const moonstoneDark = rules.find((r) => splitTop(r.selector).includes('.dark[data-glass-tint="moonstone"]'));
   if (moonstoneDark) {
     const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
-    if (washL && !autoFg.includes(`moonstone && dark ? ${washL} :`))
-      fail(`[moonstone-sync] presets.css moonstone night --glass-wash-l is ${washL}% but auto-foreground's mirrored fallback differs.`);
-    if (cMult && !autoFg.includes(`moonstone && dark ? ${cMult} :`))
-      fail(`[moonstone-sync] presets.css moonstone night --glass-wash-c-mult is ${cMult} but auto-foreground's mirrored fallback differs.`);
+    const cMax = moonstoneDark.body.match(/--glass-wash-c-max:\s*([\d.]+)/)?.[1];
+    /* The guard every unpinned night scope gets (tokens.css) and the engine's day fallback for the cap. */
+    const guard = rules.find((r) => splitTop(r.selector).includes(".dark [data-glass-tint]") && /--glass-wash-c-max/.test(r.body))?.body.match(/--glass-wash-c-max:\s*([\d.]+)/)?.[1];
+    const dayCap = rules.flatMap((r) => decls(r.body)).find((d) => d.name === "--glass-tint-wash")?.value.match(/var\(--glass-wash-c-max,\s*([\d.]+)\)/)?.[1];
+    for (const [file, src, isDark] of [
+      ["auto-foreground.tsx", autoFg, "dark"],
+      ["foreground-tester.tsx", tester, "isDark"],
+    ]) {
+      if (washL && !src.includes(`moonstone && ${isDark} ? ${washL} :`))
+        fail(`[moonstone-sync] presets.css moonstone night --glass-wash-l is ${washL}% but ${file}'s mirrored fallback differs.`);
+      if (cMult && !src.includes(`moonstone && ${isDark} ? ${cMult} :`))
+        fail(`[moonstone-sync] presets.css moonstone night --glass-wash-c-mult is ${cMult} but ${file}'s mirrored fallback differs.`);
+      if (!cMax || !guard || !dayCap) {
+        fail(`[moonstone-sync] could not read moonstone's night --glass-wash-c-max, the tokens.css night guard, or the engine's day fallback for it — if they moved, update this rule rather than dropping it.`);
+      } else if (!src.includes(`num("--glass-wash-c-max", moonstone && ${isDark} ? ${cMax} : ${isDark} ? ${guard} : ${dayCap})`)) {
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-wash-c-max", moonstone && ${isDark} ? ${cMax} : ${isDark} ? ${guard} : ${dayCap}) — the moonstone pin, the night guard and the engine's day fallback.`);
+      }
+      if (!/deepen\(num\("--glass-wash-l"/.test(src))
+        fail(`[moonstone-sync] ${file} reads --glass-wash-l without deepen(…, night depth): the engine paints the wash at the darker of the two, so the model would band night text against a wash it does not paint.`);
+    }
   } else {
     fail('[moonstone-sync] could not locate the .dark[data-glass-tint="moonstone"] block in the theme rules.');
   }
@@ -670,7 +691,9 @@ for (const [value, tint] of presetTint) {
     const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
     return m ? Number(m[1]) : null;
   };
-  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max", "glass-opaque-cap-scale"]) {
+  /* glass-night-depth / glass-gloss-l / glass-gloss-c-max: deep night's mode values. A drifted depth
+     fallback would band every jsdom and snapshot-path night surface at the wrong lightness. */
+  for (const name of ["glass-opaque-l", "glass-opaque-c-scale", "glass-opaque-c-max", "glass-opaque-cap-scale", "glass-night-depth", "glass-gloss-l", "glass-gloss-c-max"]) {
     /* Matches `num("--name", dark ? D : L)` wherever it appears in the component. */
     const m = new RegExp(`num\\("--${name}",\\s*dark\\s*\\?\\s*([\\d.]+)\\s*:\\s*([\\d.]+)\\)`).exec(af);
     if (!m) {

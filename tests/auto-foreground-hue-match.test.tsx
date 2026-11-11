@@ -196,3 +196,44 @@ describe("AutoForeground: ink follows its surface's hue", () => {
     }
   });
 });
+
+/**
+ * NIGHT, deep night: the wash paints at the darker of its own lightness and the night depth (35) under the
+ * night chroma guard (0.057 for a scope with no preset pin), so the composite lands at a different angle
+ * again, and the ink must follow THAT surface, not the bright L58 one the night wash used to be.
+ */
+describe("AutoForeground: ink follows its surface's hue at night", () => {
+  const nightSurface = (h: number) =>
+    glassSolidSurface(
+      true,
+      {
+        h,
+        c: TINT_C,
+        a: TINT_A,
+      },
+      0.65,
+      35,
+      2.5,
+      {
+        l: 36.4,
+        c: Math.min(TINT_C * 0.98, 0.12),
+        a: 0.7,
+      },
+      18,
+      0.057,
+    );
+
+  it.each([
+    8,
+    22,
+    75,
+    145,
+    268,
+  ])("puts night --foreground at the deep composite's hue (h%s)", async (hue) => {
+    root().classList.add("dark");
+    await mountTinted(hue);
+    const surface = nightSurface(hue);
+    const ink = fg("--foreground");
+    expect(Math.abs(hueGap(ink.h, surface.h)), `ink h${ink.h.toFixed(2)} vs surface h${surface.h.toFixed(2)}`).toBeLessThan(1);
+  });
+});

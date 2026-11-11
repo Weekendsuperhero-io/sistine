@@ -8,6 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import {
   apcaContrast,
   boostBand,
+  deepen,
   foregroundRamp,
   formatOklch,
   glassSolidSurface,
@@ -163,8 +164,9 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
        wash lightness and — far more significantly — models NO solidify floor at all, the single heaviest
        term in the composite at 0.7 alpha. Measured on amethyst night the panel's surface sat 3.3 L below
        the real one, shifting every Lc in the strip by ~3 and widening the zero band by a whole step. */
-    washL: 58,
+    washL: 35,
     washCMult: 2.5,
+    washCMax: 0.057,
     solidifyL: 36.4,
     solidifyC: 0,
     glassOpacity: 0.7,
@@ -186,17 +188,21 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       const moonstone = root.dataset.glassTint === "moonstone";
       // Fallbacks mirror components/auto-foreground.tsx, which is the source of truth for this model.
       const opaqueCMax = num("--glass-opaque-c-max", isDark ? 0.12 : 0.055);
+      // Deep night: the wash paints at the darker of its own lightness and --glass-night-depth, under its
+      // own chroma cap, exactly as AutoForeground models it.
+      const nightDepth = num("--glass-night-depth", isDark ? 35 : 100);
       setEnv({
         h: num("--glass-fg-h", num("--glass-tint-h", 255)),
         c: tintC,
         a: num("--glass-tint-a", 0),
         dark: isDark,
         onyx: root.dataset.glassTint === "onyx",
-        washL: num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72),
+        washL: deepen(num("--glass-wash-l", moonstone && isDark ? 64 : isDark ? 58 : 72), nightDepth),
         washCMult: num("--glass-wash-c-mult", moonstone && isDark ? 2 : 2.5),
+        washCMax: num("--glass-wash-c-max", moonstone && isDark ? 0.071 : isDark ? 0.057 : 0.4),
         solidifyL: num("--glass-solidify-l", isDark ? 36.4 : 92),
         solidifyC: Math.min(
-          tintC * num("--glass-opaque-c-scale", isDark ? 1.05 : 0.85),
+          tintC * num("--glass-opaque-c-scale", isDark ? 0.98 : 0.85),
           num("--glass-solidify-c-max", isDark ? opaqueCMax : opaqueCMax * 0.65),
         ),
         glassOpacity: Math.min(Math.max(num("--glass-opacity", 0.7), 0), 1),
@@ -267,6 +273,7 @@ export function ForegroundTester({ live = false, palettes = DEFAULT_PALETTES }: 
       a: env.glassOpacity,
     },
     env.solidL,
+    env.washCMax,
   );
   // neutral → achromatic base; an active tint adds (gamut-clamped) color. Text uses Tonal / Linear only.
   const baseChroma = env.c > 0 ? env.base.c : 0;

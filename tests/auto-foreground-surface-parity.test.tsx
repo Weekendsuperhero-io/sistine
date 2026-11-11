@@ -53,9 +53,12 @@ const TINT_A = 0.15;
 
 const surfaces = (dark: boolean): Record<string, OklchColor> => {
   const h = H;
-  const washL = dark ? 58 : 72;
+  /* Deep night: the wash and the tonal gloss sit at the darker of their own lightness (58 / 66) and the
+     night depth (35); by day the depth is 100 and binds nothing. */
+  const depth = dark ? 35 : 100;
+  const washL = Math.min(dark ? 58 : 72, depth);
   const crysA = dark ? 0.1 : 0.3;
-  const glossL = dark ? 66 : 97;
+  const glossL = Math.min(dark ? 66 : 97, depth);
   const GLOSS_TOP_A = 0.2;
   const opacity = 0.7;
   /* The opaque card floor (tokens.css): L93 light / L33.4 dark, its cap scaled by
@@ -68,7 +71,9 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   // --glass-solidify-c-max: the opaque cap × 0.65 in light, pinned back to the opaque cap in dark.
   const solidifyC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.65);
   const tintCHi = Math.min(TINT_C, 0.017); // --glass-tint-c-hi
-  const glossC = Math.min(TINT_C * 4.25, dark ? 0.109 : 0.013); // --glass-gloss-tint × cap
+  const glossC = Math.min(TINT_C * 4.25, dark ? 0.057 : 0.013); // --glass-gloss-tint × cap (the L35 ceiling at night)
+  // The wash chroma cap: tokens.css's night guard (0.057) for a scope with no preset pin; nothing by day.
+  const washC = Math.min(TINT_C * 2.5, dark ? 0.057 : 0.4);
   const chakraC = Math.min(TINT_C, dark ? 0.046 : 0.055); // --glass-chakra-c-max
   /* The backing under SHEER glass is --glass-solidify-l, its own value in both modes (92 light, 36.4
      dark), split from the opaque card floor. */
@@ -86,7 +91,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   // The tint wash, painted over solidify on every sheer material.
   const wash = {
     l: washL,
-    c: TINT_C * 2.5,
+    c: washC,
     h,
     a: TINT_A,
   };
@@ -109,6 +114,8 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       washL,
       2.5,
       solidify,
+      dark ? 18 : 99,
+      dark ? 0.057 : 0.4,
     ),
     // The opaque card: its floor under the same tint wash every material carries (materials.css).
     "-opaque": compositeSurface(

@@ -24,6 +24,11 @@
  *   3. [ink]   the ink border (borderColor="ink": --foreground at --glass-border-ink-a over the surface)
  *               clears INK_FLOOR Lc, APCA's floor for non-text elements a user must see, on both the sheer
  *               surface and the opaque card. It exists because the material's own edge does not.
+ *   4. [edge]  at NIGHT, the chrome edge (--border: dividers, field and outline rims, every bare
+ *               `border-border`) clears the same floor on both surfaces. Deep night lifted it to L65 because
+ *               at L30 it sat at or under the night surface and read as nothing. By day the edge stays the
+ *               soft L85 line it was, deliberately under this floor (the light glass shadows' hairline
+ *               defines the shape there), so day is reported, not asserted.
  *
  * It models the surface the way components/auto-foreground.tsx does — glassSolidSurface() with the
  * solidify floor, then readableForeground() for the body band — so a change to that model shows up here
@@ -38,6 +43,7 @@ import {
   apcaContrast,
   boostBand,
   compositeSurface,
+  deepen,
   limitingSurface,
   parseGradientStops,
   foregroundRamp,
@@ -65,6 +71,8 @@ const MARGIN = 1.5; // Lc of slack required on top of the floor
 /* APCA's level for non-text elements that must be perceived (outlines, focus rings, dividers that carry
    meaning). Well under any text floor, deliberately: a border is a shape, not glyphs. */
 const INK_FLOOR = 30;
+/* [edge]: the same non-text floor, for the chrome edge at night. */
+const EDGE_FLOOR = INK_FLOOR;
 
 /**
  * Known, DESIGN-level exceptions: pinned at their measured value so they cannot silently get worse, and
@@ -131,6 +139,7 @@ const all = presets();
 const failures = [];
 const report = [];
 const inkReport = [];
+const edgeReport = [];
 
 for (const p of all) {
   for (const mode of ["light", "dark"]) {
@@ -140,8 +149,15 @@ for (const p of all) {
     const a = resolve(p, mode, vars, "glass-tint-a");
     if (h === undefined || c === undefined || a === undefined) continue; // an incomplete scrape, not a preset
 
-    const washL = resolve(p, mode, vars, "glass-wash-l", dark ? 58 : 72);
+    /* Deep night: the wash paints at the darker of the preset's own lightness and --glass-night-depth
+       (100 by day, 35 at night), under its chroma cap (each preset's night block pins its own hue's L35
+       ceiling; tokens.css guards the rest at night; nothing declares it by day, where the engine's 0.4
+       fallback binds nothing). The same min and cap AutoForeground models. */
+    const depth = resolve(p, mode, vars, "glass-night-depth", dark ? 35 : 100);
+    const washL = deepen(resolve(p, mode, vars, "glass-wash-l", dark ? 58 : 72), depth);
     const washCMult = resolve(p, mode, vars, "glass-wash-c-mult", 2.5);
+    const washCMax = resolve(p, mode, vars, "glass-wash-c-max", 0.4);
+    const washC = Math.min(c * washCMult, washCMax);
     const opaqueL = resolve(p, mode, vars, "glass-opaque-l", dark ? 33.4 : 93);
     const cScale = resolve(p, mode, vars, "glass-opaque-c-scale", dark ? 0.98 : 0.85);
     /* A preset's --glass-opaque-c-max is its ceiling at the LIGHT floor; in dark, tokens.css's
@@ -163,7 +179,7 @@ for (const p of all) {
       l: solidifyL,
       c: Math.min(c * cScale, solidifyCMax),
       a: 0.7,
-    }, resolve(p, mode, vars, "glass-solid-l", dark ? 18 : 99));
+    }, resolve(p, mode, vars, "glass-solid-l", dark ? 18 : 99), washCMax);
     /* Measure THE TOKEN THAT SHIPS, not a parallel solve. The normal surface does NOT use
        readableForeground — that is the `adaptive` path, for the opaque/crystal/chakra floors. Body text on
        the page draws from the discrete tonal RAMP via pickInBand, whose darkest surviving step is L20.
@@ -200,7 +216,7 @@ for (const p of all) {
     /* The opaque card is its floor plus the tint wash (the glass stack at full opacity), and the floor's
        cap is the preset cap times --glass-opaque-cap-scale (0.55 light, where the floor sits at L93). */
     const capScale = vars[mode].get("glass-opaque-cap-scale") ?? (dark ? 1 : 0.55);
-    const opaqueSurface = compositeSurface({ l: opaqueL, c: Math.min(c * cScale, cMax * capScale), h }, [{ l: washL, c: c * washCMult, h, a }]);
+    const opaqueSurface = compositeSurface({ l: opaqueL, c: Math.min(c * cScale, cMax * capScale), h }, [{ l: washL, c: washC, h, a }]);
     const opaqueBand = boostBand(READABLE_USAGE.body, 0, LC_AIM_KNOWN);
     const opaqueText = limitingSurface(opaqueSurface, stops);
     const opaqueInk = readableTonal(opaqueText, opaqueBand, { hue: opaqueSurface.h, chroma: RAMP_CHROMA });
@@ -216,7 +232,7 @@ for (const p of all) {
         h,
         a: lustreBodyA,
       },
-      { l: washL, c: c * washCMult, h, a: lustreWashA },
+      { l: washL, c: washC, h, a: lustreWashA },
       {
         l: resolve(p, mode, vars, "glass-lustre-gloss-l", dark ? 68 : 97),
         c: Math.min(c * 4.5, resolve(p, mode, vars, "glass-lustre-gloss-c-max", dark ? 0.1 : 0.013)),
@@ -265,6 +281,30 @@ for (const p of all) {
       inkReport.push({ name: p.name, mode, where, lc: inkLc });
     }
 
+    /* The chrome edge: --border, oklch(--border-l, min(tint c, --border-c-max), tint h), opaque, painted
+       over its element's own surface. Onyx's preset block sets its own --border-l, which outranks .dark's,
+       so it (and moonstone, on its lighter night floor) pins a night value of its own. */
+    const edge = {
+      l: resolve(p, mode, vars, "border-l", dark ? 0.65 : 0.85) * 100,
+      c: Math.min(c, resolve(p, mode, vars, "border-c-max", dark ? 0.041 : 0.07)),
+      h,
+    };
+    /* Judged on the modelled surfaces, not at a fresco's hardest stop: an edge runs the whole perimeter,
+       where text sits wherever the layout puts it. The frescoes' night sheets are not the wash and do not go
+       deep (their bright stops lift one corner of the card), so at that corner their edge reads weaker. */
+    for (const [where, ground] of [
+      ["sheer", surface],
+      ["opaque", opaqueSurface],
+    ]) {
+      const edgeLc = Math.abs(apcaContrast(edge, ground));
+      edgeReport.push({ name: p.name, mode, where, lc: edgeLc, l: edge.l });
+      if (dark && edgeLc < EDGE_FLOOR) {
+        failures.push(
+          `[edge] ${p.name} (night, ${where}) — the border (L${edge.l.toFixed(0)}) reaches only ${edgeLc.toFixed(1)} Lc against its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor. Raise its night --border-l.`,
+        );
+      }
+    }
+
     const known = KNOWN.get(`${p.name}|${mode}`);
     if (known) {
       /* Pinned: must not get WORSE than the value recorded when it was accepted. If it improves past the
@@ -298,6 +338,10 @@ if (process.argv.includes("--report")) {
   for (const r of [...report].sort((x, y) => x.lc - y.lc)) {
     console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} wash L${String(r.washL).padEnd(5)} alpha ${r.a}`);
   }
+  console.log("  edge (--border over its surface):");
+  for (const r of [...edgeReport].sort((x, y) => x.lc - y.lc)) {
+    console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where.padEnd(6)} border L${r.l.toFixed(0)}`);
+  }
 }
 
 /* Sanity floor: if the scrapers matched nothing the check is worthless. 16 jewels + moonstone +
@@ -315,9 +359,11 @@ if (failures.length) {
 const scored = report.filter((r) => !KNOWN.has(`${r.name}|${r.mode}`));
 const worst = scored.reduce((a, b) => (b.lc < a.lc ? b : a));
 const inkWorst = inkReport.reduce((a, b) => (b.lc < a.lc ? b : a));
+const edgeWorst = edgeReport.filter((r) => r.mode === "dark").reduce((a, b) => (b.lc < a.lc ? b : a));
 console.log(
   `✓ preset contrast — ${scored.length} preset/mode pairs clear the ${BODY_FLOOR} Lc body floor ` +
     `(tightest ${worst.name} ${worst.mode} at ${worst.lc.toFixed(1)})` +
     (KNOWN.size ? `; ${KNOWN.size} pinned exception${KNOWN.size > 1 ? "s" : ""}: ${[...KNOWN.keys()].join(", ")}` : "") +
-    `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})`,
+    `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})` +
+    `; night edge ≥ ${EDGE_FLOOR} Lc on ${edgeReport.filter((r) => r.mode === "dark").length} surfaces (tightest ${edgeWorst.name} ${edgeWorst.where} at ${edgeWorst.lc.toFixed(1)})`,
 );

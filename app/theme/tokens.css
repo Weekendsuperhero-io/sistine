@@ -134,7 +134,8 @@
   --glass-border-ink-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
-     --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
+     --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step — and
+     take the same darker-of with --glass-night-depth the engine does. */
   --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   /* Gloss ink lightness ("Light" in the demo) — a MODE TWIN, because a gloss is defined relative to
      the surface under it and those surfaces are 68 L apart. The crystal floor computes to L 96.5 in
@@ -167,6 +168,15 @@
   --glass-gloss-tint: 4.25;
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
   --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (moonstone night quiets it to 2) */
+  /* Night depth: the deepest the tint WASH and the TONAL gloss may sit, in OKLCH L (0–100). engine.css
+     paints each at the DARKER of its own lightness and this, so 100 moves nothing by day, and .dark's 35
+     takes every scope's night wash and gloss down to L35, while a preset already deeper keeps its own
+     (Onyx's wash, 16). One mode knob rather than a value per preset, because the wash is recomposed in
+     every scope that sets a tint: the presets, a custom colour (which sets only hue, chroma and alpha),
+     the frescoes, the status tints and a preview's inline scope all go deep from this one number.
+     A leaf: it composes no tint var, so it lives on the bare blocks (check-theme [scope]), and engine.css
+     references it, so the build keeps it without an @property registration. */
+  --glass-night-depth: 100;
   --glass-accent-l: 0.6; /* accent envelope — lifted in dark so the hue pops */
   --glass-accent-c: 0.15;
   --glass-glow-lc: 0.62 0.2; /* glow L+C pair */
@@ -478,6 +488,13 @@
   --glass-frost-boost: 0.06;
   --glass-border-a: 0.15;
   --glass-wash-l: 58%;
+  /* Deep night (see :root). The wash used to stay light at night: 58 here, and every preset kept its own
+     DAY lightness (aventurine 88, citrine 91, peridot 92), so white text on the night wash measured 1.2:1
+     (peridot) to 7.6:1 (lapis), under 4.5:1 on 21 of the 25 tinted presets. At L35 it measures 10.9–12.5:1.
+     --glass-wash-l stays the preset's own value and still applies wherever it is the darker of the two;
+     each preset caps its chroma at its own hue's sRGB ceiling at this depth (presets.css night blocks,
+     --glass-wash-c-max). */
+  --glass-night-depth: 35;
   --glass-accent-l: 0.68;
   --glass-accent-c: 0.14;
   --glass-glow-lc: 0.7 0.18;
@@ -494,13 +511,16 @@
   --glass-crystal-bg-a: 0.1;
   /* Gloss ink lightness — dark twin. Over an L-28 floor there is 72 L of headroom, so 66 lifts +15.2
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
-     have both (see :root). */
+     have both (see :root). Deep night caps it: the tonal ink paints at the darker of this and
+     --glass-night-depth (35), so at the shipped depth the night gloss sits at L35, and a Light slider
+     value above 35 changes nothing at night. The hue flavor pins its own 74 and is not capped. */
   --glass-gloss-l: 66;
-  /* Gloss chroma cap — the L-66 twin. Far more headroom this far from white: 0.1094 is aurora (h205),
-     the tightest across all 23 preset scopes — the FRESCOES count here too, which is why this is not
-     turquoise's 0.1106. Dark gloss keeps real colour; it was still clipping before (turquoise
-     0,193,186 and carnelian 255,0,0 both had a pinned channel). */
-  --glass-gloss-c-max: 0.109;
+  /* Gloss chroma cap — the night twin, sized at L35, where the tonal gloss now sits: engine.css paints it
+     at the darker of --glass-gloss-l and --glass-night-depth, so this 66 only applies if the depth is
+     raised above it. 0.0579 is the tightest sRGB ceiling anywhere on the hue circle at L35 (h200; aurora,
+     h205, is the tightest preset at 0.0581), so no preset and no custom colour clips. The old 0.109 was
+     the L66 ceiling (aurora again), and at L35 it would clip 12 of the 25 tinted presets. */
+  --glass-gloss-c-max: 0.057;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
@@ -634,10 +654,14 @@
   --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
 
   /* Border / input lightness + chroma-cap — dark twins (see :root; color composed in engine.css).
-     L is UNCHANGED here: in dark mode the edge sits at 0.30/0.25 on a dark page, so lowering it would
-     cost contrast rather than buy color. Only the cap moves, up to the tightest dark ceiling — 0.0422
-     at L 0.25 (turquoise h190), which --input hits first, so one cap serves both. */
-  --border-l: 0.3;
+     The BORDER is 0.65, up from 0.30, with deep night. At 0.30 the edge sat at or under the night surface
+     it bounds (with the wash at L35 the night surfaces land at L31–34), so dividers and outlines read as
+     nothing; at 0.65 a night edge is a lit line on every preset's sheer surface and opaque card, 34.3–36.7
+     APCA Lc (scripts/check-contrast.mjs [edge], held to the 30 non-text floor). Onyx and moonstone, whose
+     night floors sit far from L32, pin their own night value (presets.css). --input stays 0.25, the
+     field's recessed well, and is the one the cap below is sized for: the tightest dark ceiling, 0.0422 at
+     L 0.25 (turquoise h190), far inside every hue's ceiling at L 0.65 too, so one cap still serves both. */
+  --border-l: 0.65;
   --input-l: 0.25;
   --border-c-max: 0.041; /* ≤ 0.0422, the L-0.25 ceiling floor (turquoise h190) */
   --ring: oklch(0.6 0.2 250); /* Focus ring */
@@ -669,11 +693,20 @@
    greyed version of its tint (23–53% of the chroma its hue can hold at L36.4). The light caps describe
    the light floor only; at L36.4 every preset's ask sits well inside its own ceiling, so this guard is
    the only cap dark needs. (0,2,0) beats a preset block; `.dark [data-glass-tint]` covers a scoped tint
-   inside a dark page, and a preset's own `.dark[data-glass-tint="x"]` block still wins by source order. */
+   inside a dark page, and a preset's own `.dark[data-glass-tint="x"]` block still wins by source order.
+   The night WASH chroma cap lives here for the same reason, reset at every tint scope. At the night depth
+   (L35) sRGB holds far less chroma than at the day washes' L46–92, and how much depends on the hue: 0.058
+   for turquoise, 0.226 for lapis. So every named preset pins its OWN ceiling in its night block
+   (presets.css, frescoes.css), and this is the guard for every scope that has none: a custom colour, the
+   default tint, a preview's inline `data-glass-tint=""` scope. 0.057 is the tightest ceiling anywhere on
+   the hue circle at L35 (h200, 0.0579), so whatever hue a custom colour picks, its night wash keeps that
+   hue rather than clipping. The reset is what keeps a page preset's wider cap (lapis's 0.226) from
+   leaking into a scoped custom tint whose hue holds a quarter of it. */
 .dark,
 .dark[data-glass-tint],
 .dark [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
+  --glass-wash-c-max: 0.057;
 }
 
 @layer base {

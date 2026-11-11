@@ -141,12 +141,14 @@ describe("AutoForeground: chakra tiers", () => {
 });
 
 describe("AutoForeground: mode-aware gloss fallback", () => {
-  /** Solve `--foreground-crystal` from a clean root, optionally pinning the gloss token first. */
-  const crystalWith = async (glossL: string | null, dark: boolean) => {
+  /** Solve `--foreground-crystal` from a clean root, optionally pinning the gloss token (and the night
+      depth) first. */
+  const crystalWith = async (glossL: string | null, dark: boolean, nightDepth?: string) => {
     cleanup();
     root().removeAttribute("style");
     root().className = dark ? "dark" : "";
     if (glossL !== null) root().style.setProperty("--glass-gloss-l", glossL);
+    if (nightDepth !== undefined) root().style.setProperty("--glass-night-depth", nightDepth);
     render(<AutoForeground />);
     await waitFor(() => expect(read("--foreground-crystal")).not.toBe(""));
     return read("--foreground-crystal");
@@ -166,9 +168,22 @@ describe("AutoForeground: mode-aware gloss fallback", () => {
   });
 
   it("falls back to 66 in dark mode, not 97", async () => {
+    /* At the shipped night depth (35) the tonal gloss is capped below BOTH candidates, so they model the
+       same surface and cannot tell the fallback apart. Lifting the depth out of the way can. */
+    const unset = await crystalWith(null, true, "100");
+    expect(unset).toBe(await crystalWith("66", true, "100"));
+    expect(unset).not.toBe(await crystalWith("97", true, "100"));
+  });
+
+  it("caps the night gloss at the night depth, as the engine does", async () => {
+    /* Deep night: the tonal ink paints at the darker of --glass-gloss-l and --glass-night-depth, so at
+       night any value at or above 35 (the theme's 66, the demo slider's 97) is the same surface, while a
+       value below the depth is the darker of the two and still moves the solve. Without the min, the
+       model bands night crystal text against a gloss up to 62 L lighter than the one on screen. */
     const unset = await crystalWith(null, true);
-    expect(unset).toBe(await crystalWith("66", true));
-    expect(unset).not.toBe(await crystalWith("97", true));
+    expect(unset).toBe(await crystalWith("97", true));
+    expect(unset).toBe(await crystalWith("35", true));
+    expect(unset).not.toBe(await crystalWith("10", true));
   });
 
   it("uses a set --glass-gloss-l in place of the fallback", async () => {

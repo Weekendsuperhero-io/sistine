@@ -6,7 +6,8 @@
 
 /* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
    day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
-   twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
+   twin: the light/dark toggle changes the page under the sheet, not the sheet. (Its one night block
+   below carries only the deep-night wash chroma cap.)
 
    Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
    Stop 2's chroma is 0.095 because h290 at L80 has an sRGB ceiling of 0.1052; the 0.17 it once shipped
@@ -47,6 +48,12 @@
   );
   --glass-crystal-fresco: var(--glass-bg);
 }
+/* Muse's one night value: deep night paints its wash at L35, where h230 holds 0.0678, so the wash chroma
+   is capped there like every preset's (presets.css). The sheet above is untouched. */
+.dark[data-glass-tint="muse"],
+.dark [data-glass-tint="muse"] {
+  --glass-wash-c-max: 0.067;
+}
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
@@ -76,6 +83,7 @@
 }
 .dark[data-glass-tint="sistine"],
 .dark [data-glass-tint="sistine"] {
+  --glass-wash-c-max: 0.071; /* deep night: h75's sRGB ceiling at L35 (presets.css) */
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(86% 0.11 75 / 0.22) 0%,
@@ -145,6 +153,7 @@
 }
 .dark[data-glass-tint="aurora"],
 .dark [data-glass-tint="aurora"] {
+  --glass-wash-c-max: 0.058; /* deep night: h205's sRGB ceiling at L35 (presets.css) */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
@@ -171,6 +180,7 @@
 }
 .dark[data-glass-tint="gloaming"],
 .dark [data-glass-tint="gloaming"] {
+  --glass-wash-c-max: 0.129; /* deep night: h32's sRGB ceiling at L35 (presets.css) */
   --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);

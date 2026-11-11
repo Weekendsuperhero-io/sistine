@@ -132,11 +132,23 @@
 :root,
 .dark,
 [data-glass-tint] {
-  /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult. */
-  --glass-tint-wash: oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult.
+     DEEP NIGHT. The lightness is the DARKER of the scope's own --glass-wash-l and --glass-night-depth
+     (tokens.css: 100 by day, so nothing moves; 35 at night), so every preset's night wash lands at L35
+     and white text reads on it. min(), not the depth outright: a preset already deeper keeps its own
+     (Onyx, 16). The chroma is then capped at --glass-wash-c-max, the scope's own sRGB ceiling at that
+     depth (each preset's night block; tokens.css guards every other scope), which keeps the hue and never
+     clips. Nothing declares the cap by day, and the 0.4 fallback sits above every day ask (the largest is
+     tourmaline's 0.265), so it binds nothing there either. Multiply-THEN-cap, matching --primary. */
+  --glass-tint-wash: oklch(
+    min(var(--glass-wash-l), calc(var(--glass-night-depth, 100) * 1%))
+      min(calc(var(--glass-tint-c) * var(--glass-wash-c-mult)), var(--glass-wash-c-max, 0.4)) var(--glass-tint-h) /
+    var(--glass-tint-a)
+  );
   /* Lustre shares the preset's pigment in day mode. Night keeps its deep body and colored reflection. */
   --glass-lustre-tint-wash: oklch(
-    var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) /
+    min(var(--glass-wash-l), calc(var(--glass-night-depth, 100) * 1%))
+      min(calc(var(--glass-tint-c) * var(--glass-wash-c-mult)), var(--glass-wash-c-max, 0.4)) var(--glass-tint-h) /
     calc(var(--glass-tint-a) * var(--glass-lustre-wash-strength))
   );
   /* Solid accent that tracks the FOREGROUND hue at a fixed vivid chroma — used by active controls
@@ -354,8 +366,12 @@
 [data-glass-tint],
 [data-gloss] {
   /* The tonal ink as its own token (not inline in the fallback below) so check-gamut's scraper, which
-     reads `--x: <L> <chroma> <h>` declarations, still sweeps it. */
-  --glass-gloss-ink-tonal: calc(var(--glass-gloss-l, 94) * 1%)
+     reads `--x: <L> <chroma> <h>` declarations, still sweeps it.
+     DEEP NIGHT, as the wash (block B): the DARKER of --glass-gloss-l and --glass-night-depth, so the night
+     gloss sits at L35 (100 by day changes nothing). That caps an inline --glass-gloss-l too, the crystal
+     demo's Light slider included: at night the theme decides how light the gloss may go. The white and hue
+     flavors keep their own lightness. */
+  --glass-gloss-ink-tonal: calc(min(var(--glass-gloss-l, 94), var(--glass-night-depth, 100)) * 1%)
     min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3)) var(--glass-tint-h);
   --glass-gloss-ink: var(--glass-gloss-ink-white, var(--glass-gloss-ink-tonal));
   --glass-gloss-top: var(--glass-gloss-top-hue, linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%));

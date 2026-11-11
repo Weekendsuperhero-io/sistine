@@ -180,6 +180,8 @@ Built-in presets ship as `[data-glass-tint]` blocks: **jewels** (single hue: sel
 
 **Presets are turnkey, pure CSS.** Set the attribute and toggle `.dark` (e.g. next-themes): every preset and fresco carries its own day + night values, the scene backgrounds flip with the mode, and static text baselines keep every material legible with no JavaScript. Optionally install and mount `<AutoForeground />` (once, in your root layout) to upgrade those baselines to exact APCA-solved foregrounds that re-band live as the tint, mode, or surface knobs change. It refines; it is never required.
 
+**Night goes deep.** At night (`.dark`) the tint wash and the tonal gloss paint at the *darker of* their own lightness and `--glass-night-depth` (`100` by day, so nothing moves; `35` at night), so white text reads on every tint, and a preset already deeper keeps its own (Onyx). Each preset caps its night wash chroma at its own hue's sRGB ceiling at that depth (`--glass-wash-c-max`), so it keeps its hue and never clips, and the chrome edge (`--border`) is a lit L 0.65 line at night. Raise `--glass-night-depth` on `.dark` to lighten night again.
+
 ### Per-Component Customization
 
 Pass CSS-variable overrides through the `glassVars` helper (the successor to the old `glass={{…}}` prop; it emits `--glass-*` / `--srf-*` custom properties that route through the token system):

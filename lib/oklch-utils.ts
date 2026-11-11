@@ -922,10 +922,42 @@ export function pickInBand(
 }
 
 /**
+ * Deep night: `--glass-night-depth` (tokens.css), the deepest the tint wash and the TONAL gloss may sit, in
+ * OKLCH L. The engine paints each at the darker of its own lightness and this ({@link deepen}): 100 by day,
+ * so nothing moves, and 35 at night, so every preset's night wash lands at L35 unless it is already deeper
+ * (onyx's 16). These are the mode values a model falls back to when it cannot read the live token.
+ */
+export const GLASS_NIGHT_DEPTH = {
+  light: 100,
+  dark: 35,
+} as const;
+
+/**
+ * The wash's chroma cap (`--glass-wash-c-max`) where no preset pins its own: by day nothing declares it and
+ * the engine's `var(…, 0.4)` fallback binds no preset; at night tokens.css guards every unpinned scope (a
+ * custom colour, the default tint) at 0.057, the tightest sRGB ceiling on the hue circle at L35. A named
+ * preset pins its own hue's ceiling in its night block, which only a live read of the token sees.
+ */
+export const GLASS_WASH_C_MAX = {
+  light: 0.4,
+  dark: 0.057,
+} as const;
+
+/**
+ * The darker of a lightness and the night depth: how the engine composes the tint wash and the tonal gloss
+ * (`min(var(--glass-wash-l), calc(var(--glass-night-depth) * 1%))`). Every model of those surfaces takes the
+ * same min, so text is solved against the surface that paints.
+ */
+export function deepen(l: number, depth: number): number {
+  return Math.min(l, depth);
+}
+
+/**
  * The effective glass surface color for the active theme + tint — the theme's light/dark floor
- * blended with the tint wash, mirroring the glass-* utilities (the wash sits at a FIXED lightness,
- * 72 light / 58 dark; only hue, chroma and alpha vary). Pair with pickForeground to choose readable
- * text on a tinted glass surface without reading pixels back.
+ * blended with the tint wash, mirroring the glass-* utilities at the mode defaults (the wash sits at a
+ * FIXED lightness, 72 light / 35 dark, the darker of 58 and the night depth; its chroma is capped where
+ * tokens.css caps an unpinned scope; only hue, chroma and alpha vary). Pair with pickForeground to choose
+ * readable text on a tinted glass surface without reading pixels back.
  */
 export function glassSurface(
   dark: boolean,
@@ -936,7 +968,7 @@ export function glassSurface(
   },
 ): OklchColor {
   const baseL = dark ? 20 : 95;
-  const washL = dark ? 58 : 72;
+  const washL = deepen(dark ? 58 : 72, dark ? GLASS_NIGHT_DEPTH.dark : GLASS_NIGHT_DEPTH.light);
   return compositeSurface(
     {
       l: baseL,
@@ -946,7 +978,7 @@ export function glassSurface(
     [
       {
         l: washL,
-        c: tint.c * 2.5,
+        c: Math.min(tint.c * 2.5, dark ? GLASS_WASH_C_MAX.dark : GLASS_WASH_C_MAX.light),
         h: tint.h,
         a: tint.a,
       },
@@ -968,9 +1000,10 @@ export function glassSolidSurface(
     a: number;
   },
   solidA: number,
-  // Wash knobs — pass the LIVE --glass-wash-l / --glass-wash-c-mult when a theme overrides them
-  // (moonstone night: 72 / 2), else the defaults mirror the CSS mode values exactly.
-  washL: number = dark ? 58 : 72,
+  // Wash knobs — pass the LIVE values when a theme overrides them (moonstone night: 64 / 2), else the
+  // defaults mirror the CSS mode values exactly. `washL` is the lightness AS PAINTED: the darker of
+  // --glass-wash-l and --glass-night-depth (deepen), which is 35 at night for every preset but onyx.
+  washL: number = deepen(dark ? 58 : 72, dark ? GLASS_NIGHT_DEPTH.dark : GLASS_NIGHT_DEPTH.light),
   washCMult = 2.5,
   // The SOLIDIFY floor — `glass` paints --glass-solidify (--glass-opaque-bg at --glass-opacity, default
   // 0.7) as its bottom background-IMAGE layer, i.e. above the background-color modeled by solidA and
@@ -985,6 +1018,9 @@ export function glassSolidSurface(
   },
   // A preset can have a dark veil on a light page (Onyx). Read its live floor independently of mode.
   solidL: number = dark ? 18 : 99,
+  // The wash's chroma cap, --glass-wash-c-max: pass the LIVE value (a preset pins its own hue's ceiling at
+  // the night depth); the default is the mode guard, exact for a custom colour or the default tint.
+  washCMax: number = dark ? GLASS_WASH_C_MAX.dark : GLASS_WASH_C_MAX.light,
 ): OklchColor {
   const baseL = dark ? 20 : 95;
   // The real paint order, composited in the real space — see compositeSurface for why lerping the
@@ -1014,7 +1050,7 @@ export function glassSolidSurface(
         : []),
       {
         l: washL,
-        c: tint.c * washCMult,
+        c: Math.min(tint.c * washCMult, washCMax),
         h: tint.h,
         a: tint.a,
       },

@@ -234,7 +234,8 @@
   --glass-border-ink-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
-     --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step. */
+     --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step — and
+     take the same darker-of with --glass-night-depth the engine does. */
   --glass-diffuse: 12px; /* readability blur FLOOR the glass-diffuse axis raises surfaces to (opaque ignores it) */
   /* Gloss ink lightness ("Light" in the demo) — a MODE TWIN, because a gloss is defined relative to
      the surface under it and those surfaces are 68 L apart. The crystal floor computes to L 96.5 in
@@ -267,6 +268,15 @@
   --glass-gloss-tint: 4.25;
   --glass-wash-l: 72%; /* tint wash lightness — deeper in dark so the tint reads over dark backdrops */
   --glass-wash-c-mult: 2.5; /* tint wash chroma multiplier (moonstone night quiets it to 2) */
+  /* Night depth: the deepest the tint WASH and the TONAL gloss may sit, in OKLCH L (0–100). engine.css
+     paints each at the DARKER of its own lightness and this, so 100 moves nothing by day, and .dark's 35
+     takes every scope's night wash and gloss down to L35, while a preset already deeper keeps its own
+     (Onyx's wash, 16). One mode knob rather than a value per preset, because the wash is recomposed in
+     every scope that sets a tint: the presets, a custom colour (which sets only hue, chroma and alpha),
+     the frescoes, the status tints and a preview's inline scope all go deep from this one number.
+     A leaf: it composes no tint var, so it lives on the bare blocks (check-theme [scope]), and engine.css
+     references it, so the build keeps it without an @property registration. */
+  --glass-night-depth: 100;
   --glass-accent-l: 0.6; /* accent envelope — lifted in dark so the hue pops */
   --glass-accent-c: 0.15;
   --glass-glow-lc: 0.62 0.2; /* glow L+C pair */
@@ -578,6 +588,13 @@
   --glass-frost-boost: 0.06;
   --glass-border-a: 0.15;
   --glass-wash-l: 58%;
+  /* Deep night (see :root). The wash used to stay light at night: 58 here, and every preset kept its own
+     DAY lightness (aventurine 88, citrine 91, peridot 92), so white text on the night wash measured 1.2:1
+     (peridot) to 7.6:1 (lapis), under 4.5:1 on 21 of the 25 tinted presets. At L35 it measures 10.9–12.5:1.
+     --glass-wash-l stays the preset's own value and still applies wherever it is the darker of the two;
+     each preset caps its chroma at its own hue's sRGB ceiling at this depth (presets.css night blocks,
+     --glass-wash-c-max). */
+  --glass-night-depth: 35;
   --glass-accent-l: 0.68;
   --glass-accent-c: 0.14;
   --glass-glow-lc: 0.7 0.18;
@@ -594,13 +611,16 @@
   --glass-crystal-bg-a: 0.1;
   /* Gloss ink lightness — dark twin. Over an L-28 floor there is 72 L of headroom, so 66 lifts +15.2
      and still holds 59% of the tonal ink's chroma: a specular that is genuinely tinted. Light cannot
-     have both (see :root). */
+     have both (see :root). Deep night caps it: the tonal ink paints at the darker of this and
+     --glass-night-depth (35), so at the shipped depth the night gloss sits at L35, and a Light slider
+     value above 35 changes nothing at night. The hue flavor pins its own 74 and is not capped. */
   --glass-gloss-l: 66;
-  /* Gloss chroma cap — the L-66 twin. Far more headroom this far from white: 0.1094 is aurora (h205),
-     the tightest across all 23 preset scopes — the FRESCOES count here too, which is why this is not
-     turquoise's 0.1106. Dark gloss keeps real colour; it was still clipping before (turquoise
-     0,193,186 and carnelian 255,0,0 both had a pinned channel). */
-  --glass-gloss-c-max: 0.109;
+  /* Gloss chroma cap — the night twin, sized at L35, where the tonal gloss now sits: engine.css paints it
+     at the darker of --glass-gloss-l and --glass-night-depth, so this 66 only applies if the depth is
+     raised above it. 0.0579 is the tightest sRGB ceiling anywhere on the hue circle at L35 (h200; aurora,
+     h205, is the tightest preset at 0.0581), so no preset and no custom colour clips. The old 0.109 was
+     the L66 ceiling (aurora again), and at L35 it would clip 12 of the 25 tinted presets. */
+  --glass-gloss-c-max: 0.057;
   /* L lifted from 22% (less extreme light↔dark switch); the opaque chroma scale (0.9) keeps warm hues
      like amber in-gamut instead of hard-clipping to rust. */
   --glass-solid-l: 18%;
@@ -734,10 +754,14 @@
   --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
 
   /* Border / input lightness + chroma-cap — dark twins (see :root; color composed in engine.css).
-     L is UNCHANGED here: in dark mode the edge sits at 0.30/0.25 on a dark page, so lowering it would
-     cost contrast rather than buy color. Only the cap moves, up to the tightest dark ceiling — 0.0422
-     at L 0.25 (turquoise h190), which --input hits first, so one cap serves both. */
-  --border-l: 0.3;
+     The BORDER is 0.65, up from 0.30, with deep night. At 0.30 the edge sat at or under the night surface
+     it bounds (with the wash at L35 the night surfaces land at L31–34), so dividers and outlines read as
+     nothing; at 0.65 a night edge is a lit line on every preset's sheer surface and opaque card, 34.3–36.7
+     APCA Lc (scripts/check-contrast.mjs [edge], held to the 30 non-text floor). Onyx and moonstone, whose
+     night floors sit far from L32, pin their own night value (presets.css). --input stays 0.25, the
+     field's recessed well, and is the one the cap below is sized for: the tightest dark ceiling, 0.0422 at
+     L 0.25 (turquoise h190), far inside every hue's ceiling at L 0.65 too, so one cap still serves both. */
+  --border-l: 0.65;
   --input-l: 0.25;
   --border-c-max: 0.041; /* ≤ 0.0422, the L-0.25 ceiling floor (turquoise h190) */
   --ring: oklch(0.6 0.2 250); /* Focus ring */
@@ -769,11 +793,20 @@
    greyed version of its tint (23–53% of the chroma its hue can hold at L36.4). The light caps describe
    the light floor only; at L36.4 every preset's ask sits well inside its own ceiling, so this guard is
    the only cap dark needs. (0,2,0) beats a preset block; `.dark [data-glass-tint]` covers a scoped tint
-   inside a dark page, and a preset's own `.dark[data-glass-tint="x"]` block still wins by source order. */
+   inside a dark page, and a preset's own `.dark[data-glass-tint="x"]` block still wins by source order.
+   The night WASH chroma cap lives here for the same reason, reset at every tint scope. At the night depth
+   (L35) sRGB holds far less chroma than at the day washes' L46–92, and how much depends on the hue: 0.058
+   for turquoise, 0.226 for lapis. So every named preset pins its OWN ceiling in its night block
+   (presets.css, frescoes.css), and this is the guard for every scope that has none: a custom colour, the
+   default tint, a preview's inline `data-glass-tint=""` scope. 0.057 is the tightest ceiling anywhere on
+   the hue circle at L35 (h200, 0.0579), so whatever hue a custom colour picks, its night wash keeps that
+   hue rather than clipping. The reset is what keeps a page preset's wider cap (lapis's 0.226) from
+   leaking into a scoped custom tint whose hue holds a quarter of it. */
 .dark,
 .dark[data-glass-tint],
 .dark [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
+  --glass-wash-c-max: 0.057;
 }
 
 @layer base {
@@ -974,11 +1007,23 @@
 :root,
 .dark,
 [data-glass-tint] {
-  /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult. */
-  --glass-tint-wash: oklch(var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) / var(--glass-tint-a));
+  /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult.
+     DEEP NIGHT. The lightness is the DARKER of the scope's own --glass-wash-l and --glass-night-depth
+     (tokens.css: 100 by day, so nothing moves; 35 at night), so every preset's night wash lands at L35
+     and white text reads on it. min(), not the depth outright: a preset already deeper keeps its own
+     (Onyx, 16). The chroma is then capped at --glass-wash-c-max, the scope's own sRGB ceiling at that
+     depth (each preset's night block; tokens.css guards every other scope), which keeps the hue and never
+     clips. Nothing declares the cap by day, and the 0.4 fallback sits above every day ask (the largest is
+     tourmaline's 0.265), so it binds nothing there either. Multiply-THEN-cap, matching --primary. */
+  --glass-tint-wash: oklch(
+    min(var(--glass-wash-l), calc(var(--glass-night-depth, 100) * 1%))
+      min(calc(var(--glass-tint-c) * var(--glass-wash-c-mult)), var(--glass-wash-c-max, 0.4)) var(--glass-tint-h) /
+    var(--glass-tint-a)
+  );
   /* Lustre shares the preset's pigment in day mode. Night keeps its deep body and colored reflection. */
   --glass-lustre-tint-wash: oklch(
-    var(--glass-wash-l) calc(var(--glass-tint-c) * var(--glass-wash-c-mult)) var(--glass-tint-h) /
+    min(var(--glass-wash-l), calc(var(--glass-night-depth, 100) * 1%))
+      min(calc(var(--glass-tint-c) * var(--glass-wash-c-mult)), var(--glass-wash-c-max, 0.4)) var(--glass-tint-h) /
     calc(var(--glass-tint-a) * var(--glass-lustre-wash-strength))
   );
   /* Solid accent that tracks the FOREGROUND hue at a fixed vivid chroma — used by active controls
@@ -1196,8 +1241,12 @@
 [data-glass-tint],
 [data-gloss] {
   /* The tonal ink as its own token (not inline in the fallback below) so check-gamut's scraper, which
-     reads `--x: <L> <chroma> <h>` declarations, still sweeps it. */
-  --glass-gloss-ink-tonal: calc(var(--glass-gloss-l, 94) * 1%)
+     reads `--x: <L> <chroma> <h>` declarations, still sweeps it.
+     DEEP NIGHT, as the wash (block B): the DARKER of --glass-gloss-l and --glass-night-depth, so the night
+     gloss sits at L35 (100 by day changes nothing). That caps an inline --glass-gloss-l too, the crystal
+     demo's Light slider included: at night the theme decides how light the gloss may go. The white and hue
+     flavors keep their own lightness. */
+  --glass-gloss-ink-tonal: calc(min(var(--glass-gloss-l, 94), var(--glass-night-depth, 100)) * 1%)
     min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3)) var(--glass-tint-h);
   --glass-gloss-ink: var(--glass-gloss-ink-white, var(--glass-gloss-ink-tonal));
   --glass-gloss-top: var(--glass-gloss-top-hue, linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent 30%));
@@ -2074,6 +2123,15 @@
   --foreground-ui-lustre: oklch(0.86 0 0);
   --muted-foreground-lustre: oklch(0.9 0 0);
 }
+/* Onyx's night edge. Its --border-l above holds in both modes (this block outranks .dark), and with deep
+   night lifting every other preset's night edge to 0.65, Onyx's 0.38 over its L16 surface measured 8.9 Lc
+   against their 34–37 (scripts/check-contrast.mjs [edge]). 0.61 lands it at 35.9, level with them; 0.65
+   itself would read heavier on the darker floor (41.8). By day Onyx keeps 0.38, as every preset keeps its
+   soft day edge. Its wash needs nothing: at 16 it is already deeper than the night depth. */
+.dark[data-glass-tint="onyx"],
+.dark [data-glass-tint="onyx"] {
+  --border-l: 0.61;
+}
 [data-glass-tint="celestite"] {
   /* Celestite — pale sky blue, the widest gap on the glass (aquamarine h215 → sapphire h255, 19.6 apart
      as washes). h235's sRGB chroma peaks at L74, between aquamarine's L82 and sapphire's L62. */
@@ -2223,70 +2281,97 @@
    Every night block carries two selectors: `.dark[data-glass-tint="x"]` for a preset on the same element
    as `.dark` (normally <html>), and `.dark [data-glass-tint="x"]` for a preset scoped to an element INSIDE
    a dark page (`<section data-glass-tint="lapis">`), which the compound form never matched, so a scoped
-   preset in dark mode used to render its DAY values. check-theme's [night-scope] keeps them paired. */
+   preset in dark mode used to render its DAY values. check-theme's [night-scope] keeps them paired.
+
+   ── Night wash CHROMA cap (deep night) ──────────────────────────────────────
+   At night the wash paints at the darker of its own --glass-wash-l and --glass-night-depth (L35, see
+   tokens.css), and at L35 sRGB holds far less chroma than at the day washes' L46–92, by an amount that
+   depends on the hue. Asking c × 2.5 there would clip 24 of the 25 tinted presets, 1.16× (tanzanite) to
+   2.42× (turquoise) over, and WebKit clips per channel, so the hue would drift. So each preset caps its
+   night chroma at ITS OWN hue's ceiling at L35, rounded down (scripts/check-gamut.mjs measures it): the
+   hue is kept, nothing clips, and no jewel is greyed to a shared number. Lapis is the one that asks less
+   than its ceiling (0.2125 against 0.2268); it still pins its ceiling, because tokens.css resets the cap
+   to the tightest hue's at every tint scope, which would otherwise grey it. The caps are sized for the
+   shipped depth: a consumer who raises --glass-night-depth keeps them in gamut, at less colour. */
 .dark[data-glass-tint="rose"],
 .dark [data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
+  --glass-wash-c-max: 0.136;
 }
 .dark[data-glass-tint="goldstone"],
 .dark [data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
+  --glass-wash-c-max: 0.137;
 }
 .dark[data-glass-tint="carnelian"],
 .dark [data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
+  --glass-wash-c-max: 0.111;
 }
 .dark[data-glass-tint="amber"],
 .dark [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
+  --glass-wash-c-max: 0.071;
 }
 .dark[data-glass-tint="citrine"],
 .dark [data-glass-tint="citrine"] {
   --glass-tint-a: 0.2;
+  --glass-wash-c-max: 0.07;
 }
 .dark[data-glass-tint="peridot"],
 .dark [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
+  --glass-wash-c-max: 0.089;
 }
 .dark[data-glass-tint="aventurine"],
 .dark [data-glass-tint="aventurine"] {
   --glass-tint-a: 0.29;
+  --glass-wash-c-max: 0.079;
 }
 .dark[data-glass-tint="turquoise"],
 .dark [data-glass-tint="turquoise"] {
   --glass-tint-a: 0.28;
+  --glass-wash-c-max: 0.058;
 }
 .dark[data-glass-tint="aquamarine"],
 .dark [data-glass-tint="aquamarine"] {
   --glass-tint-a: 0.31;
+  --glass-wash-c-max: 0.06;
 }
 .dark[data-glass-tint="sapphire"],
 .dark [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
+  --glass-wash-c-max: 0.112;
 }
 .dark[data-glass-tint="celestite"],
 .dark [data-glass-tint="celestite"] {
   --glass-tint-a: 0.3;
+  --glass-wash-c-max: 0.072;
 }
 .dark[data-glass-tint="sodalite"],
 .dark [data-glass-tint="sodalite"] {
   --glass-tint-a: 0.54;
+  --glass-wash-c-max: 0.157;
 }
 .dark[data-glass-tint="lapis"],
 .dark [data-glass-tint="lapis"] {
   --glass-tint-a: 0.54;
+  --glass-wash-c-max: 0.226;
 }
 .dark[data-glass-tint="tanzanite"],
 .dark [data-glass-tint="tanzanite"] {
   --glass-tint-a: 0.54;
+  --glass-wash-c-max: 0.199;
 }
 .dark[data-glass-tint="amethyst"],
 .dark [data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
+  --glass-wash-c-max: 0.181;
 }
 .dark[data-glass-tint="tourmaline"],
 .dark [data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
+  --glass-wash-c-max: 0.146;
 }
 [data-glass-tint="moonstone"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
@@ -2342,9 +2427,18 @@
      out the top. Only the bottom exit is reachable. L52 is the PALEST value where both surfaces clear:
      sheer body text lands 80.0 Lc (was 65.4) and the opaque card 82.9 (was 77.1), and it also restores
      --foreground-strong, which could not reach its 90 target on the cream floor either. Still stone —
-     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4. */
+     oklch(0.52 0.021 75) is #70675c, a warm grey — and still well clear of the jewels' L36.4.
+     Deep night: the wash paints at the darker of this 64 and --glass-night-depth, i.e. at L35 (64 applies
+     only if the depth is raised above it), and its chroma, 0.047 × 2 = 0.094, is capped at h75's L35
+     ceiling. AutoForeground mirrors all three (check-theme [moonstone-sync]). */
   --glass-wash-l: 64%;
   --glass-wash-c-mult: 2;
+  --glass-wash-c-max: 0.071;
+  /* Night edge, moonstone's own: its night floor is the palest (sheer L41, opaque card L46, against the
+     jewels' L32–33), so the app-wide 0.65 measured 28.5 / 23.3 Lc where every other preset reaches 34–37
+     (scripts/check-contrast.mjs [edge]). 0.72 puts the opaque card level with them (34.4) and the sheer
+     surface at 39.6. */
+  --border-l: 0.72;
   /* Fitted for the retired opaque sheet, like the daytime floor above and likewise not the global dark
      pair: moonstone night is a LIGHT floor, so the near-white sheet barely moved it. dE 0.0002.
      The backing under sheer glass stays at that L52; the opaque card sits three points lower (49) for the
@@ -2406,6 +2500,24 @@
   --glass-tint-a: 0.18;
   --glass-wash-l: 63%;
 }
+/* Status tints go deep at night like every preset, so each caps its night wash chroma at its own hue's
+   sRGB ceiling at L35, as the jewels do (see the night chroma cap above). */
+.dark[data-glass-tint="info"],
+.dark [data-glass-tint="info"] {
+  --glass-wash-c-max: 0.112;
+}
+.dark[data-glass-tint="success"],
+.dark [data-glass-tint="success"] {
+  --glass-wash-c-max: 0.093;
+}
+.dark[data-glass-tint="warning"],
+.dark [data-glass-tint="warning"] {
+  --glass-wash-c-max: 0.069;
+}
+.dark[data-glass-tint="destructive"],
+.dark [data-glass-tint="destructive"] {
+  --glass-wash-c-max: 0.137;
+}
 /* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
    shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
@@ -2414,7 +2526,8 @@
 
 /* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
    day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
-   twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
+   twin: the light/dark toggle changes the page under the sheet, not the sheet. (Its one night block
+   below carries only the deep-night wash chroma cap.)
 
    Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
    Stop 2's chroma is 0.095 because h290 at L80 has an sRGB ceiling of 0.1052; the 0.17 it once shipped
@@ -2455,6 +2568,12 @@
   );
   --glass-crystal-fresco: var(--glass-bg);
 }
+/* Muse's one night value: deep night paints its wash at L35, where h230 holds 0.0678, so the wash chroma
+   is capped there like every preset's (presets.css). The sheet above is untouched. */
+.dark[data-glass-tint="muse"],
+.dark [data-glass-tint="muse"] {
+  --glass-wash-c-max: 0.067;
+}
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
@@ -2484,6 +2603,7 @@
 }
 .dark[data-glass-tint="sistine"],
 .dark [data-glass-tint="sistine"] {
+  --glass-wash-c-max: 0.071; /* deep night: h75's sRGB ceiling at L35 (presets.css) */
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(86% 0.11 75 / 0.22) 0%,
@@ -2553,6 +2673,7 @@
 }
 .dark[data-glass-tint="aurora"],
 .dark [data-glass-tint="aurora"] {
+  --glass-wash-c-max: 0.058; /* deep night: h205's sRGB ceiling at L35 (presets.css) */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
@@ -2579,6 +2700,7 @@
 }
 .dark[data-glass-tint="gloaming"],
 .dark [data-glass-tint="gloaming"] {
+  --glass-wash-c-max: 0.129; /* deep night: h32's sRGB ceiling at L35 (presets.css) */
   --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);

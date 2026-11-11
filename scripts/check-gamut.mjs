@@ -37,10 +37,16 @@
  *   1. [overage] No preset × surface × mode requests more than OVERAGE_MAX times the sRGB ceiling.
  *   2. [spread]  At a given surface, the fraction of its declared chroma that survives varies across
  *                presets by no more than SPREAD_MAX.
- *   3. [cap]     A surface that WRITES a cap has asserted it lands in gamut; it is held to that exactly.
+ *   3. [cap]     A surface that WRITES a cap has asserted it lands in gamut; it is held to that exactly, in
+ *                the modes that declare the cap (an inline var() default is a fallback, not an assertion).
  *   4. [fixed]   A LITERAL chroma authored at a tint-derived hue is checked against the tightest ceiling
  *                across the presets — the sweep above only sees chroma composed FROM --glass-tint-c, so
  *                a hardcoded one (the `hue` gloss flavor's --glass-gloss-c) was invisible to it.
+ *   5. [deep]    Where the night depth binds (deep night: the wash and the tonal gloss at the darker of
+ *                their own lightness and --glass-night-depth), no preset clips, and no preset's wash is
+ *                greyed below its own hue's ceiling.
+ *   6. [coverage] The load-bearing surfaces (the wash, the gloss, the edges, primary, the opaque floor)
+ *                were actually scraped, so a new CSS shape cannot drop one from the sweep silently.
  *
  * Run: bun run test:gamut   (needs Node >= 22 to type-strip the imported .ts)
  */
@@ -58,6 +64,14 @@ const read = (p) => readFileSync(join(ROOT, p), "utf8");
    since the ceiling is where the gamut ENDS, not where the engine lands after mapping. */
 const OVERAGE_MAX = 4.6;
 const SPREAD_MAX = 4.6;
+/* [deep]: the share of its hue's own ceiling (or of its ask, if smaller) a preset's night wash must keep.
+   Each pin is its ceiling rounded down to 3 decimals, which keeps 98.7% or more. */
+const DEEP_EFFICIENCY = 0.95;
+/* Surfaces the sweep must find. The scraper matches declarations by shape, and a shape it does not know
+   drops the surface SILENTLY (how --primary and then the gloss sat out of gamut unnoticed, and how deep
+   night's min() first dropped the wash and the gloss). Naming the load-bearing ones turns that into a
+   failure. */
+const REQUIRED_SURFACES = ["--glass-tint-wash", "--glass-lustre-tint-wash", "--glass-gloss-ink-tonal", "--border", "--input", "--primary", "--glass-opaque-bg"];
 
 const css = {
   engine: read("app/theme/engine.css"),
@@ -153,6 +167,8 @@ function localVars(body) {
 }
 
 /* ── Surfaces: every declaration composing tint chroma, scraped so the table cannot drift ────── */
+/** Every custom property a scaled surface was scraped from (before de-duplication), for REQUIRED_SURFACES. */
+const SCRAPED_DECLS = new Set();
 function collectSurfaces(vars) {
   const surfaces = [];
   const seen = new Set();
@@ -172,8 +188,14 @@ function collectSurfaces(vars) {
      and every var slot below used to accept a bare var(--x) only, so the whole BOTH branch failed to
      match and the gloss was never swept in either mode. Any var slot here must therefore tolerate a
      default; the two ", default" groups exist for exactly that. */
+  /* The lightness takes FIVE shapes: the three plain ones (a literal %, var(--x), calc(var(--x) * 1%)) and
+     the two DEEP-NIGHT ones, the darker of a lightness var and the night depth:
+       min(var(--x), calc(var(--glass-night-depth, 100) * 1%))     — a percentage var (the wash)
+       calc(min(var(--x, d), var(--glass-night-depth, 100)) * 1%)  — a number var (the tonal gloss)
+     Without them the wash and the gloss dropped out of the sweep the moment deep night landed: the match
+     simply failed, and nothing said so. REQUIRED_SURFACES below now fails if a named surface goes missing. */
   const re =
-    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\))\s*(?:min\(\s*calc\(\s*var\(--glass-tint-c(?<mhi>-hi)?\)\s*\*\s*(?:(?<mk>[\d.]+)|var\(--(?<mkvar>[a-z0-9-]+)(?:,\s*(?<mkdef>[\d.]+))?\))\s*\)\s*,\s*(?:(?<mcaplit>[\d.]+)|var\(--(?<mcapvar>[a-z0-9-]+)(?:,\s*(?<mcapdef>[\d.]+))?\)|calc\(\s*var\(--(?<scapvar>[a-z0-9-]+)(?:,\s*(?<scapdef>[\d.]+))?\)\s*\*\s*var\(--(?<capk>[a-z0-9-]+)(?:,\s*(?<capkdef>[\d.]+))?\)\s*\))\s*\)|calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)|min\(\s*var\(--glass-tint-c\)\s*,\s*(?:(?<caplit>[\d.]+)|var\(--(?<capvar>[a-z0-9-]+)(?:,\s*(?<capdef>[\d.]+))?\))\s*\))/g;
+    /(?:oklch\(|:\s)\s*(?:(?<lit>[\d.]+)%|var\(--(?<lvar>[a-z0-9-]+)\)|calc\(\s*var\(--(?<lcalc>[a-z0-9-]+)[^)]*\)\s*\*\s*1%\s*\)|min\(\s*var\(--(?<dlvar>[a-z0-9-]+)\)\s*,\s*calc\(\s*var\(--(?<dvar>[a-z0-9-]+)(?:,\s*(?<ddef>[\d.]+))?\)\s*\*\s*1%\s*\)\s*\)|calc\(\s*min\(\s*var\(--(?<dlcalc>[a-z0-9-]+)[^)]*\)\s*,\s*var\(--(?<dvar2>[a-z0-9-]+)(?:,\s*(?<ddef2>[\d.]+))?\)\s*\)\s*\*\s*1%\s*\))\s*(?:min\(\s*calc\(\s*var\(--glass-tint-c(?<mhi>-hi)?\)\s*\*\s*(?:(?<mk>[\d.]+)|var\(--(?<mkvar>[a-z0-9-]+)(?:,\s*(?<mkdef>[\d.]+))?\))\s*\)\s*,\s*(?:(?<mcaplit>[\d.]+)|var\(--(?<mcapvar>[a-z0-9-]+)(?:,\s*(?<mcapdef>[\d.]+))?\)|calc\(\s*var\(--(?<scapvar>[a-z0-9-]+)(?:,\s*(?<scapdef>[\d.]+))?\)\s*\*\s*var\(--(?<capk>[a-z0-9-]+)(?:,\s*(?<capkdef>[\d.]+))?\)\s*\))\s*\)|calc\(\s*var\(--glass-tint-c(?<hi>-hi)?\)\s*\*\s*(?:(?<k>[\d.]+)|var\(--(?<kvar>[a-z0-9-]+)(?:,\s*(?<kdef>[\d.]+))?\))\s*\)|min\(\s*var\(--glass-tint-c\)\s*,\s*(?:(?<caplit>[\d.]+)|var\(--(?<capvar>[a-z0-9-]+)(?:,\s*(?<capdef>[\d.]+))?\))\s*\))/g;
   for (const [file, src] of Object.entries({ engine: css.engine, materials: css.materials })) {
     for (const body of blocks(src)) {
       /* Numeric custom props declared right here, which shadow the tokens.css values below. */
@@ -184,7 +206,13 @@ function collectSurfaces(vars) {
          falls through to mult 1 below, which makes min(c × 1, cap) the same as min(c, cap). The *def
          values are the var()'s inline default, used only when the token itself is unresolvable. */
       const k = g.mk ?? g.k ?? g.mkdef ?? g.kdef;
-      const lname = g.lvar ?? g.lcalc ?? null;
+      const lname = g.lvar ?? g.lcalc ?? g.dlvar ?? g.dlcalc ?? null;
+      /* A deep-night lightness: the darker of `lname` and this depth var (see the two shapes above). */
+      const depthName = g.dvar ?? g.dvar2 ?? null;
+      const depthDef = g.ddef ?? g.ddef2;
+      /* The custom property this colour is declared on (the last `--x:` before the match), so a surface the
+         suite must cover can be named and missed loudly. */
+      const decl = [...body.slice(0, m.index + 2).matchAll(/(--[a-z0-9-]+)\s*:/g)].at(-1)?.[1] ?? null;
       const kname = g.kvar ?? g.mkvar ?? null;
       /* A SCALED cap, calc(var(--cap) * var(--k)): the opaque floor's per-preset cap times a per-mode
          share (--glass-opaque-cap-scale). The share is applied to whichever cap wins, global or pinned. */
@@ -201,6 +229,13 @@ function collectSurfaces(vars) {
           if (v === undefined) continue;
           l = v <= 1 ? v * 100 : v; /* --primary-l is authored 0–1, the rest as 0–100 */
         }
+        /* Deep night: the darker of that lightness and the mode's depth (100 by day, 35 at night). */
+        let depth;
+        if (depthName) {
+          depth = local.get(depthName) ?? vars[mode].get(depthName) ?? vars.light.get(depthName) ?? (depthDef !== undefined ? +depthDef : undefined);
+          if (depth === undefined) continue; /* unresolvable depth — counted by the sanity floor */
+          l = Math.min(l, depth);
+        }
         /* A multiplier held in a token (e.g. --glass-wash-c-mult, --glass-gloss-tint) is itself
            mode-scoped; the inline default is the last resort, matching CSS's own var() fallback order.
            NOTE this reads the GLOBAL token — a per-preset override (moonstone dials --glass-gloss-tint
@@ -214,10 +249,17 @@ function collectSurfaces(vars) {
           else if (k === undefined) continue; /* unresolvable and no default — counted by the sanity floor */
         }
         /* The ceiling is mode-scoped too (--border-c-max is 0.07 light / 0.041 dark, --glass-gloss-c-max
-           0.013 light / 0.11 dark). */
+           0.013 light / 0.057 dark). */
         let hardCap;
+        /* Whether the cap is DECLARED for this mode (a literal, or a token tokens.css sets), as opposed to
+           only a var()'s inline default. [cap] holds a declared cap to the gamut; an inline default is a
+           fallback, not an assertion. The wash's `var(--glass-wash-c-max, 0.4)` is the case: nothing sets it
+           by day, where 0.4 binds no preset and muse's day wash sits 1.10× out exactly as it did before the
+           cap existed, while at night tokens.css declares it and every preset is held to its ceiling. */
+        let capDeclared = capLit !== undefined;
         if (capLit !== undefined) hardCap = +capLit;
         else if (capName) {
+          capDeclared = vars[mode].has(capName) || vars.light.has(capName);
           hardCap = vars[mode].get(capName) ?? vars.light.get(capName) ?? (capDef !== undefined ? +capDef : undefined);
           if (hardCap === undefined) continue; /* unresolvable cap — counted by the sanity floor */
         }
@@ -227,11 +269,13 @@ function collectSurfaces(vars) {
           if (hardCap !== undefined) hardCap *= capScale;
         }
         const shape = hardCap !== undefined ? (mult === 1 ? `≤${hardCap}` : `×${mult} ≤${hardCap}`) : `×${mult}`;
-        const label = `${file}:${lname ?? `L${g.lit}`} ${shape}${nearWhiteCap ? " (capped)" : ""}`;
+        const lightness = depthName ? `min(${lname}, ${depthName})` : (lname ?? `L${g.lit}`);
+        const label = `${file}:${lightness} ${shape}${nearWhiteCap ? " (capped)" : ""}`;
         const id = `${label}|${mode}|${l}`;
+        if (decl) SCRAPED_DECLS.add(decl);
         if (seen.has(id)) continue;
         seen.add(id);
-        surfaces.push({ label, mode, l, lname, kname, capName, mult, capped: nearWhiteCap, hardCap, capScale });
+        surfaces.push({ label, decl, mode, l, lname, depthName, depth, kname, capName, capDeclared, mult, capped: nearWhiteCap, hardCap, capScale });
         }
       }
     }
@@ -387,7 +431,10 @@ for (const s of surfaces) {
          --glass-opaque-c-max. Whatever the preset declares wins, exactly as the cascade resolves it;
          scoring it at the global value invents clipping it does not have (or hides clipping it does). */
       const pinned = s.lname ? p.vars?.get(s.lname) : undefined;
-      const surfaceL = pinned === undefined ? s.l : pinned <= 1 ? pinned * 100 : pinned;
+      let surfaceL = pinned === undefined ? s.l : pinned <= 1 ? pinned * 100 : pinned;
+      /* Deep night: a preset's own lightness only applies where it is the darker of it and the depth, so
+         aventurine's L88 wash renders at L35 at night, and onyx's L16 stays 16. */
+      if (s.depthName) surfaceL = Math.min(surfaceL, p.vars?.get(s.depthName) ?? s.depth);
       const pinnedMult = s.kname ? p.vars?.get(s.kname) : undefined;
       /* The jewels' --glass-opaque-c-max pins are their ceilings at the LIGHT floor, and tokens.css's
          `.dark[data-glass-tint]` guard outranks them in dark. So in dark only a preset's own dark block
@@ -396,12 +443,23 @@ for (const s of surfaces) {
       const pinnedCap = s.capName ? (lightOnly ? (p.dark ? p.ownVars?.get(s.capName) : undefined) : p.vars?.get(s.capName)) : undefined;
       const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
       let want = base * (pinnedMult ?? s.mult);
+      const ask = want;
       const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : s.hardCap;
       if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
-         must not vary is how much of its declared intent survives. */
-      return { key: p.key, want, ceiling, efficiency: Math.min(1, ceiling / want), overage: want / ceiling };
+         must not vary is how much of its declared intent survives. `asserted`: this row's cap is a
+         declared one (the mode's, or the preset's own pin), which [cap] holds to the gamut. */
+      return {
+        key: p.key,
+        l: surfaceL,
+        ask,
+        want,
+        ceiling,
+        efficiency: Math.min(1, ceiling / want),
+        overage: want / ceiling,
+        asserted: s.capDeclared || pinnedCap !== undefined,
+      };
     });
   if (!rows.length) continue;
 
@@ -417,11 +475,39 @@ for (const s of surfaces) {
      are deliberately loose (4.6×) because the uncapped opaque body still asks 4.50×. Without this a
      cap could sit at, say, 2.8× — in gamut for no preset, mapped by the browser everywhere — and
      still pass, which would make the cap decorative. */
-  if (s.hardCap !== undefined && worst.overage > 1.0001) {
+  const assertedRows = rows.filter((r) => r.asserted);
+  const worstAsserted = assertedRows.length ? assertedRows.reduce((a, b) => (b.overage > a.overage ? b : a)) : undefined;
+  if (s.hardCap !== undefined && worstAsserted && worstAsserted.overage > 1.0001) {
     failures.push(
-      `[cap] ${label} — declares a cap of ${s.hardCap}, but ${worst.key} still asks C=${worst.want.toFixed(4)} against an sRGB ceiling of ` +
-        `${worst.ceiling.toFixed(4)} (${worst.overage.toFixed(2)}× over). A cap exists to land inside the gamut — lower it, or lower the lightness.`,
+      `[cap] ${label} — declares a cap of ${s.hardCap}, but ${worstAsserted.key} still asks C=${worstAsserted.want.toFixed(4)} against an sRGB ceiling of ` +
+        `${worstAsserted.ceiling.toFixed(4)} (${worstAsserted.overage.toFixed(2)}× over). A cap exists to land inside the gamut — lower it, or lower the lightness.`,
     );
+  }
+  /* [deep] Deep night's promise, held wherever the night depth binds (below 100): every preset keeps its
+     hue and nothing clips, cap or no cap. Removing the wash's chroma cap takes 24 of the 25 tinted presets
+     1.16–2.42× out at L35, and this says so even though the drift baselines below would wave it through.
+     The WASH must also not be greyed: the owner's ruling is "cap chroma per preset, hue kept", so each
+     preset delivers at least DEEP_EFFICIENCY of the lesser of its ask and its own hue's ceiling. A single
+     shared cap sized for the tightest hue (turquoise 0.058) would deliver lapis a quarter of its 0.2268.
+     The tonal gloss shares one cap by design (a highlight at ≤ 0.4 alpha), so only the no-clip half
+     applies to it. */
+  if (s.depthName && s.depth < 100) {
+    for (const r of rows) {
+      if (r.overage > 1.0001) {
+        failures.push(
+          `[deep] ${label} — ${r.key} asks C=${r.want.toFixed(4)} at its night L${r.l}, past the sRGB ceiling of ${r.ceiling.toFixed(4)} ` +
+            `(${r.overage.toFixed(2)}× over), so it clips and its hue drifts. ` +
+            (s.capName
+              ? `Pin its own ceiling in its night block (--${s.capName}).`
+              : "This surface has no chroma cap: compose min(…, var(--…-c-max)) and pin each preset's ceiling in its night block."),
+        );
+      } else if (s.capName === "glass-wash-c-max" && r.want < DEEP_EFFICIENCY * Math.min(r.ask, r.ceiling)) {
+        failures.push(
+          `[deep] ${label} — ${r.key}'s night wash delivers C=${r.want.toFixed(4)}, ${Math.round((100 * r.want) / Math.min(r.ask, r.ceiling))}% of the ` +
+            `${Math.min(r.ask, r.ceiling).toFixed(4)} its hue holds at L${r.l}: greyed by a shared cap. Pin its own ceiling in its night block.`,
+        );
+      }
+    }
   }
   if (worst.overage > OVERAGE_MAX) {
     failures.push(
@@ -504,6 +590,12 @@ if (process.argv.includes("--report")) {
       );
     }
     accentReport.push(`${mode} L${L.toFixed(0)} ceiling ${worst.ceiling.toFixed(4)} (${worst.key})`);
+  }
+}
+
+for (const name of REQUIRED_SURFACES) {
+  if (!SCRAPED_DECLS.has(name)) {
+    failures.push(`[coverage] ${name} was not scraped from engine.css: its lightness or chroma takes a shape collectSurfaces does not match, so it is not being checked at all. Teach the regex the shape.`);
   }
 }
 

@@ -248,6 +248,17 @@ export default function ThemingPage() {
               </p>
             </div>
             <div>
+              <h3 className="mb-2 font-semibold">Deep night</h3>
+              <p className="text-muted-foreground">
+                At night (<IC>.dark</IC>) every tint goes deep, so white text reads on it. The tint wash and the tonal gloss paint at the{" "}
+                <strong>darker of</strong> their own lightness and <IC>--glass-night-depth</IC> (<IC>100</IC> by day, so nothing moves; <IC>35</IC> at
+                night), and a preset already deeper keeps its own (Onyx&apos;s wash, 16). It reaches every scope that sets a tint: presets, frescoes,
+                status tints and custom colours alike. Each preset caps its night wash chroma at its own hue&apos;s sRGB ceiling at that depth (
+                <IC>--glass-wash-c-max</IC>), so the hue is kept and nothing clips. The chrome edge (<IC>--border</IC>) becomes a lit line at night (L
+                0.65). Day and light mode are unchanged.
+              </p>
+            </div>
+            <div>
               <h3 className="mb-2 font-semibold">Custom color: OKLCH H · C · L</h3>
               <p className="mb-2 text-muted-foreground">
                 For an arbitrary color, set the tint vars directly instead of a preset. The model is straight OKLCH: <strong>hue</strong> +{" "}
@@ -366,8 +377,13 @@ export default function ThemingPage() {
                   {[
                     [
                       "--glass-gloss-l",
-                      "66",
-                      "highlight lightness (→ %); lower = bolder",
+                      "97 day / 66 night",
+                      "highlight lightness (→ %); lower = bolder. Tonal paints at the darker of this and --glass-night-depth",
+                    ],
+                    [
+                      "--glass-night-depth",
+                      "100 day / 35 night",
+                      "deep night: the tonal gloss and the tint wash never sit lighter than this, so at night Light above 35 changes nothing",
                     ],
                     [
                       "--glass-gloss-tint",
@@ -381,7 +397,7 @@ export default function ThemingPage() {
                     ],
                     [
                       "--glass-gloss-c",
-                      "0.16",
+                      "0.12",
                       "hue: chroma of the swept stops",
                     ],
                     [
@@ -795,6 +811,12 @@ const onAccent = useReadableForeground(accent, "large");
               </li>
               <li>
                 <IC>--glass-tint-a</IC>: the tint <strong>film</strong> alpha (per preset).
+              </li>
+              <li>
+                <IC>--glass-night-depth</IC>: <strong>deep night</strong>, the deepest the tint wash and the tonal gloss may sit (OKLCH L,{" "}
+                <IC>100</IC> by day, <IC>35</IC> on <IC>.dark</IC>). Each paints at the darker of its own lightness and this, so a preset already
+                deeper keeps its own, and an inline <IC>--glass-gloss-l</IC> above it changes nothing at night. Raise it on <IC>.dark</IC> to lighten
+                night again.
               </li>
             </ul>
             <p className="text-muted-foreground">

@@ -22,6 +22,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
 import {
   apcaContrast,
+  compositeSurface,
   glassSolidSurface,
   type OklchColor,
   oklchToSrgb,
@@ -30,6 +31,7 @@ import {
   TONAL_HUE_SLACK_LC,
   TONAL_MIN_L,
 } from "@/lib/oklch-utils";
+import { colorOf, html, numberOf, themeTokenCss } from "./theme-cascade";
 
 /* presets.css, [data-glass-tint="lapis"] (light). */
 const LAPIS = {
@@ -158,5 +160,93 @@ describe("AutoForeground on lapis, light mode", () => {
     });
     expect(body.l).toBeLessThan(TONAL_MIN_L);
     expect(Math.abs(apcaContrast(body, surface))).toBeGreaterThanOrEqual(READABLE_USAGE.body.floor);
+  });
+});
+
+/**
+ * Lapis at NIGHT, deep night: the wash paints at the darker of lapis's own L46 and the night depth (35),
+ * so text has to be solved against THAT surface. Lapis is the closest call in the palette (its own wash is
+ * only 11 L above the depth, where aventurine's is 53), so a model that skipped the min would be wrong by
+ * the least here, and this is where the discriminator below is tightest.
+ *
+ * Mounted on the SHIPPED tokens, not a copy: the theme's token rules go into a <style>, jsdom cascades
+ * them onto <html class="dark" data-glass-tint="lapis">, and AutoForeground reads them as it does in a
+ * browser. The surface it should solve against comes from the same CSS through tests/theme-cascade.
+ */
+describe("AutoForeground on lapis, night (deep night)", () => {
+  let style: HTMLStyleElement | undefined;
+  afterEach(() => {
+    style?.remove();
+    delete root().dataset.glassTint;
+  });
+
+  const NIGHT = html(true, "lapis");
+  /** The opaque card as the CSS paints it: --glass-opaque-bg under --glass-tint-wash. */
+  const opaqueCard = (washL: number): OklchColor => {
+    const floor = colorOf("--glass-opaque-bg", NIGHT);
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    return compositeSurface(floor, [
+      {
+        ...wash,
+        l: washL,
+      },
+    ]);
+  };
+
+  async function mountLapisNight() {
+    style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    root().className = "dark";
+    root().dataset.glassTint = "lapis";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+  }
+
+  it("paints lapis's night wash at the depth, in gamut, at lapis's own chroma", () => {
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    expect(numberOf("--glass-wash-l", NIGHT)).toBe(46);
+    expect(wash.l).toBeCloseTo(35, 6);
+    // Lapis asks 0.085 × 2.5 = 0.2125, under its own L35 ceiling: its night pin keeps all of it.
+    expect(wash.c).toBeCloseTo(0.2125, 6);
+  });
+
+  it("solves the opaque card against the deep wash (L35), not lapis's own L46", async () => {
+    await mountLapisNight();
+    const ink = parseOklch(read("--foreground-opaque"));
+    if (!ink) throw new Error(`--foreground-opaque is not oklch: ${read("--foreground-opaque")}`);
+    /* The opaque tier aims body 80 + LC_AIM_KNOWN 4 = 84 on whichever surface it modelled. Modelled at the
+       depth, it reads 84 on the card the CSS paints; modelled at L46 (no min), it reads 84 on a card the
+       CSS does not paint, and several Lc off on the real one. */
+    expect(Math.abs(apcaContrast(ink, opaqueCard(35)))).toBeCloseTo(84, 0);
+    expect(Math.abs(apcaContrast(ink, opaqueCard(46)))).not.toBeCloseTo(84, 0);
+  });
+
+  it("keeps night body text light and over the floor on the deep surface", async () => {
+    await mountLapisNight();
+    const body = parseOklch(read("--foreground"));
+    if (!body) throw new Error(`--foreground is not oklch: ${read("--foreground")}`);
+    const solidify = colorOf("--glass-solidify-bg", NIGHT);
+    const wash = colorOf("--glass-tint-wash", NIGHT);
+    const surface = glassSolidSurface(
+      true,
+      {
+        h: wash.h,
+        c: numberOf("--glass-tint-c", NIGHT),
+        a: wash.a,
+      },
+      numberOf("--glass-solid-a", NIGHT),
+      wash.l,
+      numberOf("--glass-wash-c-mult", NIGHT),
+      {
+        l: solidify.l,
+        c: solidify.c,
+        a: 0.7,
+      },
+      numberOf("--glass-solid-l", NIGHT),
+      numberOf("--glass-wash-c-max", NIGHT),
+    );
+    expect(body.l).toBeGreaterThan(80);
+    expect(Math.abs(apcaContrast(body, surface))).toBeGreaterThanOrEqual(BODY_WITH_MARGIN);
   });
 });
