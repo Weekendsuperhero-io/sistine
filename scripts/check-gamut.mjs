@@ -97,6 +97,16 @@ const REQUIRED_SURFACES = [
    25% at the blue cusp. */
 const GUARD_FLOOR = 0.9;
 
+/* NaN-SAFE comparisons. A failure condition written `x > bound` is false when x is NaN (a token that
+   resolves to nothing numeric, a model that breaks over a band of hues), so the check would pass silently.
+   Each failure condition is written as the negation of its passing one instead (`exceeds`, `below`, true
+   on NaN), and a worst-of keeps the first NaN it meets (`higher`, `lower`), so the failure that follows
+   reports it. */
+const exceeds = (x, bound) => !(x <= bound);
+const below = (x, floor) => !(x >= floor);
+const higher = (x, than) => !Number.isNaN(than) && (Number.isNaN(x) || x > than);
+const lower = (x, than) => !Number.isNaN(than) && (Number.isNaN(x) || x < than);
+
 const css = {
   engine: read("app/theme/engine.css"),
   materials: read("app/theme/materials.css"),
@@ -544,15 +554,15 @@ for (const s of surfaces) {
     continue;
   }
 
-  const worst = rows.reduce((a, b) => (b.overage > a.overage ? b : a));
+  const worst = rows.reduce((a, b) => (higher(b.overage, a.overage) ? b : a));
   /* A surface that declares a hard cap has ASSERTED it stays inside the gamut — that is the entire
      point of writing one. Hold it to that exactly, independently of the drift baselines below, which
      are deliberately loose (4.6×) because the uncapped opaque body still asks 4.50×. Without this a
      cap could sit at, say, 2.8× — in gamut for no preset, mapped by the browser everywhere — and
      still pass, which would make the cap decorative. */
   const assertedRows = rows.filter((r) => r.asserted);
-  const worstAsserted = assertedRows.length ? assertedRows.reduce((a, b) => (b.overage > a.overage ? b : a)) : undefined;
-  if (s.hardCap !== undefined && worstAsserted && worstAsserted.overage > 1.0001) {
+  const worstAsserted = assertedRows.length ? assertedRows.reduce((a, b) => (higher(b.overage, a.overage) ? b : a)) : undefined;
+  if (s.hardCap !== undefined && worstAsserted && exceeds(worstAsserted.overage, 1.0001)) {
     failures.push(
       `[cap] ${label} — declares a cap of ${s.hardCap}, but ${worstAsserted.key} still asks C=${worstAsserted.want.toFixed(4)} against an sRGB ceiling of ` +
         `${worstAsserted.ceiling.toFixed(4)} (${worstAsserted.overage.toFixed(2)}× over). A cap exists to land inside the gamut — lower it, or lower the lightness.`,
@@ -566,9 +576,9 @@ for (const s of surfaces) {
      shared cap sized for the tightest hue (turquoise 0.058) would deliver lapis a quarter of its 0.2268.
      The tonal gloss shares one cap by design (a highlight at ≤ 0.4 alpha), so only the no-clip half
      applies to it. */
-  if (s.depthName && s.depth < 100) {
+  if (s.depthName && below(s.depth, 100)) {
     for (const r of rows) {
-      if (r.overage > 1.0001) {
+      if (exceeds(r.overage, 1.0001)) {
         failures.push(
           `[deep] ${label} — ${r.key} asks C=${r.want.toFixed(4)} at its night L${r.l}, past the sRGB ceiling of ${r.ceiling.toFixed(4)} ` +
             `(${r.overage.toFixed(2)}× over), so it clips and its hue drifts. ` +
@@ -576,7 +586,7 @@ for (const s of surfaces) {
               ? `Its --${s.capName} must hold it to its own hue's ceiling at night (tokens.css).`
               : "This surface has no chroma cap: compose min(…, var(--…-c-max)) with a cap that follows the hue."),
         );
-      } else if (s.capName === "glass-wash-c-max" && r.want < DEEP_EFFICIENCY * Math.min(r.ask, r.ceiling)) {
+      } else if (s.capName === "glass-wash-c-max" && below(r.want, DEEP_EFFICIENCY * Math.min(r.ask, r.ceiling))) {
         failures.push(
           `[deep] ${label} — ${r.key}'s night wash delivers C=${r.want.toFixed(4)}, ${Math.round((100 * r.want) / Math.min(r.ask, r.ceiling))}% of the ` +
             `${Math.min(r.ask, r.ceiling).toFixed(4)} its hue holds at L${r.l}: greyed by a shared cap. The night cap must follow the hue (tokens.css).`,
@@ -584,16 +594,16 @@ for (const s of surfaces) {
       }
     }
   }
-  if (worst.overage > OVERAGE_MAX) {
+  if (exceeds(worst.overage, OVERAGE_MAX)) {
     failures.push(
       `[overage] ${label} — ${worst.key} asks C=${worst.want.toFixed(4)} against an sRGB ceiling of ${worst.ceiling.toFixed(4)} (${worst.overage.toFixed(2)}× over, max ${OVERAGE_MAX}×)`,
     );
   }
 
-  const lo = rows.reduce((a, b) => (b.efficiency < a.efficiency ? b : a));
-  const hi = rows.reduce((a, b) => (b.efficiency > a.efficiency ? b : a));
+  const lo = rows.reduce((a, b) => (lower(b.efficiency, a.efficiency) ? b : a));
+  const hi = rows.reduce((a, b) => (higher(b.efficiency, a.efficiency) ? b : a));
   const spread = hi.efficiency / Math.max(lo.efficiency, 1e-6);
-  if (spread > SPREAD_MAX) {
+  if (exceeds(spread, SPREAD_MAX)) {
     failures.push(
       `[spread] ${label} — ${lo.key} delivers only ${Math.round(100 * lo.efficiency)}% of its declared chroma where ${hi.key} delivers ${Math.round(100 * hi.efficiency)}% (${spread.toFixed(2)}× apart, max ${SPREAD_MAX}×)`,
     );
@@ -610,13 +620,13 @@ for (const f of fixed) {
     .map((p) => ({ key: p.key, ceiling: maxSrgbChroma(f.l, p.h) }));
   if (!rows.length) continue;
   const label = `${f.label} (${f.mode}, L=${f.l}%)`;
-  const worst = rows.reduce((a, b) => (b.ceiling < a.ceiling ? b : a));
+  const worst = rows.reduce((a, b) => (lower(b.ceiling, a.ceiling) ? b : a));
   if (worst.ceiling < CEILING_FLOOR) {
     unattainable.push(label);
     continue;
   }
   const overage = f.c / worst.ceiling;
-  if (overage > 1.0001) {
+  if (exceeds(overage, 1.0001)) {
     failures.push(
       `[fixed] ${label} — a literal chroma of ${f.c} exceeds the sRGB ceiling of ${worst.ceiling.toFixed(4)} at ${worst.key} (${overage.toFixed(2)}× over). ` +
         `Over-ceiling requests are CLIPPED, not mapped, so this renders with a pinned channel — lower the chroma or the lightness.`,
@@ -643,8 +653,8 @@ const guardReport = [];
     for (let tenth = -7200; tenth <= 10800; tenth++) {
       const h = tenth / 10;
       const r = ratioAt(h);
-      if (r > hi.r) hi = { r, h };
-      if (tenth % 10 === 0 && r < lo.r) lo = { r, h };
+      if (higher(r, hi.r)) hi = { r, h };
+      if (tenth % 10 === 0 && lower(r, lo.r)) lo = { r, h };
     }
     /* And never past it at every ten-thousandth of a degree within 0.01° of each cusp, in every turn. The fit
        is cut off at the cusps by steep lines, and the blue cusp is a step (0.210 → 0.235 at h264.1348), so a
@@ -667,16 +677,16 @@ const guardReport = [];
         for (let k = -100; k <= 100; k++) {
           const h = c + 360 * turn + k / 10000;
           const r = ratioAt(h);
-          if (r > hi.r) hi = { r, h };
+          if (higher(r, hi.r)) hi = { r, h };
         }
       }
     }
-    if (hi.r > 1.0001) {
+    if (exceeds(hi.r, 1.0001)) {
       failures.push(
         `[guard] the night wash cap reaches ${(100 * hi.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${+hi.h.toFixed(4)}: past it, a wash at that hue clips and drifts.`,
       );
     }
-    if (lo.r < GUARD_FLOOR) {
+    if (below(lo.r, GUARD_FLOOR)) {
       failures.push(
         `[guard] the night wash cap holds only ${(100 * lo.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${lo.h}, under the ${100 * GUARD_FLOOR}% floor: a colour at that hue is greyed at night. Refit it (scripts/fit-night-wash-cap.mjs).`,
       );
@@ -719,9 +729,9 @@ if (process.argv.includes("--report")) {
     let worst = { ceiling: Infinity, key: "" };
     for (const p of presets) {
       const ceiling = maxSrgbChroma(L, p.h);
-      if (ceiling < worst.ceiling) worst = { ceiling, key: p.key };
+      if (lower(ceiling, worst.ceiling)) worst = { ceiling, key: p.key };
     }
-    if (worst.ceiling < MIN_TINTABLE) {
+    if (below(worst.ceiling, MIN_TINTABLE)) {
       failures.push(
         `[accent] ${mode}: --accent-bg-l ${l[1]} sits where the sRGB ceiling is only ${worst.ceiling.toFixed(4)} (tightest hue: ${worst.key}), under the ${MIN_TINTABLE} a tint needs to read as a colour. ` +
           `The hover/selection fill will render as flat white or black whatever the theme. Move the lightness off the extreme — no cap can fix this.`,
