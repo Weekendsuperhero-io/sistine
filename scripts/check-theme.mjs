@@ -241,10 +241,12 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
 // 5b. [moonstone-sync] moonstone's night wash knobs are mirrored as AutoForeground fallbacks (the switcher's
 //     fg snapshots can't carry them) — the JS constants must equal presets.css, or moonstone-night text
 //     bands against the wrong surface model again (the exact bug the mirror fixes). Deep night adds two
-//     things to hold: its night wash CHROMA cap is mirrored the same way (with the .dark guard and the
-//     engine's day fallback behind it), and the mirrored lightness only means anything through the night
-//     depth, so the wash fallback must reach the model through deepen(…), the min the engine composes.
-//     foreground-tester.tsx mirrors the same model and is held to the same constants.
+//     things to hold, for moonstone and every other scope: the mirrored lightness only means anything
+//     through the night depth, so the wash fallback must reach the model through deepen(…), the min the
+//     engine composes; and the night wash CHROMA cap, a function of hue in tokens.css that the browser
+//     hands back unevaluated, must fall back to nightWashCap (its mirror, held equal to the CSS by
+//     tests/deep-night.test.ts) at night and to the engine's day fallback by day. foreground-tester.tsx
+//     mirrors the same model and is held to the same.
 {
   const autoFg = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
   const tester = readFileSync(join(root, "components/foreground-tester.tsx"), "utf8");
@@ -252,10 +254,10 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
   if (moonstoneDark) {
     const washL = moonstoneDark.body.match(/--glass-wash-l:\s*([\d.]+)%/)?.[1];
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
-    const cMax = moonstoneDark.body.match(/--glass-wash-c-max:\s*([\d.]+)/)?.[1];
-    /* The guard every unpinned night scope gets (tokens.css) and the engine's day fallback for the cap. */
-    const guard = rules.find((r) => splitTop(r.selector).includes(".dark [data-glass-tint]") && /--glass-wash-c-max/.test(r.body))?.body.match(/--glass-wash-c-max:\s*([\d.]+)/)?.[1];
+    /* The engine's day fallback for the cap, which the JS day constant must equal. */
     const dayCap = rules.flatMap((r) => decls(r.body)).find((d) => d.name === "--glass-tint-wash")?.value.match(/var\(--glass-wash-c-max,\s*([\d.]+)\)/)?.[1];
+    const dayConst = readFileSync(join(root, "lib/oklch-utils.ts"), "utf8").match(/export const GLASS_WASH_C_MAX_DAY = ([\d.]+);/)?.[1];
+    if (!dayCap || dayCap !== dayConst) fail(`[moonstone-sync] the engine's day wash-cap fallback (${dayCap}) and lib/oklch-utils' GLASS_WASH_C_MAX_DAY (${dayConst}) differ.`);
     for (const [file, src, isDark] of [
       ["auto-foreground.tsx", autoFg, "dark"],
       ["foreground-tester.tsx", tester, "isDark"],
@@ -264,10 +266,8 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
         fail(`[moonstone-sync] presets.css moonstone night --glass-wash-l is ${washL}% but ${file}'s mirrored fallback differs.`);
       if (cMult && !src.includes(`moonstone && ${isDark} ? ${cMult} :`))
         fail(`[moonstone-sync] presets.css moonstone night --glass-wash-c-mult is ${cMult} but ${file}'s mirrored fallback differs.`);
-      if (!cMax || !guard || !dayCap) {
-        fail(`[moonstone-sync] could not read moonstone's night --glass-wash-c-max, the tokens.css night guard, or the engine's day fallback for it — if they moved, update this rule rather than dropping it.`);
-      } else if (!src.includes(`num("--glass-wash-c-max", moonstone && ${isDark} ? ${cMax} : ${isDark} ? ${guard} : ${dayCap})`)) {
-        fail(`[moonstone-sync] ${file} must fall back to num("--glass-wash-c-max", moonstone && ${isDark} ? ${cMax} : ${isDark} ? ${guard} : ${dayCap}) — the moonstone pin, the night guard and the engine's day fallback.`);
+      if (!new RegExp(`num\\("--glass-wash-c-max", ${isDark} \\? nightWashCap\\(num\\("--glass-tint-h", [\\w.]+\\)\\) : GLASS_WASH_C_MAX_DAY\\)`).test(src)) {
+        fail(`[moonstone-sync] ${file} must fall back to num("--glass-wash-c-max", ${isDark} ? nightWashCap(num("--glass-tint-h", …)) : GLASS_WASH_C_MAX_DAY) — the night cap is a function of the wash's own hue.`);
       }
       if (!/deepen\(num\("--glass-wash-l"/.test(src))
         fail(`[moonstone-sync] ${file} reads --glass-wash-l without deepen(…, night depth): the engine paints the wash at the darker of the two, so the model would band night text against a wash it does not paint.`);

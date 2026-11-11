@@ -9,6 +9,7 @@ import {
   deepen,
   foregroundRamp,
   formatOklch,
+  GLASS_WASH_C_MAX_DAY,
   glassSolidSurface,
   HARMONIC_OFFSETS,
   type HarmonicName,
@@ -16,6 +17,7 @@ import {
   LC_AIM_KNOWN,
   LC_MARGIN,
   limitingSurface,
+  nightWashCap,
   parseGradientStops,
   pickTonalInBand,
   READABLE_USAGE,
@@ -271,12 +273,14 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const nightDepth = num("--glass-night-depth", dark ? 35 : 100);
       const washL = deepen(num("--glass-wash-l", moonstone && dark ? 64 : dark ? 58 : 72), nightDepth);
       const washCMult = num("--glass-wash-c-mult", moonstone && dark ? 2 : 2.5);
-      /* The wash's chroma CAP (--glass-wash-c-max). At the night depth each preset caps its wash at its
-         own hue's sRGB ceiling (its night block; tokens.css guards every other scope at 0.057, and nothing
-         sets it by day, where the engine's 0.4 fallback binds no preset). Uncapped, the model would band
-         against up to 2.4× the chroma the wash paints. Moonstone's pin is mirrored like its wash knobs;
-         a jewel's own pin is only seen on the DOM path, as its --glass-wash-l always was. */
-      const washCMax = num("--glass-wash-c-max", moonstone && dark ? 0.071 : dark ? 0.057 : 0.4);
+      /* The wash's chroma CAP (--glass-wash-c-max). At night it is the sRGB ceiling at the depth for the
+         wash's OWN hue (tokens.css), which the browser evaluates per scope but hands back as an expression,
+         not a number; nightWashCap is the same fit, so the model is exact on the DOM path and on a drag's
+         snapshot alike, which carries --glass-tint-h. (The surface hue, not tintH: a fresco's text hue is
+         its own.) A number set directly, a consumer's override, wins. By day nothing sets it and the
+         engine's 0.4 fallback binds no preset. Uncapped, the model would band against up to 2.4× the
+         chroma the wash paints. */
+      const washCMax = num("--glass-wash-c-max", dark ? nightWashCap(num("--glass-tint-h", tintH)) : GLASS_WASH_C_MAX_DAY);
       const washC = Math.min(tintC * washCMult, washCMax);
       // THE SOLIDIFY FLOOR — `glass` paints --glass-solidify (the --glass-opacity dial, default 0.7) as the
       // bottom background-image layer of EVERY sheer material, so it is 70% of what text actually sits on.

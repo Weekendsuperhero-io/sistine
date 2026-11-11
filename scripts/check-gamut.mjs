@@ -47,6 +47,11 @@
  *                greyed below its own hue's ceiling.
  *   6. [coverage] The load-bearing surfaces (the wash, the gloss, the edges, primary, the opaque floor)
  *                were actually scraped, so a new CSS shape cannot drop one from the sweep silently.
+ *   7. [guard]   The night wash cap is a function of hue (tokens.css evaluates it per tint scope), so it is
+ *                swept around the whole hue circle as the browser would evaluate it: at no hue does it pass
+ *                the sRGB ceiling at the night depth, and at every whole degree it holds GUARD_FLOOR of it.
+ *                A cap is how a scope keeps its hue at night; one that greys (a flat number sized for the
+ *                tightest hue) fails the floor, one that clips fails the ceiling.
  *
  * Run: bun run test:gamut   (needs Node >= 22 to type-strip the imported .ts)
  */
@@ -54,6 +59,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inSrgbGamut, maxSrgbChroma } from "../lib/oklch-utils.ts";
+import { evaluate, substitute } from "./lib/css-math.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -71,7 +77,22 @@ const DEEP_EFFICIENCY = 0.95;
    drops the surface SILENTLY (how --primary and then the gloss sat out of gamut unnoticed, and how deep
    night's min() first dropped the wash and the gloss). Naming the load-bearing ones turns that into a
    failure. */
-const REQUIRED_SURFACES = ["--glass-tint-wash", "--glass-lustre-tint-wash", "--glass-gloss-ink-tonal", "--border", "--input", "--primary", "--glass-opaque-bg"];
+const REQUIRED_SURFACES = [
+  "--glass-tint-wash",
+  "--glass-lustre-tint-wash",
+  "--glass-gloss-ink-tonal",
+  "--border",
+  "--input",
+  "--accent",
+  "--secondary",
+  "--muted",
+  "--primary",
+  "--glass-opaque-bg",
+];
+/* [guard]: the share of the night sRGB ceiling the hue-following wash cap holds at every whole degree.
+   The fit measures 91.9% at its lowest (the green cusp's tip); a flat cap sized for the tightest hue holds
+   25% at the blue cusp. */
+const GUARD_FLOOR = 0.9;
 
 const css = {
   engine: read("app/theme/engine.css"),
@@ -128,6 +149,34 @@ function lightnessVars() {
   };
   return { light: grab(rootBody), dark: grab(darkBody) };
 }
+
+/* A cap DECLARED AS A FUNCTION OF HUE, per mode: a token whose value composes var(--glass-tint-h) (the
+   night wash cap). It cannot be resolved once per mode like the numeric knobs above; it is evaluated at
+   each preset's own hue, with scripts/lib/css-math, as the browser evaluates it per tint scope. */
+function hueCaps() {
+  const bare = css.tokens.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out = { light: new Map(), dark: new Map() };
+  for (const [mode, body] of [
+    ["light", bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"))],
+    ["dark", bare.slice(bare.indexOf(".dark {"))],
+  ]) {
+    for (const m of body.matchAll(/--([a-z0-9-]+-c-max):/g)) {
+      let depth = 0;
+      let end = m.index + m[0].length;
+      for (; end < body.length; end++) {
+        if (body[end] === "(") depth++;
+        else if (body[end] === ")") depth--;
+        else if (body[end] === ";" && depth === 0) break;
+      }
+      const value = body.slice(m.index + m[0].length, end).trim();
+      if (value.includes("var(--glass-tint-h)") && !out[mode].has(m[1])) out[mode].set(m[1], value);
+    }
+  }
+  return out;
+}
+const HUE_CAPS = hueCaps();
+/** Evaluate a hue-dependent cap at hue `h`. */
+const hueCapAt = (expr, h) => evaluate(substitute(expr, new Map([["--glass-tint-h", String(h)]]))).v;
 
 /* Split a stylesheet into top-level rule bodies so a block-LOCAL override is honoured. A flavor block
    may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and
@@ -268,7 +317,8 @@ function collectSurfaces(vars) {
           capScale = vars[mode].get(g.capk) ?? vars.light.get(g.capk) ?? (g.capkdef !== undefined ? +g.capkdef : 1);
           if (hardCap !== undefined) hardCap *= capScale;
         }
-        const shape = hardCap !== undefined ? (mult === 1 ? `≤${hardCap}` : `×${mult} ≤${hardCap}`) : `×${mult}`;
+        const capLabel = capName && HUE_CAPS[mode].has(capName) ? "f(h)" : hardCap;
+        const shape = hardCap !== undefined ? (mult === 1 ? `≤${capLabel}` : `×${mult} ≤${capLabel}`) : `×${mult}`;
         const lightness = depthName ? `min(${lname}, ${depthName})` : (lname ?? `L${g.lit}`);
         const label = `${file}:${lightness} ${shape}${nearWhiteCap ? " (capped)" : ""}`;
         const id = `${label}|${mode}|${l}`;
@@ -444,7 +494,8 @@ for (const s of surfaces) {
       const base = s.capped ? Math.min(p.c, TINT_C_HI_CAP) : p.c;
       let want = base * (pinnedMult ?? s.mult);
       const ask = want;
-      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : s.hardCap;
+      const hueCap = s.capName ? HUE_CAPS[s.mode].get(s.capName) : undefined;
+      const cap = pinnedCap !== undefined ? pinnedCap * (s.capScale ?? 1) : hueCap !== undefined ? hueCapAt(hueCap, p.h) : s.hardCap;
       if (cap !== undefined) want = Math.min(want, cap);
       const ceiling = maxSrgbChroma(surfaceL, p.h);
       /* Efficiency, not absolute chroma: a preset that DECLARES more color should deliver more. What
@@ -458,7 +509,7 @@ for (const s of surfaces) {
         ceiling,
         efficiency: Math.min(1, ceiling / want),
         overage: want / ceiling,
-        asserted: s.capDeclared || pinnedCap !== undefined,
+        asserted: s.capDeclared || pinnedCap !== undefined || hueCap !== undefined,
       };
     });
   if (!rows.length) continue;
@@ -498,13 +549,13 @@ for (const s of surfaces) {
           `[deep] ${label} — ${r.key} asks C=${r.want.toFixed(4)} at its night L${r.l}, past the sRGB ceiling of ${r.ceiling.toFixed(4)} ` +
             `(${r.overage.toFixed(2)}× over), so it clips and its hue drifts. ` +
             (s.capName
-              ? `Pin its own ceiling in its night block (--${s.capName}).`
-              : "This surface has no chroma cap: compose min(…, var(--…-c-max)) and pin each preset's ceiling in its night block."),
+              ? `Its --${s.capName} must hold it to its own hue's ceiling at night (tokens.css).`
+              : "This surface has no chroma cap: compose min(…, var(--…-c-max)) with a cap that follows the hue."),
         );
       } else if (s.capName === "glass-wash-c-max" && r.want < DEEP_EFFICIENCY * Math.min(r.ask, r.ceiling)) {
         failures.push(
           `[deep] ${label} — ${r.key}'s night wash delivers C=${r.want.toFixed(4)}, ${Math.round((100 * r.want) / Math.min(r.ask, r.ceiling))}% of the ` +
-            `${Math.min(r.ask, r.ceiling).toFixed(4)} its hue holds at L${r.l}: greyed by a shared cap. Pin its own ceiling in its night block.`,
+            `${Math.min(r.ask, r.ceiling).toFixed(4)} its hue holds at L${r.l}: greyed by a shared cap. The night cap must follow the hue (tokens.css).`,
         );
       }
     }
@@ -548,6 +599,36 @@ for (const f of fixed) {
     );
   }
   report.push({ label, spread: 1, overage, lo: worst.key, loEff: Math.min(1, worst.ceiling / f.c) });
+}
+
+/* [guard] the night wash cap, swept around the hue circle at the night depth. */
+const guardReport = [];
+{
+  const depth = vars.dark.get("glass-night-depth");
+  const expr = HUE_CAPS.dark.get("glass-wash-c-max");
+  if (depth === undefined || expr === undefined) {
+    failures.push("[guard] could not read the night depth or a hue-dependent night --glass-wash-c-max from tokens.css — if it moved, update this rule rather than dropping it.");
+  } else {
+    let lo = { r: Infinity, h: 0 };
+    let hi = { r: 0, h: 0 };
+    /* Never past the ceiling, at a tenth of a degree (the blue cusp jumps 0.036 in a quarter degree); the
+       floor at every whole degree, the resolution a hue control offers. */
+    for (let tenth = 0; tenth < 3600; tenth++) {
+      const h = tenth / 10;
+      const r = hueCapAt(expr, h) / maxSrgbChroma(depth, h);
+      if (r > hi.r) hi = { r, h };
+      if (tenth % 10 === 0 && r < lo.r) lo = { r, h };
+    }
+    if (hi.r > 1.0001) {
+      failures.push(`[guard] the night wash cap reaches ${(100 * hi.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${hi.h}: past it, a wash at that hue clips and drifts.`);
+    }
+    if (lo.r < GUARD_FLOOR) {
+      failures.push(
+        `[guard] the night wash cap holds only ${(100 * lo.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${lo.h}, under the ${100 * GUARD_FLOOR}% floor: a colour at that hue is greyed at night. Refit it (scripts/fit-night-wash-cap.mjs).`,
+      );
+    }
+    guardReport.push(`night wash cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${depth} ceiling around the hue circle (lowest h${lo.h}, highest h${hi.h})`);
+  }
 }
 
 if (process.argv.includes("--report")) {
@@ -614,7 +695,7 @@ const worstSpread = Math.max(...report.map((r) => r.spread));
 const worstOver = Math.max(...report.map((r) => r.overage));
 console.log(
   `✓ tint gamut — ${presets.length} presets × ${surfaces.length} scaled + ${fixed.length} fixed-chroma surface/mode pairs: ` +
-    `worst spread ${worstSpread.toFixed(2)}× (max ${SPREAD_MAX}), worst overage ${worstOver.toFixed(2)}× (max ${OVERAGE_MAX}); accent ${accentReport.join(" | ")}`,
+    `worst spread ${worstSpread.toFixed(2)}× (max ${SPREAD_MAX}), worst overage ${worstOver.toFixed(2)}× (max ${OVERAGE_MAX}); accent ${accentReport.join(" | ")}; ${guardReport.join("")}`,
 );
 // Verify a known in-gamut pair still reads as in-gamut, so a broken import can't pass silently.
 if (!inSrgbGamut(50, 0.05, 200)) {

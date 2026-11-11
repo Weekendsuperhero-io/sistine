@@ -19,7 +19,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { compositeSurface, glassSolidSurface, nightWashCap, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -199,8 +199,8 @@ describe("AutoForeground: ink follows its surface's hue", () => {
 
 /**
  * NIGHT, deep night: the wash paints at the darker of its own lightness and the night depth (35) under the
- * night chroma guard (0.057 for a scope with no preset pin), so the composite lands at a different angle
- * again, and the ink must follow THAT surface, not the bright L58 one the night wash used to be.
+ * night chroma cap, its own hue's sRGB ceiling there (nightWashCap), so the composite lands at a different
+ * angle again, and the ink must follow THAT surface, not the bright L58 one the night wash used to be.
  */
 describe("AutoForeground: ink follows its surface's hue at night", () => {
   const nightSurface = (h: number) =>
@@ -220,7 +220,7 @@ describe("AutoForeground: ink follows its surface's hue at night", () => {
         a: 0.7,
       },
       18,
-      0.057,
+      nightWashCap(h),
     );
 
   it.each([

@@ -23,8 +23,9 @@ const ROLE = {
 
 function InputGroup({ className, variant = "glass", effect, ...props }: InputGroupProps) {
   const [axes, rest] = splitAxisProps(props);
-  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/30" : "");
+  /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. The default field's night
+     fill is --input at 10%, as Input's (see there). */
+  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/10" : "");
 
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 

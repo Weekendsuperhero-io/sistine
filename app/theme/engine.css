@@ -136,9 +136,9 @@
      DEEP NIGHT. The lightness is the DARKER of the scope's own --glass-wash-l and --glass-night-depth
      (tokens.css: 100 by day, so nothing moves; 35 at night), so every preset's night wash lands at L35
      and white text reads on it. min(), not the depth outright: a preset already deeper keeps its own
-     (Onyx, 16). The chroma is then capped at --glass-wash-c-max, the scope's own sRGB ceiling at that
-     depth (each preset's night block; tokens.css guards every other scope), which keeps the hue and never
-     clips. Nothing declares the cap by day, and the 0.4 fallback sits above every day ask (the largest is
+     (Onyx, 16). The chroma is then capped at --glass-wash-c-max, at night the sRGB ceiling at that depth
+     for the scope's own hue (tokens.css, a fit of it that every tint scope evaluates), which keeps the hue
+     and never clips. Nothing declares the cap by day, and the 0.4 fallback sits above every day ask (the largest is
      tourmaline's 0.265), so it binds nothing there either. Multiply-THEN-cap, matching --primary. */
   --glass-tint-wash: oklch(
     min(var(--glass-wash-l), calc(var(--glass-night-depth, 100) * 1%))

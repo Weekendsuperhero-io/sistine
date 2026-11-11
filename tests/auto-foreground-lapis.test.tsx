@@ -19,11 +19,12 @@
  */
 import { render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AutoForeground } from "@/components/auto-foreground";
+import { AutoForeground, FG_EVENT } from "@/components/auto-foreground";
 import {
   apcaContrast,
   compositeSurface,
   glassSolidSurface,
+  nightWashCap,
   type OklchColor,
   oklchToSrgb,
   parseOklch,
@@ -248,5 +249,60 @@ describe("AutoForeground on lapis, night (deep night)", () => {
     );
     expect(body.l).toBeGreaterThan(80);
     expect(Math.abs(apcaContrast(body, surface))).toBeGreaterThanOrEqual(BODY_WITH_MARGIN);
+  });
+});
+
+/**
+ * A DRAG off lapis at night. The switcher's tweak() drops the attribute (the tint becomes a custom colour)
+ * and hands AutoForeground a snapshot of the tint, with no DOM read. The night wash cap is a function of
+ * the wash hue (tokens.css), so the snapshot's --glass-tint-h is all the model needs: it must band the
+ * opaque card against the wash the browser paints, at lapis's own hue ceiling, not the 0.057 flat guard
+ * that used to cut a custom blue to a quarter of what its hue holds.
+ */
+describe("AutoForeground on a drag off lapis, night (snapshot path)", () => {
+  const H = 268;
+  const C = 0.086; // one step of the chroma slider off lapis's 0.085
+  const A = 0.54;
+  /** The opaque card the CSS paints at night for this custom tint: the L33.4 floor under the deep wash. */
+  const card = (washCap: number): OklchColor =>
+    compositeSurface(
+      {
+        l: 33.4,
+        c: Math.min(C * 0.98, 0.12),
+        h: H,
+      },
+      [
+        {
+          l: 35,
+          c: Math.min(C * 2.5, washCap),
+          h: H,
+          a: A,
+        },
+      ],
+    );
+
+  it("models the painted wash from the snapshot's hue", async () => {
+    root().className = "dark";
+    render(<AutoForeground />);
+    await waitFor(() => expect(read("--foreground-opaque")).not.toBe(""));
+    window.dispatchEvent(
+      new CustomEvent(FG_EVENT, {
+        detail: {
+          "--glass-fg-h": H,
+          "--glass-tint-h": H,
+          "--glass-tint-c": C,
+          "--glass-tint-a": A,
+          "--harmony-h": H,
+          "--glass-opaque-l": 33.4,
+          "--accent-h": Number.NaN,
+          "--accent-c": 0.15,
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(Math.abs(apcaContrast(parseOklch(read("--foreground-opaque")) as OklchColor, card(nightWashCap(H))))).toBeCloseTo(84, 0),
+    );
+    const ink = parseOklch(read("--foreground-opaque")) as OklchColor;
+    expect(Math.abs(apcaContrast(ink, card(0.057)))).not.toBeCloseTo(84, 0);
   });
 });

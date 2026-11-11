@@ -253,9 +253,11 @@ export default function ThemingPage() {
                 At night (<IC>.dark</IC>) every tint goes deep, so white text reads on it. The tint wash and the tonal gloss paint at the{" "}
                 <strong>darker of</strong> their own lightness and <IC>--glass-night-depth</IC> (<IC>100</IC> by day, so nothing moves; <IC>35</IC> at
                 night), and a preset already deeper keeps its own (Onyx&apos;s wash, 16). It reaches every scope that sets a tint: presets, frescoes,
-                status tints and custom colours alike. Each preset caps its night wash chroma at its own hue&apos;s sRGB ceiling at that depth (
-                <IC>--glass-wash-c-max</IC>), so the hue is kept and nothing clips. The chrome edge (<IC>--border</IC>) becomes a lit line at night (L
-                0.65). Day and light mode are unchanged.
+                status tints and custom colours alike. The night wash&apos;s chroma is capped at its own hue&apos;s sRGB ceiling at that depth (
+                <IC>--glass-wash-c-max</IC>, a function of the hue each tint scope evaluates), so every preset and custom colour keeps its hue and
+                nothing clips. The role tokens drawn against glass are re-placed against the deep floor: the edges (<IC>--border</IC>,{" "}
+                <IC>--input</IC>) and the focus ring are lit lines, and the hover, secondary and muted fills sit visibly above the surface, with the
+                text on them still at its floor. Day and light mode are unchanged.
               </p>
             </div>
             <div>

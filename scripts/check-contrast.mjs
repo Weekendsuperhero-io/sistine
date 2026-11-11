@@ -24,11 +24,23 @@
  *   3. [ink]   the ink border (borderColor="ink": --foreground at --glass-border-ink-a over the surface)
  *               clears INK_FLOOR Lc, APCA's floor for non-text elements a user must see, on both the sheer
  *               surface and the opaque card. It exists because the material's own edge does not.
- *   4. [edge]  at NIGHT, the chrome edge (--border: dividers, field and outline rims, every bare
- *               `border-border`) clears the same floor on both surfaces. Deep night lifted it to L65 because
- *               at L30 it sat at or under the night surface and read as nothing. By day the edge stays the
- *               soft L85 line it was, deliberately under this floor (the light glass shadows' hairline
- *               defines the shape there), so day is reported, not asserted.
+ *   4. [edge]  at NIGHT, the chrome edges (--border: dividers, outlines, every bare `border-border`; and
+ *               --input, the default field's rim) clear the same floor on both surfaces. Deep night lifted
+ *               them to L65 because at L30 / L25 they sat at or under the night surface and read as nothing.
+ *               By day the edge stays the soft L85 line it was, deliberately under this floor (the light
+ *               glass shadows' hairline defines the shape there), so day is reported, not asserted.
+ *   5. [role]  at NIGHT, the other role tokens drawn against glass:
+ *               - the focus ring (--ring) clears the same non-text floor on both surfaces;
+ *               - the typed text inside a default field (--input at its night fill alpha, read from the
+ *                 components) keeps the body floor plus margin;
+ *               - each FILL (--accent, the hover; --secondary; --muted, the tabs well and the skeleton) sits
+ *                 at least FILL_STEP L clear of both surfaces in OKLab lightness, ABOVE them wherever a lift
+ *                 can still carry its text (below them only where none can: moonstone's pale floor), and the
+ *                 text it carries keeps its floor plus margin (the strong ink on accent and secondary, the
+ *                 muted tier on muted). Lightness, not APCA, for the step: APCA is a text model, it reads
+ *                 anything under ~7.5 Lc as 0, and two large dark areas 8–14 L apart land there while
+ *                 plainly distinct. FILL_STEP is above shadcn's own dark hover step (6.4 L, popover 0.205 →
+ *                 accent 0.269), so a night fill reads at least as clearly as the reference design's.
  *
  * It models the surface the way components/auto-foreground.tsx does — glassSolidSurface() with the
  * solidify floor, then readableForeground() for the body band — so a change to that model shows up here
@@ -44,7 +56,9 @@ import {
   boostBand,
   compositeSurface,
   deepen,
+  GLASS_WASH_C_MAX_DAY,
   limitingSurface,
+  nightWashCap,
   parseGradientStops,
   foregroundRamp,
   glassSolidSurface,
@@ -71,8 +85,22 @@ const MARGIN = 1.5; // Lc of slack required on top of the floor
 /* APCA's level for non-text elements that must be perceived (outlines, focus rings, dividers that carry
    meaning). Well under any text floor, deliberately: a border is a shape, not glyphs. */
 const INK_FLOOR = 30;
-/* [edge]: the same non-text floor, for the chrome edge at night. */
+/* [edge]: the same non-text floor, for the chrome edges and the focus ring at night. */
 const EDGE_FLOOR = INK_FLOOR;
+/* [role]: how far a night fill sits from its surfaces (OKLab L), and the band its text is held to when
+   it is the MUTED tier (AutoForeground's muted band: floor 60, target 72, ceiling 84). */
+const FILL_STEP = 7;
+const MUTED_BAND = { floor: 60, target: 72, ceiling: 84 };
+/* The default field's night fill, `dark:bg-input/N`, read from the components that paint it so the check
+   measures what ships. All three must agree. */
+const INPUT_FILL_A = (() => {
+  const alphas = ["input", "textarea", "input-group"].map((f) => /dark:bg-input\/(\d+)/.exec(read(`components/ui/${f}.tsx`))?.[1]);
+  if (alphas.some((x) => x === undefined) || new Set(alphas).size !== 1) {
+    console.error(`✗ contrast guard: the default field's night fill (dark:bg-input/N) is missing or differs across input / textarea / input-group: ${alphas}`);
+    process.exit(1);
+  }
+  return Number(alphas[0]) / 100;
+})();
 
 /**
  * Known, DESIGN-level exceptions: pinned at their measured value so they cannot silently get worse, and
@@ -136,10 +164,38 @@ const resolve = (p, mode, vars, key, fallback) => (mode === "dark" ? p.dark.get(
 
 const vars = modeVars();
 const all = presets();
+
+/** An `oklch(L C H)` literal to numbers (L as 0–1 or a percentage). */
+const parseOklchLiteral = (s) => {
+  const m = /oklch\(\s*([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)/.exec(s ?? "");
+  return m ? { l: m[2] ? +m[1] : +m[1] * 100, c: +m[3], h: +m[4] } : undefined;
+};
+/* The focus ring at night: a preset's own --ring (onyx sets one in its unscoped block, which outranks
+   .dark's by source order), else the night token. */
+const darkRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {")))?.[1]);
+const presetRings = new Map();
+for (const src of [css.presets, css.frescoes]) {
+  for (const [, darkSel, name, body] of strip(src).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
+    const ring = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(body)?.[1]);
+    if (ring && (darkSel || !presetRings.has(name))) presetRings.set(name, ring);
+  }
+}
+const ringOf = (p) => presetRings.get(p.name) ?? darkRing;
+/* Which page tier the night accent and secondary fills carry as text: --accent-foreground /
+   --secondary-foreground in tokens.css's .dark block, var(--foreground-strong) or var(--foreground). */
+const darkTokens = strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {"));
+/* (Token names keep their leading dashes here: a bare quoted "accent-…" is a Tailwind class candidate, and
+   the site build scans this file.) */
+const fillInk = (token) => /--foreground(-strong)?\)/.exec(new RegExp(`${token}:\\s*var\\(([^;]*);`).exec(darkTokens)?.[1] ?? "")?.[1] ? "strong" : "body";
+if (!darkRing) {
+  console.error("✗ contrast guard: could not read the night --ring from tokens.css — fix the parser");
+  process.exit(1);
+}
 const failures = [];
 const report = [];
 const inkReport = [];
 const edgeReport = [];
+const roleReport = [];
 
 for (const p of all) {
   for (const mode of ["light", "dark"]) {
@@ -150,13 +206,14 @@ for (const p of all) {
     if (h === undefined || c === undefined || a === undefined) continue; // an incomplete scrape, not a preset
 
     /* Deep night: the wash paints at the darker of the preset's own lightness and --glass-night-depth
-       (100 by day, 35 at night), under its chroma cap (each preset's night block pins its own hue's L35
-       ceiling; tokens.css guards the rest at night; nothing declares it by day, where the engine's 0.4
-       fallback binds nothing). The same min and cap AutoForeground models. */
+       (100 by day, 35 at night), under its chroma cap: at night the L35 sRGB ceiling for its own hue
+       (tokens.css evaluates the fit per scope; nightWashCap is the same fit, held equal to the CSS by
+       tests/deep-night.test.ts), by day the engine's 0.4 fallback, which binds nothing. The same min and
+       cap AutoForeground models. */
     const depth = resolve(p, mode, vars, "glass-night-depth", dark ? 35 : 100);
     const washL = deepen(resolve(p, mode, vars, "glass-wash-l", dark ? 58 : 72), depth);
     const washCMult = resolve(p, mode, vars, "glass-wash-c-mult", 2.5);
-    const washCMax = resolve(p, mode, vars, "glass-wash-c-max", 0.4);
+    const washCMax = resolve(p, mode, vars, "glass-wash-c-max", dark ? nightWashCap(h) : GLASS_WASH_C_MAX_DAY);
     const washC = Math.min(c * washCMult, washCMax);
     const opaqueL = resolve(p, mode, vars, "glass-opaque-l", dark ? 33.4 : 93);
     const cScale = resolve(p, mode, vars, "glass-opaque-c-scale", dark ? 0.98 : 0.85);
@@ -281,27 +338,93 @@ for (const p of all) {
       inkReport.push({ name: p.name, mode, where, lc: inkLc });
     }
 
-    /* The chrome edge: --border, oklch(--border-l, min(tint c, --border-c-max), tint h), opaque, painted
-       over its element's own surface. Onyx's preset block sets its own --border-l, which outranks .dark's,
-       so it (and moonstone, on its lighter night floor) pins a night value of its own. */
-    const edge = {
-      l: resolve(p, mode, vars, "border-l", dark ? 0.65 : 0.85) * 100,
-      c: Math.min(c, resolve(p, mode, vars, "border-c-max", dark ? 0.041 : 0.07)),
-      h,
-    };
-    /* Judged on the modelled surfaces, not at a fresco's hardest stop: an edge runs the whole perimeter,
-       where text sits wherever the layout puts it. The frescoes' night sheets are not the wash and do not go
-       deep (their bright stops lift one corner of the card), so at that corner their edge reads weaker. */
-    for (const [where, ground] of [
+    /* ── The night ROLE tokens drawn against glass ─────────────────────────────────────────────────
+       Each is composed as engine.css composes it: oklch(<its L>, min(tint c, <its cap>), tint h), painted
+       opaque over its element's own surface. Their night lightness lives in tokens.css's night token rule,
+       which outranks a preset's unscoped block and is reset at every tint scope, so at night it resolves
+       from the preset's own NIGHT block, then that rule (Onyx's day values never reach its night). Judged on
+       the modelled surfaces, not at a fresco's hardest stop: an edge runs the whole perimeter and a fill
+       spans its element. (The frescoes' night sheets are not the wash and do not go deep, so at their
+       brightest corner an edge reads weaker.) */
+    const roleL = (key, fb) => (dark ? (p.dark.get(key) ?? vars.dark.get(key)) : resolve(p, mode, vars, key)) ?? fb;
+    const roleColor = (lKey, cKey, cFb) => ({ l: roleL(lKey) * 100, c: Math.min(c, resolve(p, mode, vars, cKey, cFb)), h });
+    const grounds = [
       ["sheer", surface],
       ["opaque", opaqueSurface],
+    ];
+    /* [edge] the chrome edges: the border and the default field's rim. */
+    for (const [token, lKey] of [
+      ["border", "border-l"],
+      ["input", "input-l"],
     ]) {
-      const edgeLc = Math.abs(apcaContrast(edge, ground));
-      edgeReport.push({ name: p.name, mode, where, lc: edgeLc, l: edge.l });
-      if (dark && edgeLc < EDGE_FLOOR) {
-        failures.push(
-          `[edge] ${p.name} (night, ${where}) — the border (L${edge.l.toFixed(0)}) reaches only ${edgeLc.toFixed(1)} Lc against its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor. Raise its night --border-l.`,
-        );
+      const edge = roleColor(lKey, "border-c-max", dark ? 0.041 : 0.07);
+      for (const [where, ground] of grounds) {
+        const edgeLc = Math.abs(apcaContrast(edge, ground));
+        edgeReport.push({ name: p.name, mode, where, token, lc: edgeLc, l: edge.l });
+        if (dark && edgeLc < EDGE_FLOOR) {
+          failures.push(
+            `[edge] ${p.name} (night, ${where}) — --${token} (L${edge.l.toFixed(0)}) reaches only ${edgeLc.toFixed(1)} Lc against its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor. Raise its night --${lKey}.`,
+          );
+        }
+      }
+    }
+    if (dark) {
+      /* [role] the focus ring, a preset's own --ring if it sets one (onyx), else the night token. */
+      const ring = ringOf(p);
+      for (const [where, ground] of grounds) {
+        const lcRing = Math.abs(apcaContrast(ring, ground));
+        roleReport.push({ name: p.name, where, token: "ring", value: lcRing, unit: "Lc", l: ring.l });
+        if (lcRing < EDGE_FLOOR) {
+          failures.push(`[role] ${p.name} (night, ${where}) — the focus ring (L${ring.l.toFixed(0)}) reaches only ${lcRing.toFixed(1)} Lc on its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor.`);
+        }
+      }
+      /* [role] the typed text inside a default field, whose night fill is the rim colour at INPUT_FILL_A. */
+      const rim = roleColor("input-l", "border-c-max", 0.041);
+      for (const [where, ground, ink] of [
+        ["sheer", surface, fg],
+        ["opaque", opaqueSurface, opaqueInk],
+      ]) {
+        const inside = compositeSurface(ground, [{ ...rim, a: INPUT_FILL_A }]);
+        const lcIn = Math.abs(apcaContrast(ink, inside));
+        roleReport.push({ name: p.name, where, token: "input text", value: lcIn, unit: "Lc", l: inside.l });
+        if (lcIn < BODY_FLOOR + MARGIN) {
+          failures.push(
+            `[role] ${p.name} (night, ${where}) — body text inside a default field (--input at ${INPUT_FILL_A}) reaches only ${lcIn.toFixed(1)} Lc, under ${BODY_FLOOR + MARGIN}. Lower the field's night fill or its --input-l.`,
+          );
+        }
+      }
+      /* [role] the fills, each with the ink it carries, read from tokens.css: --accent-foreground and
+         --secondary-foreground name the page's STRONG tier at night (the small band, solved on the sheer
+         surface: they resolve on <html>) or its body tier, and muted carries the page's muted tier. */
+      const boost = LC_MARGIN * showThrough(solidA, a, 0.7);
+      const solve = (band) => (p.name === "onyx" ? readableTonal(textSurface, boostBand(band, boost), { hue: h, chroma: 0 }) : pickTonalInBand(ramp, textSurface, boostBand(band, boost)));
+      const strong = solve(READABLE_USAGE.small);
+      const mutedInk = solve(MUTED_BAND);
+      const inkOf = (token) => (fillInk(token) === "strong" ? strong : fg);
+      for (const [token, lKey, cKey, ink, inkFloor] of [
+        ["accent", "accent-bg-l", "accent-bg-c-max", inkOf("--accent-foreground"), BODY_FLOOR + MARGIN],
+        ["secondary", "secondary-l", "secondary-c-max", inkOf("--secondary-foreground"), BODY_FLOOR + MARGIN],
+        ["muted", "muted-l", "muted-c-max", mutedInk, MUTED_BAND.floor + MARGIN],
+      ]) {
+        const fill = roleColor(lKey, cKey, 0);
+        const steps = grounds.map(([, g]) => fill.l - g.l);
+        const lcText = Math.abs(apcaContrast(ink, fill));
+        roleReport.push({ name: p.name, where: "both", token, value: Math.min(...steps.map(Math.abs)) * Math.sign(steps[0]), unit: "L", l: fill.l, lcText });
+        if (lcText < inkFloor) {
+          failures.push(`[role] ${p.name} (night) — text on --${token} (L${fill.l.toFixed(0)}) reaches only ${lcText.toFixed(1)} Lc, under ${inkFloor}. Lower its night --${lKey}.`);
+        }
+        /* Above both surfaces wherever a lift of FILL_STEP can still carry the text; below both only where
+           it cannot. Either way, at least FILL_STEP clear of each. */
+        const top = Math.max(...grounds.map(([, g]) => g.l));
+        const liftable = Math.abs(apcaContrast(ink, { ...fill, l: top + FILL_STEP })) >= inkFloor;
+        const above = steps.every((d) => d >= FILL_STEP);
+        const below = steps.every((d) => d <= -FILL_STEP);
+        if (!(above || (below && !liftable))) {
+          failures.push(
+            `[role] ${p.name} (night) — --${token} (L${fill.l.toFixed(1)}) sits ${steps.map((d) => d.toFixed(1)).join(" / ")} L from its sheer / opaque surface: ` +
+              (liftable ? `it must sit at least ${FILL_STEP} L ABOVE both (a lift there still carries its text).` : `it must sit at least ${FILL_STEP} L clear of both, on one side.`),
+          );
+        }
       }
     }
 
@@ -338,9 +461,13 @@ if (process.argv.includes("--report")) {
   for (const r of [...report].sort((x, y) => x.lc - y.lc)) {
     console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} wash L${String(r.washL).padEnd(5)} alpha ${r.a}`);
   }
-  console.log("  edge (--border over its surface):");
+  console.log("  edge (--border, --input over their surface):");
   for (const r of [...edgeReport].sort((x, y) => x.lc - y.lc)) {
-    console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where.padEnd(6)} border L${r.l.toFixed(0)}`);
+    console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where.padEnd(6)} ${r.token} L${r.l.toFixed(0)}`);
+  }
+  console.log("  night role tokens (ring / field text: Lc; fills: L from the nearer surface, and the Lc of their text):");
+  for (const r of [...roleReport].sort((x, y) => x.token.localeCompare(y.token) || x.value - y.value)) {
+    console.log(`  ${r.token.padEnd(10)} ${r.name.padEnd(12)} ${r.where.padEnd(6)} ${r.value.toFixed(1)} ${r.unit}  (L${r.l.toFixed(1)}${r.lcText !== undefined ? `, text ${r.lcText.toFixed(1)} Lc` : ""})`);
   }
 }
 
@@ -360,10 +487,12 @@ const scored = report.filter((r) => !KNOWN.has(`${r.name}|${r.mode}`));
 const worst = scored.reduce((a, b) => (b.lc < a.lc ? b : a));
 const inkWorst = inkReport.reduce((a, b) => (b.lc < a.lc ? b : a));
 const edgeWorst = edgeReport.filter((r) => r.mode === "dark").reduce((a, b) => (b.lc < a.lc ? b : a));
+const roleWorst = (token) => roleReport.filter((r) => r.token === token).reduce((a, b) => (Math.abs(b.value) < Math.abs(a.value) ? b : a));
 console.log(
   `✓ preset contrast — ${scored.length} preset/mode pairs clear the ${BODY_FLOOR} Lc body floor ` +
     `(tightest ${worst.name} ${worst.mode} at ${worst.lc.toFixed(1)})` +
     (KNOWN.size ? `; ${KNOWN.size} pinned exception${KNOWN.size > 1 ? "s" : ""}: ${[...KNOWN.keys()].join(", ")}` : "") +
     `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})` +
-    `; night edge ≥ ${EDGE_FLOOR} Lc on ${edgeReport.filter((r) => r.mode === "dark").length} surfaces (tightest ${edgeWorst.name} ${edgeWorst.where} at ${edgeWorst.lc.toFixed(1)})`,
+    `; night edge ≥ ${EDGE_FLOOR} Lc on ${edgeReport.filter((r) => r.mode === "dark").length} surfaces (tightest ${edgeWorst.name} ${edgeWorst.token} ${edgeWorst.where} at ${edgeWorst.lc.toFixed(1)})` +
+    `; night roles: ring ≥ ${roleWorst("ring").value.toFixed(1)} Lc, field text ≥ ${roleWorst("input text").value.toFixed(1)} Lc, fills ≥ ${FILL_STEP} L clear (tightest ${["accent", "secondary", "muted"].map((t) => `${t} ${Math.abs(roleWorst(t).value).toFixed(1)}`).join(", ")})`,
 );

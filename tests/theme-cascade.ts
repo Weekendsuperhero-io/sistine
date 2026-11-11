@@ -9,17 +9,20 @@
  * custom properties into a child, var() substitution with fallbacks, and the math.
  *
  * It reads the CSS itself, so a test built on it measures what ships rather than a parallel table of
- * numbers that has to be kept in step by hand. Anything it does not understand is an error rather than a
- * guess: an unknown function, a unit mismatch (min(58%, 35) is invalid CSS), or an undeclared var() with no
- * fallback.
+ * numbers that has to be kept in step by hand. var() substitution and the math are scripts/lib/css-math
+ * (check-gamut evaluates the night wash cap with the same code); anything they do not understand is an
+ * error rather than a guess.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { evaluate, substitute } from "../scripts/lib/css-math.mjs";
 
-/** An element in the model: its classes and its attributes. */
+/** An element in the model: its classes, its attributes and its inline custom properties. */
 export interface ModelElement {
   classes?: string[];
   attrs?: Record<string, string>;
+  /** Inline declarations (style="--x: …"), which outrank every rule. */
+  style?: Record<string, string>;
 }
 
 interface Rule {
@@ -31,8 +34,9 @@ interface Rule {
   order: number;
 }
 
-// The suite runs from the repository root, as the other tests that read app/theme assume.
-const ROOT = process.cwd();
+// The suite runs from the repository root, as the other tests that read app/theme assume. THEME_ROOT points
+// the model at another copy of the partials (an older tree, to take a before-snapshot from).
+const ROOT = process.env.THEME_ROOT ?? process.cwd();
 const stripComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 /** Split on top-level occurrences of `sep` (outside parentheses and brackets). */
@@ -166,49 +170,6 @@ function matchSelector(selector: string, chain: ModelElement[]): number | null {
   return spec;
 }
 
-/** Substitute every var() in `value` against `vars`, recursively. Throws on an unresolvable reference. */
-function substitute(value: string, vars: Map<string, string>, seen: Set<string> = new Set()): string {
-  const i = value.indexOf("var(");
-  if (i === -1) return value;
-  let depth = 0;
-  let end = -1;
-  for (let j = i + 3; j < value.length; j++) {
-    if (value[j] === "(") depth++;
-    else if (value[j] === ")" && --depth === 0) {
-      end = j;
-      break;
-    }
-  }
-  const inner = value.slice(i + 4, end);
-  const comma = (() => {
-    let d = 0;
-    for (let j = 0; j < inner.length; j++) {
-      if (inner[j] === "(") d++;
-      else if (inner[j] === ")") d--;
-      else if (inner[j] === "," && d === 0) return j;
-    }
-    return -1;
-  })();
-  const name = (comma === -1 ? inner : inner.slice(0, comma)).trim();
-  const fallback = comma === -1 ? undefined : inner.slice(comma + 1).trim();
-  let replacement: string;
-  if (vars.has(name) && !seen.has(name)) {
-    replacement = substitute(
-      vars.get(name) as string,
-      vars,
-      new Set([
-        ...seen,
-        name,
-      ]),
-    );
-  } else if (fallback !== undefined) {
-    replacement = substitute(fallback, vars, seen);
-  } else {
-    throw new Error(`theme-cascade: var(${name}) is not declared and has no fallback`);
-  }
-  return substitute(value.slice(0, i) + replacement + value.slice(end + 1), vars, seen);
-}
-
 /** The custom properties an element computes, inherited from its parent and cascaded from the theme. */
 export function computedVars(chain: ModelElement[]): Map<string, string> {
   const inherited = chain.length > 1 ? computedVars(chain.slice(0, -1)) : new Map<string, string>();
@@ -240,6 +201,14 @@ export function computedVars(chain: ModelElement[]): Map<string, string> {
   }
   /* Declared values are substituted against THIS element's own values, which fall back to inherited ones;
      an inherited value arrives already substituted, as a computed custom property does. */
+  const subject = chain[chain.length - 1];
+  for (const [name, value] of Object.entries(subject.style ?? {})) {
+    winners.set(name, {
+      spec: Number.POSITIVE_INFINITY,
+      order: Number.POSITIVE_INFINITY,
+      value,
+    });
+  }
   const own = new Map(inherited);
   for (const [name, w] of winners) own.set(name, w.value);
   const out = new Map<string, string>();
@@ -261,102 +230,6 @@ export function computedVars(chain: ModelElement[]): Map<string, string> {
       // An unresolvable declaration computes to the guaranteed-invalid value: leave it out.
     }
   }
-  return out;
-}
-
-/* ── Math: numbers and percentages, + - * /, calc() / min() / max() ───────────────────────────── */
-interface Num {
-  v: number;
-  pct: boolean;
-}
-
-function evaluate(expr: string): Num {
-  const tokens = expr.match(/[\d.]+%?|[a-z-]+\(|[()*/+,-]/gi) ?? [];
-  let pos = 0;
-  const peek = () => tokens[pos];
-  const take = () => tokens[pos++];
-  const same = (a: Num, b: Num, op: string) => {
-    if (a.pct !== b.pct) throw new Error(`theme-cascade: ${op} mixes a percentage and a number in "${expr}"`);
-  };
-  function factor(): Num {
-    const t = take();
-    if (t === undefined) throw new Error(`theme-cascade: unexpected end of "${expr}"`);
-    if (t === "-") {
-      const f = factor();
-      return {
-        v: -f.v,
-        pct: f.pct,
-      };
-    }
-    if (t === "(") {
-      const e = sum();
-      if (take() !== ")") throw new Error(`theme-cascade: unbalanced "${expr}"`);
-      return e;
-    }
-    if (/^[\d.]+%?$/.test(t))
-      return {
-        v: Number.parseFloat(t),
-        pct: t.endsWith("%"),
-      };
-    const fn = t.toLowerCase();
-    if (fn === "calc(") {
-      const e = sum();
-      if (take() !== ")") throw new Error(`theme-cascade: unbalanced calc() in "${expr}"`);
-      return e;
-    }
-    if (fn === "min(" || fn === "max(") {
-      const args = [
-        sum(),
-      ];
-      while (peek() === ",") {
-        take();
-        args.push(sum());
-      }
-      if (take() !== ")") throw new Error(`theme-cascade: unbalanced ${fn}) in "${expr}"`);
-      for (const a of args) same(args[0], a, fn);
-      return {
-        v: (fn === "min(" ? Math.min : Math.max)(...args.map((a) => a.v)),
-        pct: args[0].pct,
-      };
-    }
-    throw new Error(`theme-cascade: cannot evaluate "${t}" in "${expr}"`);
-  }
-  function product(): Num {
-    let a = factor();
-    while (peek() === "*" || peek() === "/") {
-      const op = take();
-      const b = factor();
-      if (op === "*") {
-        if (a.pct && b.pct) throw new Error(`theme-cascade: % * % in "${expr}"`);
-        a = {
-          v: a.v * b.v,
-          pct: a.pct || b.pct,
-        };
-      } else {
-        if (b.pct) throw new Error(`theme-cascade: division by a percentage in "${expr}"`);
-        a = {
-          v: a.v / b.v,
-          pct: a.pct,
-        };
-      }
-    }
-    return a;
-  }
-  function sum(): Num {
-    let a = product();
-    while (peek() === "+" || peek() === "-") {
-      const op = take();
-      const b = product();
-      same(a, b, op);
-      a = {
-        v: op === "+" ? a.v + b.v : a.v - b.v,
-        pct: a.pct,
-      };
-    }
-    return a;
-  }
-  const out = sum();
-  if (pos !== tokens.length) throw new Error(`theme-cascade: trailing input in "${expr}"`);
   return out;
 }
 

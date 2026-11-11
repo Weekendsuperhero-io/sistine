@@ -23,7 +23,7 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AutoForeground } from "@/components/auto-foreground";
-import { apcaContrast, compositeSurface, glassSolidSurface, type OklchColor, parseOklch } from "@/lib/oklch-utils";
+import { apcaContrast, compositeSurface, glassSolidSurface, nightWashCap, type OklchColor, parseOklch } from "@/lib/oklch-utils";
 
 const root = () => document.documentElement;
 const read = (name: string) => root().style.getPropertyValue(name).trim();
@@ -72,8 +72,8 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
   const solidifyC = Math.min(TINT_C * (dark ? 0.98 : 0.85), dark ? 0.12 : 0.055 * 0.65);
   const tintCHi = Math.min(TINT_C, 0.017); // --glass-tint-c-hi
   const glossC = Math.min(TINT_C * 4.25, dark ? 0.057 : 0.013); // --glass-gloss-tint × cap (the L35 ceiling at night)
-  // The wash chroma cap: tokens.css's night guard (0.057) for a scope with no preset pin; nothing by day.
-  const washC = Math.min(TINT_C * 2.5, dark ? 0.057 : 0.4);
+  // The wash chroma cap: at night the L35 sRGB ceiling for the wash's own hue (tokens.css); nothing by day.
+  const washC = Math.min(TINT_C * 2.5, dark ? nightWashCap(h) : 0.4);
   const chakraC = Math.min(TINT_C, dark ? 0.046 : 0.055); // --glass-chakra-c-max
   /* The backing under SHEER glass is --glass-solidify-l, its own value in both modes (92 light, 36.4
      dark), split from the opaque card floor. */
@@ -115,7 +115,7 @@ const surfaces = (dark: boolean): Record<string, OklchColor> => {
       2.5,
       solidify,
       dark ? 18 : 99,
-      dark ? 0.057 : 0.4,
+      dark ? nightWashCap(h) : 0.4,
     ),
     // The opaque card: its floor under the same tint wash every material carries (materials.css).
     "-opaque": compositeSurface(
