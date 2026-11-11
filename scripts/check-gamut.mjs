@@ -49,7 +49,9 @@
  *                were actually scraped, so a new CSS shape cannot drop one from the sweep silently.
  *   7. [guard]   The night wash cap is a function of hue (tokens.css evaluates it per tint scope), so it is
  *                swept as the browser would evaluate it, over -720 to 1080 (a tint hue is not always 0–360):
- *                at no hue does it pass the sRGB ceiling at the night depth, and at every whole degree it
+ *                at no hue does it pass the sRGB ceiling at the night depth (every tenth of a degree, and
+ *                every ten-thousandth within 0.01° of each of the ceiling's three cusps, where the fit is cut
+ *                off and an overshoot is a band too narrow for the tenths), and at every whole degree it
  *                holds GUARD_FLOOR of it.
  *                A cap is how a scope keeps its hue at night; one that greys (a flat number sized for the
  *                tightest hue) fails the floor, one that clips fails the ceiling.
@@ -623,24 +625,56 @@ const guardReport = [];
   } else {
     let lo = { r: Infinity, h: 0 };
     let hi = { r: 0, h: 0 };
-    /* Never past the ceiling, at a tenth of a degree (the blue cusp jumps 0.036 in a quarter degree); the
-       floor at every whole degree, the resolution a hue control offers. From -720 to 1080, not 0–360: a
-       tint hue is anything a scope is given, and the harmonic hues run past 360 (theme + up to 270). */
+    const ceilingAt = (h) => maxSrgbChroma(depth, ((h % 360) + 360) % 360);
+    const ratioAt = (h) => hueCapAt(expr, h) / ceilingAt(h);
+    /* Never past the ceiling, at a tenth of a degree; the floor at every whole degree, the resolution a
+       hue control offers. From -720 to 1080, not 0–360: a tint hue is anything a scope is given, and the
+       harmonic hues run past 360 (theme + up to 270). */
     for (let tenth = -7200; tenth <= 10800; tenth++) {
       const h = tenth / 10;
-      const r = hueCapAt(expr, h) / maxSrgbChroma(depth, ((h % 360) + 360) % 360);
+      const r = ratioAt(h);
       if (r > hi.r) hi = { r, h };
       if (tenth % 10 === 0 && r < lo.r) lo = { r, h };
     }
+    /* And never past it at every ten-thousandth of a degree within 0.01° of each cusp, in every turn. The fit
+       is cut off at the cusps by steep lines, and the blue cusp is a step (0.210 → 0.235 at h264.1348), so a
+       cut too gentle passes the ceiling in a band a thousandth of a degree wide, between the tenths (one did,
+       by 8.7%). The cusps are the ceiling's own three local maxima, found here rather than read off the
+       fit: located at a tenth of a degree, then to a ten-thousandth within 0.1° of it. */
+    const tenths = Array.from({ length: 3600 }, (_, i) => ceilingAt(i / 10));
+    const cusps = tenths
+      .flatMap((c, i) => (c > tenths[(i + 3599) % 3600] && c >= tenths[(i + 1) % 3600] ? [i / 10] : []))
+      .map((near) => {
+        let best = near;
+        for (let k = -1000; k <= 1000; k++) if (ceilingAt(near + k / 10000) > ceilingAt(best)) best = near + k / 10000;
+        return best;
+      });
+    if (cusps.length !== 3) {
+      failures.push(`[guard] expected the L${depth} sRGB ceiling to have three cusps (local maxima) around the hue circle, found ${cusps.length} (${cusps.map((c) => c.toFixed(4)).join(", ")}) — the cusp sample below needs them.`);
+    }
+    for (const c of cusps) {
+      for (let turn = -2; turn <= 2; turn++) {
+        for (let k = -100; k <= 100; k++) {
+          const h = c + 360 * turn + k / 10000;
+          const r = ratioAt(h);
+          if (r > hi.r) hi = { r, h };
+        }
+      }
+    }
     if (hi.r > 1.0001) {
-      failures.push(`[guard] the night wash cap reaches ${(100 * hi.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${hi.h}: past it, a wash at that hue clips and drifts.`);
+      failures.push(
+        `[guard] the night wash cap reaches ${(100 * hi.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${+hi.h.toFixed(4)}: past it, a wash at that hue clips and drifts.`,
+      );
     }
     if (lo.r < GUARD_FLOOR) {
       failures.push(
         `[guard] the night wash cap holds only ${(100 * lo.r).toFixed(1)}% of the L${depth} sRGB ceiling at h${lo.h}, under the ${100 * GUARD_FLOOR}% floor: a colour at that hue is greyed at night. Refit it (scripts/fit-night-wash-cap.mjs).`,
       );
     }
-    guardReport.push(`night wash cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${depth} ceiling at every hue from -720 to 1080 (lowest h${lo.h}, highest h${hi.h})`);
+    guardReport.push(
+      `night wash cap ${(100 * lo.r).toFixed(1)}–${(100 * hi.r).toFixed(1)}% of the L${depth} ceiling from -720 to 1080 (lowest h${lo.h}, highest h${+hi.h.toFixed(4)}; ` +
+        `ten-thousandths at the cusps h${cusps.map((c) => c.toFixed(4)).join(", h")})`,
+    );
   }
 }
 

@@ -18,6 +18,8 @@
  *     scope, so a nested preset never inherits its page preset's night values.
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import browserslist from "browserslist";
+import { browserslistToTargets, transform } from "lightningcss";
 import { describe, expect, it } from "vitest";
 import { maxSrgbChroma, NIGHT_WASH_CAP, nightWashCap } from "@/lib/oklch-utils";
 import { evaluate } from "../scripts/lib/css-math.mjs";
@@ -43,6 +45,26 @@ const TOKENS = {
 type Surfaces = Record<keyof typeof TOKENS, ResolvedOklch>;
 
 const round = (n: number) => Math.round(n * 1e6) / 1e6;
+/** Every ten-thousandth of a degree within 0.01° of each cusp the cap is cut at, in each turn from -720 to
+ *  1080: the cut lines are steep, and the blue cusp is a step, so an overshoot there is a band narrower
+ *  than a tenth of a degree (scripts/check-gamut.mjs [guard] samples the CSS the same way). */
+const CUSP_SAMPLES = [
+  ...new Set(
+    NIGHT_WASH_CAP.groups
+      .flatMap((g) => [
+        g.from[0],
+        g.to[0],
+      ])
+      .map((h) => Math.round((((h % 360) + 360) % 360) * 1000) / 1000),
+  ),
+].flatMap((cusp) =>
+  Array.from(
+    {
+      length: 5 * 201,
+    },
+    (_, i) => cusp + 360 * (Math.floor(i / 201) - 2) + ((i % 201) - 100) / 10000,
+  ),
+);
 const surfaces = (chain: ModelElement[]): Surfaces =>
   Object.fromEntries(
     Object.entries(TOKENS).map(([key, token]) => {
@@ -165,6 +187,7 @@ describe("deep night: the night wash cap follows the hue", () => {
       const h = tenth / 10;
       expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(nightWashCap(h), 9);
     }
+    for (const h of CUSP_SAMPLES) expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(nightWashCap(h), 9);
     // And the full cascade agrees with the placeholder route at a few hues.
     for (const h of [
       -500,
@@ -177,14 +200,16 @@ describe("deep night: the night wash cap follows the hue", () => {
   });
 
   it("never passes the L35 sRGB ceiling, and holds at least 90% of it at every whole degree, at any hue", () => {
+    const ceilingAt = (h: number) => maxSrgbChroma(NIGHT_DEPTH, ((h % 360) + 360) % 360);
     let lo = Number.POSITIVE_INFINITY;
     for (let h = -720; h <= 1080; h++) {
       const cap = nightWashCap(h);
-      const ceiling = maxSrgbChroma(NIGHT_DEPTH, ((h % 360) + 360) % 360);
-      expect(cap, `h${h}: past the ceiling`).toBeLessThanOrEqual(ceiling);
-      lo = Math.min(lo, cap / ceiling);
+      expect(cap, `h${h}: past the ceiling`).toBeLessThanOrEqual(ceilingAt(h));
+      lo = Math.min(lo, cap / ceilingAt(h));
     }
     expect(lo).toBeGreaterThanOrEqual(0.9);
+    // At the cusps, the ceiling only: between the blue step and its cusp (0.00023°) the cap dips to 88%.
+    for (const h of CUSP_SAMPLES) expect(nightWashCap(h), `h${h}: past the ceiling`).toBeLessThanOrEqual(ceilingAt(h));
   });
 
   it("keeps a harmonic hue past 360 coloured: a tool card at theme 250 + 180 = 430 is h70", () => {
@@ -220,8 +245,33 @@ describe("deep night: the night wash cap follows the hue", () => {
   it("is generated as three tangent arcs cut at the three cusps", () => {
     // The structure tokens.css and the fit script document; a reshaped table should say so here first.
     expect(NIGHT_WASH_CAP.groups.length).toBe(4);
-    expect(NIGHT_WASH_CAP.cut).toBe(20);
+    expect(NIGHT_WASH_CAP.cut).toBe(200);
     expect(NIGHT_WASH_CAP.floor).toBe(0.057);
+  });
+
+  it("ships as written: Lightning CSS leaves every number in the night token rule as it is", () => {
+    /* The build minifies with Lightning CSS, which rounds a long number (it shipped 1800000/π as 572958, so
+       the browser's cap was not the one checked, by up to 6.9e-4 at the blue cusp). The rule is written in
+       numbers it keeps, so the source, the mirror and the checks all evaluate what ships. Minified as the
+       build does, for the package's browserslist. */
+    const tokens = readFileSync("app/theme/tokens.css", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    const start = tokens.indexOf(".dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint] {");
+    const rule = tokens.slice(start, tokens.indexOf("\n}", start) + 2);
+    expect(rule).toContain("--glass-wash-c-max:");
+    const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+    const built = transform({
+      filename: "tokens.css",
+      code: Buffer.from(rule),
+      minify: true,
+      targets: browserslistToTargets(browserslist(pkg.browserslist)),
+    }).code.toString();
+    const numbers = (css: string) =>
+      [
+        ...css.matchAll(/(?<![\w.-])-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/gi),
+      ].map(([n]) => Number(n));
+    const shipped = numbers(built);
+    expect(shipped.length).toBeGreaterThan(100);
+    expect(shipped).toEqual(numbers(rule));
   });
 });
 

@@ -128,7 +128,8 @@ const FILL_AUDIT = new Map(
     "calendar.tsx aria-selected:bg-accent": [["accent", 1, "accent-fg"]],
     "calendar.tsx bg-accent/50": [["accent", 0.5, "accent-fg"]], // today
     "calendar.tsx data-[range-middle=true]:bg-accent": [["accent", 1, "accent-fg"]],
-    "calendar.tsx hover:bg-accent/50": [["accent", 0.5, "accent-fg"]], // a day under the cursor; dark:hover:text-accent-foreground
+    "calendar.tsx dark:data-[range-middle=true]:bg-accent": [["accent", 1, "accent-fg"]], // the same, re-asserted over the night hover
+    "calendar.tsx hover:bg-accent/50": [["accent", 0.5, "accent-fg"]], // a day under the cursor; the ghost Button's hover:text-accent-foreground (a selected day keeps its own, tests/night-state-collisions)
     "combobox.tsx data-highlighted:bg-accent": [["accent", 1, "accent-fg"]],
     "combobox.tsx bg-muted": [["muted", 1, "none"]], // separator
     "command.tsx aria-selected:bg-accent": [["accent", 1, "accent-fg"]],
