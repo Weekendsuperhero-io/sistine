@@ -62,7 +62,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { inSrgbGamut, maxSrgbChroma } from "../lib/oklch-utils.ts";
-import { evaluate, substitute } from "./lib/css-math.mjs";
+import { compile, substitute } from "./lib/css-math.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -188,9 +188,19 @@ function hueCaps() {
 }
 const HUE_CAPS_BY_MODE = hueCaps();
 const HUE_CAPS = { light: HUE_CAPS_BY_MODE.light.caps, dark: HUE_CAPS_BY_MODE.dark.caps };
-/** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations. */
-const hueCapAt = (expr, h, mode = "dark") =>
-  evaluate(substitute(expr, new Map([...HUE_CAPS_BY_MODE[mode].decls, ["--glass-tint-h", String(h)]]))).v;
+/** Evaluate a hue-dependent cap at hue `h`, in `mode`, against that mode's own declarations. Each cap is
+ *  substituted and compiled once, with the hue as a placeholder (scripts/lib/css-math compile, held to
+ *  evaluate by tests/css-math.test.ts), so the [guard] sweep's 21,000 hues parse it once rather than each. */
+const COMPILED_CAPS = new Map();
+const hueCapAt = (expr, h, mode = "dark") => {
+  const key = `${mode}\n${expr}`;
+  let cap = COMPILED_CAPS.get(key);
+  if (!cap) {
+    cap = compile(substitute(expr, new Map([...HUE_CAPS_BY_MODE[mode].decls, ["--glass-tint-h", "HUE"]])), ["HUE"]);
+    COMPILED_CAPS.set(key, cap);
+  }
+  return cap({ HUE: h }).v;
+};
 
 /* Split a stylesheet into top-level rule bodies so a block-LOCAL override is honoured. A flavor block
    may re-pin the var a declaration reads — [data-gloss="hue"] sets its own --glass-gloss-l — and

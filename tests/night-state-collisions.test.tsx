@@ -44,7 +44,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { apcaContrast, compositeSurface, glassSolidSurface, type OklchColor, READABLE_USAGE } from "@/lib/oklch-utils";
-import { colorOf, computedVars, html, numberOf, presetNames } from "./theme-cascade";
+import { evaluate } from "../scripts/lib/css-math.mjs";
+import { computedVars, evalOklch, html, presetNames } from "./theme-cascade";
 
 const ROOT = process.cwd();
 const FLOOR = READABLE_USAGE.body.floor + 1.5;
@@ -198,41 +199,51 @@ function tokenOf(value: string | undefined):
     : undefined;
 }
 
-/* Resolving the cascade is the slow part; each preset's surface and token colours are resolved once. */
+/* Resolving the cascade is the slow part: each preset's night custom properties are resolved once, and every
+   colour and number is read from them. */
+const varsCache = new Map<string, Map<string, string>>();
+const nightVars = (tint: string) => {
+  let vars = varsCache.get(tint);
+  if (!vars) {
+    vars = computedVars(html(true, tint));
+    varsCache.set(tint, vars);
+  }
+  return vars;
+};
+const nightRaw = (token: string, tint: string) => {
+  const raw = nightVars(tint).get(token);
+  if (raw === undefined) throw new Error(`theme-cascade: ${token} does not compute on this element`);
+  return raw;
+};
+const nightNumber = (token: string, tint: string) => evaluate(nightRaw(token, tint)).v;
 const surfaceCache = new Map<string, OklchColor>();
-const colorCache = new Map<string, ReturnType<typeof colorOf> | null>();
 /** A token's night colour on a preset; null for `transparent` (bg-background: the surface shows). */
 const nightColor = (token: string, tint: string) => {
-  const key = `${tint} ${token}`;
-  if (!colorCache.has(key)) {
-    const raw = computedVars(html(true, tint)).get(token);
-    colorCache.set(key, raw?.trim() === "transparent" ? null : colorOf(token, html(true, tint)));
-  }
-  return colorCache.get(key) ?? null;
+  const raw = nightRaw(token, tint);
+  return raw.trim() === "transparent" ? null : evalOklch(raw);
 };
 function nightSurface(tint: string): OklchColor {
   const cached = surfaceCache.get(tint);
   if (cached) return cached;
-  const night = html(true, tint);
-  const solidify = colorOf("--glass-solidify-bg", night);
-  const wash = colorOf("--glass-tint-wash", night);
+  const solidify = evalOklch(nightRaw("--glass-solidify-bg", tint));
+  const wash = evalOklch(nightRaw("--glass-tint-wash", tint));
   const surface = glassSolidSurface(
     true,
     {
       h: wash.h,
-      c: numberOf("--glass-tint-c", night),
+      c: nightNumber("--glass-tint-c", tint),
       a: wash.a,
     },
-    numberOf("--glass-solid-a", night),
+    nightNumber("--glass-solid-a", tint),
     wash.l,
-    numberOf("--glass-wash-c-mult", night),
+    nightNumber("--glass-wash-c-mult", tint),
     {
       l: solidify.l,
       c: solidify.c,
       a: 0.7,
     },
-    numberOf("--glass-solid-l", night),
-    numberOf("--glass-wash-c-max", night),
+    nightNumber("--glass-solid-l", tint),
+    nightNumber("--glass-wash-c-max", tint),
   );
   surfaceCache.set(tint, surface);
   return surface;
@@ -439,95 +450,91 @@ describe("night state collisions (the cascade, from Tailwind's compiled styleshe
           f,
         ] as const,
     ),
-  )(
-    "%s: hovering or pressing a state at night keeps what the state reads",
-    (name, make) => {
-      const { container } = render(make());
-      const tints = [
-        undefined,
-        ...presetNames(),
-      ].filter((t): t is string => t !== undefined);
-      let checked = 0;
-      const seen = new Set<string>();
-      for (const el of container.querySelectorAll<HTMLElement>("[class]")) {
-        const classes = (el.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
-        const tag = el.tagName.toLowerCase();
-        const key = `${tag} ${classes.join(" ")}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        /* No state at all, and each state the element's own classes name, one at a time. */
-        for (const [attr, value] of [
+  )("%s: hovering or pressing a state at night keeps what the state reads", (name, make) => {
+    const { container } = render(make());
+    const tints = [
+      undefined,
+      ...presetNames(),
+    ].filter((t): t is string => t !== undefined);
+    let checked = 0;
+    const seen = new Set<string>();
+    for (const el of container.querySelectorAll<HTMLElement>("[class]")) {
+      const classes = (el.getAttribute("class") ?? "").split(/\s+/).filter(Boolean);
+      const tag = el.tagName.toLowerCase();
+      const key = `${tag} ${classes.join(" ")}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      /* No state at all, and each state the element's own classes name, one at a time. */
+      for (const [attr, value] of [
+        [
+          "",
+          "",
+        ] as [
+          string,
+          string,
+        ],
+        ...statesOf(classes),
+      ]) {
+        const attrs = new Map(
+          attr
+            ? [
+                [
+                  attr,
+                  value,
+                ],
+              ]
+            : [],
+        );
+        if (!attr && !classes.some((c) => /(^|:)(hover|active):/.test(c))) continue;
+        const rest = {
+          hover: false,
+          active: false,
+          attrs,
+          tag,
+        };
+        for (const [what, s] of [
           [
-            "",
-            "",
-          ] as [
-            string,
-            string,
+            "hovered",
+            {
+              ...rest,
+              hover: true,
+            },
           ],
-          ...statesOf(classes),
-        ]) {
-          const attrs = new Map(
-            attr
-              ? [
-                  [
-                    attr,
-                    value,
-                  ],
-                ]
-              : [],
-          );
-          if (!attr && !classes.some((c) => /(^|:)(hover|active):/.test(c))) continue;
-          const rest = {
-            hover: false,
-            active: false,
-            attrs,
-            tag,
-          };
-          for (const [what, s] of [
-            [
-              "hovered",
-              {
-                ...rest,
-                hover: true,
-              },
-            ],
-            [
-              "pressed",
-              {
-                ...rest,
-                hover: true,
-                active: true,
-              },
-            ],
-          ] as const) {
-            if (attr) {
-              for (const prop of [
-                "bg",
-                "color",
-              ] as const) {
-                const atRule = winningRule(classes, rest, prop);
-                if (!namesState(atRule, attr)) continue; // the state paints nothing of its own here
-                const underRule = winningRule(classes, s, prop);
-                expect(
-                  namesState(underRule, attr) || underRule?.[prop] === atRule?.[prop],
-                  `${name}: [${attr}${value ? `=${value}` : ""}] ${what} at night — its ${prop === "bg" ? "fill" : "text"} ${atRule?.[prop]} is taken by ${underRule?.[prop]}, a rule that does not name the state`,
-                ).toBe(true);
-              }
-            }
-            for (const tint of tints) {
-              const at = lcIn(classes, rest, tint);
-              const under = lcIn(classes, s, tint);
+          [
+            "pressed",
+            {
+              ...rest,
+              hover: true,
+              active: true,
+            },
+          ],
+        ] as const) {
+          if (attr) {
+            for (const prop of [
+              "bg",
+              "color",
+            ] as const) {
+              const atRule = winningRule(classes, rest, prop);
+              if (!namesState(atRule, attr)) continue; // the state paints nothing of its own here
+              const underRule = winningRule(classes, s, prop);
               expect(
-                under.lc,
-                `${name}: [${attr}${value ? `=${value}` : ""}] ${what} on ${tint} — ${under.color} on ${under.bg} reads ${under.lc.toFixed(1)} Lc, at rest ${at.color} on ${at.bg} read ${at.lc.toFixed(1)}`,
-              ).toBeGreaterThanOrEqual(Math.min(at.lc, FLOOR) - 1);
-              checked++;
+                namesState(underRule, attr) || underRule?.[prop] === atRule?.[prop],
+                `${name}: [${attr}${value ? `=${value}` : ""}] ${what} at night — its ${prop === "bg" ? "fill" : "text"} ${atRule?.[prop]} is taken by ${underRule?.[prop]}, a rule that does not name the state`,
+              ).toBe(true);
             }
+          }
+          for (const tint of tints) {
+            const at = lcIn(classes, rest, tint);
+            const under = lcIn(classes, s, tint);
+            expect(
+              under.lc,
+              `${name}: [${attr}${value ? `=${value}` : ""}] ${what} on ${tint} — ${under.color} on ${under.bg} reads ${under.lc.toFixed(1)} Lc, at rest ${at.color} on ${at.bg} read ${at.lc.toFixed(1)}`,
+            ).toBeGreaterThanOrEqual(Math.min(at.lc, FLOOR) - 1);
+            checked++;
           }
         }
       }
-      expect(checked, `${name}: no element carried a state or a hover class`).toBeGreaterThan(0);
-    },
-    60_000,
-  );
+    }
+    expect(checked, `${name}: no element carried a state or a hover class`).toBeGreaterThan(0);
+  });
 });

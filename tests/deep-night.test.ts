@@ -22,7 +22,7 @@ import browserslist from "browserslist";
 import { browserslistToTargets, transform } from "lightningcss";
 import { describe, expect, it } from "vitest";
 import { maxSrgbChroma, NIGHT_WASH_CAP, nightWashCap } from "@/lib/oklch-utils";
-import { evaluate } from "../scripts/lib/css-math.mjs";
+import { compile } from "../scripts/lib/css-math.mjs";
 import {
   colorOf,
   computedVars as computedVarsOf,
@@ -188,15 +188,34 @@ describe("deep night: the night wash cap follows the hue", () => {
     /* The mirror AutoForeground models a custom colour's wash with. A drag's snapshot carries only the
        hue, so if the two drift, text is solved against a wash the browser does not paint. Past 0–360 on
        purpose: the harmonic hues are the theme's plus up to 270, and a consumer tints scopes with them. */
-    /* The cascade once, with the hue left as a placeholder, then the substituted expression at every tenth of
-       a degree (resolving the cascade 18,000 times would take minutes). */
+    /* The cascade once, with the hue left as a placeholder, compiled once (scripts/lib/css-math compile,
+       held to evaluate by tests/css-math.test.ts), then evaluated at every tenth of a degree and every cusp
+       sample: resolving the cascade, or even re-parsing the expression, 21,000 times is what timed out. */
     const expr = computedVarsOf(customNight("HUE" as unknown as number)).get("--glass-wash-c-max");
     if (!expr) throw new Error("--glass-wash-c-max does not compute on a custom night scope");
-    for (let tenth = -7200; tenth <= 10800; tenth++) {
-      const h = tenth / 10;
-      expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(nightWashCap(h), 9);
-    }
-    for (const h of CUSP_SAMPLES) expect(evaluate(expr.replaceAll("HUE", String(h))).v, `h${h}`).toBeCloseTo(nightWashCap(h), 9);
+    const cap = compile(expr, [
+      "HUE",
+    ]);
+    let worst = {
+      d: 0,
+      h: 0,
+    };
+    const check = (h: number) => {
+      const d = Math.abs(
+        cap({
+          HUE: h,
+        }).v - nightWashCap(h),
+      );
+      if (d > worst.d)
+        worst = {
+          d,
+          h,
+        };
+    };
+    for (let tenth = -7200; tenth <= 10800; tenth++) check(tenth / 10);
+    for (const h of CUSP_SAMPLES) check(h);
+    // toBeCloseTo(…, 9)'s bound, at the worst of the 21,016 hues.
+    expect(worst.d, `CSS and nightWashCap differ most at h${worst.h}`).toBeLessThan(5e-10);
     // And the full cascade agrees with the placeholder route at a few hues.
     for (const h of [
       -500,
