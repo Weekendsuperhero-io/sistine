@@ -587,7 +587,8 @@
        two fits, at L92 (-at-92, 83.3–92.0% of the ceiling at every hundredth of a degree) and at L18
        (-at-18, 85.1–92.0%), blended by the scope's --glass-solidify-l and tapered to 0 toward black under
        18 and toward white over 92. At L92 and L18 the cap is the fit; between them it stays under the
-       ceiling at every whole lightness and degree (at most 95.3% of it), and check-gamut [guard] sweeps
+       ceiling at every whole lightness (at most 92.6% of it at whole degrees, and 98.5% at 0.01° steps,
+       at L19 near the blue step, about 95.5% of the true sRGB edge), and check-gamut [guard] sweeps
        every lightness from 0 to 100. The cap it replaced (65% of the preset's L88 opaque cap, 0.036 where
        a scope pins none) held the hues that peak light to 26–56% of theirs. --glass-solidify-c-scale,
        the backing's ×1.36, is declared here too, so it is reset at every tint scope.
