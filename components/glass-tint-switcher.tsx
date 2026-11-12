@@ -189,8 +189,9 @@ const FRESCOES = new Set([
 /* A named preset's own wash knobs, as the stylesheet resolves them on <html> (its --glass-wash-l, and the
    day --glass-wash-c-max it pins where its wash is not at the default L72: lapis paints 0.2125 at L46, where
    the L72 fit a snapshot would otherwise fall back to allows 0.133). Read once per preset and mode, so a drag
-   pays one style read rather than one per frame; a value the browser hands back as an expression (the
-   hue-following fits) is left out, and AutoForeground evaluates its own mirror of it. */
+   pays one style read rather than one per frame. The hue-following fits are registered as numbers
+   (tokens.css), so a preset that pins no cap hands back the number its fit paints with, and that rides
+   along too; a value that is not a plain number is left out, and AutoForeground evaluates its own mirror. */
 const presetWash = new Map<string, Record<string, number>>();
 function presetWashKnobs(base: PresetValue): Record<string, number> {
   if (base === "custom") return {};

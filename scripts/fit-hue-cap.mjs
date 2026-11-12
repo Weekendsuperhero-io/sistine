@@ -67,7 +67,14 @@ const CUT = 200; // per degree, every breakpoint: L35's blue step needs 110 (eac
 const MULT = 572958; // 1800000/π as a minifier leaves it (see ANY hue above)
 const round = (x, d) => Math.round(x * 10 ** d) / 10 ** d;
 const H = "var(--glass-wash-hue)";
-const HUE_CSS = `--glass-wash-hue: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * ${MULT});`;
+/* The hue as tokens.css declares it: two registered numbers and their sum, so a var() that hands the hue on
+   rounds nothing off it (tokens.css, THE CAPS ARE NUMBERS). Every fit reads the sum. */
+const HUE_EXPR = `sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * ${MULT}`;
+const HUE_CSS = [
+  `--glass-wash-hue-hi: calc(${HUE_EXPR});`,
+  `--glass-wash-hue-lo: calc(${HUE_EXPR} - var(--glass-wash-hue-hi));`,
+  "--glass-wash-hue: calc(var(--glass-wash-hue-hi) + var(--glass-wash-hue-lo));",
+].join("\n");
 
 const which = process.argv[2];
 if (which === "pins") {
