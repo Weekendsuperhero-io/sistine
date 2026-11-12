@@ -82,25 +82,52 @@ export const FG_INPUTS = [
 /** The fresco sheet a fresco preset paints over every material (a gradient), which every tier bands against. */
 const FG_FRESCO = "--glass-crystal-fresco";
 
+/** Where a complete snapshot records the page it was read from (not a property name, so never an input). */
+const FG_PAGE = "@page";
+
+/** Everything on <html> that a read of its computed style depends on, the stylesheets aside: its classes
+ * (the mode), the preset, gloss flavor and page style attributes, and its inline style (the tint, accent,
+ * lightness, opacity, solidity and gloss knobs a switcher writes there) without AutoForeground's own
+ * outputs. Two reads of the same stylesheets in the same page state read the same numbers. */
+function fgPageState(root: HTMLElement): string {
+  const inline: string[] = [];
+  for (let i = 0; i < root.style.length; i++) {
+    const name = root.style.item(i);
+    if (!/^--(?:muted-)?foreground/.test(name)) inline.push(`${name}:${root.style.getPropertyValue(name).trim()}`);
+  }
+  return [
+    root.className,
+    root.dataset.glassTint ?? "",
+    root.dataset.gloss ?? "",
+    root.dataset.glass ?? "",
+    ...inline.sort(),
+  ].join("\n");
+}
+
 /** A FG_EVENT detail: AutoForeground's inputs by name. A PARTIAL one (the tint switcher's drag snapshot:
  * the tint, the lightness, the accent and a preset's wash knobs) is banded at once, and any attribute
  * change it came with is then checked against the DOM, since a preset pins inputs it does not carry. A
- * COMPLETE one carries every {@link FG_INPUTS} number (NaN where unset) and the fresco string, as
- * {@link readFgInputs} builds it: it bands exactly as the DOM would, and it covers <html>'s class,
- * data-glass-tint, data-gloss and slider inputs as they stood when it was dispatched, so the attribute
- * changes it came with are not read again. */
+ * COMPLETE one, as {@link readFgInputs} builds it, carries every {@link FG_INPUTS} number (NaN where
+ * unset), the fresco string and the page state it was read in. Dispatched in that same state it bands
+ * exactly as the DOM would, without a read, and covers the attribute changes it came with, so they are
+ * not read again. Dispatched in any other (a cached snapshot after the user moved a knob), it is stale:
+ * AutoForeground reads the DOM instead. */
 export type FgSnapshot = Record<string, number | string>;
 
-/** A complete {@link FgSnapshot} of a computed style (<html>'s by default). */
-export function readFgInputs(cs: CSSStyleDeclaration = getComputedStyle(document.documentElement)): FgSnapshot {
+/** A complete {@link FgSnapshot} of an element's computed style (<html>'s by default) and of the page
+ * state it was read in. Cache it per state if you like: one taken in another state is never used. */
+export function readFgInputs(root: HTMLElement = document.documentElement): FgSnapshot {
+  const cs = getComputedStyle(root);
   const out: FgSnapshot = {
     [FG_FRESCO]: cs.getPropertyValue(FG_FRESCO),
+    [FG_PAGE]: fgPageState(root),
   };
   for (const name of FG_INPUTS) out[name] = Number.parseFloat(cs.getPropertyValue(name));
   return out;
 }
 
-const isCompleteSnapshot = (s: FgSnapshot) => typeof s[FG_FRESCO] === "string" && FG_INPUTS.every((name) => typeof s[name] === "number");
+const isCompleteSnapshot = (s: FgSnapshot) =>
+  typeof s[FG_FRESCO] === "string" && typeof s[FG_PAGE] === "string" && FG_INPUTS.every((name) => typeof s[name] === "number");
 
 // Dev instrumentation: set localStorage["sistine-fg-debug"] = "1" (then reload) to log each update()'s
 // wall-time and how far it nudges --foreground off the CSS baseline (the "marginal bump"). Off by default.
@@ -276,22 +303,13 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       // moment a consumer dials solidity, which is exactly when the floor moves most.
       /--glass-opacity:\s*([^;]+)/,
     ];
-    /* What a re-band depends on that <html> carries itself: the classes (the mode), the preset, the gloss
-       flavor and the slider inputs above. `covered` is the state the last COMPLETE solve banded (a DOM read,
-       or a complete snapshot); a mutation that leaves <html> in it changes nothing to re-read. A partial
-       snapshot covers nothing, so the DOM still has the last word on it, as it always had. */
-    const rootState = () => {
-      const style = root.getAttribute("style") ?? "";
-      return [
-        root.className,
-        root.dataset.glassTint ?? "",
-        root.dataset.gloss ?? "",
-        ...STYLE_INPUTS.map((re) => re.exec(style)?.[1]?.trim() ?? ""),
-      ].join("\n");
-    };
+    /* `covered` is the page state (fgPageState) the last COMPLETE solve banded: a DOM read, at the moment
+       it read, or a complete snapshot, in the state it RECORDS. A mutation that leaves <html> in it changes
+       nothing to re-read. A partial snapshot covers nothing, so the DOM still has the last word on it, as
+       it always had. */
     let covered = "";
 
-    const update = (inputs?: FgSnapshot) => {
+    const update = (detail?: FgSnapshot) => {
       const dbg = fgDebug();
       const t0 = dbg ? performance.now() : 0;
       const dark = root.classList.contains("dark");
@@ -302,10 +320,15 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const count = rcount ?? storedRamp.count;
       // A snapshot from the switcher (the drag hot path) lets us skip getComputedStyle — the read-after-write
       // forced reflow measured at 7–22ms. Fall back to the DOM for mount / mode toggle / frescoes (no snapshot).
-      // A complete snapshot is the DOM's own numbers, so it serves Onyx and the frescoes too.
-      const complete = inputs !== undefined && isCompleteSnapshot(inputs);
+      // A complete snapshot is the DOM's own numbers, so it serves Onyx and the frescoes too, but only in the
+      // page state it was read in: one read in another (a cached snapshot after a knob moved) is stale, and
+      // the DOM is read instead.
+      const page = fgPageState(root);
+      const whole = detail !== undefined && isCompleteSnapshot(detail);
+      const complete = whole && detail?.[FG_PAGE] === page;
+      const inputs = whole && !complete ? undefined : detail;
       const cs = complete || (inputs && !onyx) ? null : getComputedStyle(root);
-      covered = cs || complete ? rootState() : "";
+      covered = complete || cs ? page : "";
       const fgBefore = dbg ? (cs ? cs.getPropertyValue("--foreground").trim() : root.style.getPropertyValue("--foreground").trim()) : "";
       const num = (name: string, fb: number) => {
         const v = cs ? Number.parseFloat(cs.getPropertyValue(name)) : inputs?.[name];
@@ -818,15 +841,15 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     update();
     // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
     // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
-    // An attribute change a complete solve already banded (rootState() === covered: the event's own DOM
-    // read, or a complete snapshot) is not read again. A read makes the browser restyle the page then and
+    // An attribute change a complete solve already banded (fgPageState() === covered: the event's own DOM
+    // read, or a complete snapshot of this very state) is not read again. A read makes the browser restyle the page then and
     // there, and on a theme pick that is every element.
     const observer = new MutationObserver((muts) => {
       const now = root.getAttribute("style") ?? "";
       const moved = muts.some(
         (m) => m.attributeName !== "style" || STYLE_INPUTS.some((re) => re.exec(m.oldValue ?? "")?.[1]?.trim() !== re.exec(now)?.[1]?.trim()),
       );
-      if (moved && rootState() !== covered) update();
+      if (moved && fgPageState(root) !== covered) update();
     });
     observer.observe(root, {
       attributes: true,

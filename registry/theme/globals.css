@@ -569,14 +569,17 @@
    their sum: two numbers to substitute instead of the trigonometry, and the hue to 5e-7° in both engines.
 
    Nothing else changes: each still inherits, is declared and so reset at every tint scope, and night, the
-   pale warm stone and the near-black preset pin theirs as before (`inherit` included). WebKit, not
-   Chromium, animates a registered property on an element with `transition: all`, so there a cap eases
-   between two presets' values over that transition, as the harmonic hues already do. The initial values
-   are each fit's floor, its share at its tightest hue (the wash's at night, the lower of its two), and 0
-   for the blended backing, the one chroma every lightness holds. A registered property whose value cannot
-   be computed inherits the one above it, so a cap falls to its initial value only on the root, where none
-   of them clips. check-theme [token-budget] fails a custom property that would carry a long token list
-   again. */
+   pale warm stone and the near-black preset pin theirs as before (`inherit` included); every painted
+   value is the same to the 6th significant digit. WebKit, not Chromium, animates a registered property
+   on an element with `transition: all`, so there a cap eases between two presets' values over that
+   transition (a tint scope's wash settles in about 0.5–0.65 s), as the harmonic hues already do; no
+   registration avoids it, so a consumer lists the properties it transitions. The initial values are
+   each fit's floor, its share at its tightest hue (the wash's at night, the lower of its two), and 0 for
+   the blended backing, the one chroma every lightness holds. A registered property whose value cannot be
+   computed inherits the one above it, so a cap falls to its initial value only on the root, where none of
+   them clips; a tint hue that is not a number (`250deg`) is such a value, and its scope takes the caps of
+   the one above (unregistered, it left the scope uncapped). check-theme [token-budget] fails a custom
+   property that would carry a long token list again. */
 @property --glass-wash-hue-hi {
   syntax: "<number>";
   inherits: true;

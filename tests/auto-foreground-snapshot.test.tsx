@@ -144,6 +144,52 @@ describe("reads", () => {
     expect(tiers()).toEqual(banded);
   });
 
+  /* A consumer caches a snapshot per preset and mode; the user then moves a knob <html> carries inline and
+     re-picks the same preset and mode. The cached snapshot holds the old numbers, so it must not be used:
+     AutoForeground reads the page and bands the surface it paints. A snapshot read after the move is fresh
+     and needs no read. */
+  for (const [knob, name, value] of [
+    [
+      "opacity",
+      "--glass-opacity",
+      "0.1",
+    ],
+    [
+      "a custom hue",
+      "--glass-tint-h",
+      "30",
+    ],
+  ] as const)
+    it(`reads the page for a snapshot cached before ${knob} moved, and not for one read after`, async () => {
+      mount("sapphire", false);
+      await waitFor(() => expect(tiers()["--foreground-opaque"]).not.toBe(""));
+      root().dataset.glassTint = "aventurine";
+      root().classList.add("dark");
+      send();
+      const cached = readFgInputs();
+      const before = tiers();
+      root().style.setProperty(name, value);
+      send();
+      const moved = tiers();
+      expect(moved).not.toEqual(before);
+      const fresh = readFgInputs();
+      const repick = async (snapshot: unknown) => {
+        root().dataset.glassTint = "sapphire";
+        await microtasks();
+        const reads = vi.spyOn(window, "getComputedStyle");
+        root().dataset.glassTint = "aventurine";
+        send(snapshot);
+        await microtasks();
+        const n = reads.mock.calls.length;
+        reads.mockRestore();
+        return n;
+      };
+      expect(await repick(cached)).toBe(1);
+      expect(tiers()).toEqual(moved);
+      expect(await repick(fresh)).toBe(0);
+      expect(tiers()).toEqual(moved);
+    });
+
   it("still checks a partial snapshot against the DOM", async () => {
     // Aventurine pins its own opaque cap (presets.css), which the switcher's snapshot does not carry.
     mount("aventurine", false);
