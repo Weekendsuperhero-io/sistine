@@ -34,8 +34,73 @@ export const FG_STORAGE_KEY = "sistine-fg";
 /** localStorage key holding the persisted {@link RampConfig}. */
 export const RAMP_KEY = "sistine-ramp";
 /** Window event AutoForeground listens for to re-band: dispatch it after changing the tint, the mode or
- * the stored config (`window.dispatchEvent(new Event(FG_EVENT))`). */
+ * the stored config (`window.dispatchEvent(new Event(FG_EVENT))`). Without a detail, AutoForeground reads
+ * <html>'s computed style, which makes the browser restyle the page there and then, and then restyle it
+ * again for the foregrounds it writes. With a complete {@link FgSnapshot} it bands without the read. */
 export const FG_EVENT = "sistine-fg";
+
+/** Every number AutoForeground reads off <html>'s computed style. tests/auto-foreground-snapshot.test.tsx
+ * holds this list to the names the solve reads. */
+export const FG_INPUTS = [
+  "--accent-c",
+  "--accent-h",
+  "--glass-chakra-a",
+  "--glass-chakra-c-max",
+  "--glass-chakra-l",
+  "--glass-crystal-bg-a",
+  "--glass-crystal-l",
+  "--glass-fg-h",
+  "--glass-gloss-c",
+  "--glass-gloss-c-max",
+  "--glass-gloss-l",
+  "--glass-gloss-tint",
+  "--glass-lustre-a",
+  "--glass-lustre-c-max",
+  "--glass-lustre-gloss-c-max",
+  "--glass-lustre-gloss-l",
+  "--glass-lustre-l",
+  "--glass-lustre-wash-strength",
+  "--glass-night-depth",
+  "--glass-opacity",
+  "--glass-opaque-c-max",
+  "--glass-opaque-c-scale",
+  "--glass-opaque-cap-scale",
+  "--glass-opaque-l",
+  "--glass-solid-a",
+  "--glass-solid-l",
+  "--glass-solidify-c-max",
+  "--glass-solidify-c-scale",
+  "--glass-solidify-l",
+  "--glass-tint-a",
+  "--glass-tint-c",
+  "--glass-tint-h",
+  "--glass-wash-c-max",
+  "--glass-wash-c-mult",
+  "--glass-wash-l",
+  "--harmony-h",
+] as const;
+/** The fresco sheet a fresco preset paints over every material (a gradient), which every tier bands against. */
+const FG_FRESCO = "--glass-crystal-fresco";
+
+/** A FG_EVENT detail: AutoForeground's inputs by name. A PARTIAL one (the tint switcher's drag snapshot:
+ * the tint, the lightness, the accent and a preset's wash knobs) is banded at once, and any attribute
+ * change it came with is then checked against the DOM, since a preset pins inputs it does not carry. A
+ * COMPLETE one carries every {@link FG_INPUTS} number (NaN where unset) and the fresco string, as
+ * {@link readFgInputs} builds it: it bands exactly as the DOM would, and it covers <html>'s class,
+ * data-glass-tint, data-gloss and slider inputs as they stood when it was dispatched, so the attribute
+ * changes it came with are not read again. */
+export type FgSnapshot = Record<string, number | string>;
+
+/** A complete {@link FgSnapshot} of a computed style (<html>'s by default). */
+export function readFgInputs(cs: CSSStyleDeclaration = getComputedStyle(document.documentElement)): FgSnapshot {
+  const out: FgSnapshot = {
+    [FG_FRESCO]: cs.getPropertyValue(FG_FRESCO),
+  };
+  for (const name of FG_INPUTS) out[name] = Number.parseFloat(cs.getPropertyValue(name));
+  return out;
+}
+
+const isCompleteSnapshot = (s: FgSnapshot) => typeof s[FG_FRESCO] === "string" && FG_INPUTS.every((name) => typeof s[name] === "number");
 
 // Dev instrumentation: set localStorage["sistine-fg-debug"] = "1" (then reload) to log each update()'s
 // wall-time and how far it nudges --foreground off the CSS baseline (the "marginal bump"). Off by default.
@@ -199,7 +264,34 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
   React.useEffect(() => {
     const root = document.documentElement;
 
-    const update = (inputs?: Record<string, number>) => {
+    // Inline STYLE mutations re-band ONLY when a surface-model input actually changed: --glass-solid-a
+    // (the veil-floor slider) or --glass-gloss-l (the crystal gloss-boldness slider) — the two inputs
+    // with no FG_EVENT. The old-vs-new gate keeps tint drags on the event fast path AND breaks the
+    // self-trigger loop from our own --foreground* writes (which touch neither).
+    const STYLE_INPUTS = [
+      /--glass-solid-a:\s*([^;]+)/,
+      /--glass-gloss-l:\s*([^;]+)/,
+      // --glass-opacity is a surface-model input now that the solidify floor is banded against, and the
+      // component-opacity slider writes it inline with no FG_EVENT — without this the tiers go stale the
+      // moment a consumer dials solidity, which is exactly when the floor moves most.
+      /--glass-opacity:\s*([^;]+)/,
+    ];
+    /* What a re-band depends on that <html> carries itself: the classes (the mode), the preset, the gloss
+       flavor and the slider inputs above. `covered` is the state the last COMPLETE solve banded (a DOM read,
+       or a complete snapshot); a mutation that leaves <html> in it changes nothing to re-read. A partial
+       snapshot covers nothing, so the DOM still has the last word on it, as it always had. */
+    const rootState = () => {
+      const style = root.getAttribute("style") ?? "";
+      return [
+        root.className,
+        root.dataset.glassTint ?? "",
+        root.dataset.gloss ?? "",
+        ...STYLE_INPUTS.map((re) => re.exec(style)?.[1]?.trim() ?? ""),
+      ].join("\n");
+    };
+    let covered = "";
+
+    const update = (inputs?: FgSnapshot) => {
       const dbg = fgDebug();
       const t0 = dbg ? performance.now() : 0;
       const dark = root.classList.contains("dark");
@@ -210,16 +302,20 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const count = rcount ?? storedRamp.count;
       // A snapshot from the switcher (the drag hot path) lets us skip getComputedStyle — the read-after-write
       // forced reflow measured at 7–22ms. Fall back to the DOM for mount / mode toggle / frescoes (no snapshot).
-      const cs = inputs && !onyx ? null : getComputedStyle(root);
+      // A complete snapshot is the DOM's own numbers, so it serves Onyx and the frescoes too.
+      const complete = inputs !== undefined && isCompleteSnapshot(inputs);
+      const cs = complete || (inputs && !onyx) ? null : getComputedStyle(root);
+      covered = cs || complete ? rootState() : "";
       const fgBefore = dbg ? (cs ? cs.getPropertyValue("--foreground").trim() : root.style.getPropertyValue("--foreground").trim()) : "";
       const num = (name: string, fb: number) => {
         const v = cs ? Number.parseFloat(cs.getPropertyValue(name)) : inputs?.[name];
-        return v == null || Number.isNaN(v) ? fb : v;
+        return typeof v !== "number" || Number.isNaN(v) ? fb : v;
       };
       /* A fresco's multi-hue sheet, if one is active (--glass-crystal-fresco is unset on every other preset).
          Every material paints it over its surface, so every tier set bands against the hardest stop of it
-         (see applyTiers). Frescoes always take the DOM path, so the snapshot never has to carry it. */
-      const frescoStops = cs ? parseGradientStops(cs.getPropertyValue("--glass-crystal-fresco")) : [];
+         (see applyTiers). A partial snapshot never carries it (frescoes send none); a complete one does. */
+      const fresco = cs ? cs.getPropertyValue(FG_FRESCO) : complete ? inputs?.[FG_FRESCO] : "";
+      const frescoStops = typeof fresco === "string" ? parseGradientStops(fresco) : [];
       // Foregrounds FOLLOW THE CHOSEN FOREGROUND HUE: the ramp's hue is --glass-fg-h (which defaults to
       // the glass tint --glass-tint-h, but frescoes set it apart so text anchors off their surface).
       // Lightness + chroma (vividness) and step count come from the /colors ramp config. Picks are
@@ -281,10 +377,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const tintSurfaceH = num("--glass-tint-h", tintH);
       /* The wash's chroma CAP (--glass-wash-c-max). It follows the wash's OWN hue in both modes (tokens.css):
          at night 99.5% of the sRGB ceiling at the depth, by day 95% of it at L72. The browser evaluates it
-         per scope but hands it back as an expression, not a number; nightWashCap / dayWashCap are the same
-         fits, so the model is exact on the DOM path and on a drag's snapshot alike. A number set directly
-         wins: a preset whose day wash sits at another lightness pins its own (the switcher's snapshot
-         carries it, with the preset's --glass-wash-l), and a consumer may override.
+         per scope and, registered as a number (tokens.css), hands back the number it paints with;
+         nightWashCap / dayWashCap are the same fits, for a snapshot that carries none and for jsdom, which
+         ignores the registration. A number set directly wins: a preset whose day wash sits at another
+         lightness pins its own (the switcher's snapshot carries it, with the preset's --glass-wash-l), and a
+         consumer may override.
          Uncapped, the model would band against up to 2.4× the chroma the wash paints. */
       const washCMax = num("--glass-wash-c-max", dark ? nightWashCap(tintSurfaceH) : dayWashCap(tintSurfaceH));
       const washC = Math.min(tintC * washCMult, washCMax);
@@ -310,9 +407,9 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
          tokens.css). It is the one high-weight term in the composite that is not part of a preset's
          declared identity, which is why LIGHT lifts it to 92 to buy body-text contrast without touching
          a single tint token. By day it has its own scale (×1.36) and a cap that follows the hue and the
-         backing's lightness (92% of the ceiling there, dayBackingCap, which the browser hands back
-         unevaluated); the pale warm stone keeps the cap it had (check-theme [moonstone-sync] holds the
-         mirror). At night tokens.css hands it the opaque floor's scale and cap. */
+         backing's lightness (92% of the ceiling there: the browser hands back the number, dayBackingCap
+         mirrors it for a snapshot); the pale warm stone keeps the cap it had (check-theme [moonstone-sync]
+         holds the mirror). At night tokens.css hands it the opaque floor's scale and cap. */
       const solidifyL = num("--glass-solidify-l", dark ? 36.4 : 92);
       const solidifyFloor = {
         l: solidifyL,
@@ -721,33 +818,15 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
     update();
     // Mode toggle (class) uses the DOM-read fallback — the one place we still pay the recalc, by design.
     // Tint / accent / lightness changes arrive via FG_EVENT carrying a JS snapshot (no getComputedStyle).
-    // Inline STYLE mutations re-band ONLY when a surface-model input actually changed: --glass-solid-a
-    // (the veil-floor slider) or --glass-gloss-l (the crystal gloss-boldness slider) — the two inputs
-    // with no FG_EVENT. The old-vs-new gate keeps tint drags on the event fast path AND breaks the
-    // self-trigger loop from our own --foreground* writes (which touch neither).
-    const STYLE_INPUTS = [
-      /--glass-solid-a:\s*([^;]+)/,
-      /--glass-gloss-l:\s*([^;]+)/,
-      // --glass-opacity is a surface-model input now that the solidify floor is banded against, and the
-      // component-opacity slider writes it inline with no FG_EVENT — without this the tiers go stale the
-      // moment a consumer dials solidity, which is exactly when the floor moves most.
-      /--glass-opacity:\s*([^;]+)/,
-    ];
+    // An attribute change a complete solve already banded (rootState() === covered: the event's own DOM
+    // read, or a complete snapshot) is not read again. A read makes the browser restyle the page then and
+    // there, and on a theme pick that is every element.
     const observer = new MutationObserver((muts) => {
-      for (const m of muts) {
-        if (m.attributeName === "class" || m.attributeName === "data-gloss" || m.attributeName === "data-glass-tint") {
-          update();
-          return;
-        }
-        if (m.attributeName === "style") {
-          const now = root.getAttribute("style") ?? "";
-          const was = m.oldValue ?? "";
-          if (STYLE_INPUTS.some((re) => re.exec(was)?.[1]?.trim() !== re.exec(now)?.[1]?.trim())) {
-            update();
-            return;
-          }
-        }
-      }
+      const now = root.getAttribute("style") ?? "";
+      const moved = muts.some(
+        (m) => m.attributeName !== "style" || STYLE_INPUTS.some((re) => re.exec(m.oldValue ?? "")?.[1]?.trim() !== re.exec(now)?.[1]?.trim()),
+      );
+      if (moved && rootState() !== covered) update();
     });
     observer.observe(root, {
       attributes: true,
@@ -759,7 +838,13 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         "data-glass-tint",
       ],
     });
-    const onFg = (e: Event) => update((e as CustomEvent<Record<string, number>>).detail ?? undefined);
+    /* A complete snapshot bands without a read and covers the state it was sent in. A partial one bands at
+       once too (Onyx, which no partial snapshot describes, reads the DOM instead), and the attribute
+       changes it came with still reach the observer, which checks them against the DOM. No detail: read. */
+    const onFg = (e: Event) => {
+      const detail = (e as CustomEvent<FgSnapshot | null | undefined>).detail;
+      update(detail && typeof detail === "object" ? detail : undefined);
+    };
     window.addEventListener(FG_EVENT, onFg);
     return () => {
       observer.disconnect();

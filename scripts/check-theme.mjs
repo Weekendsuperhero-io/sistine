@@ -33,6 +33,8 @@
  *   8. [tint-sync] Every GlassTintSwitcher preset's h/c/a equals its [data-glass-tint] CSS block(s). The
  *               switcher INLINES the preset onto <html>, shadowing the CSS — so a divergent block renders
  *               fine on the demo (preset wins) but differently for a static, no-switcher consumer (CSS wins).
+ *   [token-budget] No unregistered custom property computes to more than 400 CSS tokens, as declared or with
+ *               its var()s substituted: the browser stores and compares that list at every element below it.
  *
  * Run: bun run test   (node scripts/check-theme.mjs)
  */
@@ -740,6 +742,95 @@ for (const [value, tint] of presetTint) {
     if (cssLight !== null && jsLight !== null && jsLight !== cssLight) {
       fail(`[fallback-sync] --${name}: auto-foreground.tsx falls back to ${jsLight} in LIGHT but tokens.css ships ${cssLight}. jsdom tests would model a surface the theme does not paint.`);
     }
+  }
+}
+
+/* ── [token-budget] no custom property computes to a long token list ─────────────────────────────
+   An unregistered custom property computes to its value with every var() substituted in, a token list the
+   browser stores at each element that declares it, hands down to every element and pseudo-element below,
+   and compares token by token on each restyle. The hue-following caps did that at ~4,800 tokens apiece
+   and a theme pick took WebKit 1.3–3.2 s; registered as <number> (tokens.css, THE CAPS ARE NUMBERS) each
+   computes to one number. So every declaration is measured twice, in CSS tokens (whitespace aside): as
+   declared, and as the browser stores it, each var() replaced by the longest value its property is
+   declared with anywhere (or its fallback, whichever is longer), a typed registered property counting as
+   the one value it computes to. Either over the budget, the property must be registered with a type: a
+   `syntax: "*"` registration still stores the token list. The largest unregistered today is the lustre
+   stack, 339 substituted, and each cap is 429–509 as declared, so the budget sits between them. A
+   registered property is held to a second budget, on the expression each declaring scope evaluates (the
+   caps read the hue as two registered numbers, 487–579; with the hue unregistered they came to ~2,500).
+   Reads the flattened theme, which [artifact] holds equal to registry/theme/globals.css. */
+const TOKEN_BUDGET = 400;
+const COMPUTE_BUDGET = 1000;
+{
+  const bare = stripComments(css);
+  const typed = new Set();
+  for (const m of bare.matchAll(/@property\s+(--[\w-]+)\s*\{([^}]*)\}/g)) if (!/syntax:\s*["']\*["']/.test(m[2])) typed.add(m[1]);
+  const declared = new Map();
+  for (const m of bare.matchAll(/(--[\w-]+)\s*:\s*([^;{}]*);/g)) {
+    if (!declared.has(m[1])) declared.set(m[1], []);
+    declared.get(m[1]).push(m[2].trim());
+  }
+  const TOKEN = /[\w-]+\(|"[^"]*"|'[^']*'|[+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?(?:%|[a-z]+)?|#[\w-]+|-?-?[\w-]+|\S/gi;
+  const tokens = (v) => v.match(TOKEN) ?? [];
+  const stored = new Map();
+  const storedSize = (name) => {
+    if (typed.has(name)) return 1;
+    if (stored.has(name)) return stored.get(name) ?? 1; // a cycle is invalid at computed-value time anyway
+    stored.set(name, null);
+    const n = Math.max(1, ...declared.get(name).map(substitutedSize));
+    stored.set(name, n);
+    return n;
+  };
+  function substitutedSize(value) {
+    const t = tokens(value);
+    let n = 0;
+    for (let i = 0; i < t.length; i++) {
+      if (t[i].toLowerCase() !== "var(") {
+        n++;
+        continue;
+      }
+      const ref = t[i + 1];
+      let depth = 1;
+      let comma = -1;
+      let k = i + 1;
+      while (depth > 0 && ++k < t.length) {
+        if (t[k].endsWith("(")) depth++;
+        else if (t[k] === ")") depth--;
+        else if (t[k] === "," && depth === 1 && comma < 0) comma = k;
+      }
+      const fallback = comma > 0 ? substitutedSize(t.slice(comma + 1, k).join(" ")) : 0;
+      n += Math.max(declared.has(ref) ? storedSize(ref) : 1, fallback);
+      i = k;
+    }
+    return n;
+  }
+  for (const [name, values] of declared) {
+    if (typed.has(name)) {
+      /* Registered, it stores one number, but each scope that declares it still substitutes and evaluates
+         its expression on every restyle: the hue the caps read 30-odd times each is two numbers for that. */
+      const work = Math.max(...values.map(substitutedSize));
+      if (work > COMPUTE_BUDGET) {
+        fail(
+          `[token-budget] ${name} is registered, but every scope that declares it evaluates a ${work}-token expression on each restyle (over ${COMPUTE_BUDGET}). ` +
+            `Register what it reads, as tokens.css registers the hue the caps read (--glass-wash-hue-hi / -lo).`,
+        );
+      }
+      continue;
+    }
+    const asDeclared = Math.max(...values.map((v) => tokens(v).length));
+    const asStored = storedSize(name);
+    if (Math.max(asDeclared, asStored) > TOKEN_BUDGET) {
+      fail(
+        `[token-budget] ${name} computes to a ${asStored}-token list (${asDeclared} as declared), over the ${TOKEN_BUDGET}-token budget. ` +
+          `Every element under its scope stores that list and compares it on each restyle. Register it, or the property it reads, ` +
+          `with @property and a type (syntax: "<number>", inherits: true, an initial-value), as tokens.css does for the hue-following caps.`,
+      );
+    }
+  }
+  /* The hue every cap reads stays the SUM of two registered numbers. Registered whole, Chromium hands it to
+     each cap at six significant digits, up to 5e-4° off, and 11,258 of 265,482 painted values changed. */
+  if (typed.has("--glass-wash-hue")) {
+    fail(`[token-budget] --glass-wash-hue is registered whole; keep it the unregistered sum of --glass-wash-hue-hi and -lo (tokens.css, THE CAPS ARE NUMBERS), or Chromium rounds the hue every cap reads.`);
   }
 }
 

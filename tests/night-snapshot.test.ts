@@ -31,9 +31,13 @@ const NEW_AT_NIGHT: Record<string, string> = {
   "--glass-solidify-c-scale": "the backing's day scale; at night it is the opaque floor's",
   /* The day backing cap's two hue fits (at L92 and L18), which the day cap blends by the backing's
      lightness. The night rule redeclares --glass-solidify-c-max at every night scope, so nothing reads
-     them at night. */
+     them at night, and it sets them to their initial values there so no night scope evaluates them. */
   "--glass-solidify-c-max-at-92": "a day backing fit; unread at night",
   "--glass-solidify-c-max-at-18": "a day backing fit; unread at night",
+  /* The hue every cap reads, as two registered numbers (tokens.css, THE CAPS ARE NUMBERS). Their sum is
+     --glass-wash-hue, pinned here, and it is what it was. */
+  "--glass-wash-hue-hi": "the cap hue as a var() hands it on; --glass-wash-hue is their sum",
+  "--glass-wash-hue-lo": "what that rounds off the cap hue; --glass-wash-hue is their sum",
 };
 
 const r9 = (x: number) => {
