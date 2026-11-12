@@ -115,7 +115,10 @@ function fgPageState(root: HTMLElement): string {
 export type FgSnapshot = Record<string, number | string>;
 
 /** A complete {@link FgSnapshot} of an element's computed style (<html>'s by default) and of the page
- * state it was read in. Cache it per state if you like: one taken in another state is never used. */
+ * state it was read in. Cache it per state if you like: one taken in another state is never used. The
+ * record covers <html>'s classes, its four glass attributes and its inline style, not the stylesheets:
+ * drop cached snapshots when a stylesheet, a media-dependent rule or another root attribute your CSS keys
+ * glass knobs on changes. */
 export function readFgInputs(root: HTMLElement = document.documentElement): FgSnapshot {
   const cs = getComputedStyle(root);
   const out: FgSnapshot = {
