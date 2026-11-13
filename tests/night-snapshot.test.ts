@@ -42,6 +42,10 @@ const NEW_AT_NIGHT: Record<string, string> = {
      `dark:bg-input/(--input-fill-a)`: 10% at every night scope, as the `/10` they carried, and 8% on the pale
      stone, whose brighter night rim needs it (check-contrast [role]). A new token, read only by that class. */
   "--input-fill-a": "the default field's night fill alpha; 10% as before, the pale stone's 8%",
+  /* The ink border's alpha, renamed: the theme declares it as --glass-border-ink-default-a and no longer
+     declares --glass-border-ink-a (the consumer's override, which --brd-ink reads first). 0.55 at every night
+     scope, and the neon city fresco's knob (0.62) on its own scope: the alpha --brd-ink paints is as before. */
+  "--glass-border-ink-default-a": "the ink border's alpha under its new name; 0.55, the neon city's 0.62, as before",
 };
 
 const r9 = (x: number) => {

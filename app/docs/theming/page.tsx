@@ -151,7 +151,7 @@ export default function ThemingPage() {
                       "border colour",
                       'borderColor="ink"',
                       "glass-border-ink",
-                      "draw the border in the text colour (--foreground at --glass-border-ink-a, 0.5) instead of the material's near-white edge, which disappears on light themes; pairs with border",
+                      "draw the border in the text colour (--foreground at --glass-border-ink-a if you set it, else the theme's 0.55) instead of the material's near-white edge, which disappears on light themes; pairs with border",
                     ],
                     [
                       "veil",

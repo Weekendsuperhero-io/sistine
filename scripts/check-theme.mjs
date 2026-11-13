@@ -23,6 +23,8 @@
  *   6j.[gloss-scope] the gloss is composed on [data-gloss] scopes too; flavor blocks set leaves only.
  *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset.
  *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
+ *   6m.[night-knob] a --night-* knob is registered non-inheriting, read by the night rule with a fallback,
+ *               and set only in an unscoped preset block.
  *   3. [preset] Every GlassTintSwitcher preset has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint (or the Toaster's TOAST_TINT) has a block.
  *   4b.[vendor-free] No third-party component selectors (data-sonner) in the theme.
@@ -569,6 +571,33 @@ for (const r of rules) {
     const m = /^\.dark\[data-glass-tint="([a-z-]+)"\]$/.exec(sel);
     if (m && !sels.includes(`.dark [data-glass-tint="${m[1]}"]`)) {
       fail(`[night-scope] "${sel}" has no ".dark [data-glass-tint=\"${m[1]}\"]" twin — a ${m[1]} preset scoped inside a dark page would render its day values.`);
+    }
+  }
+}
+
+// 6m. [night-knob] a one-block preset (the neon city fresco) sets its night values through --night-* knobs that
+//     tokens.css's night rule reads (`--border-l: var(--night-border-l, 0.65)`). Each knob must be registered
+//     `inherits: false`, or a tint scope nested in that preset would read it and lose the shared night value
+//     the night rule resets at every scope; it must be read with a fallback, or every other scope's token is
+//     unset; and it is set only in a preset's unscoped block (a .dark block would pin the token directly).
+{
+  const night = rules.find((r) => splitTop(r.selector).includes(".dark [data-glass-tint]") && /var\(--night-/.test(r.body));
+  const read = new Set();
+  for (const d of night ? decls(night.body) : []) {
+    for (const [, knob, fallback] of d.value.matchAll(/var\((--night-[a-z0-9-]+)(?:\s*,\s*([^)]+))?\)/g)) {
+      read.add(knob);
+      if (fallback === undefined) fail(`[night-knob] ${d.name}: var(${knob}) has no fallback — every scope that does not set the knob would lose ${d.name}.`);
+    }
+  }
+  for (const knob of read) {
+    const reg = rules.find((r) => r.selector === `@property ${knob}`);
+    if (!reg || !/inherits:\s*false/.test(reg.body)) fail(`[night-knob] ${knob} must be registered with @property … inherits: false, or a tint scope nested in the preset that sets it would take its night value.`);
+  }
+  for (const r of rules) {
+    for (const d of decls(r.body)) {
+      if (!/^--night-/.test(d.name)) continue;
+      if (!read.has(d.name)) fail(`[night-knob] ${d.name} is set on "${r.selector.replace(/\s+/g, " ")}" but the night rule never reads it.`);
+      if (!splitTop(r.selector).every((x) => /^\[data-glass-tint="[a-z-]+"\]$/.test(x))) fail(`[night-knob] ${d.name} is set on "${r.selector.replace(/\s+/g, " ")}" — set a knob only in a preset's unscoped [data-glass-tint="x"] block.`);
     }
   }
 }

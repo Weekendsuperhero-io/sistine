@@ -51,18 +51,12 @@
     oklch(84% 0.12 74 / 0.4) 100%
   );
   --glass-crystal-fresco: var(--glass-bg);
-}
-/* The neon city's one NIGHT block holds only its night lines (the sheet is shared, above): its stops are the
-   brightest at night of any fresco (L78–85 at alpha 0.26–0.3), so the app-wide L65 line read 2.2:1 on its
-   night card, under WCAG's 3:1 (scripts/check-contrast.mjs [edge]); tokens.css resets the night role
-   tokens at every tint scope, so they are set here at night only. */
-.dark[data-glass-tint="muse"],
-.dark [data-glass-tint="muse"] {
-  --border-l: 0.81;
-  --input-l: 0.81;
-  /* And its night ink border (the glass field's night rim, any borderColor="ink"): at the shared 0.55 it read
-     2.8:1 against the sheet's brightest stop (L85 h222 at 0.3) over the night card; 0.62 holds 3:1 there. */
-  --glass-border-ink-a: 0.62;
+  /* Night lines, through knobs the night rule reads (tokens.css; registered non-inheriting, so a scope nested
+     in this one keeps the shared 0.65 / 0.55): the brightest night stops of any fresco lift its card, where
+     the 0.65 line read 2.2:1 and the 0.55 ink rim 2.8:1, under WCAG's 3:1 (check-contrast [edge] / [ink]). */
+  --night-border-l: 0.81;
+  --night-input-l: 0.81;
+  --night-border-ink-a: 0.62;
 }
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,

@@ -388,17 +388,35 @@ function modeVars() {
     for (const [, k, v] of b.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) m.set(k, +v);
     return m;
   };
-  return { light: grab(rootBody), dark: grab(darkBody) };
+  const dark = grab(darkBody);
+  /* A night token read through a one-block preset's knob (`--border-l: var(--night-border-l, 0.65)`) is
+     that fallback at a scope that sets no knob. */
+  for (const { token, fallback } of nightKnobs().values()) dark.set(token, fallback);
+  return { light: grab(rootBody), dark };
+}
+
+/** The night rule's KNOBS: knob name → the night token it sets and that token's shared value. A preset sets
+ *  a knob in its one (unscoped) block, registered non-inheriting, so it holds at that scope only. */
+function nightKnobs() {
+  const t = strip(css.tokens);
+  const out = new Map();
+  for (const [, token, knob, fallback] of t.slice(t.indexOf(".dark {")).matchAll(/--([a-z0-9-]+):\s*var\(--(night-[a-z0-9-]+),\s*([\d.]+)\)\s*;/g)) {
+    out.set(knob, { token, fallback: +fallback });
+  }
+  return out;
 }
 
 /** Every [data-glass-tint] block's declared numbers, split by mode scope. */
 function presets() {
   const out = new Map();
+  const knobs = nightKnobs();
   for (const src of [css.presets, css.frescoes]) {
     for (const [, darkSel, name, body] of withoutSlotRules(strip(src)).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
       const rec = out.get(name) ?? { name, light: new Map(), dark: new Map(), fresco: { light: "", dark: "" } };
       const target = darkSel ? rec.dark : rec.light;
       for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) target.set(k, +v);
+      /* Its night knobs are night values, read by the night rule at this scope (a .dark block still wins). */
+      if (!darkSel) for (const [knob, { token }] of knobs) if (target.has(knob) && !rec.dark.has(token)) rec.dark.set(token, target.get(knob));
       /* A knob written over another one: `var(--y)` or `calc(var(--y, d) * k)` (the pale warm stone keeps
          its backing's old scale and cap that way). Resolved per mode once the mode knobs are read. */
       rec.formulas ??= { light: [], dark: [] };
@@ -712,7 +730,14 @@ for (const p of all) {
     /* The ink border: the same --foreground the surface's text uses, mixed toward transparent and painted
        over that surface (a border sits on its element's own background). color-mix(…, transparent) in
        oklch keeps the colour and scales its alpha, which the browser then blends in sRGB, as this does. */
-    const inkA = resolve(p, mode, vars, "glass-border-ink-a") ?? vars.light.get("glass-border-ink-a") ?? 0.5;
+    /* --brd-ink paints var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)): the consumer's override
+       if the theme sets one (it does not), else the theme's default (a preset's night knob at night), else 0.5. */
+    const inkA =
+      resolve(p, mode, vars, "glass-border-ink-a") ??
+      vars.light.get("glass-border-ink-a") ??
+      resolve(p, mode, vars, "glass-border-ink-default-a") ??
+      vars.light.get("glass-border-ink-default-a") ??
+      0.5;
     for (const [where, ink, ground] of [
       ["sheer", fg, textSurface],
       ["opaque", opaqueInk, opaqueText],

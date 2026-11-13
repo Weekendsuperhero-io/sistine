@@ -97,10 +97,12 @@
    glass on a dark page and as nothing at all on most light themes, at hairline, rim or frame weight
    alike, so a weight axis whose colour disappears went unused. Ink is the element's own text colour
    (--foreground, after any per-material text remap on this element), mixed toward transparent by
-   --glass-border-ink-a: a visible line anywhere text is legible. Element-composed and registered
-   non-inheriting (registrations.css), so a child border keeps its own material colour. */
+   --glass-border-ink-a, the consumer's override, else the theme's --glass-border-ink-default-a (0.55; a
+   preset's night value through tokens.css's night rule): a visible line anywhere text is legible.
+   Element-composed and registered non-inheriting (registrations.css), so a child border keeps its own
+   material colour. */
 @utility glass-border-ink {
-  --brd-ink: color-mix(in oklch, var(--foreground) calc(var(--glass-border-ink-a, 0.5) * 100%), transparent);
+  --brd-ink: color-mix(in oklch, var(--foreground) calc(var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)) * 100%), transparent);
 }
 
 /* Diffuse axis — a READABILITY BLUR FLOOR (not a blur value): every translucent material computes

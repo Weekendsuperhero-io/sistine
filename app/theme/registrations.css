@@ -60,6 +60,21 @@
   syntax: "*";
   inherits: false;
 }
+/* A one-block preset's NIGHT knobs (tokens.css's night rule reads them, with the shared value as fallback),
+   NON-inheriting so only the scope that sets one takes it: a tint scope nested inside it keeps the shared
+   night lines, as every night scope resets them. */
+@property --night-border-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --night-input-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --night-border-ink-a {
+  syntax: "*";
+  inherits: false;
+}
 
 /* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
    rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as

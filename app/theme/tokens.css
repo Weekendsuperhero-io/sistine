@@ -134,8 +134,11 @@
   /* Ink border alpha (borderColor="ink" / glass-border-ink): how much of --foreground the line takes.
      Mode-invariant because --foreground already flips polarity per mode; 0.5 keeps the line clearly
      softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]); 0.55 since
-     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc. */
-  --glass-border-ink-a: 0.55;
+     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc.
+     The theme's DEFAULT, not --glass-border-ink-a itself: that one is the consumer's override, which the theme
+     never declares, so a consumer's own alpha set at any depth wins over this and over a preset's night value
+     (--brd-ink reads var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)); utilities.css). */
+  --glass-border-ink-default-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
      --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step — and
@@ -1096,6 +1099,11 @@
           Every pairing comes from an audit of the components (check-contrast FILL_AUDIT).
       The near-black preset (an L16 floor) and the pale warm stone (L41–46) pin their own night values in
       presets.css; the stone's fills recess instead, since nothing that far above L46 carries text.
+      A one-block preset (the neon city fresco) cannot pin night values that way, so the lines read three
+      KNOBS it sets in that block: --night-border-l / --night-input-l, and --night-border-ink-a, the ink
+      border's night DEFAULT alpha (--glass-border-ink-default-a; a consumer's own --glass-border-ink-a still
+      wins, and day and every preset that sets no knob compute as before). Registered non-inheriting, a knob
+      is read only at the scope that sets it: a scope nested in it gets 0.65 / 0.55 here.
 
    4. The night values of the DAY caps, which the hue-following caps rule above declares at every tint
       scope and would otherwise hand a scope nested in a dark page. The backing takes the opaque floor's
@@ -1169,8 +1177,9 @@
       calc(0.23411 + 200 * (-95.865 - var(--glass-wash-hue)))
     )
   );
-  --border-l: 0.65;
-  --input-l: 0.65;
+  --border-l: var(--night-border-l, 0.65);
+  --input-l: var(--night-input-l, 0.65);
+  --glass-border-ink-default-a: var(--night-border-ink-a, 0.55);
   --input-fill-a: 10%;
   --accent-bg-l: 0.45;
   --secondary-l: 0.44;
