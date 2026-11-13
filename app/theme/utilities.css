@@ -263,8 +263,12 @@
                   still reads as a skeleton from its base fill.
      - spin     → rotation. Real motion, but it is the ONLY signal that a loader is alive, so freezing
                   it reads as "hung" rather than "calm". Slowed hard instead of stopped.
+     - ping     → a zoom outward (scale 1 → 2). Real motion, decorative (the dot it rings stays): stopped.
+     - bounce   → translation up and down. Real motion, decorative: stopped.
      - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
                   Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
+   These rules STOP loops; `--motion-loop-scale` only slows them (see tokens.css), so a consumer's No
+   level must not try to stop a loop by setting the scale near 0: that strobes.
    Who decides: a consumer that sets `data-motion` on :root owns the choice, so the OS query applies only
    under `:root:not([data-motion])` (a consumer that never sets it follows the OS exactly as before), and
    `:root[data-motion="no"]` applies the same treatment whatever the OS says.
@@ -277,6 +281,11 @@
     animation: none;
   }
 
+  :root:not([data-motion]) .animate-ping,
+  :root:not([data-motion]) .animate-bounce {
+    animation: none;
+  }
+
   :root:not([data-motion]) .animate-spin {
     animation-duration: 3s;
   }
@@ -284,6 +293,11 @@
 
 :root[data-motion="no"] .animate-\[sistine-shimmer_2s_infinite\],
 :root[data-motion="no"] .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  animation: none;
+}
+
+:root[data-motion="no"] .animate-ping,
+:root[data-motion="no"] .animate-bounce {
   animation: none;
 }
 

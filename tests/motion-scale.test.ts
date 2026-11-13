@@ -13,6 +13,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { compile } from "tailwindcss";
 import { describe, expect, it } from "vitest";
+import { stopRules } from "../components/pattern-background";
 
 const THEME = "app/theme";
 const TIMING_PROPS = /\b(transition|transition-duration|transition-delay|animation|animation-duration|animation-delay)\s*:\s*([^;{}]+);/g;
@@ -320,14 +321,177 @@ describe("reduced motion gives way to a consumer's motion dial", () => {
     expect(missing).toEqual([]);
   });
 
-  it("every reduced-motion query in the theme and the components is gated on data-motion", () => {
-    const sources = [
-      ...readdirSync(THEME).map((f) => join(THEME, f)),
-      ...readdirSync("components/ui").map((f) => join("components/ui", f)),
-      "components/pattern-background.tsx",
+  it("stops ping and bounce (they zoom and move) and leaves pulse (opacity only) alone, under both", () => {
+    const { rules, after } = osBlock();
+    const stopped = (cls: string) =>
+      rules.some(({ selectors, decls }) => decls === "animation: none;" && selectors.includes(`:root:not([data-motion]) ${cls}`));
+    expect(
+      [
+        ".animate-ping",
+        ".animate-bounce",
+      ].filter((cls) => !stopped(cls)),
+    ).toEqual([]);
+    const pulse = rules.filter(({ selectors }) => selectors.some((s) => s.includes(".animate-pulse"))).map(({ where }) => where);
+    expect(pulse).toEqual([]);
+    expect(after).not.toContain(".animate-pulse");
+  });
+
+  it("documents next to the loop tokens that the loop scale slows and never stops", () => {
+    const tokens = read(join(THEME, "tokens.css"));
+    expect(tokens).toContain("--motion-loop-scale SLOWS loops, it never stops them: a consumer's No level must keep it at 1 or more.");
+    expect(tokens).toContain('Stopping is\n     the job of the data-motion="no" rules in utilities.css');
+  });
+});
+
+/** A selector list split at its top-level commas (not the ones inside `:where(…)`). */
+function topLevelSplit(list: string) {
+  const parts = [
+    "",
+  ];
+  let depth = 0;
+  for (const ch of list) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) parts.push("");
+    else parts[parts.length - 1] += ch;
+  }
+  return parts.map((s) => s.trim());
+}
+
+/** A rule is gated when it is scoped under a :root without data-motion: a descendant rule, or the
+    nested `&` form a @custom-variant body writes (registrations.css). */
+const GATED_SCOPE = ":root:not([data-motion]) ";
+const GATED_NESTED = "&:where(:root:not([data-motion]), :root:not([data-motion]) *)";
+const isGated = (selector: string) => selector.startsWith(GATED_SCOPE) || selector === GATED_NESTED;
+
+/** Every `@media (prefers-reduced-motion…)` block in `text`, with each rule inside it and its line. */
+function reducedMotionQueries(text: string, file: string) {
+  const css = withoutComments(text);
+  const found: {
+    where: string;
+    rules: {
+      selectors: string[];
+      where: string;
+    }[];
+  }[] = [];
+  for (const q of css.matchAll(/@media\s*\(prefers-reduced-motion[^{]*\{/g)) {
+    const open = q.index + q[0].length - 1;
+    let depth = 0;
+    let close = open;
+    for (let i = open; i < css.length; i++) {
+      if (css[i] === "{") depth++;
+      if (css[i] === "}" && --depth === 0) {
+        close = i;
+        break;
+      }
+    }
+    const body = css.slice(open + 1, close);
+    found.push({
+      where: `${file}:${lineOf(css, q.index)}`,
+      rules: [
+        ...body.matchAll(/([^{}]+)\{[^{}]*\}/g),
+      ].map((m) => ({
+        selectors: topLevelSplit(m[1]),
+        where: `${file}:${lineOf(css, open + 1 + m.index + m[0].length - m[0].trimStart().length)}`,
+      })),
+    });
+  }
+  return found;
+}
+
+/** Every file under `dir` (recursively) with one of `exts`. */
+function filesUnder(dir: string, exts: string[]): string[] {
+  return readdirSync(dir, {
+    withFileTypes: true,
+  }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return filesUnder(path, exts);
+    return exts.some((ext) => entry.name.endsWith(ext))
+      ? [
+          path,
+        ]
+      : [];
+  });
+}
+
+describe("every reduced-motion query, one by one", () => {
+  /* The theme, the site CSS, the shipped flat theme, and every component source. pattern-background's
+     stopRules() builds its query from a template, so its source is checked through its OUTPUT instead. */
+  const STOP_RULES = "components/pattern-background.tsx";
+  const sources = () => [
+    ...filesUnder("app", [
+      ".css",
+    ]),
+    "registry/theme/globals.css",
+    ...filesUnder("components", [
+      ".ts",
+      ".tsx",
+    ]).filter((f) => f !== STOP_RULES),
+  ];
+
+  it("gates every rule inside it on :root:not([data-motion])", () => {
+    const queries = [
+      ...sources().flatMap((f) => reducedMotionQueries(read(f), f)),
+      ...reducedMotionQueries(stopRules(".a", ".b"), "stopRules()"),
     ];
-    const ungated = sources.filter((f) => read(f).includes("prefers-reduced-motion") && !read(f).includes("data-motion"));
-    expect(ungated).toEqual([]);
+    const empty = queries.filter(({ rules }) => rules.length === 0).map(({ where }) => `${where} (no rules parsed)`);
+    const ungated = queries.flatMap(({ rules }) =>
+      rules.flatMap(({ selectors, where }) => selectors.filter((s) => !isGated(s)).map((s) => `${where} ${s}`)),
+    );
+    expect([
+      ...empty,
+      ...ungated,
+    ]).toEqual([]);
+    // the theme's own block, its flattened copy and stopRules(), so the scan cannot pass empty
+    expect(queries.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("stopRules() is the only query pattern-background writes", () => {
+    const src = read(STOP_RULES);
+    expect(src.match(/@media\s*\(prefers-reduced-motion/g)?.length).toBe(1);
+  });
+});
+
+/** Tailwind's duration steps (theme.css has no --transition-duration-*: these are the bare-value steps tokens.css scales). */
+const DURATION_STEPS = new Set([
+  0,
+  75,
+  100,
+  150,
+  200,
+  300,
+  500,
+  700,
+  1000,
+]);
+
+describe("no off-scale motion class in components/ or app/", () => {
+  /* A class that writes its own time or curve bypasses the tokens: a bare duration-N off the steps (it
+     stays literal), an arbitrary duration-[…] / delay-[…] / ease-[…] that reads no --motion-* token, and
+     tw-animate's animation-duration-N. */
+  const CLASS = /(?<![\w-])(duration-(\d+)\b|(?:duration|delay|ease)-\[[^\]\s]*\]|animation-duration-[\w.[\]()-]+)/g;
+  const offScale = () =>
+    [
+      ...filesUnder("components", [
+        ".ts",
+        ".tsx",
+      ]),
+      ...filesUnder("app", [
+        ".ts",
+        ".tsx",
+        ".mdx",
+      ]),
+    ].flatMap((f) => {
+      const text = read(f);
+      return [
+        ...text.matchAll(CLASS),
+      ]
+        .filter(([cls, , step]) => (step === undefined ? !/var\(--motion-/.test(cls) : !DURATION_STEPS.has(Number(step))))
+        .map((m) => `${f}:${lineOf(text, m.index)} ${m[1]}`);
+    });
+
+  it("finds none (the baseline is 0)", () => {
+    expect(offScale()).toEqual([]);
   });
 });
 
@@ -369,5 +533,73 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
     expect(rule("animate-in")).toContain("var(--tw-duration, calc(0.15s * var(--motion-scale, 1)))");
     expect(rule("transition")).toContain("transition-duration: var(--tw-duration, calc(150ms * var(--motion-scale, 1)))");
     expect(rule("transition")).toContain("transition-timing-function: var(--tw-ease, var(--motion-ease-enter, cubic-bezier(0.23, 1, 0.32, 1)))");
+  }, 30_000);
+
+  /* motion-safe: / motion-reduce: are redefined in registrations.css. Tailwind's own variant is a bare
+     media query; with no data-motion, ours must be exactly that query over the same declarations, the
+     selector only wrapped in :root:not([data-motion]) at zero specificity. */
+  const NONE = ":where(:root:not([data-motion]), :root:not([data-motion]) *)";
+  const VARIANTS: [
+    string,
+    string,
+    string,
+  ][] = [
+    [
+      "motion-reduce:transition-none",
+      "reduce",
+      ':where(:root[data-motion="no"], :root[data-motion="no"] *)',
+    ],
+    [
+      "motion-safe:animate-spin",
+      "no-preference",
+      ':where(:root[data-motion]:not([data-motion="no"]), :root[data-motion]:not([data-motion="no"]) *)',
+    ],
+  ];
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const selectorOf = (cls: string) => `.${cls.replace(":", "\\:")}`;
+
+  it("motion-reduce: and motion-safe: follow data-motion, and the OS only without it", async () => {
+    const out = (
+      await compile(read("app/globals.css"), {
+        base: resolve("app"),
+        loadStylesheet,
+      })
+    ).build(VARIANTS.map(([cls]) => cls));
+    const missing = VARIANTS.flatMap(([cls, os, dial]) => {
+      const sel = selectorOf(cls);
+      const wants = [
+        // the dial, whatever the OS says: outside any media query
+        new RegExp(`\\n {2}${esc(sel + dial)} \\{`),
+        // the OS, only when :root carries no data-motion
+        new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(sel + NONE)} \\{`),
+      ];
+      return wants.filter((re) => !re.test(out)).map((re) => `${cls}: ${re.source}`);
+    });
+    expect(missing).toEqual([]);
+    // no bare OS query left behind for either class
+    const bare = VARIANTS.filter(([cls, os]) =>
+      new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(selectorOf(cls))} \\{`).test(out),
+    );
+    expect(bare.map(([cls]) => cls)).toEqual([]);
+  }, 30_000);
+
+  it("without data-motion they emit what Tailwind's own variants do", async () => {
+    const ours = (
+      await compile(read("app/globals.css"), {
+        base: resolve("app"),
+        loadStylesheet,
+      })
+    ).build(VARIANTS.map(([cls]) => cls));
+    const stock = (
+      await compile('@import "tailwindcss";\n@import "tw-animate-css";\n@import "./theme/tokens.css";', {
+        base: resolve("app"),
+        loadStylesheet,
+      })
+    ).build(VARIANTS.map(([cls]) => cls));
+    /* The OS-gated block of each: its media query and declarations. Ours carries the :where wrapper. */
+    const block = (css: string, cls: string, os: string, suffix: string) =>
+      css.match(new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(selectorOf(cls) + suffix)} \\{([^}]*)\\}`))?.[1].trim() ??
+      `${cls} (${os}) not emitted`;
+    for (const [cls, os] of VARIANTS) expect(block(ours, cls, os, NONE), cls).toBe(block(stock, cls, os, ""));
   }, 30_000);
 });

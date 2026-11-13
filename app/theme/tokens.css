@@ -44,7 +44,11 @@
      moves. Same curve and role as --ease-out, written out because @theme inline doesn't emit the vars
      it inlines. */
   --default-transition-timing-function: var(--motion-ease-enter, cubic-bezier(0.23, 1, 0.32, 1));
-  /* Loops: Tailwind's spin / pulse / ping / bounce, durations on the loop scale (keyframes unchanged). */
+  /* Loops: Tailwind's spin / pulse / ping / bounce, durations on the loop scale (keyframes unchanged).
+     --motion-loop-scale SLOWS loops, it never stops them: a consumer's No level must keep it at 1 or more.
+     Near 0 a loop does not stop, it strobes (bounce and ping cycling many times a second). Stopping is
+     the job of the data-motion="no" rules in utilities.css (shimmer, ping and bounce stopped, spin slowed
+     to 3s, pulse kept). */
   --animate-spin: spin calc(1s * var(--motion-loop-scale, 1)) linear infinite;
   --animate-ping: ping calc(1s * var(--motion-loop-scale, 1)) cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-pulse: pulse calc(2s * var(--motion-loop-scale, 1)) cubic-bezier(0.4, 0, 0.6, 1) infinite;

@@ -26,10 +26,11 @@ export function ModeToggle({ variant = "glass", material }: { variant?: "default
       aria-label="Toggle theme"
     >
       {/* Cross-fade sun↔moon: both icons stay mounted (one absolute) and animate opacity + scale +
-          blur on cubic-bezier(0.2,0,0,1). Dependency-free so the shipped component stays portable. */}
+          blur on the standard easing role, cubic-bezier(0.2,0,0,1) when a consumer sets none.
+          Dependency-free so the shipped component stays portable. */}
       <span className="relative inline-flex size-[1.2rem] items-center justify-center">
         <Sun
-          className="absolute size-[1.2rem] transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+          className="absolute size-[1.2rem] transition-[opacity,scale,filter] duration-300 ease-[var(--motion-ease-standard,cubic-bezier(0.2,0,0,1))]"
           style={{
             opacity: isDark ? 0 : 1,
             scale: isDark ? "0.25" : "1",
@@ -37,7 +38,7 @@ export function ModeToggle({ variant = "glass", material }: { variant?: "default
           }}
         />
         <Moon
-          className="absolute size-[1.2rem] transition-[opacity,scale,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+          className="absolute size-[1.2rem] transition-[opacity,scale,filter] duration-300 ease-[var(--motion-ease-standard,cubic-bezier(0.2,0,0,1))]"
           style={{
             opacity: isDark ? 1 : 0,
             scale: isDark ? "1" : "0.25",
