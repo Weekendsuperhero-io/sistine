@@ -55,6 +55,12 @@ const TOKENS = {
   sidebarRing: "--sidebar-ring",
   accentForeground: "--accent-foreground",
   secondaryForeground: "--secondary-foreground",
+  /* The status inks (an Alert's words on its status tint): day-only values here, the night ones in
+     tests/night-snapshot.test.ts. */
+  destructiveInk: "--destructive-ink",
+  infoInk: "--info-ink",
+  successInk: "--success-ink",
+  warningInk: "--warning-ink",
 } as const;
 type Surfaces = Record<keyof typeof TOKENS, ResolvedOklch>;
 
@@ -341,11 +347,29 @@ describe("deep night: the night role tokens", () => {
       muted: 24,
     },
     moonstone: {
-      border: 72,
-      input: 72,
+      border: 76,
+      input: 76,
       accent: 33,
       secondary: 33,
       muted: 33,
+    },
+    /* The four frescoes' night lines: their lit night sheets lift the card under the line, so each raises its
+       own past the app-wide 65 to clear WCAG's 3:1 (check-contrast [edge]); their fills keep the night's. */
+    sistine: {
+      border: 76,
+      input: 76,
+    },
+    gloaming: {
+      border: 76,
+      input: 76,
+    },
+    aurora: {
+      border: 78,
+      input: 78,
+    },
+    muse: {
+      border: 81,
+      input: 81,
     },
   };
   const expected = (t: string | undefined, role: "border" | "input" | "accent" | "secondary" | "muted") =>
@@ -368,8 +392,8 @@ describe("deep night: the night role tokens", () => {
     const night = computedVarsOf(html(true, "lapis"));
     expect(night.get("--accent-foreground")).toBe(night.get("--foreground-strong"));
     expect(night.get("--secondary-foreground")).toBe(night.get("--foreground-strong"));
-    expect(colorOf(TOKENS.ring, html(true, "lapis")).l).toBeCloseTo(70, 6);
-    expect(colorOf(TOKENS.ring, html(true, "lapis")).c).toBeLessThanOrEqual(maxSrgbChroma(70, 250));
+    expect(colorOf(TOKENS.ring, html(true, "lapis")).l).toBeCloseTo(80, 6);
+    expect(colorOf(TOKENS.ring, html(true, "lapis")).c).toBeLessThanOrEqual(maxSrgbChroma(80, 250));
   });
 
   it("resets them at every tint scope, so a nested preset never takes its page preset's night values", () => {

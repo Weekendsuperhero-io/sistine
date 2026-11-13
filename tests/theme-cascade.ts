@@ -6,7 +6,8 @@
  * --glass-tint-wash cannot be read back from it. This models the parts that decide those values: which
  * top-level rules MATCH an element carrying a class and a data-glass-tint (or a child of one), the cascade
  * between them (specificity, then source order in app/globals.css's import order), inheritance of computed
- * custom properties into a child, var() substitution with fallbacks, and the math.
+ * custom properties into a child (except those registered `inherits: false`), var() substitution with
+ * fallbacks, and the math.
  *
  * It reads the CSS itself, so a test built on it measures what ships rather than a parallel table of
  * numbers that has to be kept in step by hand. var() substitution and the math are scripts/lib/css-math
@@ -74,7 +75,9 @@ function loadRules(): Rule[] {
       if (src[i] === "{") {
         if (depth === 0) {
           // A statement at-rule (`@custom-variant …;`) can sit in front of the selector: keep what follows it.
-          selector = src.slice(segStart, i).split(";").pop()?.trim() ?? "";
+          /* Whitespace is collapsed and dropped just inside parentheses (the formatter breaks a long :is() or
+             :not() over lines), which changes no selector's meaning. */
+          selector = (src.slice(segStart, i).split(";").pop()?.trim() ?? "").replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")");
           bodyStart = i + 1;
         }
         depth++;
@@ -108,13 +111,60 @@ const rules = () => {
   return cached;
 };
 
-/** Specificity of one COMPOUND selector against an element, or null if it does not match. */
-function matchCompound(compound: string, el: ModelElement): number | null {
+/** The custom properties the partials register `@property … { inherits: false }`: a child does not inherit
+ *  them (the glow layer, the veil slots, the ink border, the status Alert's own surface slots). */
+function loadNonInherited(): Set<string> {
+  const aggregator = readFileSync(join(ROOT, "app/globals.css"), "utf8");
+  const names = new Set<string>();
+  for (const [, file] of aggregator.matchAll(/@import\s+"\.\/(theme\/[a-z-]+\.css)"/g)) {
+    const src = stripComments(readFileSync(join(ROOT, "app", file), "utf8"));
+    for (const [, name, body] of src.matchAll(/@property\s+(--[a-z0-9-]+)\s*\{([^}]*)\}/gi)) {
+      if (/inherits:\s*false/.test(body)) names.add(name);
+    }
+  }
+  return names;
+}
+let nonInheritedCache: Set<string> | undefined;
+export const nonInherited = () => {
+  nonInheritedCache ??= loadNonInherited();
+  return nonInheritedCache;
+};
+
+/** Specificity of one COMPOUND selector against an element, or null if it does not match. `ancestors` is the
+ *  chain down to and including the element, for a `:not()` whose argument is a complex selector. */
+function matchCompound(
+  compound: string,
+  el: ModelElement,
+  ancestors: ModelElement[] = [
+    el,
+  ],
+  inNot = false,
+): number | null {
   let spec = 0;
   let rest = compound;
   while (rest) {
     let m: RegExpExecArray | null;
-    if ((m = /^:root/.exec(rest))) {
+    if ((m = /^\*/.exec(rest))) {
+      // the universal selector: matches any element, no specificity
+    } else if ((m = /^:not\((?=:where\()/.exec(rest))) {
+      /* :not(:where(<selector list>)) matches if no argument does, at no specificity: the form the status Alert's
+         day rule takes (presets.css). Every other :not() still falls through to "not modelled" below, as it
+         always has, so no rule this model already read changes how it matches. */
+      let depth = 0;
+      let end = 0;
+      for (let i = m[0].length - 1; i < rest.length; i++) {
+        if (rest[i] === "(") depth++;
+        else if (rest[i] === ")" && --depth === 0) {
+          end = i;
+          break;
+        }
+      }
+      const args = splitTop(rest.slice(m[0].length, end), ",");
+      if (args.some((a) => matchSelector(a, ancestors, true) !== null)) return null;
+      spec += Math.max(0, ...args.map(argSpecificity));
+      rest = rest.slice(end + 1);
+      continue;
+    } else if ((m = /^:root/.exec(rest))) {
       spec += 1; // :root is only ever asked of the top element (see matchSelector)
     } else if ((m = /^\.([a-z0-9_-]+)/i.exec(rest))) {
       if (!el.classes?.includes(m[1])) return null;
@@ -123,6 +173,23 @@ function matchCompound(compound: string, el: ModelElement): number | null {
       const v = el.attrs?.[m[1]];
       if (v === undefined || (m[2] !== undefined && v !== m[2])) return null;
       spec += 1;
+    } else if ((m = /^:is\(/.exec(rest))) {
+      /* :is() matches if any (compound) argument does, and carries the specificity of its most specific
+         argument, matched or not: the status Alert's day rule names the four status tints this way. */
+      let depth = 0;
+      let end = 0;
+      for (let i = m[0].length - 1; i < rest.length; i++) {
+        if (rest[i] === "(") depth++;
+        else if (rest[i] === ")" && --depth === 0) {
+          end = i;
+          break;
+        }
+      }
+      const args = splitTop(rest.slice(m[0].length, end), ",");
+      if (!args.some((a) => !/\s/.test(a) && matchCompound(a, el) !== null)) return null;
+      spec += Math.max(0, ...args.map(argSpecificity));
+      rest = rest.slice(end + 1);
+      continue;
     } else if ((m = /^:where\(/.exec(rest))) {
       // :where() adds no specificity; it matches if any argument does.
       let depth = 0;
@@ -135,7 +202,9 @@ function matchCompound(compound: string, el: ModelElement): number | null {
         }
       }
       const inner = rest.slice(m[0].length, end);
-      if (!splitTop(inner, ",").some((s) => !/\s/.test(s) && matchCompound(s, el) !== null)) return null;
+      // Inside a :not(), an argument may be complex (`.dark *`); elsewhere only compound arguments are read.
+      if (!splitTop(inner, ",").some((s) => (inNot ? matchSelector(s, ancestors, true) !== null : !/\s/.test(s) && matchCompound(s, el) !== null)))
+        return null;
       rest = rest.slice(end + 1);
       continue;
     } else return null; // a pseudo-class, element or anything else this model does not need
@@ -144,20 +213,29 @@ function matchCompound(compound: string, el: ModelElement): number | null {
   return spec;
 }
 
+/** The specificity a selector carries regardless of what it matches (for :not()): ids are not used here, so
+ *  classes, attributes and pseudo-classes outside :where() count one each. */
+function argSpecificity(selector: string): number {
+  const bare = selector.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, "");
+  return (bare.match(/\.[a-z0-9_-]+|\[[^\]]*\]|:(?!where)[a-z-]+/gi) ?? []).length;
+}
+
 /** Specificity of a selector against the LAST element of `chain`, or null. Only the descendant combinator. */
-function matchSelector(selector: string, chain: ModelElement[]): number | null {
-  const parts = selector.split(/\s+/);
+function matchSelector(selector: string, chain: ModelElement[], inNot = false): number | null {
+  /* A selector with a :not(:where(…)), and the argument of one, is split outside its parentheses (the
+     argument can be complex, `.dark *`); every other one as it always was. */
+  const parts = inNot || selector.includes(":not(:where(") ? splitTop(selector, /\s/) : selector.split(/\s+/);
   if (parts.some((p) => /^[>+~]$/.test(p))) return null;
   const subject = chain[chain.length - 1];
   if (parts[parts.length - 1].includes(":root") && chain.length > 1) return null;
-  const last = matchCompound(parts[parts.length - 1], subject);
+  const last = matchCompound(parts[parts.length - 1], subject, chain, inNot);
   if (last === null) return null;
   let spec = last;
   let at = chain.length - 2;
   for (let p = parts.length - 2; p >= 0; p--) {
     let found = false;
     for (; at >= 0; at--) {
-      const s = matchCompound(parts[p], chain[at]);
+      const s = matchCompound(parts[p], chain[at], chain.slice(0, at + 1), inNot);
       if (s !== null && !(parts[p].includes(":root") && at !== 0)) {
         spec += s;
         found = true;
@@ -224,7 +302,13 @@ function resolveVars(chain: ModelElement[]): Map<string, string> {
       value,
     });
   }
-  const own = new Map(inherited);
+  /* A property registered `inherits: false` starts from its initial value (none, for `syntax: "*"`) on every
+     element: only what the element itself declares. */
+  const own = new Map(
+    [
+      ...inherited,
+    ].filter(([name]) => !nonInherited().has(name)),
+  );
   for (const [name, w] of winners) {
     /* `inherit` takes the parent's computed value (already substituted); with no parent value the
        property is unset, as a custom property's initial value is. */

@@ -42,6 +42,17 @@
  *                 plainly distinct. FILL_STEP is above shadcn's own dark hover step (6.4 L, popover 0.205 →
  *                 accent 0.269), so a night fill reads at least as clearly as the reference design's.
  *
+ *   6. [edge] / [role] / [rim] at NIGHT, each LINE also holds WCAG 1.4.11's 3:1 (a consumer measures real
+ *               pixels by WCAG, and a lit line can clear 30 Lc at 2:1), on the plain surfaces AND each fresco
+ *               stop composited over them (the lit night sheets lift the card under the line): the edges,
+ *               the focus ring at the alpha the components draw it (RING_ALPHA, read from components/ui) and
+ *               no fainter than by day, and the glass field's night rim (input.tsx's dark:glass-border-ink).
+ *   7. [status] the Alert's words, its status ink token (read from alert.tsx), on the Alert's surface: 75 Lc
+ *               plus margin and 4.5:1, both modes. At night that is the status tint; by day the Alert's own
+ *               paler, solid surface (presets.css, ALERT_DAY), over a light and a dark scene.
+ *   8. [scene]  body text on a sheer DAY card over a dark scene (the show-through the margin is for) holds the
+ *               body floor, or is pinned at its measured value where unreachable (SCENE_KNOWN).
+ *
  * It models the surface the way components/auto-foreground.tsx does — glassSolidSurface() with the
  * solidify floor, then readableForeground() for the body band — so a change to that model shows up here
  * rather than only in production.
@@ -61,6 +72,7 @@ import {
   GLASS_SOLIDIFY_C_SCALE_DAY,
   limitingSurface,
   nightWashCap,
+  oklchToSrgb,
   parseGradientStops,
   foregroundRamp,
   glassSolidSurface,
@@ -73,6 +85,7 @@ import {
   TONAL_MAX_L,
   TONAL_MIN_L,
 } from "../lib/oklch-utils.ts";
+import { ringTwins } from "./lib/ring-twins.mjs";
 
 /* The /colors ramp defaults AutoForeground solves at. The clip bounds, margins, ramp build and pick all
    come from lib/oklch-utils now — this file used to re-declare them and had drifted. */
@@ -97,15 +110,86 @@ const EDGE_FLOOR = INK_FLOOR;
    it is the MUTED tier (AutoForeground's muted band: floor 60, target 72, ceiling 84). */
 const FILL_STEP = 7;
 const MUTED_BAND = { floor: 60, target: 72, ceiling: 84 };
-/* The default field's night fill, `dark:bg-input/N`, read from the components that paint it so the check
-   measures what ships. All three must agree. */
-const INPUT_FILL_A = (() => {
-  const alphas = ["input", "textarea", "input-group"].map((f) => /dark:bg-input\/(\d+)/.exec(read(`components/ui/${f}.tsx`))?.[1]);
-  if (alphas.some((x) => x === undefined) || new Set(alphas).size !== 1) {
-    console.error(`✗ contrast guard: the default field's night fill (dark:bg-input/N) is missing or differs across input / textarea / input-group: ${alphas}`);
+/* ── WCAG 2 beside APCA. APCA is the model this theme bands its text with, but the consumer (HERO) holds
+   lines to WCAG 1.4.11's 3:1 and words to 4.5:1 on real pixels, and the two disagree exactly where night
+   lines live: a lit line on a mid-dark surface can clear 30 Lc and still sit at 2:1. So a line is held to
+   BOTH, and status words to both of theirs. */
+const LINE_RATIO = 3; // WCAG 1.4.11, non-text contrast
+const TEXT_RATIO = 4.5; // WCAG 1.4.3, body-size text
+/** WCAG 2 relative luminance of an OKLCH colour, through the same sRGB encode the compositor uses. */
+const wcagY = (col) => {
+  const [r, g, b] = oklchToSrgb(col.l, col.c, col.h).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const wcagRatio = (x, y) => {
+  const [hi, lo] = [wcagY(x), wcagY(y)].sort((p, q) => q - p);
+  return (hi + 0.05) / (lo + 0.05);
+};
+/* The day page under a SHEER card is not always the light page the model assumes: a dark scene shows
+   through every alpha the card stacks (backdrop show-through), and darkens the surface the body ink was
+   picked for. Modelled as the page lightness under the stack, at the darkest day scene a consumer ships
+   (HERO's onboarding Aurora, mean Y 0.234 ≈ L61.6), less a margin for its darkest band. */
+const DAY_DARK_SCENE_L = 52;
+
+/* ── The FOCUS RING as the components draw it: `ring-ring/50` by day (a soft half-alpha halo) and, at night,
+   the full-alpha `dark:…ring-ring` twin each one carries beside it, in the same class string
+   (scripts/lib/ring-twins.mjs, per occurrence). Read from the components so the check measures the alpha
+   that ships; an occurrence without its night twin draws the half-alpha ring at night too, and the night
+   ring is scored at that alpha. */
+const RING_ALPHA = (() => {
+  const missing = [];
+  for (const file of readdirSync(join(ROOT, "components/ui")).filter((f) => f.endsWith(".tsx"))) {
+    for (const m of ringTwins(read(`components/ui/${file}`)).missing) missing.push(`${file} ${m}`);
+  }
+  return { day: 0.5, night: missing.length ? 0.5 : 1, missing };
+})();
+/* ── The INPUT ROLE's rim at night: the material's white glass edge (--glass-border at --glass-border-a), or
+   the ink border (--foreground at --glass-border-ink-a) where input.tsx asks for it at night. */
+const INPUT_NIGHT_INK = /(?<=^|[\s"'`])dark:glass-border-ink(?=[\s"'`])/m.test(read("components/ui/input.tsx"));
+/* ── STATUS words: the Alert's text per status variant, which must be that status's INK token (a dark ink
+   by day, a pale one at night, on the status tint), not the status colour itself (--destructive, a
+   palette blue), which the border and icon keep. Read from alert.tsx. */
+const ALERT_SRC = read("components/ui/alert.tsx");
+const STATUS_TEXT = Object.fromEntries(
+  ["info", "success", "warning", "destructive"].map((v) => {
+    const line = new RegExp(`\\b${v}:\\s*\n?\\s*"([^"]*)"`).exec(ALERT_SRC)?.[1] ?? "";
+    const token = /(?<=^|\s)text-([a-z0-9-]+)(?=\s|$)/.exec(line)?.[1];
+    return [v, token];
+  }),
+);
+
+/* ── The status ALERT's own DAY surface (presets.css, THE STATUS ALERT BY DAY: the four status tints' Alert,
+   outside .dark and outside onyx): a solid near-white backing (--srf-solidify-l) and a film of it over the
+   stack, so the shared wash shows at --srf-tint-a. Read from the rule so the check measures what ships; the
+   backing's chroma is its day cap at that lightness (dayBackingCap tapers it toward white, as tokens.css and
+   the rule's own formula do). */
+const PRESETS_SRC = read("app/theme/presets.css").replace(/\/\*[\s\S]*?\*\//g, "");
+const ALERT_DAY_RULE = /\[data-slot="alert"\]:is\(([^{]*?)\)\s*:not\(\s*:where\(([^{]*?)\)\s*\)\s*\{([^}]*)\}/.exec(PRESETS_SRC);
+const ALERT_DAY = (() => {
+  const body = ALERT_DAY_RULE?.[3];
+  if (!body) return undefined;
+  const num = (k) => Number(new RegExp(`--${k}:\\s*([0-9.]+)`).exec(body)?.[1]);
+  return {
+    solidifyL: num("srf-solidify-l"),
+    tintA: num("srf-tint-a"),
+    tints: [...ALERT_DAY_RULE[1].matchAll(/\[data-glass-tint="([a-z]+)"\]/g)].map((m) => m[1]),
+    exceptOnyx: /\[data-glass-tint="onyx"\] \*/.test(ALERT_DAY_RULE[2]),
+  };
+})();
+/* Onyx's own status inks (presets.css): onyx is dark in either mode, so its status Alerts keep the tint and
+   read the pale inks it re-declares, by day too. */
+const ONYX_BLOCK = /(?<![\w.\]-])\[data-glass-tint="onyx"\]\s*\{([^}]*)\}/.exec(PRESETS_SRC)?.[1] ?? "";
+
+/* The default field's night fill, `dark:bg-input/(--input-fill-a)`, read from the components that paint it so
+   the check measures what ships (all three must name the token), at each preset's own --input-fill-a (the
+   night role rule's 10%, or the preset's night pin). */
+const INPUT_FILL_TOKEN = (() => {
+  const tokens = ["input", "textarea", "input-group"].map((f) => /dark:bg-input\/\(--([a-z0-9-]+)\)/.exec(read(`components/ui/${f}.tsx`))?.[1]);
+  if (tokens.some((x) => x === undefined) || new Set(tokens).size !== 1) {
+    console.error(`✗ contrast guard: the default field's night fill (dark:bg-input/(--token)) is missing or differs across input / textarea / input-group: ${tokens}`);
     process.exit(1);
   }
-  return Number(alphas[0]) / 100;
+  return tokens[0];
 })();
 
 /* ── The role-fill AUDIT: every --accent / --secondary / --muted fill in components/ui, and what it carries
@@ -235,6 +319,52 @@ const auditFailures = [];
  * call, not a number. Until then this is pinned.
  */
 const KNOWN = new Map([]);
+/**
+ * [scene] body text on a sheer DAY card over a dark scene: PINNED, not passed. AutoForeground's show-through
+ * margin (LC_MARGIN, 12) aims the band's TARGET by LC_MARGIN × the backdrop's surviving weight, which on a
+ * sheer day card is (1 − 0.65)(1 − a)(1 − 0.7) ≈ 0.09, so the margin buys about 1 Lc of aim there; and most
+ * of these already pick the ramp's darkest TONAL step (L20, TONAL_MIN_L's clip), so no aim can take them
+ * darker without dropping the hue for black. Raising the margin to 18 was measured to move them by 0.1–0.9
+ * Lc and reverted (the owner's ruling, 2026-11-13: the card body stays as it is), so each is held at its
+ * measured value at LC_MARGIN 12 so it cannot get worse, and a value that reaches the floor fails as stale.
+ * What would fix them is a design call: a more opaque day card. The status ALERT's words are not here: by
+ * day the Alert paints its own solid, paler surface (presets.css), so a dark scene no longer reaches them.
+ */
+const SCENE_KNOWN = new Map(
+  Object.entries({
+    amethyst: 72.3,
+    aurora: 72.4,
+    aventurine: 74.9,
+    carnelian: 73.6,
+    destructive: 70.7,
+    gloaming: 70.9,
+    goldstone: 71.4,
+    info: 74.6,
+    lapis: 72.9,
+    moonstone: 73.4,
+    muse: 72.8,
+    rose: 71.8,
+    sapphire: 74.1,
+    sodalite: 74.5,
+    success: 74.7,
+    tanzanite: 73.9,
+    tourmaline: 72.0,
+    warning: 73.2,
+  }),
+);
+/** A pinned measure: no worse than recorded (PIN_SLACK, the pins' own rounding to 0.1), and stale once it
+ *  clears its floor. Every key it reads is remembered, so a pin no preset visits (a renamed or removed preset)
+ *  fails rather than silently dropping out. */
+const PIN_SLACK = 0.05;
+const pinsVisited = new Set();
+const holdPinned = (key, value, floor, failures, what) => {
+  const pinned = SCENE_KNOWN.get(key);
+  if (pinned === undefined) return false;
+  pinsVisited.add(key);
+  if (below(value, pinned - PIN_SLACK)) failures.push(`[known] ${what} got worse: ${value.toFixed(2)} Lc, pinned at ${pinned}.`);
+  else if (value >= floor) failures.push(`[known] ${what} now reaches ${value.toFixed(1)} Lc, at its ${floor} floor: delete its SCENE_KNOWN entry (${key}).`);
+  return true;
+};
 
 const css = {
   tokens: read("app/theme/tokens.css"),
@@ -244,6 +374,9 @@ const css = {
 };
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
+/** A rule keyed on a component slot (the status Alert's day surface names the status tints in its selector)
+ *  is not a preset block: drop it before the preset scrapers read the blocks. */
+const withoutSlotRules = (s) => s.replace(/\[data-slot=[^{]*\{[^}]*\}/g, "");
 
 /** Mode knobs from tokens.css's :root / .dark. */
 function modeVars() {
@@ -262,7 +395,7 @@ function modeVars() {
 function presets() {
   const out = new Map();
   for (const src of [css.presets, css.frescoes]) {
-    for (const [, darkSel, name, body] of strip(src).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
+    for (const [, darkSel, name, body] of withoutSlotRules(strip(src)).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
       const rec = out.get(name) ?? { name, light: new Map(), dark: new Map(), fresco: { light: "", dark: "" } };
       const target = darkSel ? rec.dark : rec.light;
       for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) target.set(k, +v);
@@ -313,12 +446,16 @@ const parseOklchLiteral = (s) => {
 const darkRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {")))?.[1]);
 const presetRings = new Map();
 for (const src of [css.presets, css.frescoes]) {
-  for (const [, darkSel, name, body] of strip(src).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
+  for (const [, darkSel, name, body] of withoutSlotRules(strip(src)).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
     const ring = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(body)?.[1]);
     if (ring && (darkSel || !presetRings.has(name))) presetRings.set(name, ring);
   }
 }
 const ringOf = (p) => presetRings.get(p.name) ?? darkRing;
+/* The day ring, :root's --ring, for "at least as visible at night as by day". */
+const dayRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(strip(css.tokens).slice(0, strip(css.tokens).indexOf(".dark {")))?.[1]);
+/** Each preset's day ring readings by ground, filled on the day pass and read on the night pass. */
+const dayRingRatios = new Map();
 /* Which page tier the night accent and secondary fills carry as text: --accent-foreground /
    --secondary-foreground in tokens.css's .dark block, var(--foreground-strong) or var(--foreground). */
 const darkTokens = strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {"));
@@ -330,11 +467,18 @@ if (!darkRing) {
   process.exit(1);
 }
 const failures = [...auditFailures];
+if (RING_ALPHA.missing.length) {
+  failures.push(
+    `[ring-alpha] the focus ring is drawn at half alpha at night by ${RING_ALPHA.missing.length} class(es) with no full-alpha dark: twin beside them: ${RING_ALPHA.missing.join(", ")}`,
+  );
+}
 const report = [];
 const inkReport = [];
 const edgeReport = [];
 const roleReport = [];
 const pairReport = [];
+const sceneReport = [];
+const statusReport = [];
 
 for (const p of all) {
   for (const mode of ["light", "dark"]) {
@@ -462,10 +606,113 @@ for (const p of all) {
       );
     }
 
+    /* [scene] BODY TEXT ON A SHEER DAY CARD OVER A DARK SCENE. The ink above was picked for the light page the
+       model assumes; a dark scene behind the card shows through every alpha it stacks (veil, solidify, wash)
+       and darkens the surface under the same ink. AutoForeground's show-through margin (LC_MARGIN, scaled by
+       that surviving weight) is what has to cover it: the body floor has to hold on the scene-darkened
+       surface too, at the fresco's hardest stop where there is one. By day only: at night the scene sits
+       on the same side of mid-grey as the page, and only deepens a dark surface under light text. */
+    if (!dark) {
+      const sceneSurface = compositeSurface({ l: DAY_DARK_SCENE_L, c: 0, h }, [
+        { l: resolve(p, mode, vars, "glass-solid-l", 99), c: 0, h, a: solidA },
+        { l: solidifyL, c: Math.min(c * solidifyCScale, solidifyCMax), h, a: 0.7 },
+        { l: washL, c: washC, h, a },
+      ]);
+      const sceneText = limitingSurface(sceneSurface, stops);
+      const sceneLc = Math.abs(apcaContrast(fg, sceneText));
+      sceneReport.push({ name: p.name, lc: sceneLc, l: sceneText.l, fgL: fg.l });
+      if (!holdPinned(p.name, sceneLc, BODY_FLOOR, failures, `[scene] ${p.name} body text over a dark day scene`) && below(sceneLc, BODY_FLOOR)) {
+        failures.push(
+          `[scene] ${p.name} (day) — body text (L${fg.l.toFixed(1)}) on a sheer card over a dark scene (page L${DAY_DARK_SCENE_L}, surface L${sceneText.l.toFixed(1)}) reaches only ${sceneLc.toFixed(1)} Lc, under the ${BODY_FLOOR} floor. The show-through margin (LC_MARGIN ${LC_MARGIN}) does not cover it.`,
+        );
+      }
+    }
+
+    /* [status] THE ALERT'S WORDS on its own surface: the status ink token alert.tsx paints them with, held to
+       the body floor plus margin (APCA 75 + MARGIN) and WCAG's 4.5:1, on the sheer and the opaque surface and,
+       by day, over a dark scene too. */
+    if (p.name in STATUS_TEXT) {
+      const token = STATUS_TEXT[p.name];
+      const body = dark ? darkTokens : strip(css.tokens).slice(0, strip(css.tokens).indexOf(".dark {"));
+      const ink = token ? parseOklchLiteral(new RegExp(`--${token}:\\s*(oklch\\([^)]*\\))`).exec(body)?.[1]) : undefined;
+      if (!ink) {
+        failures.push(`[status] ${p.name} (${mode}) — the Alert's ${p.name} words are text-${token ?? "?"}, which is not a status ink token in tokens.css: they need a --${p.name}-ink pair (dark by day, pale at night) read against the status tint.`);
+      } else {
+        /* At night the Alert paints the status tint as every tinted surface does. By day it paints its own
+           paler, firmer surface (ALERT_DAY), as `glass` composites it: its own solid backing, the shared wash
+           (the tint's --glass-tint-a, untouched on the Alert), and a film of the backing over it at
+           1 − --srf-tint-a / --glass-tint-a. Its backing is solid, so a dark scene behind it no longer shows
+           through and the sheer, opaque-page and dark-scene grounds are the one surface. */
+        const alertDay = (base) => {
+          const backing = { l: ALERT_DAY.solidifyL, c: Math.min(c * solidifyCScale, dayBackingCap(h, ALERT_DAY.solidifyL)), h };
+          return compositeSurface(base, [
+            { ...backing, a: 1 },
+            { l: washL, c: washC, h, a },
+            { ...backing, a: Math.max(0, 1 - ALERT_DAY.tintA / a) },
+          ]);
+        };
+        if (!dark && !ALERT_DAY) failures.push("[status] the Alert's day surface rule is missing from presets.css.");
+        if (!dark && ALERT_DAY && (ALERT_DAY.tints.join() !== "info,success,warning,destructive" || !ALERT_DAY.exceptOnyx)) {
+          failures.push(`[status] the Alert's day surface must name exactly the four status tints and skip onyx (it names ${ALERT_DAY.tints.join(", ")}${ALERT_DAY.exceptOnyx ? "" : ", and applies inside onyx"}).`);
+        }
+        /* A status Alert inside ONYX by day: onyx is dark in either mode, so the day surface rule does not apply
+           there and the Alert paints the plain status tint over onyx's page knobs (its L18 backing, its dark
+           veil), with onyx's own pale inks. Modelled as the status scope nested in an onyx page: the status
+           block's knobs over onyx's, as they inherit. */
+        const onyx = all.find((q) => q.name === "onyx");
+        const onyxGrounds = [];
+        let onyxInk;
+        if (!dark && onyx) {
+          onyxInk = parseOklchLiteral(new RegExp(`--${token}:\\s*(oklch\\([^)]*\\))`).exec(ONYX_BLOCK)?.[1]);
+          const r = (key, fallback) => p.light.get(key) ?? onyx.light.get(key) ?? vars.light.get(key) ?? fallback;
+          const oSolidifyL = r("glass-solidify-l", 92);
+          /* Over the light page: the worst ground for a pale ink is the lightest one the backdrop can give. */
+          const oSurface = glassSolidSurface(
+            false,
+            { h, c, a },
+            r("glass-solid-a", 0.65),
+            washL,
+            washCMult,
+            { l: oSolidifyL, c: Math.min(c * solidifyCScale, dayBackingCap(h, oSolidifyL)), a: 0.7 },
+            r("glass-solid-l", 99),
+            washCMax,
+          );
+          const oOpaque = compositeSurface({ l: r("glass-opaque-l", 93), c: Math.min(c * cScale, cMax * capScale), h }, [{ l: washL, c: washC, h, a }]);
+          onyxGrounds.push(["sheer inside onyx", oSurface], ["opaque inside onyx", oOpaque]);
+          if (!onyxInk) failures.push(`[status] onyx does not re-declare --${token}: its status Alerts are dark by day and need the pale night ink.`);
+        }
+        const statusGrounds = dark
+          ? [
+              ["sheer", surface],
+              ["opaque", opaqueSurface],
+            ]
+          : !ALERT_DAY
+            ? []
+            : [
+              ["sheer", alertDay({ l: 95, c: 0, h })],
+              ["opaque", alertDay(opaqueSurface)],
+              ["sheer over a dark scene", alertDay({ l: DAY_DARK_SCENE_L, c: 0, h })],
+              ...(onyxInk ? onyxGrounds : []),
+            ];
+        for (const [where, ground] of statusGrounds) {
+          const wordInk = where.endsWith("inside onyx") ? onyxInk : ink;
+          const sLc = Math.abs(apcaContrast(wordInk, ground));
+          const sRatio = wcagRatio(wordInk, ground);
+          const lcFloor = BODY_FLOOR + MARGIN;
+          statusReport.push({ name: p.name, mode, where, lc: sLc, ratio: sRatio, l: ground.l, token });
+          if (below(sLc, lcFloor) || below(sRatio, TEXT_RATIO)) {
+            failures.push(
+              `[status] ${p.name} (${mode}, ${where}) — the Alert's words (--${token}, L${wordInk.l.toFixed(1)}) read ${sLc.toFixed(1)} Lc and ${sRatio.toFixed(2)}:1 on the L${ground.l.toFixed(1)} status tint, under ${lcFloor} Lc / ${TEXT_RATIO}:1.`,
+            );
+          }
+        }
+      }
+    }
+
     /* The ink border: the same --foreground the surface's text uses, mixed toward transparent and painted
        over that surface (a border sits on its element's own background). color-mix(…, transparent) in
        oklch keeps the colour and scales its alpha, which the browser then blends in sRGB, as this does. */
-    const inkA = vars[mode].get("glass-border-ink-a") ?? vars.light.get("glass-border-ink-a") ?? 0.5;
+    const inkA = resolve(p, mode, vars, "glass-border-ink-a") ?? vars.light.get("glass-border-ink-a") ?? 0.5;
     for (const [where, ink, ground] of [
       ["sheer", fg, textSurface],
       ["opaque", opaqueInk, opaqueText],
@@ -494,44 +741,95 @@ for (const p of all) {
       ["sheer", surface],
       ["opaque", opaqueSurface],
     ];
-    /* [edge] the chrome edges: the border and the default field's rim. */
+    /* The surfaces a LINE is judged on. A fresco paints its multi-hue sheet over every material, and its night
+       stops (L74–86 at alpha 0.2–0.22) are not the wash and do not go deep, so the sheet LIFTS the surface
+       under a line toward it: each stop composited over each surface is a ground too, and a line has to read
+       at the brightest of them (moonstone's pale-stone night needs no sheet to be the hardest). */
+    const lineGrounds = [...grounds, ...grounds.flatMap(([where, g]) => stops.map((st, i) => [`${where}+stop${i + 1}`, compositeSurface(g, [st])]))];
+    /* [edge] the chrome edges: the border and the default field's rim. APCA's non-text floor AND, at night,
+       WCAG 1.4.11's 3:1, which a lit line on the lighter-glass themes' night card misses while it still
+       clears 30 Lc. */
     for (const [token, lKey] of [
       ["border", "border-l"],
       ["input", "input-l"],
     ]) {
       const edge = roleColor(lKey, "border-c-max", dark ? 0.041 : 0.07);
-      for (const [where, ground] of grounds) {
+      for (const [where, ground] of dark ? lineGrounds : grounds) {
         const edgeLc = Math.abs(apcaContrast(edge, ground));
-        edgeReport.push({ name: p.name, mode, where, token, lc: edgeLc, l: edge.l });
+        const edgeRatio = wcagRatio(edge, ground);
+        edgeReport.push({ name: p.name, mode, where, token, lc: edgeLc, ratio: edgeRatio, l: edge.l });
         if (dark && below(edgeLc, EDGE_FLOOR)) {
           failures.push(
             `[edge] ${p.name} (night, ${where}) — --${token} (L${edge.l.toFixed(0)}) reaches only ${edgeLc.toFixed(1)} Lc against its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor. Raise its night --${lKey}.`,
           );
         }
+        if (dark && below(edgeRatio, LINE_RATIO)) {
+          failures.push(
+            `[edge] ${p.name} (night, ${where}) — --${token} (L${edge.l.toFixed(0)}) reaches only ${edgeRatio.toFixed(2)}:1 against its L${ground.l.toFixed(1)} surface, under WCAG's ${LINE_RATIO}:1 for a line. Raise its night --${lKey}.`,
+          );
+        }
+      }
+    }
+    /* The focus ring as drawn: the role ring at the alpha the components paint it (RING_ALPHA), over the
+       surface beside it. By day it is recorded for the night comparison below. */
+    const ringNow = dark ? ringOf(p) : (presetRings.get(p.name) ?? dayRing);
+    const ringA = dark ? RING_ALPHA.night : RING_ALPHA.day;
+    const ringRatios = new Map();
+    for (const [where, ground] of dark ? lineGrounds : grounds) {
+      const drawn = compositeSurface(ground, [{ ...ringNow, a: ringA }]);
+      ringRatios.set(where, { ratio: wcagRatio(drawn, ground), lc: Math.abs(apcaContrast(drawn, ground)), l: ground.l });
+    }
+    if (!dark) dayRingRatios.set(p.name, ringRatios);
+    /* The INPUT ROLE's rim (the glass field), at night: the white glass edge at --glass-border-a, or the ink
+       border where input.tsx asks for it at night. Held to 3:1 on every line ground. */
+    if (dark) {
+      const borderA = vars.dark.get("glass-border-a") ?? 0.15;
+      for (const [where, ground] of lineGrounds) {
+        const ink = where.startsWith("opaque") ? opaqueInk : fg;
+        const rim = INPUT_NIGHT_INK ? { ...ink, a: inkA } : { l: 100, c: Math.min(c, 0.025) * 0.5, h, a: borderA };
+        const drawn = compositeSurface(ground, [rim]);
+        const rimRatio = wcagRatio(drawn, ground);
+        roleReport.push({ name: p.name, where, token: "input rim", value: rimRatio, unit: ":1", l: ground.l });
+        if (below(rimRatio, LINE_RATIO)) {
+          failures.push(
+            `[rim] ${p.name} (night, ${where}) — the glass field's rim (${INPUT_NIGHT_INK ? `ink at ${inkA}` : `white glass edge at ${borderA}`}) reaches only ${rimRatio.toFixed(2)}:1 on its L${ground.l.toFixed(1)} surface, under WCAG's ${LINE_RATIO}:1.`,
+          );
+        }
       }
     }
     if (dark) {
-      /* [role] the focus ring, a preset's own --ring if it sets one (onyx), else the night token. */
+      /* [role] the focus ring, a preset's own --ring if it sets one (onyx), else the night token, drawn at the
+         alpha the components paint it at night: APCA's non-text floor, WCAG's 3:1, and at least as visible
+         as the same ring by day on the same kind of surface. */
       const ring = ringOf(p);
-      for (const [where, ground] of grounds) {
-        const lcRing = Math.abs(apcaContrast(ring, ground));
+      const dayRatios = dayRingRatios.get(p.name);
+      for (const [where, { ratio: rr, lc: lcRing, l: gl }] of ringRatios) {
         roleReport.push({ name: p.name, where, token: "ring", value: lcRing, unit: "Lc", l: ring.l });
+        roleReport.push({ name: p.name, where, token: "ring ratio", value: rr, unit: ":1", l: ring.l });
         if (below(lcRing, EDGE_FLOOR)) {
-          failures.push(`[role] ${p.name} (night, ${where}) — the focus ring (L${ring.l.toFixed(0)}) reaches only ${lcRing.toFixed(1)} Lc on its L${ground.l.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor.`);
+          failures.push(`[role] ${p.name} (night, ${where}) — the focus ring (L${ring.l.toFixed(0)} at ${ringA}) reaches only ${lcRing.toFixed(1)} Lc on its L${gl.toFixed(1)} surface, under the ${EDGE_FLOOR} non-text floor.`);
+        }
+        if (below(rr, LINE_RATIO)) {
+          failures.push(`[role] ${p.name} (night, ${where}) — the focus ring (L${ring.l.toFixed(0)} at ${ringA}) reaches only ${rr.toFixed(2)}:1 on its L${gl.toFixed(1)} surface, under WCAG's ${LINE_RATIO}:1.`);
+        }
+        const day = dayRatios?.get(where.split("+")[0]);
+        if (day && below(rr, day.ratio)) {
+          failures.push(`[role] ${p.name} (night, ${where}) — the focus ring reads ${rr.toFixed(2)}:1 at night, less than ${day.ratio.toFixed(2)}:1 by day: a night line must be at least as visible as by day.`);
         }
       }
-      /* [role] the typed text inside a default field, whose night fill is the rim colour at INPUT_FILL_A. */
+      /* [role] the typed text inside a default field, whose night fill is the rim colour at --input-fill-a. */
       const rim = roleColor("input-l", "border-c-max", 0.041);
+      const fillA = resolve(p, mode, vars, INPUT_FILL_TOKEN) / 100;
       for (const [where, ground, ink] of [
         ["sheer", surface, fg],
         ["opaque", opaqueSurface, opaqueInk],
       ]) {
-        const inside = compositeSurface(ground, [{ ...rim, a: INPUT_FILL_A }]);
+        const inside = compositeSurface(ground, [{ ...rim, a: fillA }]);
         const lcIn = Math.abs(apcaContrast(ink, inside));
         roleReport.push({ name: p.name, where, token: "input text", value: lcIn, unit: "Lc", l: inside.l });
         if (below(lcIn, BODY_FLOOR + MARGIN)) {
           failures.push(
-            `[role] ${p.name} (night, ${where}) — body text inside a default field (--input at ${INPUT_FILL_A}) reaches only ${lcIn.toFixed(1)} Lc, under ${BODY_FLOOR + MARGIN}. Lower the field's night fill or its --input-l.`,
+            `[role] ${p.name} (night, ${where}) — body text inside a default field (--input at ${fillA}) reaches only ${lcIn.toFixed(1)} Lc, under ${BODY_FLOOR + MARGIN}. Lower the field's night fill or its --input-l.`,
           );
         }
       }
@@ -650,6 +948,12 @@ if (process.argv.includes("--report")) {
   for (const r of [...edgeReport].sort((x, y) => x.lc - y.lc)) {
     console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where.padEnd(6)} ${r.token} L${r.l.toFixed(0)}`);
   }
+  console.log("  status words (Alert ink on its status tint):");
+  for (const r of [...statusReport].sort((x, y) => x.lc - y.lc)) console.log(`  ${r.lc.toFixed(1)} Lc ${r.ratio.toFixed(2)}:1  ${r.name.padEnd(12)} ${r.mode.padEnd(6)} ${r.where} (L${r.l.toFixed(1)}, --${r.token})`);
+  console.log(`  body over a dark day scene (page L${DAY_DARK_SCENE_L}):`);
+  for (const r of [...sceneReport].sort((x, y) => x.lc - y.lc)) console.log(`  ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} surface L${r.l.toFixed(1)} ink L${r.fgL.toFixed(1)}`);
+  console.log("  night lines, WCAG (edges; ring as drawn; input rim):");
+  for (const r of [...edgeReport].filter((x) => x.mode === "dark").sort((x, y) => x.ratio - y.ratio).slice(0, 40)) console.log(`  ${r.ratio.toFixed(2)}:1 ${r.lc.toFixed(1)} Lc  ${r.name.padEnd(12)} ${r.where.padEnd(14)} ${r.token} L${r.l.toFixed(0)}`);
   console.log("  night fill pairings (the lowest Lc across presets and both surfaces, against its floor):");
   const byPair = new Map();
   for (const r of pairReport) {
@@ -670,6 +974,10 @@ if (report.length < 30) {
   console.error(`✗ contrast guard: scored only ${report.length} preset/mode pairs — the CSS shape changed, fix the parser`);
   process.exit(1);
 }
+/* A SCENE_KNOWN pin no preset visited: a renamed or removed preset must not take its pin out silently. */
+for (const key of SCENE_KNOWN.keys()) {
+  if (!pinsVisited.has(key)) failures.push(`[known] SCENE_KNOWN pins "${key}", which no preset measured: rename or delete the pin.`);
+}
 if (failures.length) {
   console.error(`✗ preset contrast: ${failures.length} failure(s)\n${failures.map((f) => `  - ${f}`).join("\n")}`);
   process.exit(1);
@@ -689,5 +997,7 @@ console.log(
     `; ink border ≥ ${INK_FLOOR} Lc on ${inkReport.length} surfaces (tightest ${inkWorst.name} ${inkWorst.mode} ${inkWorst.where} at ${inkWorst.lc.toFixed(1)})` +
     `; night edge ≥ ${EDGE_FLOOR} Lc on ${edgeReport.filter((r) => r.mode === "dark").length} surfaces (tightest ${edgeWorst.name} ${edgeWorst.token} ${edgeWorst.where} at ${edgeWorst.lc.toFixed(1)})` +
     `; night roles: ring ≥ ${roleWorst("ring").value.toFixed(1)} Lc, field text ≥ ${roleWorst("input text").value.toFixed(1)} Lc, fills ≥ ${FILL_STEP} L clear (tightest ${["accent", "secondary", "muted"].map((t) => `${t} ${Math.abs(roleWorst(t).value).toFixed(1)}`).join(", ")})` +
+    `; night lines ≥ ${LINE_RATIO}:1 (edges, the ring at alpha ${RING_ALPHA.night}, the glass field's rim), status words ≥ ${BODY_FLOOR} Lc / ${TEXT_RATIO}:1 on ${statusReport.length} surfaces` +
+    `; ${SCENE_KNOWN.size} dark-day-scene measures pinned (SCENE_KNOWN)` +
     `; ${PAIRINGS.length} audited fill pairings hold their floors (closest: ${pairWorst.kind} on ${pairWorst.fill} in ${pairWorst.where}, ${pairWorst.lc.toFixed(1)} against ${pairWorst.floor})`,
 );

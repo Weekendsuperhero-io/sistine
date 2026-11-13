@@ -56,9 +56,13 @@
      survived to the eye, so the hover read as the material's own colour (white in light mode) no matter
      what --accent was set to. No amount of tuning the token could fix that; it is a layer-order problem.
      Same no-op `none` slot pattern as --acc-gradient below it. */
+  /* --srf-film and --srf-backing are an element's OWN surface, registered non-inheriting (registrations.css):
+     today only the status Alert by day sets them (presets.css), a film of its backing over the stack and a
+     solid backing that leads the solidify chain (ahead of the veil too: the film is only exact over a solid
+     backing), so nothing nested in it inherits either. */
   background-image:
-    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)),
-    var(--veil-solidify, var(--srf-solidify, var(--glass-solidify)));
+    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-film, none), var(--srf-bg-image, var(--glass-stack-bg)),
+    var(--srf-backing, var(--veil-solidify, var(--srf-solidify, var(--glass-solidify))));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).

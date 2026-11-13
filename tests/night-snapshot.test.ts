@@ -38,6 +38,10 @@ const NEW_AT_NIGHT: Record<string, string> = {
      --glass-wash-hue, pinned here, and it is what it was. */
   "--glass-wash-hue-hi": "the cap hue as a var() hands it on; --glass-wash-hue is their sum",
   "--glass-wash-hue-lo": "what that rounds off the cap hue; --glass-wash-hue is their sum",
+  /* The default field's night fill alpha, which input, textarea and input-group paint at night as
+     `dark:bg-input/(--input-fill-a)`: 10% at every night scope, as the `/10` they carried, and 8% on the pale
+     stone, whose brighter night rim needs it (check-contrast [role]). A new token, read only by that class. */
+  "--input-fill-a": "the default field's night fill alpha; 10% as before, the pale stone's 8%",
 };
 
 const r9 = (x: number) => {

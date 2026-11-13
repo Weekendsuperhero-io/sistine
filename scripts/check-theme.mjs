@@ -513,14 +513,16 @@ function splitTop(sel) {
     }
   }
   const glassUtil = rules.find((r) => r.selector === "@utility glass");
-  if (!glassUtil || !/var\(--veil-solidify,\s*var\(--srf-solidify,\s*var\(--glass-solidify\)\)\)/.test(glassUtil.body)) {
+  /* An element's OWN solid backing (--srf-backing, the status Alert by day) may lead the chain, since it is
+     registered non-inheriting below and so restores the layer on that element alone. */
+  if (!glassUtil || !/(?:var\(--srf-backing,\s*)?var\(--veil-solidify,\s*var\(--srf-solidify,\s*var\(--glass-solidify\)\)\)/.test(glassUtil.body)) {
     fail(`[solidify-owner] @utility glass must paint var(--veil-solidify, var(--srf-solidify, var(--glass-solidify))) — the veil restores the layer first.`);
   }
   const veilUtil = rules.find((r) => r.selector === "@utility glass-veil");
   if (!veilUtil || !/--veil-solidify:\s*var\(--glass-solidify\)/.test(veilUtil.body)) {
     fail(`[solidify-owner] @utility glass-veil must set --veil-solidify: var(--glass-solidify).`);
   }
-  for (const prop of ["--veil-floor", "--veil-solidify"]) {
+  for (const prop of ["--veil-floor", "--veil-solidify", "--srf-backing", "--srf-film", "--srf-solidify-bg", "--srf-solidify-l", "--srf-tint-a"]) {
     const reg = rules.find((r) => r.selector === `@property ${prop}`);
     if (!reg || !/inherits:\s*false/.test(reg.body)) fail(`[solidify-owner] ${prop} must be registered with @property … inherits: false.`);
   }

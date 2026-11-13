@@ -49,6 +49,31 @@
   syntax: "*";
   inherits: false;
 }
+/* The status Alert's own day surface (presets.css, THE STATUS ALERT BY DAY), NON-inheriting for the same
+   reason: the Alert paints a solid, paler backing and a film over its stack, and a glass surface nested in
+   it (a destructive Button, a glass Input or Card) must paint what it would inside the plain status tint.
+   --srf-backing and --srf-film are what `glass` reads; the other three are the knobs and colour they are
+   composed from, on the same element. */
+@property --srf-backing {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-film {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-solidify-bg {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-solidify-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-tint-a {
+  syntax: "*";
+  inherits: false;
+}
 
 /* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
    rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as
@@ -142,6 +167,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-ink: var(--destructive-ink);
+  --color-info-ink: var(--info-ink);
+  --color-success-ink: var(--success-ink);
+  --color-warning-ink: var(--warning-ink);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -515,6 +544,22 @@
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.55 0.22 25); /* Red - 4.5:1 with white */
   --destructive-foreground: oklch(0.98 0 0); /* White text on red */
+  /* STATUS INK — the words of a status surface (the Alert's text), read on that status's own tint
+     (data-glass-tint="<status>", presets.css), where the status colour itself is too light by day (L55 red
+     on the L86 destructive tint: 47 Lc, 3.5:1) and too dark at night (L65 on L31: 34 Lc). Each ink keeps
+     its status hue at a text lightness: dark by day, pale at night (the .dark twins). The border and icon
+     keep the status colour; only the words take the ink. Held to 75 Lc and 4.5:1 on the Alert's surface
+     in both modes (scripts/check-contrast.mjs [status]).
+     By day the inks sit at L40–43 with the status's chroma still visible (red 0.15, blue 0.11, green 0.1,
+     amber 0.082, near each hue's sRGB ceiling there), on the Alert's own PALER, FIRMER day surface (a solid
+     near-white backing under a light wash, about L95–97: presets.css, after the status tints). On the shared
+     tint (about L86, with a dark scene showing through) a hued ink could not reach 75 Lc; only a tinted
+     near-black could. At night the pale inks sit at L95: a status scope nested in moonstone's pale-stone
+     page keeps that page's L52 floor, which lifts the tint to L41. */
+  --destructive-ink: oklch(0.4 0.15 25);
+  --info-ink: oklch(0.41 0.11 255);
+  --success-ink: oklch(0.42 0.1 150);
+  --warning-ink: oklch(0.43 0.082 85);
 
   /* Border / input LIGHTNESS + chroma-CAP knobs — the COLOR is composed in engine.css so the edge
      follows the theme tint like every other surface token (leaves, so they inherit into tint scopes
@@ -1087,17 +1132,24 @@
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.65 0.22 25); /* Light red - 4.5:1 with dark background */
   --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
+  /* Status ink at night (see :root): pale, at about 90% of each hue's sRGB ceiling at L95 (h25's is 0.0241). */
+  --destructive-ink: oklch(0.95 0.021 25);
+  --info-ink: oklch(0.95 0.021 255);
+  --success-ink: oklch(0.95 0.07 150);
+  --warning-ink: oklch(0.95 0.045 85);
 
   /* Border / input chroma cap — dark twin (see :root; color composed in engine.css). The two LIGHTNESSES
      are night role tokens, declared after this block on every tint scope. The cap was sized when the input
      sat at L 0.25 (0.0422 there, turquoise h190); both now sit at L 0.65, far inside every hue's ceiling,
      and it is left as it was so the night edge stays a near-neutral lit line. */
   --border-c-max: 0.041; /* ≤ 0.0422, the L-0.25 ceiling floor (turquoise h190) */
-  /* Focus ring, at night a lit blue the focused rim reads against the deep floor: 0.7 clears the 30 Lc
-     non-text floor on every night surface (42.3 on the jewels' L31–34, 31.8 on the palest night card, L46;
-     check-contrast [role]), where 0.6 gave 28.0 and 17.6. 0.158 is h250's sRGB ceiling at L70; the old
-     0.2 was out of gamut and clipped. */
-  --ring: oklch(0.7 0.158 250);
+  /* Focus ring, at night a lit blue the focused rim reads against the deep floor, drawn SOLID at night
+     (each component's `dark:…ring-ring` beside its day `ring-ring/50`): at half alpha the night ring read
+     1.6–2.2:1 on the night card, fainter than the same ring by day. L80, up from 0.7, so the solid ring clears
+     WCAG's 3:1 for a line and the 30 Lc non-text floor on every night surface, the frescoes' lit sheet and
+     moonstone's pale stone included (check-contrast [role]). 0.098 is 93% of h250's sRGB ceiling at L80
+     (0.1049), inside it; the old 0.2 was out of gamut and clipped. */
+  --ring: oklch(0.8 0.098 250);
 
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.65 0.2 250); /* Light blue */
@@ -1115,7 +1167,7 @@
   --sidebar-accent: oklch(1 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border); /* Same divider role, same value it already carried — follow the role token */
-  --sidebar-ring: oklch(0.7 0.158 250); /* The focus ring's value (above) */
+  --sidebar-ring: oklch(0.8 0.098 250); /* The focus ring's value (above) */
 }
 
 /* NIGHT tokens a preset may pin for itself, in their own rule so they OUTRANK the preset blocks and are
@@ -1155,8 +1207,10 @@
       [edge] and [role]):
         - the EDGES (border, input rim): >= 30 APCA Lc against both surfaces, the non-text floor (and WCAG
           1.4.11's 3:1 for a control's boundary, which needs L >= ~0.6 here). The input rim takes the
-          border's 0.65, as it takes the border's 0.85 by day. The field's own fill is the input at 10%
-          (dark:bg-input/10), so the typed text keeps the body floor inside it.
+          border's 0.65, as it takes the border's 0.85 by day. The default field's own fill is the input at
+          --input-fill-a (10%; `dark:bg-input/(--input-fill-a)` in input, textarea and input-group), so the
+          typed text keeps the body floor plus margin inside it. A preset whose night rim is brighter, so
+          that a 10% fill of it lifts the field under the typed text past that, sets its own.
         - the FILLS (accent, the hover; secondary; muted, the selected row, the tabs well): at least 7 L clear
           of both surfaces in OKLab lightness, ABOVE them wherever a fill that far up still carries every
           text it is paired with, BELOW them where it cannot. APCA cannot score two large dark areas (it
@@ -1242,6 +1296,7 @@
   );
   --border-l: 0.65;
   --input-l: 0.65;
+  --input-fill-a: 10%;
   --accent-bg-l: 0.45;
   --secondary-l: 0.44;
   --muted-l: 0.24;
@@ -1877,9 +1932,13 @@
      survived to the eye, so the hover read as the material's own colour (white in light mode) no matter
      what --accent was set to. No amount of tuning the token could fix that; it is a layer-order problem.
      Same no-op `none` slot pattern as --acc-gradient below it. */
+  /* --srf-film and --srf-backing are an element's OWN surface, registered non-inheriting (registrations.css):
+     today only the status Alert by day sets them (presets.css), a film of its backing over the stack and a
+     solid backing that leads the solidify chain (ahead of the veil too: the film is only exact over a solid
+     backing), so nothing nested in it inherits either. */
   background-image:
-    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-bg-image, var(--glass-stack-bg)),
-    var(--veil-solidify, var(--srf-solidify, var(--glass-solidify)));
+    var(--srf-hover, none), var(--acc-gradient, none), var(--srf-film, none), var(--srf-bg-image, var(--glass-stack-bg)),
+    var(--srf-backing, var(--veil-solidify, var(--srf-solidify, var(--glass-solidify))));
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
@@ -2578,6 +2637,13 @@
   --foreground-strong-lustre: oklch(0.98 0 0);
   --foreground-ui-lustre: oklch(0.86 0 0);
   --muted-foreground-lustre: oklch(0.9 0 0);
+  /* Status ink: the pale NIGHT inks (tokens.css's .dark twins, literal like the tiers above), since a status
+     surface here is dark in either mode; the status Alert's paler day surface does not apply inside this
+     preset (presets.css, THE STATUS ALERT BY DAY), so its words sit on the dark status tint. */
+  --destructive-ink: oklch(0.95 0.021 25);
+  --info-ink: oklch(0.95 0.021 255);
+  --success-ink: oklch(0.95 0.07 150);
+  --warning-ink: oklch(0.95 0.045 85);
 }
 /* This preset at night. The night role tokens are reset at every tint scope (tokens.css), which outranks
    the block above, so it states its own here; by day it keeps the values above. Its floor is L16, not the
@@ -2903,14 +2969,17 @@
   --glass-wash-c-mult: 2;
   /* Night role tokens, this preset's own (tokens.css resets them at every tint scope): its night floor is
      the palest (sheer L41, opaque card L46, against the jewels' L31–34).
-     - Edge and input rim 0.72: the app-wide 0.65 measured 28.5 / 23.3 Lc where every other preset reaches
-       34–37 (scripts/check-contrast.mjs [edge]); 0.72 puts the opaque card level with them (34.4) and the
-       sheer surface at 39.6.
+     - Edge and input rim 0.76: the app-wide 0.65 measured 28.5 / 23.3 Lc where every other preset reaches
+       34–37 (scripts/check-contrast.mjs [edge]); 0.72 put the opaque card level with them (34.4 Lc) but at
+       2.8:1, under WCAG's 3:1 for a line; 0.76 holds 3.26:1 there (HERO measured 3.3:1 divider, 3.25 field
+       rim). Its default field's night fill is the rim colour at 8% (--input-fill-a), not the shared 10%: over the
+       brighter rim, 10% lifts the field under the typed text to 76.1 Lc, under 76.5; at 8% it reads 76.8.
      - Fills 0.33, RECESSED: no fill can sit 8 L above an L46 card and still carry readable text (the strong
        ink drops under the body floor past ~L52), so its fills go 8 L under its L41 glass instead, as all
        of them did before deep night ([role] accepts either side, held consistently). */
-  --border-l: 0.72;
-  --input-l: 0.72;
+  --border-l: 0.76;
+  --input-l: 0.76;
+  --input-fill-a: 8%;
   --accent-bg-l: 0.33;
   --secondary-l: 0.33;
   --muted-l: 0.33;
@@ -2983,6 +3052,50 @@
   --glass-wash-l: 63%;
   --glass-wash-c-max: 0.2353;
 }
+/* THE STATUS ALERT BY DAY: a paler, firmer surface than the status tint above, so its words keep their status
+   hue (--<status>-ink, L40–43, tokens.css). On the shared tint (backing L92 at --glass-opacity 0.7 under an
+   L63 wash at 0.18) the surface composites to about L86, and a dark scene shows through the 30% the backing
+   leaves: a status-hued word cannot reach 75 Lc there, only a tinted near-black can. So the Alert alone, by
+   day, paints a SOLID near-white backing (L98, so the scene no longer shows through; its chroma cap is the
+   backing's own day cap at that lightness, tokens.css's L92 fit tapered toward white, so it stays inside
+   sRGB) and shows the wash at 0.08 instead of 0.18: about L95–97 with the status hue still in it, where its
+   inks clear 75 Lc and 4.5:1 with room (scripts/check-contrast.mjs [status]).
+   ELEMENT-LOCAL, through slots registered `inherits: false` (registrations.css), as the ink border does:
+   the shared tint tokens on the Alert are NOT touched, so every surface nested in it (a destructive Button,
+   a glass Input or Card, an unmarked `.glass` on the opaque page) computes exactly what it would inside the
+   plain status tint. A tint scope's surface tokens (the wash, the stacks) are composed where they are
+   declared and inherited composed, so a knob changed on the Alert would reach its untinted children; these
+   slots are read only where `glass` paints the Alert itself:
+     --srf-backing  the solid L98 backing, read ahead of the solidify slot (so the opaque page, which drops
+                    the layer as a no-op over its floor, keeps it on the Alert: it is the paler of the two);
+     --srf-film     the same backing colour over the material stack at 1 − 0.08 / 0.18 (5/9): over a solid
+                    backing, the stack's 0.18 wash under that film composites to exactly a 0.08 wash, on
+                    the stacks whose wash is --glass-tint-a (glass, frosted, crystal, chakra). Lustre's
+                    stack is its own wash over a pigmented body, so a lustre Alert comes out near L96 with
+                    less hue, which check-contrast does not measure. The sheet and any gloss above the wash
+                    are softened by the same film.
+   Only the four status tints (a consumer's `<Alert data-glass-tint="lapis">` keeps the plain tint), and
+   only by day: not under `.dark`, and not inside Onyx, the dark palette that needs no `.dark` (its day is
+   night: its status Alerts keep the tint and read the pale night inks, which its block re-declares). */
+[data-slot="alert"]:is([data-glass-tint="info"], [data-glass-tint="success"], [data-glass-tint="warning"], [data-glass-tint="destructive"]):not(
+  :where(.dark, .dark *, [data-glass-tint="onyx"] *)
+) {
+  --srf-solidify-l: 98;
+  --srf-tint-a: 0.08;
+  --srf-solidify-bg: oklch(
+    calc(var(--srf-solidify-l) * 1%)
+      min(
+        calc(var(--glass-tint-c) * var(--glass-solidify-c-scale)),
+        calc(var(--glass-solidify-c-max-at-92) * (100 - var(--srf-solidify-l)) * (100 - var(--srf-solidify-l)) / 64)
+      )
+      var(--glass-tint-h)
+  );
+  --srf-backing: linear-gradient(var(--srf-solidify-bg), var(--srf-solidify-bg));
+  --srf-film: linear-gradient(
+    color-mix(in oklch, var(--srf-solidify-bg) calc(max(0, 1 - var(--srf-tint-a) / var(--glass-tint-a)) * 100%), transparent),
+    color-mix(in oklch, var(--srf-solidify-bg) calc(max(0, 1 - var(--srf-tint-a) / var(--glass-tint-a)) * 100%), transparent)
+  );
+}
 /* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
    shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
@@ -3037,6 +3150,18 @@
   );
   --glass-crystal-fresco: var(--glass-bg);
 }
+/* The neon city's one NIGHT block holds only its night lines (the sheet is shared, above): its stops are the
+   brightest at night of any fresco (L78–85 at alpha 0.26–0.3), so the app-wide L65 line read 2.2:1 on its
+   night card, under WCAG's 3:1 (scripts/check-contrast.mjs [edge]); tokens.css resets the night role
+   tokens at every tint scope, so they are set here at night only. */
+.dark[data-glass-tint="muse"],
+.dark [data-glass-tint="muse"] {
+  --border-l: 0.81;
+  --input-l: 0.81;
+  /* And its night ink border (the glass field's night rim, any borderColor="ink"): at the shared 0.55 it read
+     2.8:1 against the sheet's brightest stop (L85 h222 at 0.3) over the night card; 0.62 holds 3:1 there. */
+  --glass-border-ink-a: 0.62;
+}
 
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
@@ -3067,6 +3192,12 @@
 }
 .dark[data-glass-tint="sistine"],
 .dark [data-glass-tint="sistine"] {
+  /* Night lines, this fresco's own (tokens.css resets the night role tokens at every tint scope): the
+     sheet's lit stops (L74–86 at alpha 0.2–0.22) lift the night card toward the app-wide L65 line, which
+     then read 2.1–2.4:1, under WCAG's 3:1 (scripts/check-contrast.mjs [edge], judged at the brightest stop
+     composited over the card). */
+  --border-l: 0.76;
+  --input-l: 0.76;
   --glass-bg: linear-gradient(
     135deg in oklch,
     oklch(86% 0.11 75 / 0.22) 0%,
@@ -3137,6 +3268,9 @@
 }
 .dark[data-glass-tint="aurora"],
 .dark [data-glass-tint="aurora"] {
+  /* Night lines: see Sistine's night block. */
+  --border-l: 0.78;
+  --input-l: 0.78;
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.071 235 / 0.22) 0%, oklch(85% 0.127 205 / 0.2) 50%, oklch(80% 0.173 155 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(
     135deg in oklch,
@@ -3164,6 +3298,9 @@
 }
 .dark[data-glass-tint="gloaming"],
 .dark [data-glass-tint="gloaming"] {
+  /* Night lines: see Sistine's night block. */
+  --border-l: 0.76;
+  --input-l: 0.76;
   --glass-tint-h: 32; /* night keeps the warm glow; day uses the dusk-rose above */
   --glass-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.22) 0%, oklch(80% 0.14 350 / 0.2) 50%, oklch(74% 0.13 278 / 0.22) 100%);
   --glass-frosted-bg: linear-gradient(135deg in oklch, oklch(86% 0.12 62 / 0.32) 0%, oklch(80% 0.14 350 / 0.3) 50%, oklch(74% 0.13 278 / 0.32) 100%);

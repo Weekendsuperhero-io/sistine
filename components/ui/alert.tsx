@@ -6,7 +6,9 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only (text, status chrome); the surface comes from materialSurface.
-   Status variants ride a BORDERLESS glass surface (their colored border is their own chrome). */
+   Status variants ride a BORDERLESS glass surface (their colored border is their own chrome). Their WORDS
+   are the status INK (--<status>-ink: dark by day, pale at night, in the status hue), which reads on the
+   status tint; the border and the icon keep the status colour itself, which does not (tokens.css). */
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
@@ -14,12 +16,10 @@ const alertVariants = cva(
       variant: {
         default: "bg-background text-foreground",
         glass: "text-foreground",
-        info: "border border-blue-500/60 text-blue-600 shadow-[var(--glass-shadow)] dark:text-blue-400 [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
-        success:
-          "border border-green-500/60 text-green-600 shadow-[var(--glass-shadow)] dark:text-green-400 [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
-        warning:
-          "border border-yellow-500/60 text-yellow-600 shadow-[var(--glass-shadow)] dark:text-yellow-400 [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
-        destructive: "border border-destructive/60 text-destructive shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
+        info: "border border-blue-500/60 text-info-ink shadow-[var(--glass-shadow)] [&>svg]:text-blue-600 dark:[&>svg]:text-blue-400",
+        success: "border border-green-500/60 text-success-ink shadow-[var(--glass-shadow)] [&>svg]:text-green-600 dark:[&>svg]:text-green-400",
+        warning: "border border-yellow-500/60 text-warning-ink shadow-[var(--glass-shadow)] [&>svg]:text-yellow-600 dark:[&>svg]:text-yellow-400",
+        destructive: "border border-destructive/60 text-destructive-ink shadow-[var(--glass-shadow)] [&>svg]:text-destructive",
       },
     },
     defaultVariants: {

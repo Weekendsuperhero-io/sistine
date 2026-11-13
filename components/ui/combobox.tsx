@@ -215,7 +215,7 @@ function ComboboxChips({
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
-        "flex min-h-9 flex-wrap items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm text-foreground transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 has-aria-invalid:border-destructive has-aria-invalid:ring-[3px] has-aria-invalid:ring-destructive/20 has-data-[slot=combobox-chip]:px-1.5 dark:has-aria-invalid:ring-destructive/40",
+        "flex min-h-9 flex-wrap items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm text-foreground transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:focus-within:ring-ring has-aria-invalid:border-destructive has-aria-invalid:ring-[3px] has-aria-invalid:ring-destructive/20 has-data-[slot=combobox-chip]:px-1.5 dark:has-aria-invalid:ring-destructive/40",
         className,
       )}
       {...rest}
