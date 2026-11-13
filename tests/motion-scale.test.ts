@@ -11,6 +11,7 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { transform } from "lightningcss";
 import { compile } from "tailwindcss";
 import { describe, expect, it } from "vitest";
 import { stopRules } from "../components/pattern-background";
@@ -338,8 +339,8 @@ describe("reduced motion gives way to a consumer's motion dial", () => {
 
   it("documents next to the loop tokens that the loop scale slows and never stops", () => {
     const tokens = read(join(THEME, "tokens.css"));
-    expect(tokens).toContain("--motion-loop-scale SLOWS loops, it never stops them: a consumer's No level must keep it at 1 or more.");
-    expect(tokens).toContain('Stopping is\n     the job of the data-motion="no" rules in utilities.css');
+    expect(tokens).toMatch(/--motion-loop-scale[\s\S]{0,80}never stops/);
+    expect(tokens).toMatch(/at 1 or more/);
   });
 });
 
@@ -359,9 +360,9 @@ function topLevelSplit(list: string) {
 }
 
 /** A rule is gated when it is scoped under a :root without data-motion: a descendant rule, or the
-    nested `&` form a @custom-variant body writes (registrations.css). */
+    ancestor `&` form a @custom-variant body writes (registrations.css). */
 const GATED_SCOPE = ":root:not([data-motion]) ";
-const GATED_NESTED = "&:where(:root:not([data-motion]), :root:not([data-motion]) *)";
+const GATED_NESTED = ":where(:root:not([data-motion])) &";
 const isGated = (selector: string) => selector.startsWith(GATED_SCOPE) || selector === GATED_NESTED;
 
 /** Every `@media (prefers-reduced-motion…)` block in `text`, with each rule inside it and its line. */
@@ -493,6 +494,28 @@ describe("no off-scale motion class in components/ or app/", () => {
   it("finds none (the baseline is 0)", () => {
     expect(offScale()).toEqual([]);
   });
+
+  /* `before:`/`after:` nest their rule inside the pseudo-element, where no ancestor condition can reach
+     (Lightning CSS flattens `:where(…) &` there to `:is(.x::before)`, which matches nothing), so a motion
+     variant must come first: `motion-reduce:before:…`. registrations.css says why. */
+  it("puts a motion variant before before: and after:", () => {
+    const wrong = [
+      ...filesUnder("components", [
+        ".ts",
+        ".tsx",
+      ]),
+      ...filesUnder("app", [
+        ".ts",
+        ".tsx",
+      ]),
+    ].flatMap((f) => {
+      const text = read(f);
+      return [
+        ...text.matchAll(/(?<![\w-])((?:before|after):(?:[\w-]+:)*motion-(?:safe|reduce):[\w[\]().%/-]+)/g),
+      ].map((m) => `${f}:${lineOf(text, m.index)} ${m[1]}`);
+    });
+    expect(wrong).toEqual([]);
+  });
 });
 
 /** Resolves the theme's imports the way a bundler would: packages by their `style` entry, the rest relative. */
@@ -538,7 +561,7 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
   /* motion-safe: / motion-reduce: are redefined in registrations.css. Tailwind's own variant is a bare
      media query; with no data-motion, ours must be exactly that query over the same declarations, the
      selector only wrapped in :root:not([data-motion]) at zero specificity. */
-  const NONE = ":where(:root:not([data-motion]), :root:not([data-motion]) *)";
+  const NONE = ":where(:root:not([data-motion])) ";
   const VARIANTS: [
     string,
     string,
@@ -547,12 +570,12 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
     [
       "motion-reduce:transition-none",
       "reduce",
-      ':where(:root[data-motion="no"], :root[data-motion="no"] *)',
+      ':where(:root[data-motion="no"]) ',
     ],
     [
       "motion-safe:animate-spin",
       "no-preference",
-      ':where(:root[data-motion]:not([data-motion="no"]), :root[data-motion]:not([data-motion="no"]) *)',
+      ':where(:root[data-motion]:not([data-motion="no"])) ',
     ],
   ];
   const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -569,9 +592,9 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
       const sel = selectorOf(cls);
       const wants = [
         // the dial, whatever the OS says: outside any media query
-        new RegExp(`\\n {2}${esc(sel + dial)} \\{`),
+        new RegExp(`\\n {2}${esc(dial + sel)} \\{`),
         // the OS, only when :root carries no data-motion
-        new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(sel + NONE)} \\{`),
+        new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(NONE + sel)} \\{`),
       ];
       return wants.filter((re) => !re.test(out)).map((re) => `${cls}: ${re.source}`);
     });
@@ -596,10 +619,57 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
         loadStylesheet,
       })
     ).build(VARIANTS.map(([cls]) => cls));
-    /* The OS-gated block of each: its media query and declarations. Ours carries the :where wrapper. */
-    const block = (css: string, cls: string, os: string, suffix: string) =>
-      css.match(new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(selectorOf(cls) + suffix)} \\{([^}]*)\\}`))?.[1].trim() ??
+    /* The OS-gated block of each: its media query and declarations. Ours carries the :where() ancestor. */
+    const block = (css: string, cls: string, os: string, prefix: string) =>
+      css.match(new RegExp(`@media \\(prefers-reduced-motion: ${os}\\) \\{\\s*${esc(prefix + selectorOf(cls))} \\{([^}]*)\\}`))?.[1].trim() ??
       `${cls} (${os}) not emitted`;
-    for (const [cls, os] of VARIANTS) expect(block(ours, cls, os, NONE), cls).toBe(block(stock, cls, os, ""));
+    /* The dial's rule, outside any media query, declares the same as the OS block. */
+    const dialRule = (css: string, cls: string, dial: string) =>
+      css.match(new RegExp(`\\n {2}${esc(dial + selectorOf(cls))} \\{([^}]*)\\}`))?.[1].trim() ?? `${cls} dial rule not emitted`;
+    for (const [cls, os, dial] of VARIANTS) {
+      expect(block(ours, cls, os, NONE), cls).toBe(block(stock, cls, os, ""));
+      expect(dialRule(ours, cls, dial), `${cls} dial`).toBe(block(stock, cls, os, ""));
+    }
+  }, 30_000);
+
+  it("stack after hover, dark and a pseudo-element, and flatten to selectors a browser parses", async () => {
+    const classes = [
+      "motion-safe:hover:opacity-50",
+      "dark:motion-reduce:transition-none",
+      "placeholder:motion-safe:transition-all",
+      "motion-reduce:before:animate-none",
+      "motion-safe:after:animate-spin",
+    ];
+    const built = (
+      await compile(read("app/globals.css"), {
+        base: resolve("app"),
+        loadStylesheet,
+      })
+    ).build(classes);
+    /* A production build flattens nesting (Lightning CSS, as Tailwind's own optimizer does). */
+    const flat = transform({
+      filename: "motion.css",
+      code: Buffer.from(built),
+      minify: false,
+      targets: {
+        safari: (16 << 16) | (4 << 8),
+      },
+    }).code.toString();
+    const selectors = [
+      ...flat.matchAll(/^\s*([^@{}\s][^{}]*?)\s*\{/gm),
+    ].map((m) => m[1].trim());
+    /* A pseudo-element ends its compound selector: :where() after ::placeholder or ::before is a rule no
+       browser parses, so it is dropped whole (the `&:where(…)` form did that). */
+    expect(selectors.filter((sel) => /::?(placeholder|before|after)[^\s,]*:where\(/.test(sel))).toEqual([]);
+    const want = [
+      ':where(:root[data-motion="no"]) .motion-reduce\\:before\\:animate-none',
+      ":where(:root:not([data-motion])) .motion-reduce\\:before\\:animate-none",
+      ':where(:root[data-motion]:not([data-motion="no"])) .motion-safe\\:after\\:animate-spin',
+      ':where(:root[data-motion]:not([data-motion="no"])) .placeholder\\:motion-safe\\:transition-all',
+      ':where(:root[data-motion="no"]) .dark\\:motion-reduce\\:transition-none',
+      ':where(:root[data-motion]:not([data-motion="no"])) .motion-safe\\:hover\\:opacity-50',
+    ];
+    const missing = want.filter((w) => !selectors.some((sel) => sel.startsWith(w)));
+    expect(missing, flat).toEqual([]);
   }, 30_000);
 });

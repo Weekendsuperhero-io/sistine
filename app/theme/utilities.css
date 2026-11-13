@@ -268,7 +268,9 @@
      - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
                   Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
    These rules STOP loops; `--motion-loop-scale` only slows them (see tokens.css), so a consumer's No
-   level must not try to stop a loop by setting the scale near 0: that strobes.
+   level must not try to stop a loop by setting the scale near 0: that strobes. Only the exact classes are
+   stopped: a prefixed `hover:animate-bounce` keeps running, so write a loop that should respect the dial
+   as `motion-safe:animate-bounce`.
    Who decides: a consumer that sets `data-motion` on :root owns the choice, so the OS query applies only
    under `:root:not([data-motion])` (a consumer that never sets it follows the OS exactly as before), and
    `:root[data-motion="no"]` applies the same treatment whatever the OS says.
