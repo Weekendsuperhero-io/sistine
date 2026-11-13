@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - **The old mascot logos and the unused page screenshots**: `public/logo-dark.png`, `public/logo-light.png`, `public/page.jpg`, `public/page.jpeg` and `public/page-1.jpeg` are gone. The site header shows the Sistine wordmark alone (its mobile menu too), and the Avatar demos on the home page, the component previews, the copyable examples and the Avatar and HoverCard stories show their fallback initials. The screenshots were referenced nowhere.
+- **The demo cityscapes**: `public/backgrounds/` (`city-day.png`, `city-night.png` and the README asking for them) is gone. Their loader, `components/grid-background.tsx`, was removed in #17, so nothing had read them since. `bun run export:backgrounds` writes to `exports/backgrounds`, not here.
 - **Legacy glass API (BREAKING)**: removed the `variant="glass|frosted|crystal|opaque|surface|solid"` surface tiers, the recipe utility classes (`glass-bg`, `glass-surface`, `glass-solid`, `glass-opaque`, `glass-frosted`, `glass-crystal`), the per-component `glass={{ color, blur, transparency, outline }}` prop, replaced by the `glassVars({ tintH, tintC, tintA, opacity, blur, solidA })` helper that emits CSS custom properties, and the `components/ui/glass/*` wrapper tree.
 
 ### Added
