@@ -55,6 +55,12 @@ const TOKENS = {
   sidebarRing: "--sidebar-ring",
   accentForeground: "--accent-foreground",
   secondaryForeground: "--secondary-foreground",
+  /* The status inks (an Alert's words on its status tint): day-only values here, the night ones in
+     tests/night-snapshot.test.ts. */
+  destructiveInk: "--destructive-ink",
+  infoInk: "--info-ink",
+  successInk: "--success-ink",
+  warningInk: "--warning-ink",
 } as const;
 type Surfaces = Record<keyof typeof TOKENS, ResolvedOklch>;
 
@@ -341,11 +347,29 @@ describe("deep night: the night role tokens", () => {
       muted: 24,
     },
     moonstone: {
-      border: 72,
-      input: 72,
+      border: 76,
+      input: 76,
       accent: 33,
       secondary: 33,
       muted: 33,
+    },
+    /* The four frescoes' night lines: their lit night sheets lift the card under the line, so each raises its
+       own past the app-wide 65 to clear WCAG's 3:1 (check-contrast [edge]); their fills keep the night's. */
+    sistine: {
+      border: 76,
+      input: 76,
+    },
+    gloaming: {
+      border: 76,
+      input: 76,
+    },
+    aurora: {
+      border: 78,
+      input: 78,
+    },
+    muse: {
+      border: 81,
+      input: 81,
     },
   };
   const expected = (t: string | undefined, role: "border" | "input" | "accent" | "secondary" | "muted") =>
@@ -368,8 +392,8 @@ describe("deep night: the night role tokens", () => {
     const night = computedVarsOf(html(true, "lapis"));
     expect(night.get("--accent-foreground")).toBe(night.get("--foreground-strong"));
     expect(night.get("--secondary-foreground")).toBe(night.get("--foreground-strong"));
-    expect(colorOf(TOKENS.ring, html(true, "lapis")).l).toBeCloseTo(70, 6);
-    expect(colorOf(TOKENS.ring, html(true, "lapis")).c).toBeLessThanOrEqual(maxSrgbChroma(70, 250));
+    expect(colorOf(TOKENS.ring, html(true, "lapis")).l).toBeCloseTo(80, 6);
+    expect(colorOf(TOKENS.ring, html(true, "lapis")).c).toBeLessThanOrEqual(maxSrgbChroma(80, 250));
   });
 
   it("resets them at every tint scope, so a nested preset never takes its page preset's night values", () => {
@@ -402,6 +426,16 @@ describe("deep night: the night role tokens", () => {
         "moonstone",
         "onyx",
       ],
+      /* The neon city sets its night lines through knobs registered non-inheriting: a scope inside it keeps
+         the shared lines, or its own. */
+      [
+        "muse",
+        "lapis",
+      ],
+      [
+        "muse",
+        "aurora",
+      ],
     ]) {
       for (const role of [
         "border",
@@ -413,6 +447,111 @@ describe("deep night: the night role tokens", () => {
         expect(colorOf(TOKENS[role], nested(page, section)).l, `${section} inside a ${page} page: ${role}`).toBeCloseTo(expected(section, role), 6);
       }
     }
+  });
+
+  it("takes the neon city's night ink alpha on its own scope only, never by day, and a consumer's own alpha wins at any depth", () => {
+    /* --brd-ink paints var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)) (utilities.css): the
+       consumer's override if any scope sets it, else the theme's default, which the night rule takes from a
+       preset's knob. The theme itself never declares --glass-border-ink-a. The model restates that formula, so
+       it is held to the shipped declaration: a floor (max()) or a lost fallback there fails here. */
+    const brdInk = /--brd-ink:\s*([^;]+);/.exec(readFileSync("app/theme/utilities.css", "utf8"))?.[1].replace(/\s+/g, " ");
+    expect(brdInk).toBe(
+      "color-mix(in oklch, var(--foreground) calc(var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)) * 100%), transparent)",
+    );
+    const inkA = (chain: ModelElement[]) => {
+      const v = computedVarsOf(chain);
+      if (v.has("--glass-border-ink-a")) return numberOf("--glass-border-ink-a", chain);
+      return v.has("--glass-border-ink-default-a") ? numberOf("--glass-border-ink-default-a", chain) : 0.5;
+    };
+    const lapis = (style?: Record<string, string>): ModelElement => ({
+      attrs: {
+        "data-glass-tint": "lapis",
+      },
+      ...(style
+        ? {
+            style,
+          }
+        : {}),
+    });
+    const inside = (page: string, dark: boolean): ModelElement[] => [
+      ...html(dark, page),
+      lapis(),
+    ];
+    /* A consumer's override on <html> itself (an ancestor of every scope), or on an element inside the scope. */
+    const withOwn = (chain: ModelElement[], at: "ancestor" | "descendant", a: string): ModelElement[] => {
+      if (at === "descendant")
+        return [
+          ...chain,
+          {
+            attrs: {},
+            style: {
+              "--glass-border-ink-a": a,
+            },
+          },
+        ];
+      const [root, ...rest] = chain;
+      return [
+        {
+          ...root,
+          style: {
+            ...root.style,
+            "--glass-border-ink-a": a,
+          },
+        },
+        ...rest,
+      ];
+    };
+    expect(computedVarsOf(html(true, "muse")).has("--glass-border-ink-a")).toBe(false);
+    expect(inkA(html(true, "muse"))).toBeCloseTo(0.62, 9);
+    expect(inkA(inside("muse", true))).toBeCloseTo(0.55, 9);
+    expect(inkA(html(true, "lapis"))).toBeCloseTo(0.55, 9);
+    expect(inkA(html(true))).toBeCloseTo(0.55, 9);
+    /* The consumer's alpha wins over the neon city's night 0.62, lower or higher, set above or below it. */
+    for (const a of [
+      "0.3",
+      "0",
+      "0.8",
+    ]) {
+      for (const at of [
+        "ancestor",
+        "descendant",
+      ] as const) {
+        expect(inkA(withOwn(html(true, "muse"), at, a)), `muse night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+        expect(inkA(withOwn(inside("muse", true), at, a)), `lapis in muse night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+        expect(inkA(withOwn(html(false, "muse"), at, a)), `muse day, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+      }
+    }
+    /* Set on a scope between the page and the line: a tint scope nested in the neon city keeps it below. */
+    expect(
+      inkA([
+        ...html(true, "muse"),
+        lapis({
+          "--glass-border-ink-a": "0.3",
+        }),
+        {
+          attrs: {
+            "data-glass-tint": "aurora",
+          },
+        },
+      ]),
+    ).toBeCloseTo(0.3, 9);
+    /* Set strictly above the neon city: a lapis page carries the consumer's 0.3 and the neon city is scoped
+       inside it. Without the consumer's value, that nested neon city scope reads its own knob. */
+    const neonIn = (chain: ModelElement[]): ModelElement[] => [
+      ...chain,
+      {
+        attrs: {
+          "data-glass-tint": "muse",
+        },
+      },
+    ];
+    expect(inkA(neonIn(withOwn(html(true, "lapis"), "ancestor", "0.3")))).toBeCloseTo(0.3, 9);
+    expect(inkA(neonIn(html(true, "lapis")))).toBeCloseTo(0.62, 9);
+    /* By day the knobs are read by nothing: the neon city's lines and ink are the shared day values. */
+    expect(inkA(html(false, "muse"))).toBeCloseTo(0.55, 9);
+    expect(inkA(html(false, "lapis"))).toBeCloseTo(0.55, 9);
+    expect(colorOf(TOKENS.border, html(false, "muse")).l).toBeCloseTo(colorOf(TOKENS.border, html(false, "lapis")).l, 9);
+    expect(colorOf(TOKENS.input, html(false, "muse")).l).toBeCloseTo(colorOf(TOKENS.input, html(false, "lapis")).l, 9);
   });
 
   it("leaves day's nesting as it was: a section inside an Onyx page still inherits Onyx's day edges", () => {

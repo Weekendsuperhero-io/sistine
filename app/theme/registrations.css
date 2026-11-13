@@ -35,6 +35,46 @@
   syntax: "*";
   inherits: false;
 }
+/* The status Alert's own day surface (presets.css, THE STATUS ALERT BY DAY), NON-inheriting for the same
+   reason: the Alert paints a solid, paler backing and a film over its stack, and a glass surface nested in
+   it (a destructive Button, a glass Input or Card) must paint what it would inside the plain status tint.
+   --srf-backing and --srf-film are what `glass` reads; the other three are the knobs and colour they are
+   composed from, on the same element. */
+@property --srf-backing {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-film {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-solidify-bg {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-solidify-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-tint-a {
+  syntax: "*";
+  inherits: false;
+}
+/* A one-block preset's NIGHT knobs (tokens.css's night rule reads them, with the shared value as fallback),
+   NON-inheriting so only the scope that sets one takes it: a tint scope nested inside it keeps the shared
+   night lines, as every night scope resets them. */
+@property --night-border-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --night-input-l {
+  syntax: "*";
+  inherits: false;
+}
+@property --night-border-ink-a {
+  syntax: "*";
+  inherits: false;
+}
 
 /* Gradient-text tokens are consumed ONLY from JS inline styles (components/gradient-text.tsx) — no CSS
    rule references them, so Lightning CSS's optimizer would silently drop them (the same failure mode as

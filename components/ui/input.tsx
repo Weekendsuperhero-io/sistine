@@ -4,13 +4,14 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-/* The default (shadcn) field: --input is its rim AND, at 10%, its night fill. Deep night lifted the rim to
+/* The default (shadcn) field: --input is its rim AND, at --input-fill-a, its night fill. Deep night lifted the rim to
    the border's lightness so the field reads against the deep floor (tokens.css); at the old 30% that fill
-   would lift the field past where the typed text keeps the body floor, so it is a 10% tint now. */
+   would lift the field past where the typed text keeps the body floor, so it is a 10% tint now, through
+   --input-fill-a (tokens.css's night role rule; the pale-stone preset, whose night rim is brighter, takes 8%). */
 const inputVariants = cva("", {
   variants: {
     variant: {
-      default: "dark:bg-input/10 border-input bg-transparent shadow-xs",
+      default: "dark:bg-input/(--input-fill-a) border-input bg-transparent shadow-xs",
       glass: "",
     },
   },
@@ -19,7 +20,9 @@ const inputVariants = cva("", {
   },
 });
 
-/* Role: bordered adaptive glass at the small blur tier. */
+/* Role: bordered adaptive glass at the small blur tier. At NIGHT its rim is the ink border (nightRim below):
+   the material's white glass edge, at --glass-border-a 0.15, reads 1.6–2.2:1 against the field on the deep
+   night glass, under WCAG's 3:1 for a control's boundary. By day the white glass rim stays. */
 const ROLE: MaterialProps = {
   border: true,
   size: "sm",
@@ -42,6 +45,9 @@ function Input({
   }) {
   const [axes, rest] = splitAxisProps(props);
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
+  /* The ink border (--foreground at --glass-border-ink-a) at night only, on the glass field: a visible line
+     anywhere its text is legible (scripts/check-contrast.mjs [rim]). An explicit borderColor axis wins. */
+  const nightRim = m && axes.borderColor === undefined ? "dark:glass-border-ink" : undefined;
 
   const input = (
     <input
@@ -50,14 +56,15 @@ function Input({
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
+        nightRim,
         "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground flex h-9 w-full min-w-0 rounded-md px-3 py-1 text-base transition-[color,box-shadow] outline-hidden file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         inputVariants({
           variant,
         }),
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "focus-visible:border-ring focus-visible:ring-ring/50 dark:focus-visible:ring-ring focus-visible:ring-[3px]",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         icon && "pl-10",
-        error && "border-destructive focus-visible:ring-destructive",
+        error && "border-destructive focus-visible:ring-destructive dark:focus-visible:ring-destructive",
         className,
       )}
       /* `error` is announced as well as drawn: it painted the destructive border but left assistive tech

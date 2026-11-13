@@ -47,7 +47,7 @@ const AccordionTrigger = React.forwardRef<
         ref={ref}
         data-slot="accordion-trigger"
         className={cn(
-          "flex flex-1 items-start justify-between gap-4 rounded-md px-4 py-4 text-left font-medium outline-hidden transition-[color,background-color,box-shadow,border-color] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
+          "flex flex-1 items-start justify-between gap-4 rounded-md px-4 py-4 text-left font-medium outline-hidden transition-[color,background-color,box-shadow,border-color] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
           variants[variant],
           glow && "data-[state=open]:glass-glow",
           className,

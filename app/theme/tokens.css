@@ -42,6 +42,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-ink: var(--destructive-ink);
+  --color-info-ink: var(--info-ink);
+  --color-success-ink: var(--success-ink);
+  --color-warning-ink: var(--warning-ink);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -130,8 +134,11 @@
   /* Ink border alpha (borderColor="ink" / glass-border-ink): how much of --foreground the line takes.
      Mode-invariant because --foreground already flips polarity per mode; 0.5 keeps the line clearly
      softer than text while clearing the APCA non-text floor on every preset (check-contrast [ink]); 0.55 since
-     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc. */
-  --glass-border-ink-a: 0.55;
+     opaque cards carry the wash, whose lighter dark surface left goldstone's line at 29.9 Lc.
+     The theme's DEFAULT, not --glass-border-ink-a itself: that one is the consumer's override, which the theme
+     never declares, so a consumer's own alpha set at any depth wins over this and over a preset's night value
+     (--brd-ink reads var(--glass-border-ink-a, var(--glass-border-ink-default-a, 0.5)); utilities.css). */
+  --glass-border-ink-default-a: 0.55;
   /* Crystal gloss defaults (the demo's Light/Tint sliders override inline). --glass-gloss-tint is
      mode-shared; --glass-gloss-l is NOT — see its twin below. AutoForeground's crystal tiers mirror
      --glass-gloss-l (97 light / 66 dark) as their snapshot-path fallback — keep all three in step — and
@@ -415,6 +422,22 @@
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.55 0.22 25); /* Red - 4.5:1 with white */
   --destructive-foreground: oklch(0.98 0 0); /* White text on red */
+  /* STATUS INK — the words of a status surface (the Alert's text), read on that status's own tint
+     (data-glass-tint="<status>", presets.css), where the status colour itself is too light by day (L55 red
+     on the L86 destructive tint: 47 Lc, 3.5:1) and too dark at night (L65 on L31: 34 Lc). Each ink keeps
+     its status hue at a text lightness: dark by day, pale at night (the .dark twins). The border and icon
+     keep the status colour; only the words take the ink. Held to 75 Lc and 4.5:1 on the Alert's surface
+     in both modes (scripts/check-contrast.mjs [status]).
+     By day the inks sit at L40–43 with the status's chroma still visible (red 0.15, blue 0.11, green 0.1,
+     amber 0.082, near each hue's sRGB ceiling there), on the Alert's own PALER, FIRMER day surface (a solid
+     near-white backing under a light wash, about L95–97: presets.css, after the status tints). On the shared
+     tint (about L86, with a dark scene showing through) a hued ink could not reach 75 Lc; only a tinted
+     near-black could. At night the pale inks sit at L95: a status scope nested in moonstone's pale-stone
+     page keeps that page's L52 floor, which lifts the tint to L41. */
+  --destructive-ink: oklch(0.4 0.15 25);
+  --info-ink: oklch(0.41 0.11 255);
+  --success-ink: oklch(0.42 0.1 150);
+  --warning-ink: oklch(0.43 0.082 85);
 
   /* Border / input LIGHTNESS + chroma-CAP knobs — the COLOR is composed in engine.css so the edge
      follows the theme tint like every other surface token (leaves, so they inherit into tint scopes
@@ -987,17 +1010,24 @@
   /* Destructive colors - WCAG AA compliant (4.5:1 contrast) */
   --destructive: oklch(0.65 0.22 25); /* Light red - 4.5:1 with dark background */
   --destructive-foreground: oklch(1 0 0); /* White text on red — APCA Lc ~67 (near-black was Lc 42) */
+  /* Status ink at night (see :root): pale, at about 90% of each hue's sRGB ceiling at L95 (h25's is 0.0241). */
+  --destructive-ink: oklch(0.95 0.021 25);
+  --info-ink: oklch(0.95 0.021 255);
+  --success-ink: oklch(0.95 0.07 150);
+  --warning-ink: oklch(0.95 0.045 85);
 
   /* Border / input chroma cap — dark twin (see :root; color composed in engine.css). The two LIGHTNESSES
      are night role tokens, declared after this block on every tint scope. The cap was sized when the input
      sat at L 0.25 (0.0422 there, turquoise h190); both now sit at L 0.65, far inside every hue's ceiling,
      and it is left as it was so the night edge stays a near-neutral lit line. */
   --border-c-max: 0.041; /* ≤ 0.0422, the L-0.25 ceiling floor (turquoise h190) */
-  /* Focus ring, at night a lit blue the focused rim reads against the deep floor: 0.7 clears the 30 Lc
-     non-text floor on every night surface (42.3 on the jewels' L31–34, 31.8 on the palest night card, L46;
-     check-contrast [role]), where 0.6 gave 28.0 and 17.6. 0.158 is h250's sRGB ceiling at L70; the old
-     0.2 was out of gamut and clipped. */
-  --ring: oklch(0.7 0.158 250);
+  /* Focus ring, at night a lit blue the focused rim reads against the deep floor, drawn SOLID at night
+     (each component's `dark:…ring-ring` beside its day `ring-ring/50`): at half alpha the night ring read
+     1.6–2.2:1 on the night card, fainter than the same ring by day. L80, up from 0.7, so the solid ring clears
+     WCAG's 3:1 for a line and the 30 Lc non-text floor on every night surface, the frescoes' lit sheet and
+     moonstone's pale stone included (check-contrast [role]). 0.098 is 93% of h250's sRGB ceiling at L80
+     (0.1049), inside it; the old 0.2 was out of gamut and clipped. */
+  --ring: oklch(0.8 0.098 250);
 
   /* Chart colors - WCAG AA compliant */
   --chart-1: oklch(0.65 0.2 250); /* Light blue */
@@ -1015,7 +1045,7 @@
   --sidebar-accent: oklch(1 0 0 / 0.1); /* Subtle glass overlay (≈ foreground/10), not a solid block */
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--border); /* Same divider role, same value it already carried — follow the role token */
-  --sidebar-ring: oklch(0.7 0.158 250); /* The focus ring's value (above) */
+  --sidebar-ring: oklch(0.8 0.098 250); /* The focus ring's value (above) */
 }
 
 /* NIGHT tokens a preset may pin for itself, in their own rule so they OUTRANK the preset blocks and are
@@ -1055,8 +1085,10 @@
       [edge] and [role]):
         - the EDGES (border, input rim): >= 30 APCA Lc against both surfaces, the non-text floor (and WCAG
           1.4.11's 3:1 for a control's boundary, which needs L >= ~0.6 here). The input rim takes the
-          border's 0.65, as it takes the border's 0.85 by day. The field's own fill is the input at 10%
-          (dark:bg-input/10), so the typed text keeps the body floor inside it.
+          border's 0.65, as it takes the border's 0.85 by day. The default field's own fill is the input at
+          --input-fill-a (10%; `dark:bg-input/(--input-fill-a)` in input, textarea and input-group), so the
+          typed text keeps the body floor plus margin inside it. A preset whose night rim is brighter, so
+          that a 10% fill of it lifts the field under the typed text past that, sets its own.
         - the FILLS (accent, the hover; secondary; muted, the selected row, the tabs well): at least 7 L clear
           of both surfaces in OKLab lightness, ABOVE them wherever a fill that far up still carries every
           text it is paired with, BELOW them where it cannot. APCA cannot score two large dark areas (it
@@ -1067,6 +1099,11 @@
           Every pairing comes from an audit of the components (check-contrast FILL_AUDIT).
       The near-black preset (an L16 floor) and the pale warm stone (L41–46) pin their own night values in
       presets.css; the stone's fills recess instead, since nothing that far above L46 carries text.
+      A one-block preset (the neon city fresco) cannot pin night values that way, so the lines read three
+      KNOBS it sets in that block: --night-border-l / --night-input-l, and --night-border-ink-a, the ink
+      border's night DEFAULT alpha (--glass-border-ink-default-a; a consumer's own --glass-border-ink-a still
+      wins, and day and every preset that sets no knob compute as before). Registered non-inheriting, a knob
+      is read only at the scope that sets it: a scope nested in it gets 0.65 / 0.55 here.
 
    4. The night values of the DAY caps, which the hue-following caps rule above declares at every tint
       scope and would otherwise hand a scope nested in a dark page. The backing takes the opaque floor's
@@ -1140,8 +1177,10 @@
       calc(0.23411 + 200 * (-95.865 - var(--glass-wash-hue)))
     )
   );
-  --border-l: 0.65;
-  --input-l: 0.65;
+  --border-l: var(--night-border-l, 0.65);
+  --input-l: var(--night-input-l, 0.65);
+  --glass-border-ink-default-a: var(--night-border-ink-a, 0.55);
+  --input-fill-a: 10%;
   --accent-bg-l: 0.45;
   --secondary-l: 0.44;
   --muted-l: 0.24;

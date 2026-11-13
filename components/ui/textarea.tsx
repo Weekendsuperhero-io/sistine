@@ -4,13 +4,14 @@ import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisP
 import { cn } from "@/lib/utils";
 
 /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. */
-/* The default (shadcn) field: --input is its rim AND, at 10%, its night fill. Deep night lifted the rim to
+/* The default (shadcn) field: --input is its rim AND, at --input-fill-a, its night fill. Deep night lifted the rim to
    the border's lightness so the field reads against the deep floor (tokens.css); at the old 30% that fill
-   would lift the field past where the typed text keeps the body floor, so it is a 10% tint now. */
+   would lift the field past where the typed text keeps the body floor, so it is a 10% tint now, through
+   --input-fill-a (tokens.css's night role rule; the pale-stone preset, whose night rim is brighter, takes 8%). */
 const textareaVariants = cva("", {
   variants: {
     variant: {
-      default: "dark:bg-input/10 border-input bg-transparent shadow-xs",
+      default: "dark:bg-input/(--input-fill-a) border-input bg-transparent shadow-xs",
       glass: "",
     },
   },
@@ -48,12 +49,12 @@ function Textarea({
       data-material={m?.["data-material"]}
       className={cn(
         m?.className,
-        "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex field-sizing-content min-h-16 w-full rounded-md px-3 py-2 text-base transition-[color,box-shadow] outline-hidden focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex field-sizing-content min-h-16 w-full rounded-md px-3 py-2 text-base transition-[color,box-shadow] outline-hidden focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
         textareaVariants({
           variant,
         }),
         icon && "pl-10",
-        error && "border-destructive focus-visible:ring-destructive",
+        error && "border-destructive focus-visible:ring-destructive dark:focus-visible:ring-destructive",
         className,
       )}
       {...rest}

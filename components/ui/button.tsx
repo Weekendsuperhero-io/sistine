@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
    the material system (materialSurface below). The materials (lib/material.ts) + axes are the material/border/veil/
    gradient/glow/sheen props, not variants. */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:ring-ring/50 dark:focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
     variants: {
       variant: {
@@ -34,7 +34,7 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow))] hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
-          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
+          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
         outline:
           "text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",

@@ -56,11 +56,11 @@ const CLASS_NAMES: ToastClassnames = {
   description: "font-normal leading-[1.4] text-muted-foreground!",
   actionButton: cn(
     BUTTON.className,
-    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50 dark:focus-visible:ring-ring",
   ),
   cancelButton: cn(
     BUTTON.className,
-    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50",
+    "ml-(--toast-button-margin-start) mr-(--toast-button-margin-end) flex h-6 shrink-0 cursor-pointer items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-opacity outline-hidden hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring/50 dark:focus-visible:ring-ring",
   ),
   closeButton: cn(
     BUTTON.className,

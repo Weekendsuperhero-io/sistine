@@ -24,8 +24,8 @@ const ROLE = {
 function InputGroup({ className, variant = "glass", effect, ...props }: InputGroupProps) {
   const [axes, rest] = splitAxisProps(props);
   /* Variant classes carry BEHAVIOR only; the surface comes from materialSurface. The default field's night
-     fill is --input at 10%, as Input's (see there). */
-  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/10" : "");
+     fill is --input at --input-fill-a, as Input's (see there). */
+  const getVariantClass = () => (variant === "default" ? "border border-input shadow-xs dark:bg-input/(--input-fill-a)" : "");
 
   const m = materialSurface(variant === "default" ? null : ROLE, axes);
 
@@ -44,7 +44,7 @@ function InputGroup({ className, variant = "glass", effect, ...props }: InputGro
         "has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-start]]:[&>input]:pb-3",
         "has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3",
         // Focus state.
-        "has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-[3px] has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50",
+        "has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-[3px] has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 dark:has-[[data-slot=input-group-control]:focus-visible]:ring-ring",
         // Error state.
         "has-[[data-slot][aria-invalid=true]]:border-destructive has-[[data-slot][aria-invalid=true]]:ring-destructive/20 dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40",
         getVariantClass(),
