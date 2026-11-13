@@ -212,7 +212,7 @@
     background-size: 200% 200%;
     background-position: 0% 0%;
     opacity: 0.7;
-    transition: background-position calc(0.3s * var(--motion-scale, 1)) ease;
+    transition: background-position calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
   }
 
   &::after {
@@ -241,14 +241,14 @@
 }
 
 /* ── Motion scale ─────────────────────────────────────────────────────────────
-   Every timing the theme writes by hand runs through `--motion-scale`, a multiplier a consumer may set
-   on :root for an app-wide motion speed: 0 = nothing moves, 2 = half speed, 0.667 = 1.5x. Unset, it is 1
-   and nothing changes. The skeleton's shimmer carries its 2s in its class name, so its duration is
-   restated here, unlayered, which outranks the layered utility; the reduced-motion block below still
-   stops it. */
+   Every timing the theme writes by hand runs through the consumer's motion tokens (see tokens.css):
+   a transition through `--motion-scale` and an easing role, a loop through `--motion-loop-scale`. Unset,
+   each falls back to the literal it replaced, so nothing changes. The skeleton's shimmer carries its 2s
+   in its class name, so its duration is restated here, unlayered, which outranks the layered utility;
+   the reduced-motion rules below still stop it. It is a loop, so it stays linear. */
 .animate-\[sistine-shimmer_2s_infinite\],
 .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
-  animation-duration: calc(2s * var(--motion-scale, 1));
+  animation-duration: calc(2s * var(--motion-loop-scale, 1));
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────────────
@@ -263,18 +263,46 @@
                   still reads as a skeleton from its base fill.
      - spin     → rotation. Real motion, but it is the ONLY signal that a loader is alive, so freezing
                   it reads as "hung" rather than "calm". Slowed hard instead of stopped.
+     - ping     → a zoom outward (scale 1 → 2). Real motion, decorative (the dot it rings stays): stopped.
+     - bounce   → translation up and down. Real motion, decorative: stopped.
      - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
                   Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
+   These rules STOP loops; `--motion-loop-scale` only slows them (see tokens.css), so a consumer's No
+   level must not try to stop a loop by setting the scale near 0: that strobes. Only the exact classes are
+   stopped: a prefixed `hover:animate-bounce` keeps running, so write a loop that should respect the dial
+   as `motion-safe:animate-bounce`.
+   Who decides: a consumer that sets `data-motion` on :root owns the choice, so the OS query applies only
+   under `:root:not([data-motion])` (a consumer that never sets it follows the OS exactly as before), and
+   `:root[data-motion="no"]` applies the same treatment whatever the OS says.
    Unlayered on purpose: Tailwind's generated utilities sit inside @layer utilities, and an unlayered
    rule outranks any layered one regardless of order, so this needs neither !important nor a specificity
    hack. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-\[sistine-shimmer_2s_infinite\],
-  .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  :root:not([data-motion]) .animate-\[sistine-shimmer_2s_infinite\],
+  :root:not([data-motion]) .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
     animation: none;
   }
 
-  .animate-spin {
+  :root:not([data-motion]) .animate-ping,
+  :root:not([data-motion]) .animate-bounce {
+    animation: none;
+  }
+
+  :root:not([data-motion]) .animate-spin {
     animation-duration: 3s;
   }
+}
+
+:root[data-motion="no"] .animate-\[sistine-shimmer_2s_infinite\],
+:root[data-motion="no"] .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  animation: none;
+}
+
+:root[data-motion="no"] .animate-ping,
+:root[data-motion="no"] .animate-bounce {
+  animation: none;
+}
+
+:root[data-motion="no"] .animate-spin {
+  animation-duration: 3s;
 }

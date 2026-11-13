@@ -261,6 +261,50 @@ describe("carousel autoplay and reduced motion", () => {
       }),
     ).toBeNull();
   });
+
+  describe("a consumer's motion dial (data-motion on <html>) outranks the OS", () => {
+    afterEach(() => {
+      delete document.documentElement.dataset.motion;
+    });
+
+    it('holds still at data-motion="no" even when the OS allows motion', () => {
+      prefersReducedMotion(false);
+      document.documentElement.dataset.motion = "no";
+      vi.useFakeTimers();
+      autoplay();
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(current()).toBe("Go to slide 1");
+    });
+
+    it("advances at any other level even when the OS asks for reduced motion", () => {
+      prefersReducedMotion(true);
+      document.documentElement.dataset.motion = "slow";
+      vi.useFakeTimers();
+      autoplay();
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(current()).toBe("Go to slide 3");
+    });
+
+    it("stops when the dial turns to no while it is playing", async () => {
+      prefersReducedMotion(false);
+      document.documentElement.dataset.motion = "go";
+      vi.useFakeTimers();
+      autoplay();
+      document.documentElement.dataset.motion = "no";
+      // The MutationObserver delivers on a microtask.
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(current()).toBe("Go to slide 1");
+    });
+  });
 });
 
 describe("sonner", () => {

@@ -6,6 +6,40 @@
    (`:where`) so `dark:` overrides by cascade order like every other variant. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Tailwind's `motion-safe:` / `motion-reduce:` restated so they agree with the theme's reduced-motion
+   rules (utilities.css) and the carousel's hook. Tailwind compiles both to a bare
+   `@media (prefers-reduced-motion: …)`, which would follow the OS even where a consumer's motion dial
+   owns the choice. A consumer that sets `data-motion` on :root decides ("no" = reduce, anything else =
+   motion); without the attribute the OS decides, exactly as Tailwind's own variants did. The condition is
+   an ANCESTOR, `:where(:root…) &`, not `&:where(…)`, which put `:where()` after a pseudo-element
+   (`placeholder:motion-safe:…`), a selector no browser parses, so the whole rule was dropped. `:where` adds
+   no specificity, so a variant still wins by cascade order alone, and redefining a built-in keeps its
+   place in Tailwind's variant order. Two limits, both stricter than stock Tailwind (whose variants are a
+   plain media query that works in any order), a known cost of letting the dial decide: a motion class on
+   <html> itself isn't reached, and `before:`, `after:`, `selection:` and `marker:`, which NEST their rule
+   inside the pseudo-element (or its descendants), must come after the motion variant
+   (`motion-reduce:before:…`, not `before:motion-reduce:…`); tests/motion-scale.test.ts enforces the order. */
+@custom-variant motion-safe {
+  :where(:root[data-motion]:not([data-motion="no"])) & {
+    @slot;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :where(:root:not([data-motion])) & {
+      @slot;
+    }
+  }
+}
+@custom-variant motion-reduce {
+  :where(:root[data-motion="no"]) & {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where(:root:not([data-motion])) & {
+      @slot;
+    }
+  }
+}
+
 /* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
    folds in `var(--glow-layer, …)` so the glow rides INSIDE each material's and page style's shadow
    (they set --srf-shadow; the glow is appended after it) instead of being replaced by it. inherits:false

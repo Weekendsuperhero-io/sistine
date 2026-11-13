@@ -54,13 +54,20 @@ export const PATTERN_STYLES: PatternStyle[] = [
  * `animation: none` also drops `will-change`, releasing the promoted layer —
  * `will-change` on a stopped animation is a promoted layer doing no work.
  *
- * Emitted from one helper so the two conditions cannot drift apart: a scene that
+ * Emitted from one helper so the conditions cannot drift apart: a scene that
  * respects reduced motion but not Speed 0 was exactly the bug.
+ *
+ * Reduced motion has two sources. A consumer that sets `data-motion` on :root
+ * (a motion dial) owns the choice: `:root[data-motion="no"]` stops the scene
+ * whatever the OS says, and any other value lets it run. Without the attribute,
+ * the OS query decides, exactly as before.
  */
 export function stopRules(...selectors: string[]): string {
   const stop = "{ animation: none; will-change: auto; }";
-  return `@media (prefers-reduced-motion: reduce) { ${selectors.join(", ")} ${stop} }
-${selectors.map((s) => `[data-pat-static] ${s}`).join(", ")} ${stop}`;
+  const under = (scope: string) => selectors.map((s) => `${scope} ${s}`).join(", ");
+  return `@media (prefers-reduced-motion: reduce) { ${under(":root:not([data-motion])")} ${stop} }
+${under(':root[data-motion="no"]')} ${stop}
+${under("[data-pat-static]")} ${stop}`;
 }
 
 /** Patterns that animate (CSS keyframes) — gates the speed control and shares the --pat-dur pace. */

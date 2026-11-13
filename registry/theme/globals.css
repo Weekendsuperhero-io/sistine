@@ -20,6 +20,40 @@
    (`:where`) so `dark:` overrides by cascade order like every other variant. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Tailwind's `motion-safe:` / `motion-reduce:` restated so they agree with the theme's reduced-motion
+   rules (utilities.css) and the carousel's hook. Tailwind compiles both to a bare
+   `@media (prefers-reduced-motion: …)`, which would follow the OS even where a consumer's motion dial
+   owns the choice. A consumer that sets `data-motion` on :root decides ("no" = reduce, anything else =
+   motion); without the attribute the OS decides, exactly as Tailwind's own variants did. The condition is
+   an ANCESTOR, `:where(:root…) &`, not `&:where(…)`, which put `:where()` after a pseudo-element
+   (`placeholder:motion-safe:…`), a selector no browser parses, so the whole rule was dropped. `:where` adds
+   no specificity, so a variant still wins by cascade order alone, and redefining a built-in keeps its
+   place in Tailwind's variant order. Two limits, both stricter than stock Tailwind (whose variants are a
+   plain media query that works in any order), a known cost of letting the dial decide: a motion class on
+   <html> itself isn't reached, and `before:`, `after:`, `selection:` and `marker:`, which NEST their rule
+   inside the pseudo-element (or its descendants), must come after the motion variant
+   (`motion-reduce:before:…`, not `before:motion-reduce:…`); tests/motion-scale.test.ts enforces the order. */
+@custom-variant motion-safe {
+  :where(:root[data-motion]:not([data-motion="no"])) & {
+    @slot;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :where(:root:not([data-motion])) & {
+      @slot;
+    }
+  }
+}
+@custom-variant motion-reduce {
+  :where(:root[data-motion="no"]) & {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :where(:root:not([data-motion])) & {
+      @slot;
+    }
+  }
+}
+
 /* Composable, NON-inheriting glow layer: the `glow` effect/prop sets it, and every glass box-shadow
    folds in `var(--glow-layer, …)` so the glow rides INSIDE each material's and page style's shadow
    (they set --srf-shadow; the glow is appended after it) instead of being replaced by it. inherits:false
@@ -143,23 +177,78 @@
    .dark must come after :root (same-element ties resolve by source order on html.dark). */
 
 @theme inline {
+  /* Motion. Every motion value Tailwind generates a class from reads a consumer's motion tokens, with a
+     fallback EQUAL to the literal it had before, so a consumer that sets none of them sees no change.
+     A consumer (HERO's No / Slow / Go / Flow dial) sets them on :root:
+       --motion-scale       duration multiplier for transitions and enter/exit (2 = half speed)
+       --motion-loop-scale  duration multiplier for loops: spin, pulse, ping, bounce, the shimmer
+       --motion-ease-{standard,enter,exit,emphasized,in-out}  the easing roles below map to
+     `@theme inline` inlines each value into the class it generates (`duration-200` emits
+     `calc(200ms * var(--motion-scale, 1))` itself, not `var(--transition-duration-200)`), so the
+     runtime var(--motion-*) survives and the theme vars are never emitted. Only the steps defined here
+     scale: an off-scale bare value (`duration-250`) and tw-animate's `animation-duration-N` stay
+     literal milliseconds.
+
+     Durations: Tailwind's own steps, on the scale. */
+  --default-transition-duration: calc(150ms * var(--motion-scale, 1));
+  --transition-duration-0: calc(0ms * var(--motion-scale, 1));
+  --transition-duration-75: calc(75ms * var(--motion-scale, 1));
+  --transition-duration-100: calc(100ms * var(--motion-scale, 1));
+  --transition-duration-150: calc(150ms * var(--motion-scale, 1));
+  --transition-duration-200: calc(200ms * var(--motion-scale, 1));
+  --transition-duration-300: calc(300ms * var(--motion-scale, 1));
+  --transition-duration-500: calc(500ms * var(--motion-scale, 1));
+  --transition-duration-700: calc(700ms * var(--motion-scale, 1));
+  --transition-duration-1000: calc(1000ms * var(--motion-scale, 1));
   /* Easing. Tailwind's built-ins are deliberately gentle; these are the stronger variants UI motion
      wants, exposed as `ease-out` / `ease-in-out` / `ease-drawer` utilities.
        out    — anything ENTERING or EXITING. Starts fast, so the first frame (the one the user is
-                actually watching) already moves.
-       in-out — things MOVING on screen that neither enter nor leave: carousels, sliders.
+                actually watching) already moves. Role: enter.
+       in-out — things MOVING on screen that neither enter nor leave: carousels, sliders. Role: in-out.
        drawer — a slower settle for panels that slide in from an edge, so a large surface arrives with
-                weight instead of snapping.
-     There is deliberately no `ease-in` token: it delays the first frame, which is the one moment the
-     interface most needs to feel responsive. */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+                weight instead of snapping. Role: emphasized.
+     `ease-in` is Tailwind's own curve, kept so the class means what it always did, and mapped to the
+     exit role (0.42, 0, 1, 1), the nearest one: it delays the first frame, so nothing here enters on it. */
+  --ease-in: var(--motion-ease-exit, cubic-bezier(0.4, 0, 1, 1));
+  --ease-out: var(--motion-ease-enter, cubic-bezier(0.23, 1, 0.32, 1));
+  --ease-in-out: var(--motion-ease-in-out, cubic-bezier(0.77, 0, 0.175, 1));
+  --ease-drawer: var(--motion-ease-emphasized, cubic-bezier(0.32, 0.72, 0, 1));
   /* Anything with a bare `transition` and no `ease-*` inherits this. Tailwind ships
      cubic-bezier(0.4, 0, 0.2, 1) — symmetric, so it eases IN as well, and the first frame barely
-     moves. Same curve as --ease-out, written literally because @theme inline doesn't emit the vars
+     moves. Same curve and role as --ease-out, written out because @theme inline doesn't emit the vars
      it inlines. */
-  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  --default-transition-timing-function: var(--motion-ease-enter, cubic-bezier(0.23, 1, 0.32, 1));
+  /* Loops: Tailwind's spin / pulse / ping / bounce, durations on the loop scale (keyframes unchanged).
+     --motion-loop-scale SLOWS loops, it never stops them: a consumer's No level must keep it at 1 or more.
+     Near 0 a loop does not stop, it strobes (bounce and ping cycling many times a second). Stopping is
+     the job of the data-motion="no" rules in utilities.css (shimmer, ping and bounce stopped, spin slowed
+     to 3s, pulse kept). */
+  --animate-spin: spin calc(1s * var(--motion-loop-scale, 1)) linear infinite;
+  --animate-ping: ping calc(1s * var(--motion-loop-scale, 1)) cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-pulse: pulse calc(2s * var(--motion-loop-scale, 1)) cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-bounce: bounce calc(1s * var(--motion-loop-scale, 1)) infinite;
+  /* tw-animate-css 1.4's enter/exit (`animate-in` / `animate-out`) and accordion / collapsible, restated
+     with only their DEFAULT duration and easing moved onto the tokens. The chain is tw-animate's own:
+     --tw-animation-duration, then --tw-duration (a `duration-N` class, already scaled above, so it is
+     not scaled twice), then the default; --tw-ease (an `ease-*` class) before the default curve. */
+  --animate-in: enter var(--tw-animation-duration, var(--tw-duration, calc(0.15s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-standard, ease)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-out: exit var(--tw-animation-duration, var(--tw-duration, calc(0.15s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-standard, ease)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-accordion-down: accordion-down var(--tw-animation-duration, var(--tw-duration, calc(0.2s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-enter, ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-accordion-up: accordion-up var(--tw-animation-duration, var(--tw-duration, calc(0.2s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-enter, ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-collapsible-down: collapsible-down var(--tw-animation-duration, var(--tw-duration, calc(0.2s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-enter, ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
+  --animate-collapsible-up: collapsible-up var(--tw-animation-duration, var(--tw-duration, calc(0.2s * var(--motion-scale, 1))))
+    var(--tw-ease, var(--motion-ease-enter, ease-out)) var(--tw-animation-delay, 0s) var(--tw-animation-iteration-count, 1)
+    var(--tw-animation-direction, normal) var(--tw-animation-fill-mode, none);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-foreground-soft: var(--foreground-soft);
@@ -2112,7 +2201,7 @@
     background-size: 200% 200%;
     background-position: 0% 0%;
     opacity: 0.7;
-    transition: background-position calc(0.3s * var(--motion-scale, 1)) ease;
+    transition: background-position calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
   }
 
   &::after {
@@ -2141,14 +2230,14 @@
 }
 
 /* ── Motion scale ─────────────────────────────────────────────────────────────
-   Every timing the theme writes by hand runs through `--motion-scale`, a multiplier a consumer may set
-   on :root for an app-wide motion speed: 0 = nothing moves, 2 = half speed, 0.667 = 1.5x. Unset, it is 1
-   and nothing changes. The skeleton's shimmer carries its 2s in its class name, so its duration is
-   restated here, unlayered, which outranks the layered utility; the reduced-motion block below still
-   stops it. */
+   Every timing the theme writes by hand runs through the consumer's motion tokens (see tokens.css):
+   a transition through `--motion-scale` and an easing role, a loop through `--motion-loop-scale`. Unset,
+   each falls back to the literal it replaced, so nothing changes. The skeleton's shimmer carries its 2s
+   in its class name, so its duration is restated here, unlayered, which outranks the layered utility;
+   the reduced-motion rules below still stop it. It is a loop, so it stays linear. */
 .animate-\[sistine-shimmer_2s_infinite\],
 .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
-  animation-duration: calc(2s * var(--motion-scale, 1));
+  animation-duration: calc(2s * var(--motion-loop-scale, 1));
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────────────
@@ -2163,20 +2252,48 @@
                   still reads as a skeleton from its base fill.
      - spin     → rotation. Real motion, but it is the ONLY signal that a loader is alive, so freezing
                   it reads as "hung" rather than "calm". Slowed hard instead of stopped.
+     - ping     → a zoom outward (scale 1 → 2). Real motion, decorative (the dot it rings stays): stopped.
+     - bounce   → translation up and down. Real motion, decorative: stopped.
      - pulse    → opacity only. Nothing moves, so there is nothing to trigger a vestibular response.
                   Left alone deliberately; it also carries meaning (the input-otp caret is a blink).
+   These rules STOP loops; `--motion-loop-scale` only slows them (see tokens.css), so a consumer's No
+   level must not try to stop a loop by setting the scale near 0: that strobes. Only the exact classes are
+   stopped: a prefixed `hover:animate-bounce` keeps running, so write a loop that should respect the dial
+   as `motion-safe:animate-bounce`.
+   Who decides: a consumer that sets `data-motion` on :root owns the choice, so the OS query applies only
+   under `:root:not([data-motion])` (a consumer that never sets it follows the OS exactly as before), and
+   `:root[data-motion="no"]` applies the same treatment whatever the OS says.
    Unlayered on purpose: Tailwind's generated utilities sit inside @layer utilities, and an unlayered
    rule outranks any layered one regardless of order, so this needs neither !important nor a specificity
    hack. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-\[sistine-shimmer_2s_infinite\],
-  .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  :root:not([data-motion]) .animate-\[sistine-shimmer_2s_infinite\],
+  :root:not([data-motion]) .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
     animation: none;
   }
 
-  .animate-spin {
+  :root:not([data-motion]) .animate-ping,
+  :root:not([data-motion]) .animate-bounce {
+    animation: none;
+  }
+
+  :root:not([data-motion]) .animate-spin {
     animation-duration: 3s;
   }
+}
+
+:root[data-motion="no"] .animate-\[sistine-shimmer_2s_infinite\],
+:root[data-motion="no"] .before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  animation: none;
+}
+
+:root[data-motion="no"] .animate-ping,
+:root[data-motion="no"] .animate-bounce {
+  animation: none;
+}
+
+:root[data-motion="no"] .animate-spin {
+  animation-duration: 3s;
 }
 /* ── Materials — [data-material] token sets + gloss flavors ───────────────────
    One block per material (MATERIALS in lib/material.ts), one attribute. Each block declares the FULL --srf-* pin set ON the element, so an
@@ -2237,7 +2354,7 @@
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
-  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) ease;
+  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="crystal"]:hover {
   --srf-shadow: var(--glass-crystal-shadow-hover);
@@ -2263,7 +2380,7 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
-  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) ease-out;
+  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-material="lustre"]:hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
@@ -2298,7 +2415,7 @@
   --srf-border-color: var(--glass-chakra-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-chakra-shadow);
-  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) ease;
+  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="chakra"]:hover {
   --srf-shadow: var(--glass-chakra-shadow-hover);
@@ -2473,7 +2590,7 @@
   --srf-shadow: var(--glass-lustre-shadow);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
-  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) ease-out;
+  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
