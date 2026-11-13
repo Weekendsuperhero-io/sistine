@@ -5,8 +5,8 @@
  * /storybook alongside the docs site. Cross-platform stand-in for rsync.
  *
  * RUNS AFTER `next build`, not before. The old order staged Storybook through `public/storybook`, which
- * fed a loop: `.storybook/main.ts` sets `staticDirs: ["../public"]` (stories reference /logo-dark.png
- * and friends), so each Storybook build swallowed the PREVIOUS export back into `storybook-static/`.
+ * fed a loop: `.storybook/main.ts` sets `staticDirs: ["../public"]` (the stories' static assets), so
+ * each Storybook build swallowed the PREVIOUS export back into `storybook-static/`.
  * That cost ~35 MB of copying per build and forced this script to special-case the nested `storybook`
  * directory on the way back out — a guard that silently had to stay correct or the fossil would ship.
  *

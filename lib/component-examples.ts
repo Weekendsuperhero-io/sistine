@@ -140,18 +140,16 @@ export function Example() {
 }`;
 
     case "avatar":
-      return `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+      return `import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function Example() {
   return (
     <div className="flex gap-4">
       <Avatar>
-        <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
         <AvatarFallback>CN</AvatarFallback>
       </Avatar>
       <Avatar>
-        <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
-        <AvatarFallback>AM</AvatarFallback>
+        <AvatarFallback>HE</AvatarFallback>
       </Avatar>
       <Avatar>
         <AvatarFallback>JD</AvatarFallback>

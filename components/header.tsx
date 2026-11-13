@@ -1,10 +1,8 @@
 "use client";
 
 import { GithubLogoIcon, ListIcon } from "@phosphor-icons/react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import * as React from "react";
 import { BackgroundSwitcher } from "@/components/background-switcher";
 import { GlassStyleSwitcher } from "@/components/glass-style-switcher";
@@ -45,15 +43,8 @@ const navigation = [
 
 export function Header() {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
   const [starCount, setStarCount] = React.useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
   React.useEffect(() => {
     // Fetch GitHub star count
     fetch("https://api.github.com/repos/Weekendsuperhero-io/sistine")
@@ -74,17 +65,6 @@ export function Header() {
         <div className="glass glass-border grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl px-3 sm:px-4 2xl:grid-cols-[auto_minmax(0,1fr)_auto] 2xl:gap-x-6">
           <div className="flex min-h-16 min-w-0 items-center gap-4 xl:gap-6">
             <Link href="/" className="flex items-center gap-2">
-              {mounted && (
-                <Image
-                  src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-                  alt="Sistine"
-                  width={32}
-                  height={32}
-                  className="h-6 w-6 md:h-8 md:w-8 rounded-md [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)]"
-                  priority
-                />
-              )}
-              {!mounted && <div className="h-6 w-6 md:h-8 md:w-8 bg-muted animate-pulse rounded" />}
               {/* Brand in the live accent — stays readable as the glass tint changes (the switcher is in this same header). */}
               <ReadableText accent="--primary" className="text-lg md:text-xl font-bold">
                 Sistine
@@ -135,16 +115,9 @@ export function Header() {
                 </SheetHeader>
                 <div className="flex flex-col gap-6 mt-8">
                   <div className="flex items-center gap-2 pb-4 border-b border-border">
-                    {mounted && (
-                      <Image
-                        src={resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png"}
-                        alt="Sistine"
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 rounded-md [outline:1px_solid_oklch(0%_0_0_/_0.1)] [outline-offset:-1px] dark:[outline:1px_solid_oklch(100%_0_0_/_0.1)]"
-                      />
-                    )}
-                    {!mounted && <div className="h-8 w-8 bg-muted animate-pulse rounded" />}
+                    <ReadableText accent="--primary" className="text-xl font-bold">
+                      Sistine
+                    </ReadableText>
                   </div>
                   <nav className="flex flex-col gap-4">
                     {navigation.map((item) => (
