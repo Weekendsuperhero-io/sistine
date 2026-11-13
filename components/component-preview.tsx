@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -351,16 +351,13 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
       return (
         <div className="flex gap-4">
           <Avatar>
-            <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
           <Avatar>
-            <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
-            <AvatarFallback>AM</AvatarFallback>
+            <AvatarFallback>HE</AvatarFallback>
           </Avatar>
           <Avatar>
-            <AvatarImage src="/logo-light.png" alt="Agent Muse" />
-            <AvatarFallback>AM</AvatarFallback>
+            <AvatarFallback>HE</AvatarFallback>
           </Avatar>
         </div>
       );
@@ -907,8 +904,7 @@ export function ComponentPreview({ componentName }: { componentName: string }) {
             <SidebarFooter>
               <div className="flex items-center gap-2 px-2 py-1.5">
                 <Avatar className="size-7">
-                  <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
-                  <AvatarFallback>AM</AvatarFallback>
+                  <AvatarFallback>HE</AvatarFallback>
                 </Avatar>
                 <span className="text-sm font-medium">Agent Muse</span>
               </div>

@@ -18,7 +18,6 @@ type Story = StoryObj<typeof meta>;
 export const WithImage: Story = {
   render: () => (
     <Avatar>
-      <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
       <AvatarFallback>AP</AvatarFallback>
     </Avatar>
   ),
@@ -28,7 +27,7 @@ export const Fallback: Story = {
   render: () => (
     <Avatar>
       <AvatarImage src="/invalid-url.jpg" alt="@username" />
-      <AvatarFallback>AM</AvatarFallback>
+      <AvatarFallback>HE</AvatarFallback>
     </Avatar>
   ),
 };
@@ -37,19 +36,15 @@ export const Sizes: Story = {
   render: () => (
     <div className="flex items-center gap-4">
       <Avatar className="h-8 w-8">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>SM</AvatarFallback>
       </Avatar>
       <Avatar className="h-10 w-10">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>MD</AvatarFallback>
       </Avatar>
       <Avatar className="h-16 w-16">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>LG</AvatarFallback>
       </Avatar>
       <Avatar className="h-20 w-20">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>XL</AvatarFallback>
       </Avatar>
     </div>
@@ -60,15 +55,12 @@ export const Group: Story = {
   render: () => (
     <div className="flex -space-x-4">
       <Avatar className="border-2 border-background">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>U1</AvatarFallback>
       </Avatar>
       <Avatar className="border-2 border-background">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>U2</AvatarFallback>
       </Avatar>
       <Avatar className="border-2 border-background">
-        <AvatarImage src="/logo-dark.png" />
         <AvatarFallback>U3</AvatarFallback>
       </Avatar>
       <Avatar className="border-2 border-background">

@@ -22,7 +22,7 @@ import Link from "next/link";
 import * as React from "react";
 import { toast } from "sonner";
 import { GradientText } from "@/components/gradient-text";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -301,8 +301,7 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src="/logo-dark.png" alt="Agent Muse" />
-                    <AvatarFallback>AM</AvatarFallback>
+                    <AvatarFallback>HE</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-semibold text-sm text-foreground">Agent Muse</div>
