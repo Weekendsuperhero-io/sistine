@@ -498,7 +498,7 @@ describe("no off-scale motion class in components/ or app/", () => {
   /* `before:`/`after:` nest their rule inside the pseudo-element, where no ancestor condition can reach
      (Lightning CSS flattens `:where(…) &` there to `:is(.x::before)`, which matches nothing), so a motion
      variant must come first: `motion-reduce:before:…`. registrations.css says why. */
-  it("puts a motion variant before before: and after:", () => {
+  it("puts a motion variant before before:, after:, selection: and marker:", () => {
     const wrong = [
       ...filesUnder("components", [
         ".ts",
@@ -511,7 +511,7 @@ describe("no off-scale motion class in components/ or app/", () => {
     ].flatMap((f) => {
       const text = read(f);
       return [
-        ...text.matchAll(/(?<![\w-])((?:before|after):(?:[\w-]+:)*motion-(?:safe|reduce):[\w[\]().%/-]+)/g),
+        ...text.matchAll(/(?<![\w-])((?:before|after|selection|marker):(?:[^\s:"'`]+:)*motion-(?:safe|reduce):[^\s"'`]+)/g),
       ].map((m) => `${f}:${lineOf(text, m.index)} ${m[1]}`);
     });
     expect(wrong).toEqual([]);
@@ -639,6 +639,7 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
       "placeholder:motion-safe:transition-all",
       "motion-reduce:before:animate-none",
       "motion-safe:after:animate-spin",
+      "motion-reduce:selection:transition-none",
     ];
     const built = (
       await compile(read("app/globals.css"), {
@@ -659,8 +660,11 @@ describe("compiled classes (Tailwind's own compiler over the real theme)", () =>
       ...flat.matchAll(/^\s*([^@{}\s][^{}]*?)\s*\{/gm),
     ].map((m) => m[1].trim());
     /* A pseudo-element ends its compound selector: :where() after ::placeholder or ::before is a rule no
-       browser parses, so it is dropped whole (the `&:where(…)` form did that). */
-    expect(selectors.filter((sel) => /::?(placeholder|before|after)[^\s,]*:where\(/.test(sel))).toEqual([]);
+       browser parses, so it is dropped whole (the `&:where(…)` form did that). And a pseudo-element inside
+       :is(), or an empty :is(), matches nothing: what a nested variant flattens to when the motion
+       condition comes second (`before:motion-reduce:`, the descendant half of `selection:motion-reduce:`). */
+    expect(selectors.filter((sel) => /::?(placeholder|before|after|selection|marker)[^\s,]*:where\(/.test(sel))).toEqual([]);
+    expect(selectors.filter((sel) => /:is\(\s*\)|:is\([^)]*::?(before|after|selection|marker|placeholder)/.test(sel))).toEqual([]);
     const want = [
       ':where(:root[data-motion="no"]) .motion-reduce\\:before\\:animate-none',
       ":where(:root:not([data-motion])) .motion-reduce\\:before\\:animate-none",

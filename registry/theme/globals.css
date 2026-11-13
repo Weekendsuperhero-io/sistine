@@ -28,8 +28,10 @@
    an ANCESTOR, `:where(:root…) &`, not `&:where(…)`, which put `:where()` after a pseudo-element
    (`placeholder:motion-safe:…`), a selector no browser parses, so the whole rule was dropped. `:where` adds
    no specificity, so a variant still wins by cascade order alone, and redefining a built-in keeps its
-   place in Tailwind's variant order. Two limits: a motion class on <html> itself isn't reached, and
-   `before:`/`after:`, which NEST their rule inside the pseudo-element, must come after the motion variant
+   place in Tailwind's variant order. Two limits, both stricter than stock Tailwind (whose variants are a
+   plain media query that works in any order), a known cost of letting the dial decide: a motion class on
+   <html> itself isn't reached, and `before:`, `after:`, `selection:` and `marker:`, which NEST their rule
+   inside the pseudo-element (or its descendants), must come after the motion variant
    (`motion-reduce:before:…`, not `before:motion-reduce:…`); tests/motion-scale.test.ts enforces the order. */
 @custom-variant motion-safe {
   :where(:root[data-motion]:not([data-motion="no"])) & {
