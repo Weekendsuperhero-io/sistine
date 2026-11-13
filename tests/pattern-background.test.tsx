@@ -20,6 +20,8 @@ describe("stopRules", () => {
     const css = stopRules(".au-curtain", ".au-ripples");
 
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).toContain(':root[data-motion="no"] .au-curtain');
+    expect(css).toContain(':root[data-motion="no"] .au-ripples');
     expect(css).toContain("[data-pat-static] .au-curtain");
     expect(css).toContain("[data-pat-static] .au-ripples");
   });
@@ -27,8 +29,8 @@ describe("stopRules", () => {
   it("REMOVES the animation rather than pausing it, in both conditions", () => {
     const css = stopRules(".au-curtain");
 
-    // Two rule bodies, one per condition — and neither may park the animation.
-    expect(css.match(/animation:\s*none/g)).toHaveLength(2);
+    // Three rule bodies (OS query, motion dial at "no", Speed 0) — and none may park the animation.
+    expect(css.match(/animation:\s*none/g)).toHaveLength(3);
     expect(css).not.toContain("animation-play-state");
     expect(css).not.toContain("paused");
   });
@@ -39,7 +41,7 @@ describe("stopRules", () => {
     // invalid CSS, so it was dropped and the release never happened.
     const css = stopRules(".du-grain-tile", ".du-veil");
 
-    expect(css.match(/will-change:\s*auto/g)).toHaveLength(2);
+    expect(css.match(/will-change:\s*auto/g)).toHaveLength(3);
     expect(css).not.toContain("auto, auto");
   });
 
@@ -57,10 +59,21 @@ describe("stopRules", () => {
     }
   });
 
+  it("lets a consumer's motion dial outrank the OS: the query applies only without data-motion", () => {
+    const css = stopRules(".pk-fog", ".mw-cloud");
+    const media = css.slice(css.indexOf("@media"), css.indexOf("}") + 1);
+    // Inside the OS query every selector is gated on the attribute's absence, none left bare.
+    expect(media).toContain(":root:not([data-motion]) .pk-fog, :root:not([data-motion]) .mw-cloud {");
+    // The dial's own stop sits OUTSIDE the media query, so it applies whatever the OS says.
+    expect(media).not.toContain("data-motion=");
+    expect(css.slice(css.indexOf("}") + 1)).toContain(':root[data-motion="no"] .pk-fog, :root[data-motion="no"] .mw-cloud {');
+  });
+
   it("holds for a single selector", () => {
     const css = stopRules(".sw-grid-rungs");
 
-    expect(css).toContain("@media (prefers-reduced-motion: reduce) { .sw-grid-rungs {");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce) { :root:not([data-motion]) .sw-grid-rungs {");
+    expect(css).toContain(':root[data-motion="no"] .sw-grid-rungs {');
     expect(css).toContain("[data-pat-static] .sw-grid-rungs {");
   });
 });

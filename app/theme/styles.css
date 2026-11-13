@@ -61,7 +61,7 @@
   --srf-shadow: var(--glass-lustre-shadow);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
-  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) ease-out;
+  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);

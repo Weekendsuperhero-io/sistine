@@ -30,15 +30,31 @@ export interface CarouselProps extends React.HTMLAttributes<HTMLDivElement>, Var
   interval?: number;
 }
 
-/* The prefers-reduced-motion query, live. */
+/* Reduced motion, live. A consumer that sets `data-motion` on <html> owns the choice (its motion dial):
+   reduce iff it is "no". Without the attribute, the OS's prefers-reduced-motion decides, as before. The
+   server snapshot is false (no document there). */
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 function useReducedMotion() {
   return React.useSyncExternalStore(
     (onChange) => {
-      const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const query = window.matchMedia(REDUCED_MOTION_QUERY);
       query.addEventListener("change", onChange);
-      return () => query.removeEventListener("change", onChange);
+      const dial = new MutationObserver(onChange);
+      dial.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: [
+          "data-motion",
+        ],
+      });
+      return () => {
+        query.removeEventListener("change", onChange);
+        dial.disconnect();
+      };
     },
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => {
+      const motion = document.documentElement.dataset.motion;
+      return motion === undefined ? window.matchMedia(REDUCED_MOTION_QUERY).matches : motion === "no";
+    },
     () => false,
   );
 }
