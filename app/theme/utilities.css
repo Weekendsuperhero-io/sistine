@@ -212,7 +212,7 @@
     background-size: 200% 200%;
     background-position: 0% 0%;
     opacity: 0.7;
-    transition: background-position 0.3s ease;
+    transition: background-position calc(0.3s * var(--motion-scale, 1)) ease;
   }
 
   &::after {
@@ -238,6 +238,17 @@
   to {
     translate: 100% 0;
   }
+}
+
+/* ── Motion scale ─────────────────────────────────────────────────────────────
+   Every timing the theme writes by hand runs through `--motion-scale`, a multiplier a consumer may set
+   on :root for an app-wide motion speed: 0 = nothing moves, 2 = half speed, 0.667 = 1.5x. Unset, it is 1
+   and nothing changes. The skeleton's shimmer carries its 2s in its class name, so its duration is
+   restated here, unlayered, which outranks the layered utility; the reduced-motion block below still
+   stops it. */
+.animate-\[sistine-shimmer_2s_infinite\],
+.before\:animate-\[sistine-shimmer_2s_infinite\]::before {
+  animation-duration: calc(2s * var(--motion-scale, 1));
 }
 
 /* ── Reduced motion ───────────────────────────────────────────────────────────

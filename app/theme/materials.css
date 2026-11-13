@@ -57,7 +57,7 @@
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) ease;
 }
 [data-material="crystal"]:hover {
   --srf-shadow: var(--glass-crystal-shadow-hover);
@@ -83,7 +83,7 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
-  transition: box-shadow 0.2s ease-out;
+  transition: box-shadow calc(0.2s * var(--motion-scale, 1)) ease-out;
 }
 [data-material="lustre"]:hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
@@ -118,7 +118,7 @@
   --srf-border-color: var(--glass-chakra-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-chakra-shadow);
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow calc(0.3s * var(--motion-scale, 1)) ease;
 }
 [data-material="chakra"]:hover {
   --srf-shadow: var(--glass-chakra-shadow-hover);
