@@ -459,6 +459,11 @@ export function floorGridPath(kind: "rungs" | "rails", w: number, h: number, vw:
  * drawing replaces it and follows the floor's size.
  */
 function FloorGrid({ kind, still }: { kind: "rungs" | "rails"; still: boolean }) {
+  return still ? <StillFloorGrid key={kind} kind={kind} /> : <div className={`sw-grid sw-grid-${kind}`} />;
+}
+
+// A still-only owner remounts with a measuring ref and fresh geometry on every transition.
+function StillFloorGrid({ kind }: { kind: "rungs" | "rails" }) {
   const ref = useRef<HTMLDivElement>(null);
   const [flat, setFlat] = useState<{
     w: number;
@@ -466,12 +471,9 @@ function FloorGrid({ kind, still }: { kind: "rungs" | "rails"; still: boolean })
     d: string;
   } | null>(null);
   useEffect(() => {
-    if (!still) {
-      setFlat(null);
-      return;
-    }
     const floor = ref.current?.parentElement;
     if (!floor) return;
+    let active = true;
     const roundCell = typeof CSS !== "undefined" && CSS.supports("width: round(1px, 2px)");
     const draw = () => {
       // Layout size, not getBoundingClientRect: a scaled preview reports its transformed box.
@@ -479,24 +481,23 @@ function FloorGrid({ kind, still }: { kind: "rungs" | "rails"; still: boolean })
         floor.offsetWidth,
         floor.offsetHeight,
       ];
-      if (w && h)
+      if (active && w && h)
         setFlat({
           w,
           h,
           d: floorGridPath(kind, w, h, window.innerWidth, window.innerHeight, roundCell),
         });
     };
-    draw();
     const observer = new ResizeObserver(draw);
     observer.observe(floor);
     window.addEventListener("resize", draw);
     return () => {
+      active = false;
       observer.disconnect();
       window.removeEventListener("resize", draw);
     };
   }, [
     kind,
-    still,
   ]);
   if (!flat) return <div ref={ref} className={`sw-grid sw-grid-${kind}`} />;
   return (

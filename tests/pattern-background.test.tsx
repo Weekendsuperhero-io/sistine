@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
@@ -516,6 +516,7 @@ describe("synthwave floor, drawn flat", () => {
   });
 
   it("draws flat when still, once the floor is measured, and keeps the 3D plane while it moves", async () => {
+    const originalObserver = globalThis.ResizeObserver;
     const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
     const height = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
     Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
@@ -527,7 +528,16 @@ describe("synthwave floor, drawn flat", () => {
       get: () => 378,
     });
     try {
+      globalThis.ResizeObserver = class {
+        constructor(private callback: ResizeObserverCallback) {}
+        observe() {
+          queueMicrotask(() => this.callback([], this as unknown as ResizeObserver));
+        }
+        unobserve() {}
+        disconnect() {}
+      } as unknown as typeof ResizeObserver;
       const still = render(<PatternBackground style="synthwave" speed={0} />);
+      await act(async () => {});
       expect(still.container.querySelectorAll("svg.sw-flat")).toHaveLength(2);
       expect(still.container.querySelector(".sw-grid")).toBeNull();
       still.unmount();
@@ -536,6 +546,7 @@ describe("synthwave floor, drawn flat", () => {
       expect(moving.container.querySelector("svg.sw-flat")).toBeNull();
       moving.unmount();
     } finally {
+      globalThis.ResizeObserver = originalObserver;
       if (width) Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
       if (height) Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
     }
