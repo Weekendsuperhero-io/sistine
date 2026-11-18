@@ -50,7 +50,7 @@
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
-     == surface); frescoes override it to anchor text off their multi-hue surface (Muse: surface
+     == surface); frescoes override it to anchor text off their multi-hue surface (HERO: surface
      230, text 290). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
   --glass-fg-h: var(--glass-tint-h);
   /* ── Harmonic color system ────────────────────────────────────────────────────────────────────
@@ -119,8 +119,8 @@
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
-     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a muse page)
-     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
+     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
+     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted hero's sweep. */
   --glass-crystal-fresco: none;
   --blur-crystal: 2px;
   --blur-lustre: 2px;
@@ -259,7 +259,7 @@
      scrapes engine.css for both the calc() and min() chroma shapes — the suite went 20 → 24 surface/mode
      pairs when these landed, so a later retune of the caps is measured, not asserted.
      SURFACE hue (--glass-tint-h), not --glass-fg-h: an edge belongs to the surface it bounds, matching
-     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse: surface 230,
+     --glass-border / --glass-crystal-border. In a fresco that splits the two (HERO: surface 230,
      text 290) the border follows the panel, not the type. */
   --border: oklch(var(--border-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   --input: oklch(var(--input-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));

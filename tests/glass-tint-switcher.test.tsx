@@ -294,3 +294,30 @@ describe("GlassTintSwitcher: day/night pair", () => {
     expect(root().dataset.glassTint).toBe("sapphire");
   });
 });
+
+/**
+ * A renamed preset's old id restores as the new one. The neon city fresco was stored as `muse` until the
+ * product it is named for became HERO; a returning visitor's stored value must not fall back to the default.
+ */
+describe("GlassTintSwitcher: a stored old preset name", () => {
+  it("restores a stored muse as hero, and writes hero back to storage", async () => {
+    localStorage.setItem("sistine-glass-tint", "muse");
+    await mounted();
+    await waitFor(() => expect(root().dataset.glassTint).toBe("hero"));
+    expect(localStorage.getItem("sistine-glass-tint")).toBe("hero");
+    // The fresco's own numbers, not the fallback an unknown name gets.
+    expect(root().style.getPropertyValue("--glass-tint-h")).toBe("230");
+    expect(root().style.getPropertyValue("--glass-tint-c")).toBe("0.056");
+    expect(inlineAlpha()).toBe("");
+  });
+
+  it("offers the preset as HERO, and choosing it stores hero", async () => {
+    const user = userEvent.setup();
+    await mounted();
+    await user.click(screen.getByLabelText("Glass color"));
+    expect(screen.queryByLabelText("Muse")).toBeNull();
+    await user.click(await screen.findByLabelText("HERO"));
+    expect(root().dataset.glassTint).toBe("hero");
+    expect(localStorage.getItem("sistine-glass-tint")).toBe("hero");
+  });
+});

@@ -166,7 +166,7 @@
      so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
      same token, so the -opaque text tiers re-band against the new floor automatically. */
   /* The fresco slot leads, as in the crystal and chakra stacks: unset (`none`) on a single-hue preset, the
-     fresco's own multi-hue gradient on muse / sistine / aurora / gloaming, which opaque used to lose
+     fresco's own multi-hue gradient on hero / sistine / aurora / gloaming, which opaque used to lose
      entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
      codes, so it rasterises without the dither the sheet was dropped for. */
   --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);

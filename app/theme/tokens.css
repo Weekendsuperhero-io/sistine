@@ -428,7 +428,7 @@
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
      gamut-maps and the delivered colour stops tracking the authored one.
      Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
-     Muse/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
+     HERO/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
      shows up as out-of-gamut once you check the fg hue. */
   --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
   --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */

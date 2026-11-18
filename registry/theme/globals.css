@@ -602,7 +602,7 @@
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
      gamut-maps and the delivered colour stops tracking the authored one.
      Measured against --glass-fg-h, not --glass-tint-h: --primary follows the FOREGROUND hue, and the
-     Muse/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
+     HERO/Sistine frescoes decouple the two (fg 290 / 18), so those hues are in the sweep — aurora only
      shows up as out-of-gamut once you check the fg hue. */
   --primary-c-max: 0.069; /* ≤ 0.0697, the L-42 ceiling floor — h205 (aurora) is now tighter than h190 */
   --primary-foreground: oklch(0.98 0 0); /* White text on the primary ink — Lc 88.1 at the worst hue, turquoise (measured) */
@@ -1538,7 +1538,7 @@
   /* Foreground hue — drives every FOREGROUND-keyed token (body/heading text via AutoForeground,
      --muted-foreground, --glass-accent, --glass-glow, --gradient*), kept SEPARATE from the surface
      hue so tuning text never shifts the glass/fresco surface. Defaults to the tint hue (jewels: text
-     == surface); frescoes override it to anchor text off their multi-hue surface (Muse: surface
+     == surface); frescoes override it to anchor text off their multi-hue surface (HERO: surface
      230, text 290). AutoForeground reads this, falling back to --glass-tint-h for older consumers. */
   --glass-fg-h: var(--glass-tint-h);
   /* ── Harmonic color system ────────────────────────────────────────────────────────────────────
@@ -1607,8 +1607,8 @@
   --glass-gloss-hue-dir: 1; /* gloss direction (±1) — flips the TONAL streak diagonal (calc angle) + the HUE sweep order (span × dir); toggled in the crystal demo */
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
-     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a muse page)
-     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted muse's sweep. */
+     single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
+     inherited the page's sheet, and its crystal, chakra and opaque surfaces painted hero's sweep. */
   --glass-crystal-fresco: none;
   --blur-crystal: 2px;
   --blur-lustre: 2px;
@@ -1747,7 +1747,7 @@
      scrapes engine.css for both the calc() and min() chroma shapes — the suite went 20 → 24 surface/mode
      pairs when these landed, so a later retune of the caps is measured, not asserted.
      SURFACE hue (--glass-tint-h), not --glass-fg-h: an edge belongs to the surface it bounds, matching
-     --glass-border / --glass-crystal-border. In a fresco that splits the two (Muse: surface 230,
+     --glass-border / --glass-crystal-border. In a fresco that splits the two (HERO: surface 230,
      text 290) the border follows the panel, not the type. */
   --border: oklch(var(--border-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
   --input: oklch(var(--input-l) min(var(--glass-tint-c), var(--border-c-max)) var(--glass-tint-h));
@@ -2463,7 +2463,7 @@
      so it is folded into --glass-opaque-l rather than dropped: see tokens.css. AutoForeground reads that
      same token, so the -opaque text tiers re-band against the new floor automatically. */
   /* The fresco slot leads, as in the crystal and chakra stacks: unset (`none`) on a single-hue preset, the
-     fresco's own multi-hue gradient on muse / sistine / aurora / gloaming, which opaque used to lose
+     fresco's own multi-hue gradient on hero / sistine / aurora / gloaming, which opaque used to lose
      entirely and render as one flat anchor hue. Its stops have a real range, unlike the sheet's 2–7
      codes, so it rasterises without the dither the sheet was dropped for. */
   --srf-bg-image: var(--glass-crystal-fresco, none), var(--glass-wash-layer);
@@ -3250,7 +3250,7 @@
     color-mix(in oklch, var(--srf-solidify-bg) calc(max(0, 1 - var(--srf-tint-a) / var(--glass-tint-a)) * 100%), transparent)
   );
 }
-/* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
+/* FRESCOES (hero / sistine / aurora / gloaming; `muse` is still accepted as an alias of hero): each block's --glass-tint-h/c/a MUST mirror its
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
    shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
    Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
@@ -3258,8 +3258,8 @@
    Each pins its own DAY wash cap, 95% of its hue's sRGB ceiling at its own wash lightness, as the
    presets do (presets.css explains why). */
 
-/* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
-   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
+/* HERO — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
+   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so HERO no longer needs a night
    twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
 
    Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
@@ -3275,8 +3275,12 @@
    92.4 dark; the dark opaque ink stays tinted.
 
    No pinned --glass-opaque-bg: the opaque floor DERIVES from --glass-opaque-l like every jewel, so the
-   switcher's Lightness slider moves a Muse card and AutoForeground models the floor it actually paints
-   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4). */
+   switcher's Lightness slider moves a HERO card and AutoForeground models the floor it actually paints
+   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4).
+
+   The preset was named `muse` until the product it is named for became HERO. The old id is still accepted:
+   the second selector below keeps every page that carries data-glass-tint="muse" on these same values. */
+[data-glass-tint="hero"],
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
   --glass-fg-h: 290; /* text/accent anchor: violet, the sheet's second stop */
@@ -3381,7 +3385,7 @@
    Frosted gets its OWN alphas rather than the old ~1.37x boost over --glass-bg: with stops this much
    darker, that multiplier drove the violet composite to L 83.4 and soft to 58.4. These land all three
    near L 86.4 instead. The authored shape is unchanged — green, then teal, then violet darkest. */
-/* Aurora now sweeps the retired Muse day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
+/* Aurora now sweeps the retired HERO day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
    green → cyan → violet. LIGHTNESS is untouched, because it is not a style choice here: the day stops
    sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and that sweep's own
    L 91–94 is precisely the band these were moved away from when day read as haze.

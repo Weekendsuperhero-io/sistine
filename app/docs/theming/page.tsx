@@ -240,7 +240,8 @@ export default function ThemingPage() {
                 from your own theme toggle to do the same.
               </p>
               <p className="mb-2 text-muted-foreground">
-                <strong>Frescoes</strong> (multi-hue gradients): sistine, muse, aurora, gloaming.
+                <strong>Frescoes</strong> (multi-hue gradients): sistine, hero, aurora, gloaming. The old id <IC>muse</IC> is still accepted as an
+                alias of <IC>hero</IC>.
               </p>
               <p className="text-muted-foreground">
                 <strong>Status</strong>: info, success, warning, destructive. Used by Alert/Button, but settable on any element to tint it that status

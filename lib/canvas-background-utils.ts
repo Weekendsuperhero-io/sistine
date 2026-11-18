@@ -33,7 +33,7 @@ export const FRESCO_HUES: Record<string, number[]> = {
     255,
     158,
   ],
-  muse: [
+  hero: [
     222,
     326,
     74,
@@ -48,6 +48,11 @@ export const FRESCO_HUES: Record<string, number[]> = {
     350,
     278,
   ],
+};
+
+/** A renamed fresco's old id, still found on static pages (`data-glass-tint="muse"`), and the id it has now. */
+const FRESCO_ALIASES: Record<string, string> = {
+  muse: "hero",
 };
 
 /**
@@ -137,7 +142,7 @@ export function backdropPalette(
   // Center lightness tracks the page mode. Onyx does not get its own backdrop: its materials stay
   // near-black, and the wallpaper behind them follows day and night like every other tint.
   const l = tint.dark ? 52 : 72;
-  const frescoHues = hue == null && tint.preset ? FRESCO_HUES[tint.preset] : undefined;
+  const frescoHues = hue == null && tint.preset ? FRESCO_HUES[FRESCO_ALIASES[tint.preset] ?? tint.preset] : undefined;
   return {
     base: {
       l,

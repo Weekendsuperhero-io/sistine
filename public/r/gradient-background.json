@@ -2,7 +2,7 @@
   "$schema": "https://ui.shadcn.com/schema/registry-item.json",
   "name": "gradient-background",
   "title": "Gradient Background",
-  "description": "A ramp-driven gradient wallpaper that recolors with the live glass tint, and lays a fresco preset (sistine/muse/aurora/gloaming) multi-hue palette across the gradient. Pure CSS, crisp at any DPI.",
+  "description": "A ramp-driven gradient wallpaper that recolors with the live glass tint, and lays a fresco preset (sistine/hero/aurora/gloaming) multi-hue palette across the gradient. Pure CSS, crisp at any DPI.",
   "dependencies": [],
   "registryDependencies": [
     "@sistine/canvas-background-utils",

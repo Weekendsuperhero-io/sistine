@@ -85,6 +85,28 @@ describe("useBackdropTint hue resolution", () => {
       h: 75,
     });
   });
+  it("paints the hero fresco's hues, and the same ones for its old id, muse", () => {
+    for (const dark of [
+      false,
+      true,
+    ]) {
+      const palette = (preset: string) =>
+        backdropPalette({
+          hue: 230,
+          dark,
+          preset,
+        });
+      const l = dark ? 52 : 72;
+      expect(palette("hero").frescoColors).toEqual([
+        `oklch(${l}% 0.15 222)`,
+        `oklch(${l}% 0.15 326)`,
+        `oklch(${l}% 0.15 74)`,
+      ]);
+      expect(palette("muse")).toEqual(palette("hero"));
+      // A single-hue preset has no fresco colours, so the alias is not a fallback every name gets.
+      expect(palette("lapis").frescoColors).toBeUndefined();
+    }
+  });
   it("bands an Onyx day backdrop to the light side even though its text stays light", () => {
     const base = backdropPalette({
       hue: 250,
