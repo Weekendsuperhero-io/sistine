@@ -5,11 +5,19 @@ import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
+/* HOVER and keyboard FOCUS are one look, the LIT state: the button's border takes the ring colour and a
+   2px line in that colour stands 3px off it, with the gap left open so the line reads as a sharp edge
+   of light, not a thick band. It replaces the 3px `ring` buttons drew on focus, which filled that gap.
+   The line is solid by day and at night (the ring was half strength by day). Every focus-visible class
+   has its hover twin (tests/button.test.tsx holds them together). Tailwind emits `hover:` only where
+   the device can hover, so a touch leaves nothing behind, and a disabled button takes no pointer
+   events. The `destructive` variant draws the line in its own colour.
+
+   SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
    the material system (materialSurface below). The materials (lib/material.ts) + axes are the material/border/veil/
    gradient/glow/sheen props, not variants. */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:ring-ring/50 dark:focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ring hover:border-ring hover:outline-solid hover:outline-2 hover:outline-offset-[3px] hover:outline-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
     variants: {
       variant: {
@@ -30,13 +38,21 @@ const buttonVariants = cva(
            Over the fill it wears --srf-fill-image, not the full --srf-bg-image: every material pins both,
            and they are the same but for LUSTRE, whose dense pigmented body (and tint wash) covered the
            fill, so the label, solved for --primary, sat on lustre's own floor instead: white on its
-           near-white day body, near-black on its dark night body. Lustre's fill image is its polish alone. */
+           near-white day body, near-black on its dark night body. Lustre's fill image is its polish alone.
+           It is also the one variant that GLOWS when lit: its shadow folds in --glow-layer as the
+           `glass` utility's does (this variant does not take that utility), and `glass-glow-ring` fills
+           it on hover and focus-visible with a halo in the RING colour, the same light as the line the
+           base draws, so the halo reads as cast by it. (`glass-glow-lg` glows in the theme's own hue,
+           which on a surface of that hue cannot be seen.) At rest the layer is empty. One lit action
+           per view; the other variants take the line alone. */
         default:
-          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow))] hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
+          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow)),var(--glow-layer,0_0_0_0_transparent)] hover:glass-glow-ring focus-visible:glass-glow-ring hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
-          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/20 active:shadow-[var(--press-shadow-strong)]",
+          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:outline-destructive hover:outline-destructive active:shadow-[var(--press-shadow-strong)]",
         outline:
-          "text-foreground border-2 border-foreground/20 hover:border-foreground/40 dark:border-white/40 dark:hover:border-white/60 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
+          /* No hover border of its own: the base's `hover:border-ring` colours this variant's 2px border as
+           focus does, and a variant-level hover border would win the merge and split the two looks. */
+          "text-foreground border-2 border-foreground/20 dark:border-white/40 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",

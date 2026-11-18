@@ -13,6 +13,12 @@
 @utility glass-glow-lg {
   --glow-layer: 0 0 12px 2px var(--glass-glow), 0 0 28px 5px var(--glass-glow);
 }
+/* The halo of a LIT control (Button's filled variant on hover and focus): `glass-glow-lg`'s geometry in
+   the RING colour, the light of the focus line it sits around, where the two above glow in the theme's
+   own hue. Half strength, so the line stays the sharp edge. */
+@utility glass-glow-ring {
+  --glow-layer: 0 0 12px 2px color-mix(in oklab, var(--ring) 55%, transparent), 0 0 28px 5px color-mix(in oklab, var(--ring) 55%, transparent);
+}
 
 /* ── THE MATERIAL SYSTEM (Sistine 2.0) ────────────────────────────────────────
    ONE structural utility (`glass`) + orthogonal axis classes. The material (a token set) comes from

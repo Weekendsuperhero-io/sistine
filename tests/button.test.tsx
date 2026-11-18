@@ -13,6 +13,57 @@ import { describe, expect, it } from "vitest";
 import { Button } from "@/components/ui/button";
 
 describe("Button", () => {
+  it("is lit on hover as on keyboard focus, in every variant", () => {
+    for (const variant of [
+      "glass",
+      "default",
+      "destructive",
+      "outline",
+      "secondary",
+      "ghost",
+      "link",
+    ] as const) {
+      const { unmount } = render(<Button variant={variant}>Go</Button>);
+      const classes = screen.getByRole("button").className.split(/\s+/);
+      // Each class of the lit state on focus has its hover twin, so the two states cannot drift apart:
+      // the border colour, and the line standing off the button (style, width, offset, colour).
+      const focus = classes.filter((c) => /^(dark:)?focus-visible:(border-ring|outline-|glass-glow-)/.test(c));
+      expect(focus.length, variant).toBeGreaterThanOrEqual(5);
+      // No filled ring between the button and the line.
+      expect(
+        classes.filter((c) => /(focus-visible|hover):ring-/.test(c)),
+        variant,
+      ).toEqual([]);
+      for (const c of focus) {
+        expect(classes, `${variant}: ${c}`).toContain(c.replace("focus-visible:", "hover:"));
+      }
+      unmount();
+    }
+  });
+
+  it("glows when pointed at or focused, in the filled variant alone", () => {
+    for (const variant of [
+      "glass",
+      "default",
+      "destructive",
+      "outline",
+      "secondary",
+      "ghost",
+      "link",
+    ] as const) {
+      const { unmount } = render(<Button variant={variant}>Go</Button>);
+      const classes = screen.getByRole("button").className.split(/\s+/);
+      const glows = classes.includes("hover:glass-glow-ring") && classes.includes("focus-visible:glass-glow-ring");
+      expect(glows, variant).toBe(variant === "default");
+      // Never at rest: the halo is part of the lit state.
+      expect(classes, variant).not.toContain("glass-glow-ring");
+      unmount();
+    }
+    render(<Button variant="default">Go</Button>);
+    // Its shadow folds the glow layer in, which is how the halo reaches a variant without the `glass` utility.
+    expect(screen.getByRole("button").className).toContain("shadow-[var(--srf-shadow,var(--glass-shadow)),var(--glow-layer,0_0_0_0_transparent)]");
+  });
+
   it("lays the material's FILL image over the default variant's fill, not its full surface", () => {
     render(<Button variant="default">Go</Button>);
     const cls = screen.getByRole("button").className;

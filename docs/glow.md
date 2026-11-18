@@ -18,6 +18,8 @@ Three pieces:
 
 The `effect="glow"` hover effect is `glass-glow hover:glass-glow-lg` (rest → intensify on hover). The boolean `glow` prop applies `glass-glow` directly; some are state-scoped, e.g. checkbox `data-[state=checked]:glass-glow`, accordion `data-[state=open]:glass-glow`.
 
+`glass-glow-ring` is the same halo at `glass-glow-lg`'s size in the **ring colour** (`--ring` at 55%), not the theme's glow hue. `Button`'s filled variant sets it on hover and keyboard focus, around the focus line it draws in that colour, so the halo reads as cast by the line; at rest its layer is empty.
+
 ### Why a *layer* and not a plain shadow
 
 Each material swaps the surface shadow by setting a **token** (`--srf-shadow`) that the `glass` utility reads:
