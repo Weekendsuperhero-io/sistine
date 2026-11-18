@@ -175,7 +175,7 @@ export default function ThemingPage() {
                       "glow",
                       'glow / glow="lg"',
                       "glass-glow / -lg",
-                      "themed halo that tracks the tint hue",
+                      "a sharp line and a themed halo that track the tint hue",
                     ],
                     [
                       "sheen",

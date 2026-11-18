@@ -25,6 +25,9 @@ import { computedVars, evalOklch, html, type ModelElement, presetNames } from ".
 const SNAPSHOT = "tests/fixtures/night-snapshot.json";
 /** Tokens that compute at night now and did not when the snapshot was taken, each with why it is safe. */
 const NEW_AT_NIGHT: Record<string, string> = {
+  /* The glow's line: --glass-glow at full strength, for the sharp edge the glow utilities draw. A new
+     token beside --glass-glow (pinned here, and what it was); nothing that existed reads it. */
+  "--glass-glow-line": "the glow colour without its alpha, for the glow's line",
   /* Vibrant day: the backing's own chroma scale, split from the opaque floor's so day can raise it. At night
      tokens.css's night rule sets it to var(--glass-opaque-c-scale), so --glass-solidify-bg (pinned here)
      is what it was. */

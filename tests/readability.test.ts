@@ -10,7 +10,8 @@
  *   - INPUT RIM: the glass field draws the ink border at night only (`dark:glass-border-ink`); by day it keeps
  *     the white glass rim, and an explicit borderColor axis wins.
  *   - FOCUS RING: every `ring-ring/50` (the soft day ring) carries its full-alpha night twin beside it, and a
- *     component that recolours its ring (the error field, the destructive button) recolours the night one too.
+ *     component that recolours its ring (the error field) recolours the night one too. The Button draws a
+ *     solid line standing off it instead of a ring, the destructive one in its own colour.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -448,14 +449,17 @@ describe("focus ring", () => {
     });
   });
 
-  it("keeps the destructive button's own ring at night", () => {
+  it("draws the destructive button's focus line in its own colour, at full strength in both modes", () => {
+    // The button's focus mark is a solid line standing off it, not a ring, so it has no fainter day
+    // form and needs no night twin: one colour, --lit, by day and at night.
     const src = readFileSync(join(dir, "button.tsx"), "utf8");
-    expect(src).toMatch(/focus-visible:ring-destructive\/20 dark:focus-visible:ring-destructive\/20/);
+    expect(src).toMatch(/\[--lit:var\(--destructive\)\]/);
+    expect(src).not.toMatch(/focus-visible:ring-/);
   });
 });
 
 describe("the destructive button at night", () => {
-  it("draws its own ring, not the role ring (tailwind-merge drops the night role twin)", async () => {
+  it("draws its own focus line, not the role's (tailwind-merge drops the role colour)", async () => {
     const { Button } = await import("@/components/ui/button");
     const { container } = render(
       createElement(
@@ -467,7 +471,8 @@ describe("the destructive button at night", () => {
       ),
     );
     const button = container.querySelector("button") as HTMLElement;
-    expect(button).toHaveClass("dark:focus-visible:ring-destructive/20");
-    expect(button).not.toHaveClass("dark:focus-visible:ring-ring");
+    expect(button).toHaveClass("[--lit:var(--destructive)]");
+    expect(button).not.toHaveClass("[--lit:var(--glass-glow-line)]");
+    expect(button).toHaveClass("focus-visible:outline-(color:--lit)");
   });
 });
