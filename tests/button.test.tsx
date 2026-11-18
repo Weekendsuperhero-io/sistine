@@ -12,6 +12,9 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Button } from "@/components/ui/button";
 
+/** The variant a selected button's classes carry: pressed, current (but not "false") or switched on. */
+const SELECTED = "[&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]";
+
 describe("Button", () => {
   it("is lit on hover as on keyboard focus, in every variant", () => {
     for (const variant of [
@@ -36,6 +39,8 @@ describe("Button", () => {
       ).toEqual([]);
       for (const c of focus) {
         expect(classes, `${variant}: ${c}`).toContain(c.replace("focus-visible:", "hover:"));
+        // And its SELECTED twin: a pressed, current or switched-on button stays lit.
+        expect(classes, `${variant}: ${c}`).toContain(c.replace("focus-visible:", `${SELECTED}:`));
       }
       unmount();
     }
@@ -53,7 +58,10 @@ describe("Button", () => {
     ] as const) {
       const { unmount } = render(<Button variant={variant}>Go</Button>);
       const classes = screen.getByRole("button").className.split(/\s+/);
-      const glows = classes.includes("hover:glass-glow-ring") && classes.includes("focus-visible:glass-glow-ring");
+      const glows =
+        classes.includes("hover:glass-glow-ring") &&
+        classes.includes("focus-visible:glass-glow-ring") &&
+        classes.includes(`${SELECTED}:glass-glow-ring`);
       expect(glows, variant).toBe(variant === "default");
       // Never at rest: the halo is part of the lit state.
       expect(classes, variant).not.toContain("glass-glow-ring");

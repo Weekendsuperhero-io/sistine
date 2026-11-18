@@ -5,19 +5,23 @@ import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* HOVER and keyboard FOCUS are one look, the LIT state: the button's border takes the ring colour and a
+/* HOVER, keyboard FOCUS and SELECTED are one look, the LIT state: the button's border takes the ring colour and a
    2px line in that colour stands 3px off it, with the gap left open so the line reads as a sharp edge
    of light, not a thick band. It replaces the 3px `ring` buttons drew on focus, which filled that gap.
    The line is solid by day and at night (the ring was half strength by day). Every focus-visible class
    has its hover twin (tests/button.test.tsx holds them together). Tailwind emits `hover:` only where
    the device can hover, so a touch leaves nothing behind, and a disabled button takes no pointer
    events. The `destructive` variant draws the line in its own colour.
+   SELECTED is a button that says it is the chosen one: `aria-pressed="true"`, `aria-current` (any value
+   but "false": the current page, step or item), or Radix's `data-state="on"`. It stays lit while it is
+   so. `aria-selected` is left out on purpose: it marks cells of a grid or listbox (the calendar's days),
+   packed too tightly for a line standing 3px off each.
 
    SEMANTIC variants only — each carries BEHAVIOR (text, hover, press shadows); the SURFACE comes from
    the material system (materialSurface below). The materials (lib/material.ts) + axes are the material/border/veil/
    gradient/glow/sheen props, not variants. */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ring hover:border-ring hover:outline-solid hover:outline-2 hover:outline-offset-[3px] hover:outline-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-hidden focus-visible:border-ring focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-ring hover:border-ring hover:outline-solid hover:outline-2 hover:outline-offset-[3px] hover:outline-ring [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:border-ring [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-solid [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-2 [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-offset-[3px] [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
     variants: {
       variant: {
@@ -46,9 +50,9 @@ const buttonVariants = cva(
            which on a surface of that hue cannot be seen.) At rest the layer is empty. One lit action
            per view; the other variants take the line alone. */
         default:
-          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow)),var(--glow-layer,0_0_0_0_transparent)] hover:glass-glow-ring focus-visible:glass-glow-ring hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
+          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow)),var(--glow-layer,0_0_0_0_transparent)] hover:glass-glow-ring focus-visible:glass-glow-ring [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:glass-glow-ring hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
-          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:outline-destructive hover:outline-destructive active:shadow-[var(--press-shadow-strong)]",
+          "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 focus-visible:outline-destructive hover:outline-destructive [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-destructive active:shadow-[var(--press-shadow-strong)]",
         outline:
           /* No hover border of its own: the base's `hover:border-ring` colours this variant's 2px border as
            focus does, and a variant-level hover border would win the merge and split the two looks. */
