@@ -26,8 +26,8 @@ export const GLASS_TINT_PRESETS = [
     swatch: "linear-gradient(135deg in oklch, oklch(82% 0.12 75), oklch(80% 0.12 8), oklch(78% 0.12 255), oklch(80% 0.12 158))",
   },
   {
-    value: "muse",
-    label: "Muse",
+    value: "hero",
+    label: "HERO",
     h: 230,
     c: 0.056,
     a: 0.1,

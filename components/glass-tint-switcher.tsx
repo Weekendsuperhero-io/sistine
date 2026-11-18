@@ -99,7 +99,7 @@ type Harmony = keyof typeof HARMONIES;
  * to the sliders via the inline tint vars.
  *
  * IMPORTANT: applyTint() INLINES h/c/a onto <html>, which shadows the [data-glass-tint] CSS block. For the
- * frescoes (sistine/muse/aurora/gloaming) the h/c/a here MUST stay identical to those CSS blocks in
+ * frescoes (sistine/hero/aurora/gloaming) the h/c/a here MUST stay identical to those CSS blocks in
  * app/globals.css (the CSS is the fallback for static, no-switcher consumers) — otherwise the demo and a
  * static page render different fresco surfaces.
  */
@@ -115,20 +115,22 @@ function pairPreset(id: string) {
   return PRESETS.find((p) => p.value === value);
 }
 
-// Chakra-stone renames (emerald→aventurine, bone→moonstone, neutral→selenite): map a stored legacy
-// name to its new preset so returning visitors keep their tint instead of falling back to the default.
+// Renamed presets: the chakra stones (emerald→aventurine, bone→moonstone, neutral→selenite) and the neon
+// city fresco (muse→hero). A stored old name maps to its new preset, so a returning visitor keeps their tint
+// instead of falling back to the default, and the mount effect writes the new name back to storage.
 const LEGACY_TINTS: Record<string, PresetValue> = {
   emerald: "aventurine",
   bone: "moonstone",
   neutral: "selenite",
+  muse: "hero",
 };
 
 // Presets that own a bespoke [data-glass-tint] block in globals.css (own --glass-bg / dark overrides) rather
 // than just driving the tint vars — so they need the data-glass-tint ATTRIBUTE set to hook those rules: the
-// frescoes (Sistine / Muse / Aurora / Gloaming) + moonstone (dark-mode wash/opaque override → pale "dark moonstone").
+// frescoes (Sistine / HERO / Aurora / Gloaming) + moonstone (dark-mode wash/opaque override → pale "dark moonstone").
 const BESPOKE = new Set<string>([
   "sistine",
-  "muse",
+  "hero",
   "aurora",
   "gloaming",
   "moonstone",
@@ -182,7 +184,7 @@ function applyAccent(on: boolean, ah: number, ac: number) {
 // can't snapshot them: send no detail there and let AutoForeground fall back to reading the DOM (rare).
 const FRESCOES = new Set([
   "sistine",
-  "muse",
+  "hero",
   "aurora",
   "gloaming",
 ]);
@@ -668,7 +670,7 @@ export function GlassTintSwitcher() {
 
   const triggerSwatch =
     (PAIRS.find((p) => p.id === base)?.swatch ?? null) ||
-    (base === "sistine" || base === "muse"
+    (base === "sistine" || base === "hero"
       ? (PRESETS.find((p) => p.value === base)?.swatch ?? "oklch(90% 0.02 250)")
       : c < 0.005
         ? "oklch(90% 0.02 250)"

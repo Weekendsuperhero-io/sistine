@@ -1,7 +1,7 @@
 /**
  * Text under a fresco is solved against the fresco's hardest stop.
  *
- * The four frescoes (muse, sistine, aurora, gloaming) paint a bold multi-hue sheet over every material:
+ * The four frescoes (hero, sistine, aurora, gloaming) paint a bold multi-hue sheet over every material:
  * stops at L78–89, chroma up to 0.2, alpha 0.2–0.46. AutoForeground used to band text against the plain
  * surface, so text sized for the average dipped to 66–74 Lc wherever a stop pulled the surface toward
  * it. It now reads the sheet (--glass-crystal-fresco), finds the stop that leaves the least contrast for

@@ -426,18 +426,41 @@ export function themeTokenCss(): string {
     .join("\n");
 }
 
-/** Every named [data-glass-tint="x"] preset the theme declares, in source order. */
+/** The bare `[data-glass-tint="x"]` names in each rule's selector list, in source order. */
+function presetBlocks(): string[][] {
+  return rules()
+    .map((r) => r.selectors.flatMap((s) => /^\[data-glass-tint="([a-z-]+)"\]$/.exec(s)?.[1] ?? []))
+    .filter((names) => names.length > 0);
+}
+
+/** Every named [data-glass-tint="x"] preset the theme declares, in source order. A block names its preset
+ *  first; a further name in the same selector list is an old id kept as an alias (presetAliases), as the
+ *  check scripts read it. */
 export function presetNames(): string[] {
-  const names = new Set<string>();
-  for (const r of rules()) {
-    for (const s of r.selectors) {
-      const m = /^\[data-glass-tint="([a-z-]+)"\]$/.exec(s);
-      if (m) names.add(m[1]);
-    }
-  }
   return [
-    ...names,
+    ...new Set(presetBlocks().map((names) => names[0])),
   ];
+}
+
+/** Every old preset id the theme still accepts, with the preset it now names: [alias, preset]. */
+export function presetAliases(): Array<
+  [
+    string,
+    string,
+  ]
+> {
+  return presetBlocks().flatMap(([preset, ...aliases]) =>
+    aliases.map(
+      (alias) =>
+        [
+          alias,
+          preset,
+        ] as [
+          string,
+          string,
+        ],
+    ),
+  );
 }
 
 /** <html> in a page mode with an optional preset, as the model's element chain. */

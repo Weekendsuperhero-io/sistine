@@ -375,7 +375,7 @@ function collectSurfaces(vars) {
         /* Whether the cap is DECLARED for this mode (a literal, or a token tokens.css sets), as opposed to
            only a var()'s inline default. [cap] holds a declared cap to the gamut; an inline default is a
            fallback, not an assertion. The wash's `var(--glass-wash-c-max, 0.4)` is the case: nothing sets it
-           by day, where 0.4 binds no preset and muse's day wash sits 1.10× out exactly as it did before the
+           by day, where 0.4 binds no preset and hero's day wash sits 1.10× out exactly as it did before the
            cap existed, while at night tokens.css declares it and every preset is held to its ceiling. */
         let capDeclared = capLit !== undefined;
         if (capLit !== undefined) hardCap = +capLit;

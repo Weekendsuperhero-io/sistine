@@ -293,7 +293,7 @@ console.log(`\n${profile.table} = ${JSON.stringify({ floor: FLOOR_C, cut: CUT, g
 function printPins() {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
   for (const file of ["app/theme/presets.css", "app/theme/frescoes.css"]) {
-    for (const [, name, body] of strip(readFileSync(join(ROOT, file), "utf8")).matchAll(/(?<!\.dark)\[data-glass-tint="([a-z-]+)"\]\s*\{([^}]*)\}/g)) {
+    for (const [, name, body] of strip(readFileSync(join(ROOT, file), "utf8")).matchAll(/(?<!\.dark)\[data-glass-tint="([a-z-]+)"\](?:,\s*\[data-glass-tint="[a-z-]+"\])*\s*\{([^}]*)\}/g)) {
       const get = (k) => +(new RegExp(`--glass-${k}:\\s*([\\d.]+)`).exec(body)?.[1] ?? Number.NaN);
       const [h, c, washL] = [get("tint-h"), get("tint-c"), get("wash-l")];
       if (!(c > 0) || Number.isNaN(washL) || washL === HUE_CAPS["day-wash"].l) continue;

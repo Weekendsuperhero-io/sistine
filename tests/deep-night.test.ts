@@ -32,9 +32,11 @@ import {
   html,
   type ModelElement,
   numberOf,
+  presetAliases,
   presetNames,
   type ResolvedOklch,
   SCOPE_SELECTOR,
+  themeTokenCss,
 } from "./theme-cascade";
 
 const SNAPSHOT = "tests/fixtures/deep-night-day.json";
@@ -367,7 +369,7 @@ describe("deep night: the night role tokens", () => {
       border: 78,
       input: 78,
     },
-    muse: {
+    hero: {
       border: 81,
       input: 81,
     },
@@ -429,11 +431,11 @@ describe("deep night: the night role tokens", () => {
       /* The neon city sets its night lines through knobs registered non-inheriting: a scope inside it keeps
          the shared lines, or its own. */
       [
-        "muse",
+        "hero",
         "lapis",
       ],
       [
-        "muse",
+        "hero",
         "aurora",
       ],
     ]) {
@@ -501,9 +503,9 @@ describe("deep night: the night role tokens", () => {
         ...rest,
       ];
     };
-    expect(computedVarsOf(html(true, "muse")).has("--glass-border-ink-a")).toBe(false);
-    expect(inkA(html(true, "muse"))).toBeCloseTo(0.62, 9);
-    expect(inkA(inside("muse", true))).toBeCloseTo(0.55, 9);
+    expect(computedVarsOf(html(true, "hero")).has("--glass-border-ink-a")).toBe(false);
+    expect(inkA(html(true, "hero"))).toBeCloseTo(0.62, 9);
+    expect(inkA(inside("hero", true))).toBeCloseTo(0.55, 9);
     expect(inkA(html(true, "lapis"))).toBeCloseTo(0.55, 9);
     expect(inkA(html(true))).toBeCloseTo(0.55, 9);
     /* The consumer's alpha wins over the neon city's night 0.62, lower or higher, set above or below it. */
@@ -516,15 +518,15 @@ describe("deep night: the night role tokens", () => {
         "ancestor",
         "descendant",
       ] as const) {
-        expect(inkA(withOwn(html(true, "muse"), at, a)), `muse night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
-        expect(inkA(withOwn(inside("muse", true), at, a)), `lapis in muse night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
-        expect(inkA(withOwn(html(false, "muse"), at, a)), `muse day, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+        expect(inkA(withOwn(html(true, "hero"), at, a)), `hero night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+        expect(inkA(withOwn(inside("hero", true), at, a)), `lapis in hero night, ${at} ${a}`).toBeCloseTo(Number(a), 9);
+        expect(inkA(withOwn(html(false, "hero"), at, a)), `hero day, ${at} ${a}`).toBeCloseTo(Number(a), 9);
       }
     }
     /* Set on a scope between the page and the line: a tint scope nested in the neon city keeps it below. */
     expect(
       inkA([
-        ...html(true, "muse"),
+        ...html(true, "hero"),
         lapis({
           "--glass-border-ink-a": "0.3",
         }),
@@ -541,17 +543,17 @@ describe("deep night: the night role tokens", () => {
       ...chain,
       {
         attrs: {
-          "data-glass-tint": "muse",
+          "data-glass-tint": "hero",
         },
       },
     ];
     expect(inkA(neonIn(withOwn(html(true, "lapis"), "ancestor", "0.3")))).toBeCloseTo(0.3, 9);
     expect(inkA(neonIn(html(true, "lapis")))).toBeCloseTo(0.62, 9);
     /* By day the knobs are read by nothing: the neon city's lines and ink are the shared day values. */
-    expect(inkA(html(false, "muse"))).toBeCloseTo(0.55, 9);
+    expect(inkA(html(false, "hero"))).toBeCloseTo(0.55, 9);
     expect(inkA(html(false, "lapis"))).toBeCloseTo(0.55, 9);
-    expect(colorOf(TOKENS.border, html(false, "muse")).l).toBeCloseTo(colorOf(TOKENS.border, html(false, "lapis")).l, 9);
-    expect(colorOf(TOKENS.input, html(false, "muse")).l).toBeCloseTo(colorOf(TOKENS.input, html(false, "lapis")).l, 9);
+    expect(colorOf(TOKENS.border, html(false, "hero")).l).toBeCloseTo(colorOf(TOKENS.border, html(false, "lapis")).l, 9);
+    expect(colorOf(TOKENS.input, html(false, "hero")).l).toBeCloseTo(colorOf(TOKENS.input, html(false, "lapis")).l, 9);
   });
 
   it("leaves day's nesting as it was: a section inside an Onyx page still inherits Onyx's day edges", () => {
@@ -566,6 +568,106 @@ describe("deep night: the night role tokens", () => {
     ];
     expect(colorOf(TOKENS.border, lapisInOnyx).l).toBeCloseTo(38, 6);
     expect(colorOf(TOKENS.input, lapisInOnyx).l).toBeCloseTo(30, 6);
+  });
+});
+
+describe("a renamed preset's old id is an alias", () => {
+  /* The neon city fresco was `muse` until the product it is named for became HERO. Its block carries both
+     names, so a page that still says data-glass-tint="muse" computes what a hero page does. */
+  const section = (page: ModelElement[], tint: string): ModelElement[] => [
+    ...page,
+    {
+      attrs: {
+        "data-glass-tint": tint,
+      },
+    },
+  ];
+  const sorted = (vars: Map<string, string>) =>
+    [
+      ...vars,
+    ].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+
+  it("is muse for hero, and is not listed as a preset of its own", () => {
+    expect(presetAliases()).toEqual([
+      [
+        "muse",
+        "hero",
+      ],
+    ]);
+    expect(presetNames()).toContain("hero");
+    expect(presetNames()).not.toContain("muse");
+  });
+
+  it.each([
+    [
+      "day",
+      false,
+    ],
+    [
+      "night",
+      true,
+    ],
+  ])("by %s, muse computes every theme variable hero does: on <html>, as a section, and around a section", (_mode, dark) => {
+    const page = computedVarsOf(html(dark, "hero"));
+    // The block is in play: the fresco's own hues, sheet and (at night) lines, not the default tint's.
+    expect(page.get("--glass-tint-h")).toBe("230");
+    expect(page.get("--glass-fg-h")).toBe("290");
+    expect(page.get("--glass-crystal-fresco")).toContain("linear-gradient");
+    expect(page.size).toBeGreaterThan(100);
+    expect(sorted(computedVarsOf(html(dark, "muse")))).toEqual(sorted(page));
+    expect(sorted(computedVarsOf(html(dark, "muse")))).not.toEqual(sorted(computedVarsOf(html(dark))));
+    for (const outer of [
+      undefined,
+      "lapis",
+    ])
+      expect(sorted(computedVarsOf(section(html(dark, outer), "muse"))), `inside ${label(outer)}`).toEqual(
+        sorted(computedVarsOf(section(html(dark, outer), "hero"))),
+      );
+    // A scope nested in it keeps the shared night lines either way (the knobs do not inherit).
+    expect(sorted(computedVarsOf(section(html(dark, "muse"), "lapis")))).toEqual(sorted(computedVarsOf(section(html(dark, "hero"), "lapis"))));
+  });
+
+  it("matches in a real stylesheet too: the DOM cascades the same declarations onto either name", () => {
+    const style = document.createElement("style");
+    style.textContent = themeTokenCss();
+    document.head.append(style);
+    const root = document.documentElement;
+    const names = [
+      "--glass-tint-h",
+      "--glass-fg-h",
+      "--glass-tint-c",
+      "--glass-tint-a",
+      "--glass-wash-l",
+      "--glass-wash-c-max",
+      "--glass-bg",
+      "--glass-frosted-bg",
+      "--glass-crystal-fresco",
+      "--night-border-l",
+      "--night-input-l",
+      "--night-border-ink-a",
+    ];
+    const read = (tint: string, dark: boolean) => {
+      root.dataset.glassTint = tint;
+      root.classList.toggle("dark", dark);
+      const cs = getComputedStyle(root);
+      return names.map((n) => cs.getPropertyValue(n).trim());
+    };
+    try {
+      for (const dark of [
+        false,
+        true,
+      ]) {
+        const hero = read("hero", dark);
+        expect(hero[0]).toBe("230");
+        expect(hero.every((v) => v !== "")).toBe(true);
+        expect(read("muse", dark)).toEqual(hero);
+        expect(read("lapis", dark)).not.toEqual(hero);
+      }
+    } finally {
+      style.remove();
+      delete root.dataset.glassTint;
+      root.classList.remove("dark");
+    }
   });
 });
 

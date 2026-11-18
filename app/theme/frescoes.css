@@ -1,4 +1,4 @@
-/* FRESCOES (muse / sistine / aurora / gloaming): each block's --glass-tint-h/c/a MUST mirror its
+/* FRESCOES (hero / sistine / aurora / gloaming; `muse` is still accepted as an alias of hero): each block's --glass-tint-h/c/a MUST mirror its
    GlassTintSwitcher preset (components/glass-tint-switcher.tsx). The switcher INLINES those onto <html>,
    shadowing these blocks on any page with the switcher mounted — so these are the static-consumer fallback.
    Keep them identical, or the demo and a static page render different surfaces. (--glass-bg gradients and
@@ -6,8 +6,8 @@
    Each pins its own DAY wash cap, 95% of its hue's sRGB ceiling at its own wash lightness, as the
    presets do (presets.css explains why). */
 
-/* Muse — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
-   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so Muse no longer needs a night
+/* HERO — the neon city: cyan → violet → magenta → pink → amber, ONE definition for both modes. Its old
+   day sweep (a pale blue → cyan → teal cityscape) lives on in Aurora, so HERO no longer needs a night
    twin: no .dark block, and the light/dark toggle changes the page under the sheet, not the sheet.
 
    Lightness is shared because the stops are already bright (L 78–85), so they read on either page.
@@ -23,8 +23,12 @@
    92.4 dark; the dark opaque ink stays tinted.
 
    No pinned --glass-opaque-bg: the opaque floor DERIVES from --glass-opaque-l like every jewel, so the
-   switcher's Lightness slider moves a Muse card and AutoForeground models the floor it actually paints
-   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4). */
+   switcher's Lightness slider moves a HERO card and AutoForeground models the floor it actually paints
+   (the old pins were h288 violet at L91 / L34, against a model of h230 at L93 / L33.4).
+
+   The preset was named `muse` until the product it is named for became HERO. The old id is still accepted:
+   the second selector below keeps every page that carries data-glass-tint="muse" on these same values. */
+[data-glass-tint="hero"],
 [data-glass-tint="muse"] {
   --glass-tint-h: 230;
   --glass-fg-h: 290; /* text/accent anchor: violet, the sheet's second stop */
@@ -129,7 +133,7 @@
    Frosted gets its OWN alphas rather than the old ~1.37x boost over --glass-bg: with stops this much
    darker, that multiplier drove the violet composite to L 83.4 and soft to 58.4. These land all three
    near L 86.4 instead. The authored shape is unchanged — green, then teal, then violet darkest. */
-/* Aurora now sweeps the retired Muse day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
+/* Aurora now sweeps the retired HERO day sweep's hues — blue 235 → cyan 205 → teal-green 155 — instead of the old
    green → cyan → violet. LIGHTNESS is untouched, because it is not a style choice here: the day stops
    sit at L 71.8–76.3 to satisfy the --foreground-soft ≥60 Lc bind described above, and that sweep's own
    L 91–94 is precisely the band these were moved away from when day read as haze.
