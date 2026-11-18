@@ -304,8 +304,10 @@ export default function ComponentsPage() {
             <CardTitle className="text-foreground">Glow</CardTitle>
             <CardDescription className="max-w-2xl text-muted-foreground">
               The Button's <code className="text-xs">effect="glow"</code> (and the <code className="text-xs">glow</code> prop on cards, badges,
-              avatars…) casts a colored shadow from <code className="text-xs">--glass-glow</code>, whose hue follows the active tint, so it recolors
-              per theme. <strong>Off</strong> on the left, <strong>on</strong> across four tints. Hover any to watch it intensify.
+              avatars…) draws a sharp line standing off the surface with a colored halo around it, both from{" "}
+              <code className="text-xs">--glass-glow</code>, whose hue follows the active tint, so it recolors per theme. <strong>Off</strong> on the
+              left, <strong>on</strong> across four tints. Hover any to watch the halo widen; the plain button on the left shows the line alone, which
+              every button wears when pointed at, focused or selected.
             </CardDescription>
           </CardHeader>
           <CardContent>

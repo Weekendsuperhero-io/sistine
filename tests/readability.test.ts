@@ -451,9 +451,9 @@ describe("focus ring", () => {
 
   it("draws the destructive button's focus line in its own colour, at full strength in both modes", () => {
     // The button's focus mark is a solid line standing off it, not a ring, so it has no fainter day
-    // form and needs no night twin: one class colours it by day and at night.
+    // form and needs no night twin: one colour, --lit, by day and at night.
     const src = readFileSync(join(dir, "button.tsx"), "utf8");
-    expect(src).toMatch(/focus-visible:outline-destructive hover:outline-destructive/);
+    expect(src).toMatch(/\[--lit:var\(--destructive\)\]/);
     expect(src).not.toMatch(/focus-visible:ring-/);
   });
 });
@@ -471,9 +471,8 @@ describe("the destructive button at night", () => {
       ),
     );
     const button = container.querySelector("button") as HTMLElement;
-    expect(button).toHaveClass("focus-visible:outline-destructive");
-    expect(button).not.toHaveClass("focus-visible:outline-ring");
-    expect(button).toHaveClass("hover:outline-destructive");
-    expect(button).not.toHaveClass("hover:outline-ring");
+    expect(button).toHaveClass("[--lit:var(--destructive)]");
+    expect(button).not.toHaveClass("[--lit:var(--glass-glow-line)]");
+    expect(button).toHaveClass("focus-visible:outline-(color:--lit)");
   });
 });

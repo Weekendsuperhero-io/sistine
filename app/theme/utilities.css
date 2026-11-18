@@ -3,21 +3,31 @@
    gradient, glow, sheen). Materials live in materials.css as [data-material] token sets; page styles
    in styles.css remap the same --srf-* tokens. No recipe utilities, no !important. */
 
-/* The glow itself — a punchy two-layer colored halo, centralized so its strength is tunable in ONE
-   place. `glass-glow` is the resting glow; `glass-glow-lg` (used on hover) intensifies it. Both set
-   --glow-layer, which every glass box-shadow folds in, so the glow shows under EVERY glass style.
+/* The glow itself: a SHARP LINE standing 3px off the surface, and a two-layer coloured halo around it,
+   centralized so its shape is tunable in ONE place. `glass-glow` is the resting glow; `glass-glow-lg`
+   (used on hover) widens the halo. The line is an outline, a property `glass` never touches; the halo
+   is --glow-layer, which every glass box-shadow folds in, so it shows under EVERY glass style. Both
+   take the theme's glow colour (--glass-glow-line at full strength for the line, --glass-glow for the
+   halo); a scope may recolour them together with --glow-line and --glow-light.
    Full mechanism + tuning + troubleshooting: docs/glow.md */
 @utility glass-glow {
-  --glow-layer: 0 0 8px 1px var(--glass-glow), 0 0 18px 3px var(--glass-glow);
+  --glow-layer: 0 0 8px 1px var(--glow-light, var(--glass-glow)), 0 0 18px 3px var(--glow-light, var(--glass-glow));
+  outline: 2px solid var(--glow-line, var(--glass-glow-line));
+  outline-offset: 3px;
 }
 @utility glass-glow-lg {
-  --glow-layer: 0 0 12px 2px var(--glass-glow), 0 0 28px 5px var(--glass-glow);
+  --glow-layer: 0 0 12px 2px var(--glow-light, var(--glass-glow)), 0 0 28px 5px var(--glow-light, var(--glass-glow));
+  outline: 2px solid var(--glow-line, var(--glass-glow-line));
+  outline-offset: 3px;
 }
-/* The halo of a LIT control (Button's filled variant on hover and focus): `glass-glow-lg`'s geometry in
-   the RING colour, the light of the focus line it sits around, where the two above glow in the theme's
-   own hue. Half strength, so the line stays the sharp edge. */
-@utility glass-glow-ring {
-  --glow-layer: 0 0 12px 2px color-mix(in oklab, var(--ring) 55%, transparent), 0 0 28px 5px color-mix(in oklab, var(--ring) 55%, transparent);
+/* The halo of a LIT control in its OWN colour (Button's filled variant on hover, focus and when
+   selected): `glass-glow-lg`'s halo in --lit, the colour of the line the control draws itself, at a
+   little over half strength so the line stays the sharp edge. The filled button's own colour is its
+   fill, not the theme's glow hue. */
+@utility glass-glow-lit {
+  --glow-layer:
+    0 0 12px 2px color-mix(in oklab, var(--lit, var(--glass-glow-line)) 55%, transparent),
+    0 0 28px 5px color-mix(in oklab, var(--lit, var(--glass-glow-line)) 55%, transparent);
 }
 
 /* ── THE MATERIAL SYSTEM (Sistine 2.0) ────────────────────────────────────────

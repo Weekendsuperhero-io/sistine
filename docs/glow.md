@@ -1,6 +1,6 @@
 # Glow
 
-The optional colored halo on glass components: the Button's default `effect="glow"`, and the `glow` prop on cards, badges, avatars, etc. One token, one composable shadow layer, and it shows under **every** glass style.
+The optional glow on glass components, a sharp line standing off the surface with a colored halo around it: the Button's default `effect="glow"`, and the `glow` prop on cards, badges, avatars, etc. One token, one composable shadow layer, and it shows under **every** glass style.
 
 > Authored in **`app/globals.css`** alongside the rest of the glass system.
 
@@ -14,11 +14,14 @@ Three pieces:
 |---|---|
 | `--glass-glow` | The glow **color**: `oklch(… var(--glass-tint-h) … / α)`, so it tracks the active tint (Sapphire → blue, Sistine → amber). `0.45` alpha in light, `0.5` in dark. |
 | `--glow-layer` | A **composable shadow**, registered with `@property { syntax: "*"; inherits: false }`. Every glass `box-shadow` folds in `var(--glow-layer, 0 0 0 0 transparent)`, a no-op when unset. `inherits: false` stops a glowing card from lighting up its glass children. |
-| `glass-glow` / `glass-glow-lg` | Utilities that set `--glow-layer` to a two-layer colored halo (a dense inner ring + a wider halo). Resting vs. intensified. |
+| `--glass-glow-line` | The same color at full strength, for the **line**. |
+| `glass-glow` / `glass-glow-lg` | Utilities that draw the glow: a 2px `outline` in `--glass-glow-line` standing 3px off the surface, and `--glow-layer` set to a two-layer colored halo (a dense inner ring + a wider halo). Resting vs. intensified (the halo widens; the line is the same). A scope recolors the pair with `--glow-line` and `--glow-light`. |
 
 The `effect="glow"` hover effect is `glass-glow hover:glass-glow-lg` (rest → intensify on hover). The boolean `glow` prop applies `glass-glow` directly; some are state-scoped, e.g. checkbox `data-[state=checked]:glass-glow`, accordion `data-[state=open]:glass-glow`.
 
-`glass-glow-ring` is the same halo at `glass-glow-lg`'s size in the **ring colour** (`--ring` at 55%), not the theme's glow hue. `Button`'s filled variant sets it on hover and keyboard focus, around the focus line it draws in that colour, so the halo reads as cast by the line; at rest its layer is empty.
+### The Button's lit state
+
+Every `Button` draws that same line, without being given the glow, when it is pointed at, focused or selected (`aria-pressed="true"`, `aria-current`, `data-state="on"`). The line is in `--lit`, the button's own color: `--glass-glow-line` for the glass variants (so it follows a scoped tint), `--primary` for the filled one, `--destructive` for the destructive one. The filled variant also takes a halo then, through `glass-glow-lit`: `glass-glow-lg`'s halo in `--lit` at 55%. Set `--lit` on a button to light it in another color.
 
 ### Why a *layer* and not a plain shadow
 
@@ -43,7 +46,7 @@ box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--glow-
 
 | To change… | Edit |
 |---|---|
-| Strength / shape | the two `@utility glass-glow` / `glass-glow-lg` blocks, blur + spread, two layers. |
+| Strength / shape | the two `@utility glass-glow` / `glass-glow-lg` blocks: the outline's width and offset, and the halo's blur + spread, two layers. |
 | Color / intensity | the `--glass-glow` alpha. Override the whole var to force a glow color independent of the tint. |
 
 ---

@@ -164,6 +164,9 @@
   --glass-stain: grayscale(var(--glass-stain-amount, 1)) invert(var(--glass-stain-invert, 0));
   /* Colored glow for the `glow` prop — follows the foreground hue; override to recolor the halo. */
   --glass-glow: oklch(var(--glass-glow-lc) var(--glass-fg-h) / var(--glass-glow-a));
+  /* The glow's LINE: the same colour at full strength, for the sharp edge the glow utilities draw
+     standing off the surface, with the halo above around it. */
+  --glass-glow-line: oklch(var(--glass-glow-lc) var(--glass-fg-h));
   /* Selected-control FILL (active tab, pressed toggle) — the surface twin of --active-shadow. Composed
      here, not on :root, because it reads the tint: a scoped data-glass-tint must re-resolve it, and it
      is why the chip tracks whichever theme the subtree carries. Mode knobs in tokens.css carry the two
