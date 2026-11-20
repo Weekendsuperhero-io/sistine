@@ -97,7 +97,7 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
         // surface survived, so the theme hue never came through). The text has one, below.
         /* At night the chip is a white lift over a deep surface (~L50), where the body ink reads 60–77 Lc, under
            the body floor; the strong ink holds it (check-contrast [role]). Day is untouched. */
-        "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-foreground dark:data-[state=active]:text-foreground-strong",
+        "data-[state=active]:bg-[var(--active-bg)] data-[state=active]:text-active-foreground dark:data-[state=active]:text-active-foreground-strong",
         "data-[state=active]:shadow-[var(--active-shadow)]",
         // `line` lists: no active fill, a bar under (or beside, when vertical) the active trigger instead.
         "group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none",

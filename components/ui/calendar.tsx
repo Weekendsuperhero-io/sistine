@@ -183,8 +183,8 @@ function CalendarDayButton({
       data-range-middle={modifiers.range_middle}
       /* A day is a ghost Button, whose `hover:text-accent-foreground` already gives a hovered day the accent's
          own text, and loses to a state's text, since Tailwind emits data-* after hover. Its NIGHT twins do not:
-         Tailwind emits every dark: utility after every built-in one, so `dark:hover:bg-accent/50` (and the
-         pressed /60) would paint over a selected or range day at night and take its fill. The dark:data-*
+         Tailwind emits every dark: utility after every built-in one, so the ghost's night hover (the accent at
+         --ghost-hover-a) and its pressed /60 would paint over a selected or range day at night and take its fill. The dark:data-*
          re-assertions come later still (data after hover within dark:), so a selected day keeps its pill and
          its text however it is hovered or pressed (tests/night-state-collisions.test.tsx). */
       className={cn(
