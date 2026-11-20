@@ -1,12 +1,3 @@
-<!--
-  ✨ Leave the "@agent pr-title" line below to have Agent auto-generate this PR's title and
-  description from your diff (via the org's platform-tools / Jules workflow). When it runs, it
-  replaces this whole body. Prefer to write it yourself? Delete that line and fill in the
-  template below instead.
--->
-
-@agent pr-title
-
 ## Summary
 
 <!-- What does this PR change, and why? Link any related issues (e.g. "Closes #123"). -->
