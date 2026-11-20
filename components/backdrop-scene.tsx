@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { PATTERN_DISCS, PATTERN_SANDS } from "@/components/background-provider";
-import { PATTERN_DENSITIES, PATTERN_STYLES, PatternBackground } from "@/components/pattern-background";
+import { PATTERN_DENSITIES, PATTERN_STYLES, PatternBackground, SHIP_KINDS } from "@/components/pattern-background";
 
 /* The site chrome stays mounted under the scene (the root layout wraps every route), so it is taken out of
    view, focus and the accessibility tree, and the page cannot scroll a scrollbar into the frame. The
@@ -24,6 +24,7 @@ function pick<T extends string>(value: string | null, options: readonly T[], fal
  * visitor's own, restored by next-themes and the tint switcher exactly as on any other page.
  *
  *   /backdrop?scene=forest&disc=left&density=medium&sand=breeze&speed=0
+ *   /backdrop?scene=shipit&ship=clipper&disc=right
  *
  * Unknown or missing values fall back to the site's defaults; `speed` is the loop in seconds (0 = static).
  */
@@ -40,6 +41,7 @@ export function BackdropScene() {
         speed={Number.isFinite(speed) && speed > 0 ? speed : 0}
         disc={pick(params.get("disc"), PATTERN_DISCS, "right")}
         sand={pick(params.get("sand"), PATTERN_SANDS, "breeze")}
+        ship={pick(params.get("ship"), SHIP_KINDS, "liner")}
       />
     </div>
   );

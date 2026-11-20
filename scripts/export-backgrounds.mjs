@@ -40,6 +40,7 @@
  *   --accent   hue[/chroma] to pin the accent, e.g. 330 or 330/0.16 (default: off)
  *   --density  sparse | medium | dense (dots, grid, mesh, starfield, chase; default: medium)
  *   --sand     breeze | storm | still (dune; default: breeze)
+ *   --ship     ships for shipit: liner,clipper,freighter,cruise (default: all; each its own file)
  *   --format   png | webp | jpeg for stills (default: png); --quality 0-100 for webp / jpeg (default: 92)
  *              mp4 (H.264) | webm (VP9) for video loops, which default to --size 1920x1080@1
  *   --speed    video: the scene's loop pace in seconds, as the site's speed control (default: 8)
@@ -73,6 +74,7 @@ const { values: opt } = parseArgs({
     accent: { type: "string" },
     density: { type: "string", default: "medium" },
     sand: { type: "string", default: "breeze" },
+    ship: { type: "string" },
     format: { type: "string", default: "png" },
     quality: { type: "string", default: "92" },
     speed: { type: "string", default: "8" },
@@ -114,6 +116,8 @@ const ANIMATED_SCENES = names(
   /export const ANIMATED_PATTERNS = new Set<PatternStyle>\(\[([\s\S]*?)\]\)/,
   "ANIMATED_PATTERNS",
 );
+const SHIPS = names("components/pattern-background.tsx", /export const SHIP_KINDS: ShipKind\[\] = \[([\s\S]*?)\];/, "SHIP_KINDS");
+const SHIP_SCENES = names("components/pattern-background.tsx", /export const SHIP_PATTERNS = new Set<PatternStyle>\(\[([\s\S]*?)\]\)/, "SHIP_PATTERNS");
 const DISC_SCENES = names("components/pattern-background.tsx", /export const DISC_PATTERNS = new Set<PatternStyle>\(\[([\s\S]*?)\]\)/, "DISC_PATTERNS");
 const TINTS = names("lib/glass-presets.ts", /const GLASS_TINT_PRESETS = \[([\s\S]*?)\n\] as const;/, "GLASS_TINT_PRESETS", /value: "([a-z-]+)"/g);
 
@@ -163,6 +167,7 @@ const plan = {
   accent: accent(opt.accent),
   density: choose("density", [opt.density], ["sparse", "medium", "dense"])[0],
   sand: choose("sand", [opt.sand], ["breeze", "storm", "still"])[0],
+  ships: choose("ship", opt.ship ? list(opt.ship) : SHIPS, SHIPS),
   format,
   video,
   quality: Number(opt.quality),
@@ -482,11 +487,13 @@ async function main() {
           await page.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: false });
           for (const scene of plan.scenes) {
             const discs = DISC_SCENES.includes(scene) ? plan.discs : [null];
-            for (const disc of discs) {
+            const ships = SHIP_SCENES.includes(scene) ? plan.ships : [null];
+            for (const [disc, ship] of discs.flatMap((d) => ships.map((s) => [d, s]))) {
               const url = new URL("/backdrop", site);
               url.search = new URLSearchParams({
                 scene,
                 ...(disc && { disc }),
+                ...(ship && { ship }),
                 density: plan.density,
                 sand: plan.sand,
                 speed: String(plan.speed),
@@ -500,7 +507,7 @@ async function main() {
               if (state.dark !== (mode === "dark") || state.tint !== tint) {
                 throw new Error(`${url.href} rendered ${state.dark ? "dark" : "light"} / ${state.tint}, not ${mode} / ${tint}`);
               }
-              const file = join(plan.out, tint, `${scene}${disc ? `-${disc}` : ""}-${mode}-${width * scale}x${height * scale}.${ext}`);
+              const file = join(plan.out, tint, `${scene}${ship ? `-${ship}` : ""}${disc ? `-${disc}` : ""}-${mode}-${width * scale}x${height * scale}.${ext}`);
               if (plan.video) {
                 const loop = await record(page, ffmpeg, file);
                 console.log(`  ${relative(process.cwd(), file)}  ${Math.round(loop.length * 100) / 100}s ${loop.kind}`);

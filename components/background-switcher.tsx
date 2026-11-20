@@ -2,7 +2,7 @@
 
 import { PaletteIcon, PauseIcon, PlayIcon, ProhibitIcon, ShuffleIcon, SparkleIcon, SquaresFourIcon } from "@phosphor-icons/react";
 import { type BackgroundType, CANVAS_STYLES, RAMP_AXES, useBackground } from "@/components/background-provider";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle, SAND_PATTERNS } from "@/components/pattern-background";
+import { ANIMATED_PATTERNS, DISC_PATTERNS, PATTERN_STYLES, type PatternStyle, SAND_PATTERNS, SHIP_PATTERNS } from "@/components/pattern-background";
 import { oklchToSrgb, type RampGradientAxis } from "@/lib/oklch-utils";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +150,8 @@ export function BackgroundSwitcher() {
     cyclePatternDisc,
     patternSand,
     cyclePatternSand,
+    patternShip,
+    cyclePatternShip,
     baseColor,
     setBaseColor,
   } = useBackground();
@@ -380,6 +382,17 @@ export function BackgroundSwitcher() {
               className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", patternSand === "still" ? active : idle)}
             >
               {patternSand}
+            </button>
+          )}
+          {SHIP_PATTERNS.has(patternStyle) && (
+            <button
+              type="button"
+              title={`Ship: ${patternShip} (click to change)`}
+              aria-label={`Ship ${patternShip}, click to change`}
+              onClick={cyclePatternShip}
+              className={cn(segmentButton, "px-1.5 text-[10px] font-semibold capitalize", idle)}
+            >
+              {patternShip}
             </button>
           )}
         </div>

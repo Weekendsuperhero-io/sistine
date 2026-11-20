@@ -1,7 +1,16 @@
 import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import {
+  ANIMATED_PATTERNS,
+  DISC_PATTERNS,
+  floorGridPath,
+  PATTERN_STYLES,
+  PatternBackground,
+  SHIP_KINDS,
+  type ShipKind,
+  stopRules,
+} from "@/components/pattern-background";
 import { GLASS_TINT_PRESETS } from "@/lib/glass-presets";
 
 /**
@@ -449,7 +458,15 @@ describe("meadow", () => {
  * sails on from where it stood instead of jumping.
  */
 describe("shipit", () => {
-  const markup = (disc?: "left" | "center" | "right") => renderToStaticMarkup(<PatternBackground style="shipit" disc={disc} />);
+  const markup = (disc?: "left" | "center" | "right", ship?: ShipKind) =>
+    renderToStaticMarkup(<PatternBackground style="shipit" disc={disc} ship={ship} />);
+  /** Each ship's hull length, in its drawing's units: the hull's middle is half of it. */
+  const HULL: Record<ShipKind, number> = {
+    liner: 270,
+    clipper: 150,
+    freighter: 290,
+    cruise: 260,
+  };
   const css = (html: string) =>
     (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? [])
       .join("\n")
@@ -487,17 +504,42 @@ describe("shipit", () => {
   });
 
   it("sails toward the disc: east unless the disc is on the left", () => {
-    expect(markup("right")).toContain('class="sh-ship"');
-    expect(markup("center")).toContain('class="sh-ship"');
-    expect(markup("left")).toContain('class="sh-ship sh-west"');
+    expect(markup("right")).toContain('class="sh-ship sh-k-liner"');
+    expect(markup("center")).toContain('class="sh-ship sh-k-liner"');
+    expect(markup("left")).toContain('class="sh-ship sh-k-liner sh-west"');
   });
 
-  it("rests where its loop begins, the same share of the way across at every width", () => {
-    const html = markup();
+  it("sails each of its ships, each its own drawing and box, the liner by default", () => {
+    expect(SHIP_KINDS).toEqual([
+      "liner",
+      "clipper",
+      "freighter",
+      "cruise",
+    ]);
+    const drawings = new Set<string>();
+    for (const ship of SHIP_KINDS) {
+      const html = markup("right", ship);
+      expect(html, ship).toBe(markup("right", ship));
+      expect(html, ship).toContain(`class="sh-ship sh-k-${ship}"`);
+      drawings.add(html.match(/<svg class="sh-paint"[\s\S]*?<\/svg>/)?.[0] ?? "");
+      const box = rule(html, `.sh-k-${ship}`);
+      for (const prop of [
+        "bottom",
+        "width",
+        "height",
+      ])
+        expect(decl(box, prop), `${ship} ${prop}`).toMatch(/^[\d.]+vh$/);
+    }
+    expect(drawings.size).toBe(SHIP_KINDS.length);
+    expect(markup()).toBe(markup("right", "liner"));
+  });
+
+  it.each(SHIP_KINDS)("rests the %s where its loop begins, the same share of the way across at every width", (ship) => {
+    const html = markup("right", ship);
     const box = rule(html, ".sh-ship");
-    // The box's viewBox puts the hull's middle (unit 135 of a 270-unit hull) this far across the box.
+    // The box's viewBox puts the hull's middle this far across the box.
     const [x0, , w] = (html.match(/<svg class="sh-paint" viewBox="([^"]+)"/)?.[1] ?? "").split(" ").map(Number);
-    const hull = (135 - x0) / w;
+    const hull = (HULL[ship] / 2 - x0) / w;
     const [, loop, delay] =
       decl(box, "animation")?.match(/^sh-east calc\(var\(--pat-dur, 8s\) \* ([\d.]+)\) linear calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\) infinite$/) ??
       [];
@@ -571,10 +613,10 @@ describe("shipit", () => {
     expect(decl(night, "--sh-night-d")).toBe("inline");
   });
 
-  it("defines every colour it paints with", () => {
+  it.each(SHIP_KINDS)("defines every colour it paints the %s with", (ship) => {
     // A part painted from an undefined variable silently draws nothing (see forest). Every --sh-* the scene
-    // reads is set by day (night overrides on top), by a row's own rule, or read with a fallback.
-    const html = markup();
+    // reads is set by day (night overrides on top), or by a row's own rule.
+    const html = markup("right", ship);
     const day = rule(html, '[data-pattern="shipit"]');
     const rows = rules(html)
       .filter(({ selector }) => /^\.sh-r\d$/.test(selector))
@@ -585,7 +627,7 @@ describe("shipit", () => {
         ...html.matchAll(/var\((--sh-[\w-]+)\)/g),
       ].map((m) => m[1]),
     );
-    expect(used.size).toBeGreaterThan(30);
+    expect(used.size).toBeGreaterThan(25);
     for (const name of used) expect(day.includes(`${name}:`) || rows.includes(`${name}:`), name).toBe(true);
   });
 });
