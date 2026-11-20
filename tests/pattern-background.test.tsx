@@ -289,6 +289,7 @@ describe("previews", () => {
         "meadow",
         "muse",
         "peaks",
+        "shipit",
         "sky",
         "starfield",
         "synthwave",
@@ -334,6 +335,7 @@ describe("disc display gates", () => {
     "forest",
     "peaks",
     "meadow",
+    "shipit",
   ] as const)("%s keeps only the sun by day and only the moon by night", (style) => {
     expect(shownDiscs(style, false)).toEqual([
       "sw-sun",
@@ -437,6 +439,154 @@ describe("meadow", () => {
     const html = markup();
     expect(html.match(/class="mw-hill mw-h\d mw-fill"/g)).toHaveLength(4);
     expect(html).toContain("left: calc(var(--sw-disc-x, 50%) - 375vh)");
+  });
+});
+
+/**
+ * Shipit: a liner crossing a sea of generated swell. The rows' tiles have to end at the height they start at,
+ * or every repeat steps. The liner moves only by transform and draws on a still child. It sails toward the
+ * disc, and its still pose is the pose the loop starts from, at every scene width, so a scene set moving
+ * sails on from where it stood instead of jumping.
+ */
+describe("shipit", () => {
+  const markup = (disc?: "left" | "center" | "right") => renderToStaticMarkup(<PatternBackground style="shipit" disc={disc} />);
+  const css = (html: string) =>
+    (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? [])
+      .join("\n")
+      .replace(/<\/?style[^>]*>/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = (html: string) =>
+    [
+      ...css(html).matchAll(/([^{}]*)\{([^{}]*)\}/g),
+    ].map(([, selector, body]) => ({
+      selector: selector.replace(/\s+/g, " ").trim(),
+      body,
+    }));
+  const rule = (html: string, selector: string) => rules(html).find((r) => r.selector === selector)?.body ?? "";
+  const decl = (body: string, name: string) => body.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim();
+
+  it("draws the same sea and liner on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws eight rows of swell, each tile ending at the height it starts at", () => {
+    const tiles = [
+      ...css(markup()).matchAll(/--sh-m: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]));
+    expect(tiles).toHaveLength(8);
+    for (const svg of tiles) {
+      const width = svg.match(/viewBox='0 0 ([\d.]+) [\d.]+'/)?.[1];
+      const d = svg.match(/d='([^']+)'/)?.[1] ?? "";
+      // M0 <foot> L0 <start> … L<tile> <end> L<tile> <foot> Z
+      const start = d.match(/^M0 [\d.]+L0 ([\d.]+)L/)?.[1];
+      const end = d.match(/L([\d.]+) ([\d.]+)L\1 [\d.]+Z$/);
+      expect(start, d.slice(0, 40)).toBeDefined();
+      expect(end?.[1]).toBe(width);
+      expect(end?.[2]).toBe(start);
+    }
+  });
+
+  it("sails toward the disc: east unless the disc is on the left", () => {
+    expect(markup("right")).toContain('class="sh-ship"');
+    expect(markup("center")).toContain('class="sh-ship"');
+    expect(markup("left")).toContain('class="sh-ship sh-west"');
+  });
+
+  it("rests where its loop begins, the same share of the way across at every width", () => {
+    const html = markup();
+    const box = rule(html, ".sh-ship");
+    // The box's viewBox puts the hull's middle (unit 135 of a 270-unit hull) this far across the box.
+    const [x0, , w] = (html.match(/<svg class="sh-paint" viewBox="([^"]+)"/)?.[1] ?? "").split(" ").map(Number);
+    const hull = (135 - x0) / w;
+    const [, loop, delay] =
+      decl(box, "animation")?.match(/^sh-east calc\(var\(--pat-dur, 8s\) \* ([\d.]+)\) linear calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\) infinite$/) ??
+      [];
+    const start = -Number(delay) / Number(loop);
+    for (const [selector, east] of [
+      [
+        ".sh-ship",
+        true,
+      ],
+      [
+        ".sh-ship.sh-west",
+        false,
+      ],
+    ] as const) {
+      const [, cqw, own] = decl(rule(html, selector), "transform")?.match(/^translateX\(calc\(([\d.]+)cqw - ([\d.]+)%\)\)$/) ?? [];
+      for (const scene of [
+        430,
+        1440,
+        3440,
+      ]) {
+        const boxW = 600;
+        // Where the keyframes put the box at the loop's start (east: -100% → 100cqw; west the reverse).
+        const looped = east ? -boxW + start * (scene + boxW) : scene - start * (scene + boxW);
+        const still = (Number(cqw) / 100) * scene - (Number(own) / 100) * boxW;
+        expect(still, `${selector} at ${scene}px`).toBeCloseTo(looped, 6);
+        // And the hull's middle sits a third of the way in from the side it sails from (mirrored going west).
+        const middle = still + (east ? hull : 1 - hull) * boxW;
+        // (To 1e-3: the viewBox is written to a tenth of a unit, about 0.01px.)
+        expect(middle / scene, `${selector} at ${scene}px`).toBeCloseTo(east ? start : 1 - start, 3);
+      }
+    }
+    expect(start).toBeCloseTo(0.32, 6);
+  });
+
+  it("moves only by transform, and draws on a still child", () => {
+    const html = markup();
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    const ship = host.querySelector(".sh-ship")!;
+    expect(
+      [
+        ...ship.children,
+      ].map((child) => child.getAttribute("class")),
+    ).toEqual([
+      "sh-paint",
+    ]);
+    const own = rules(html).filter(({ selector }) => selector.split(",").some((s) => /\.sh-ship(\.sh-west)?$/.test(s.trim())));
+    expect(own.length).toBeGreaterThan(0);
+    for (const { selector, body } of own) expect(body, selector).not.toMatch(/filter|mask|clip-path/);
+  });
+
+  it("lights its windows yellow by night, and only by night", () => {
+    const html = markup();
+    const day = rule(html, '[data-pattern="shipit"]');
+    const night = rule(html, '.dark [data-pattern="shipit"]');
+    for (const lit of [
+      "sh-port-lit",
+      "sh-win-lit",
+    ]) {
+      expect(html.match(new RegExp(`<path class="${lit}" d="(M[^"]+)"`))?.[1].split("M").length ?? 0, lit).toBeGreaterThan(20);
+    }
+    // By day a lit window is the same glass as a dark one; by night it is the lamp.
+    expect(decl(day, "--sh-port-lit")).toBe("var(--sh-port)");
+    expect(decl(day, "--sh-glass-lit")).toBe("var(--sh-glass)");
+    expect(decl(night, "--sh-port-lit")).toBe("var(--sh-lamp)");
+    expect(decl(night, "--sh-glass-lit")).toBe("var(--sh-lamp)");
+    expect(decl(night, "--sh-lamp")).toMatch(/^oklch\(0\.9 0\.1\d 8\d\)$/);
+    // The halos, the lights' streaks on the water and the running lights are gated: off unless night says.
+    expect(decl(rule(html, ".sh-night"), "display")).toBe("var(--sh-night-d, none)");
+    expect(decl(day, "--sh-night-d")).toBeUndefined();
+    expect(decl(night, "--sh-night-d")).toBe("inline");
+  });
+
+  it("defines every colour it paints with", () => {
+    // A part painted from an undefined variable silently draws nothing (see forest). Every --sh-* the scene
+    // reads is set by day (night overrides on top), by a row's own rule, or read with a fallback.
+    const html = markup();
+    const day = rule(html, '[data-pattern="shipit"]');
+    const rows = rules(html)
+      .filter(({ selector }) => /^\.sh-r\d$/.test(selector))
+      .map(({ body }) => body)
+      .join("\n");
+    const used = new Set(
+      [
+        ...html.matchAll(/var\((--sh-[\w-]+)\)/g),
+      ].map((m) => m[1]),
+    );
+    expect(used.size).toBeGreaterThan(30);
+    for (const name of used) expect(day.includes(`${name}:`) || rows.includes(`${name}:`), name).toBe(true);
   });
 });
 
@@ -565,7 +715,7 @@ describe("the theme cast in the day skies", () => {
 
   it("weights every cast by how far the tint's hue agrees with the stop's", () => {
     // Ungated, a warm tint swung a blue sky round the wheel through teal (in OKLCH) or greyed it (in OKLab).
-    expect(casts).toHaveLength(26);
+    expect(casts).toHaveLength(29);
     for (const cast of casts) {
       const m = cast.match(
         /^color-mix\(in oklch, oklch\(([\d.]+) [\d.]+ (\d+)\), oklch\(([\d.]+) [\d.]+ var\(--glass-tint-h, (\d+)\)\) calc\(var\(--sw-cast\) \* max\(0, cos\(calc\(\(var\(--glass-tint-h, (\d+)\) - (\d+)\) \* 1deg\)\)\)\)\);$/,
