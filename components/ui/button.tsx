@@ -5,9 +5,11 @@ import { type HoverEffect, hoverEffects } from "@/lib/hover-effects";
 import { type MaterialAxisProps, type MaterialProps, materialSurface, splitAxisProps } from "@/lib/material";
 import { cn } from "@/lib/utils";
 
-/* HOVER, keyboard FOCUS and SELECTED are one look, the LIT state: the button's border takes its own
+/* HOVER, keyboard FOCUS and SELECTED are one look, the LIT state: the button's edge takes its own
    light and a 2px line in that light stands 3px off it, with the gap left open so the line reads as
-   a sharp edge, not a thick band. It is the line the glow utilities draw (theme/utilities.css), and it
+   a sharp edge, not a thick band. The edge is the border's colour where the variant has a border, and
+   a 1px ring (--lit-layer, folded into the button's shadow) on every variant, so a borderless one
+   (glass, filled, ghost, link) is outlined too and keeps its size. It is the line the glow utilities draw (theme/utilities.css), and it
    replaces the 3px `ring` buttons drew on focus, which filled the gap.
    The light is --lit, the button's OWN colour: the theme's glow colour (--glass-glow-line, which
    follows a scoped tint) for the glass variants, the fill for the filled one, the status colour for
@@ -26,7 +28,7 @@ import { cn } from "@/lib/utils";
    the material system (materialSurface below). The materials (lib/material.ts) + axes are the material/border/veil/
    gradient/glow/sheen props, not variants. */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 [--lit:var(--glass-glow-line)] focus-visible:border-(color:--lit) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-(color:--lit) hover:border-(color:--lit) hover:outline-solid hover:outline-2 hover:outline-offset-[3px] hover:outline-(color:--lit) [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:border-(color:--lit) [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-solid [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-2 [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-offset-[3px] [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-(color:--lit) aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 [--lit:var(--glass-glow-line)] focus-visible:border-(color:--lit) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-(color:--lit) hover:border-(color:--lit) hover:outline-solid hover:outline-2 hover:outline-offset-[3px] hover:outline-(color:--lit) focus-visible:[--lit-layer:0_0_0_1px_var(--lit)] hover:[--lit-layer:0_0_0_1px_var(--lit)] [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:[--lit-layer:0_0_0_1px_var(--lit)] [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:border-(color:--lit) [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-solid [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-2 [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-offset-[3px] [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:outline-(color:--lit) aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.96] active:transition-transform",
   {
     variants: {
       variant: {
@@ -54,7 +56,7 @@ const buttonVariants = cva(
            as cast by the line. At rest the layer is empty. One lit action per view; the other variants
            take the line alone unless they are given the glow. */
         default:
-          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow)),var(--glow-layer,0_0_0_0_transparent)] [--lit:var(--primary)] hover:glass-glow-lit focus-visible:glass-glow-lit [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:glass-glow-lit hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
+          "bg-primary text-primary-foreground [background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))] shadow-[var(--srf-shadow,var(--glass-shadow)),var(--lit-layer,0_0_0_0_transparent),var(--glow-layer,0_0_0_0_transparent)] [--lit:var(--primary)] hover:glass-glow-lit focus-visible:glass-glow-lit [&:is([aria-pressed=true],[aria-current]:not([aria-current=false]),[data-state=on])]:glass-glow-lit hover:brightness-105 dark:hover:brightness-95 transition active:opacity-90 active:shadow-[var(--press-shadow)]",
         destructive:
           "text-destructive border border-destructive/60 hover:opacity-90 transition active:opacity-80 [--lit:var(--destructive)] active:shadow-[var(--press-shadow-strong)]",
         outline:
@@ -62,9 +64,10 @@ const buttonVariants = cva(
            variant-level hover border would win the merge and split the looks. */
           "text-foreground border-2 border-foreground/20 dark:border-white/40 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
+        /* No surface, so no glass shadow: this one carries just the lit edge. */
         ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
-        link: "text-primary underline-offset-4 hover:underline active:opacity-80",
+          "shadow-[var(--lit-layer,0_0_0_0_transparent)] hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
+        link: "shadow-[var(--lit-layer,0_0_0_0_transparent)] text-primary underline-offset-4 hover:underline active:opacity-80",
       },
       size: {
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",

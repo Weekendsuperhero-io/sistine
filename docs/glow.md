@@ -15,13 +15,14 @@ Three pieces:
 | `--glass-glow` | The glow **color**: `oklch(… var(--glass-tint-h) … / α)`, so it tracks the active tint (Sapphire → blue, Sistine → amber). `0.45` alpha in light, `0.5` in dark. |
 | `--glow-layer` | A **composable shadow**, registered with `@property { syntax: "*"; inherits: false }`. Every glass `box-shadow` folds in `var(--glow-layer, 0 0 0 0 transparent)`, a no-op when unset. `inherits: false` stops a glowing card from lighting up its glass children. |
 | `--glass-glow-line` | The same color at full strength, for the **line**. |
-| `glass-glow` / `glass-glow-lg` | Utilities that draw the glow: a 2px `outline` in `--glass-glow-line` standing 3px off the surface, and `--glow-layer` set to a two-layer colored halo (a dense inner ring + a wider halo). Resting vs. intensified (the halo widens; the line is the same). A scope recolors the pair with `--glow-line` and `--glow-light`. |
+| `--lit-layer` | The **edge** of a lit control, registered like `--glow-layer` (non-inheriting). A lit `Button` sets it to `0 0 0 1px var(--lit)`, and every glass `box-shadow` folds it in beside the glow layer, so a borderless button is outlined in its own light. |
+| `glass-glow` / `glass-glow-lg` | Utilities that draw the glow: a 2px `outline` in `--glass-glow-line` standing 3px off the surface, and `--glow-layer` set to the surface's own edge ringed in the same colour (`0 0 0 1px`) and a two-layer colored halo (a dense inner ring + a wider halo). Resting vs. intensified (the halo widens; the line is the same). A scope recolors the pair with `--glow-line` and `--glow-light`. |
 
 The `effect="glow"` hover effect is `glass-glow hover:glass-glow-lg` (rest → intensify on hover). The boolean `glow` prop applies `glass-glow` directly; some are state-scoped, e.g. checkbox `data-[state=checked]:glass-glow`, accordion `data-[state=open]:glass-glow`.
 
 ### The Button's lit state
 
-Every `Button` draws that same line, without being given the glow, when it is pointed at, focused or selected (`aria-pressed="true"`, `aria-current`, `data-state="on"`). The line is in `--lit`, the button's own color: `--glass-glow-line` for the glass variants (so it follows a scoped tint), `--primary` for the filled one, `--destructive` for the destructive one. The filled variant also takes a halo then, through `glass-glow-lit`: `glass-glow-lg`'s halo in `--lit` at 55%. Set `--lit` on a button to light it in another color.
+Every `Button` draws that same line, without being given the glow, when it is pointed at, focused or selected (`aria-pressed="true"`, `aria-current`, `data-state="on"`), and rings its own edge in the same light: its border where the variant has one, and a 1px ring (`--lit-layer`) on every variant, so the borderless glass, filled, ghost and link buttons are outlined too, at the same size. The line is in `--lit`, the button's own color: `--glass-glow-line` for the glass variants (so it follows a scoped tint), `--primary` for the filled one, `--destructive` for the destructive one. The filled variant also takes a halo then, through `glass-glow-lit`: `glass-glow-lg`'s halo in `--lit` at 55%. Set `--lit` on a button to light it in another color.
 
 ### Why a *layer* and not a plain shadow
 
