@@ -613,6 +613,96 @@ describe("shipit", () => {
     expect(decl(night, "--sh-night-d")).toBe("inline");
   });
 
+  it.each(SHIP_KINDS)("switches some of the %s's lights on and off in sets, and holds them still with the scene", (ship) => {
+    const html = markup("right", ship);
+    // Several sets carry lit windows (a ship with few windows may leave one empty), and each set's halos sit
+    // in the same set, behind the night gate.
+    const sets = Array.from(
+      {
+        length: 6,
+      },
+      (_, set) => set,
+    ).filter((set) => new RegExp(`<g class="sh-blink sh-blink-${set}"><path class="sh-(win|port)-lit" d="M`).test(html));
+    expect(sets.length, ship).toBeGreaterThanOrEqual(4);
+    for (const set of sets) expect(html, `${ship} set ${set}`).toContain(`<g class="sh-night sh-blink sh-blink-${set}"><path class="sh-halo"`);
+    // Even sets rest lit and go out for a while; odd sets rest dark and come on. Speed 0 and reduced motion
+    // stop all of them, at rest.
+    expect(decl(rule(html, ".sh-blink-0"), "opacity")).toBeUndefined();
+    expect(decl(rule(html, ".sh-blink-1"), "opacity")).toBe("0");
+    expect(decl(rule(html, ".sh-blink-1"), "animation-name")).toBe("sh-lights-on");
+    for (const selector of [
+      ".sh-blink",
+      ".sh-hero-dark",
+      ".sh-hero",
+    ])
+      expect(css(html), selector).toContain(`[data-pat-static] ${selector}`);
+  });
+
+  it("spells HERO in the cruise ship's lights by night, the right way round whichever way she sails", () => {
+    // Font pixels per letter (H, E, R, O), each two windows by two.
+    const PIXELS = [
+      12,
+      13,
+      12,
+      10,
+    ];
+    const centres = (html: string, k: number) =>
+      [
+        ...(html.match(new RegExp(`<g class="sh-night sh-hero sh-hero-${k}"><path class="sh-win-lit" d="([^"]+)"`))?.[1] ?? "").matchAll(
+          /M([\d.-]+) [\d.-]+h([\d.]+)/g,
+        ),
+      ].map((m) => Number(m[1]) + Number(m[2]) / 2);
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    for (const [disc, east] of [
+      [
+        "right",
+        true,
+      ],
+      [
+        "left",
+        false,
+      ],
+    ] as const) {
+      const html = markup(disc, "cruise");
+      const letters = PIXELS.map((_, k) => centres(html, k));
+      letters.forEach((cells, k) => expect(cells, `${disc} letter ${k}`).toHaveLength(PIXELS[k] * 4));
+      // Drawn heading east, the letters run left to right in the drawing; the west-bound copy is drawn
+      // mirrored, so that once CSS mirrors the ship they read left to right on screen.
+      const order = letters.map(mean);
+      for (let k = 1; k < 4; k++) expect(order[k] > order[k - 1], `${disc} letter ${k}`).toBe(east);
+    }
+    // Night only, every other crossing, phased with the crossing.
+    const html = markup("right", "cruise");
+    expect(html).not.toMatch(/<g class="sh-hero/);
+    const [, loop, start] =
+      decl(rule(html, ".sh-hero-dark, .sh-hero"), "animation")?.match(
+        /^sh-hero-dark calc\(var\(--pat-dur, 8s\) \* ([\d.]+)\) steps\(1, end\) calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\) infinite$/,
+      ) ?? [];
+    const crossing = decl(rule(html, ".sh-ship"), "animation")?.match(/\* ([\d.]+)\) linear calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\)/) ?? [];
+    expect(Number(loop)).toBe(2 * Number(crossing[1]));
+    expect(start).toBe(crossing[2]);
+    // The other ships have no HERO.
+    for (const ship of SHIP_KINDS.filter((k) => k !== "cruise"))
+      expect(markup("right", ship).match(/<svg class="sh-paint"[\s\S]*?<\/svg>/)?.[0], ship).not.toContain("sh-hero");
+  });
+
+  it("stacks the freighter's boxes 1.5 tall to 1 wide", () => {
+    const html = markup("right", "freighter");
+    const boxes = [
+      ...html.matchAll(/<path class="sh-cargo-\d" d="([^"]+)"/g),
+    ].flatMap((m) =>
+      [
+        ...m[1].matchAll(/h([\d.]+)v([\d.]+)/g),
+      ].map((b) => Number(b[2]) / Number(b[1])),
+    );
+    expect(boxes.length).toBeGreaterThan(500);
+    // Each box is drawn a hair inside its slot (a gap all round), and to a tenth of a unit.
+    for (const ratio of boxes) {
+      expect(ratio).toBeGreaterThan(1.35);
+      expect(ratio).toBeLessThan(1.6);
+    }
+  });
+
   it.each(SHIP_KINDS)("defines every colour it paints the %s with", (ship) => {
     // A part painted from an undefined variable silently draws nothing (see forest). Every --sh-* the scene
     // reads is set by day (night overrides on top), or by a row's own rule.

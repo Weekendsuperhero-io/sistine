@@ -4472,13 +4472,17 @@ function frameOf(f: ShipFrame) {
 }
 
 /** One path of a ship's drawing: painted by a class (its colour a palette variable) or by one of the ship's
- *  gradients, optionally faded by one of the water masks, and optionally shown only at night. */
+ *  gradients, optionally faded by one of the water masks, optionally shown only at night, optionally inside
+ *  a group with classes of its own (`wrap`: the lights that switch on and off), and optionally drawn only
+ *  when the ship sails one way (`only`: anything that has to read the right way round when mirrored). */
 type Ink = {
   d: string;
   cls?: string;
   grad?: string;
   mask?: "down" | "aft" | "bow";
   night?: boolean;
+  wrap?: string;
+  only?: "east" | "west";
 };
 /** A linear gradient a ship paints with, x1 y1 → x2 y2: in the drawing's units when `user`, else across each
  *  shape's own box. Stops are [offset, colour, opacity?]. */
@@ -4697,14 +4701,29 @@ const winRows = (
     ...rest,
   }));
 
+/** How many sets of windows switch on and off on their own schedules (see .sh-blink). The even sets start
+ *  lit and go dark for a while; the odd ones start dark and come on. */
+const BLINK_SETS = 6;
+
 /** Windows, laid out in groups with blank plating between them and lit (at night) in runs. `at` is the screen
- *  y of a point h above the sheer at x. Returns the four paths (dark or lit, hull or superstructure), the
- *  inks that draw them with their night halos, and where the light falls for the streaks on the water. */
-function windowsOf(rows: WinRow[], at: (x: number, h: number) => number, rand: () => number) {
+ *  y of a point h above the sheer at x. A share of them (`flicker`) are SWITCHERS: drawn dark, with a lit
+ *  copy over them in one of BLINK_SETS groups that turn on and off on their own clocks, as people come and go
+ *  from their cabins. Returns the inks that draw them all with their night halos, and where the light falls
+ *  for the streaks on the water. */
+function windowsOf(rows: WinRow[], at: (x: number, h: number) => number, rand: () => number, flicker = 0.1) {
   const port: string[] = [];
   const portLit: string[] = [];
   const win: string[] = [];
   const winLit: string[] = [];
+  const sets = Array.from(
+    {
+      length: BLINK_SETS,
+    },
+    () => ({
+      port: [] as string[],
+      win: [] as string[],
+    }),
+  );
   const litAt: [
     number,
     number,
@@ -4727,9 +4746,14 @@ function windowsOf(rows: WinRow[], at: (x: number, h: number) => number, rand: (
       left--;
       lit = lit ? rand() >= row.off : rand() < row.on;
       const d = shipRect(x - row.w / 2, at(x, row.h) - row.t / 2, row.w, row.t);
-      if (row.part === "hull") (lit ? portLit : port).push(d);
+      const set = rand() < flicker ? Math.floor(rand() * BLINK_SETS) : -1;
+      if (set >= 0) {
+        // A switcher: dark underneath, its light in its set.
+        (row.part === "hull" ? port : win).push(d);
+        (row.part === "hull" ? sets[set].port : sets[set].win).push(d);
+      } else if (row.part === "hull") (lit ? portLit : port).push(d);
       else (lit ? winLit : win).push(d);
-      if (lit)
+      if (set >= 0 ? set % 2 === 0 : lit)
         litAt.push([
           x,
           row.part === "super" ? 1 : 0.4,
@@ -4772,6 +4796,37 @@ function windowsOf(rows: WinRow[], at: (x: number, h: number) => number, rand: (
         d: wl,
         cls: "sh-win-lit",
       },
+      ...sets.flatMap((set, i): Ink[] => {
+        const wrap = `sh-blink sh-blink-${i}`;
+        const [sp, sw] = [
+          set.port.join(""),
+          set.win.join(""),
+        ];
+        return [
+          {
+            d: sw,
+            cls: "sh-halo-wide",
+            night: true,
+            wrap,
+          },
+          {
+            d: sp + sw,
+            cls: "sh-halo",
+            night: true,
+            wrap,
+          },
+          {
+            d: sp,
+            cls: "sh-port-lit",
+            wrap,
+          },
+          {
+            d: sw,
+            cls: "sh-win-lit",
+            wrap,
+          },
+        ];
+      }),
     ] as Ink[],
   };
 }
@@ -5911,6 +5966,7 @@ function clipperArt(): ShipArt {
     ],
     deckY,
     rand,
+    0.3,
   );
   const water = shipWater(rand, {
     stern: sternX(0),
@@ -6082,17 +6138,19 @@ function freighterArt(): ShipArt {
     40,
     53,
   ];
-  // Stacks of 20ft boxes, two to a 40ft slot, between lashing bridges: aft of the funnel, between the funnel
-  // and the house, and before the house to the bow, where they step down.
-  const BOX = 6.05;
+  // Stacks of boxes, each drawn 1.5 tall to 1 wide, in columns grouped six to a bay between lashing bridges:
+  // aft of the funnel, between the funnel and the house, and before the house to the bow, where they step
+  // down. A bay's columns stand mostly one height, now and then a box apart.
   const TIER = 2.9;
+  const COL = TIER / 1.5;
+  const PITCH = COL + 0.12;
+  const BAY = 6;
   const cargo: string[][] = Array.from(
     {
       length: 6,
     },
     () => [],
   );
-  const tops: string[] = [];
   const stacks: string[] = [];
   for (const [from, to] of [
     [
@@ -6108,23 +6166,18 @@ function freighterArt(): ShipArt {
       len - 14,
     ],
   ]) {
-    for (let x = from; x + 2 * BOX + 0.2 <= to; x += 2 * BOX + 0.2 + 0.9) {
-      // One height to a slot, the pair now and then a box apart; the bays step down into the bow.
-      const slot = 8 + Math.floor(rand() * 3);
-      for (const sx of [
-        x,
-        x + BOX + 0.2,
-      ]) {
-        const tiers = Math.max(2, slot - (sx > len - 40 ? 3 : sx > len - 60 ? 1 : 0) - (rand() < 0.15 ? 1 : 0));
-        const base = deckY(sx + BOX / 2, 1);
-        stacks.push(shipRect(sx - 0.1, base - tiers * TIER, BOX + 0.2, tiers * TIER + 1));
+    for (let x = from; x + BAY * PITCH <= to; x += BAY * PITCH + 0.9) {
+      const height = 8 + Math.floor(rand() * 3);
+      for (let c = 0; c < BAY; c++) {
+        const sx = x + c * PITCH;
+        const tiers = Math.max(2, height - (sx > len - 40 ? 3 : sx > len - 60 ? 1 : 0) - (rand() < 0.12 ? 1 : 0));
+        const base = deckY(sx + COL / 2, 1);
+        stacks.push(shipRect(sx - 0.06, base - tiers * TIER - 0.06, PITCH, tiers * TIER + 1.06));
         let colour = 0;
         for (let t = 0; t < tiers; t++) {
           // Mostly the line's own blue; others in runs, as boxes of one line are stowed together.
           if (t === 0 || rand() > 0.4) colour = rand() < 0.55 ? 0 : 1 + Math.floor(rand() * 5);
-          const y = base - (t + 1) * TIER + 0.12;
-          cargo[colour].push(shipRect(sx + 0.08, y, BOX - 0.16, TIER - 0.2));
-          tops.push(shipRect(sx + 0.08, y, BOX - 0.16, 0.28));
+          cargo[colour].push(shipRect(sx, base - (t + 1) * TIER + 0.1, COL, TIER - 0.2));
         }
       }
     }
@@ -6210,6 +6263,7 @@ function freighterArt(): ShipArt {
     ],
     deckY,
     rand,
+    0.25,
   );
   const water = shipWater(rand, {
     stern: sternX(0),
@@ -6300,10 +6354,6 @@ function freighterArt(): ShipArt {
         }),
       ),
       {
-        d: tops.join(""),
-        cls: "sh-cargo-hi",
-      },
-      {
         d: band(houseA, houseB, -0.3, 31) + band(houseA - 4, houseB + 4, 31, 34),
         grad: "white",
       },
@@ -6361,6 +6411,150 @@ function freighterArt(): ShipArt {
   };
 }
 
+/** The easter egg's letters, five rows of four, top row first. */
+const HERO_FONT: Record<string, string[]> = {
+  H: [
+    "X..X",
+    "X..X",
+    "XXXX",
+    "X..X",
+    "X..X",
+  ],
+  E: [
+    "XXXX",
+    "X...",
+    "XXX.",
+    "X...",
+    "XXXX",
+  ],
+  R: [
+    "XXX.",
+    "X..X",
+    "XXX.",
+    "X.X.",
+    "X..X",
+  ],
+  O: [
+    ".XX.",
+    "X..X",
+    "X..X",
+    "X..X",
+    ".XX.",
+  ],
+};
+
+/** The cruise ship's easter egg: now and then, by night, a block of her balconies goes dark and H, E, R and O
+ *  light up across it one after another, each font pixel two windows by two, then go out again (see
+ *  .sh-hero). The block covers ten rows of windows from `row0` and 38 columns from `col0`: a wall behind
+ *  (hiding the halos of the windows it covers), every cell dark, then each letter's cells lit and haloed.
+ *  `y(x, row)` is a window row's centre and `x(col)` a column's. Drawn twice, once for each heading: the
+ *  ship is mirrored when it sails west, so that copy's letters are mirrored to read the right way round. */
+function heroLights(
+  y: (x: number, row: number) => number,
+  x: (col: number) => number,
+  {
+    row0,
+    col0,
+    w,
+    t,
+  }: {
+    row0: number;
+    col0: number;
+    w: number;
+    t: number;
+  },
+): Ink[] {
+  const COLS = 38;
+  const ROWS = 10;
+  // The text's lit cells, as [screen column, row from the bottom, letter].
+  const lit: [
+    number,
+    number,
+    number,
+  ][] = [];
+  [
+    ..."HERO",
+  ].forEach((letter, k) =>
+    HERO_FONT[letter].forEach((line, r) =>
+      [
+        ...line,
+      ].forEach((px, c) => {
+        if (px !== "X") return;
+        for (const dc of [
+          0,
+          1,
+        ])
+          for (const dr of [
+            0,
+            1,
+          ])
+            lit.push([
+              k * 10 + c * 2 + dc,
+              ROWS - 1 - (r * 2 + dr),
+              k,
+            ]);
+      }),
+    ),
+  );
+  const cell = (col: number, row: number) => {
+    const cx = x(col0 + col);
+    return shipRect(cx - w / 2, y(cx, row0 + row) - t / 2, w, t);
+  };
+  const [left, right] = [
+    x(col0) - w / 2 - 0.9,
+    x(col0 + COLS - 1) + w / 2 + 0.9,
+  ];
+  const [top, foot] = [
+    y(left, row0 + ROWS - 1) - t / 2 - 1.1,
+    y(left, row0) + t / 2 + 1.1,
+  ];
+  const inks: Ink[] = [
+    {
+      d: shipRect(left, top, right - left, foot - top),
+      grad: "white",
+      night: true,
+      wrap: "sh-hero-dark",
+    },
+  ];
+  for (const heading of [
+    "east",
+    "west",
+  ] as const) {
+    // Mirrored going west: screen column s is drawn at COLS - 1 - s.
+    const at = (s: number) => (heading === "east" ? s : COLS - 1 - s);
+    const on = new Set(lit.map(([s, row]) => `${at(s)},${row}`));
+    const dark: string[] = [];
+    for (let col = 0; col < COLS; col++) for (let row = 0; row < ROWS; row++) if (!on.has(`${col},${row}`)) dark.push(cell(col, row));
+    inks.push({
+      d: dark.join(""),
+      cls: "sh-win",
+      night: true,
+      wrap: "sh-hero-dark",
+      only: heading,
+    });
+    for (let k = 0; k < 4; k++) {
+      const d = lit
+        .filter(([, , letter]) => letter === k)
+        .map(([s, row]) => cell(at(s), row))
+        .join("");
+      const wrap = `sh-hero sh-hero-${k}`;
+      for (const cls of [
+        "sh-halo-wide",
+        "sh-halo",
+        "sh-win-lit",
+      ])
+        inks.push({
+          d,
+          cls,
+          night: true,
+          wrap,
+          only: heading,
+        });
+    }
+  }
+  return inks;
+}
+
 /** THE CRUISE SHIP, after Allure of the Seas (the Oasis class): white from her navy boot-topping up, a hull
  *  with two rows of ports, then a long recess where her big orange lifeboats hang, and over it a sheer block
  *  of a dozen balcony decks, flush at the stern and leaning back a little toward the bow. On top, the pool
@@ -6383,20 +6577,49 @@ function cruiseArt(): ShipArt {
   const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
   const DECK = 3;
   const DECKS = 12;
-  // Each balcony deck's forward end, leaning back toward the top; aft they run flush to the stern.
-  const foreEnd = (k: number) => 302 - k * 1.7;
-  const decks = [
-    band(3, 303, -0.3, 6.2),
-    ...Array.from(
-      {
-        length: DECKS,
-      },
-      (_, i) => band(3, foreEnd(i + 1), 6 + DECK * i - 0.2, 6 + DECK * (i + 1)),
+  const TOP = 45;
+  // The superstructure's after edge, h above the sheer: a smooth slant from the stern up and forward to the
+  // pool deck, steepest low down; and its forward edge, a gentle lean back toward the top.
+  const aftX = (h: number) => 3 + 30 * (Math.max(0, h) / TOP) ** 1.2;
+  const foreX = (h: number) => 303 - 0.42 * h;
+  const hs = Array.from(
+    {
+      length: 16,
+    },
+    (_, i) => -0.3 + ((TOP + 0.3) * i) / 15,
+  );
+  const tops: number[] = [];
+  for (let x = aftX(TOP) + 8; x < foreX(TOP); x += 8) tops.push(x);
+  const block = poly([
+    ...hs.map(
+      (h): Pt => [
+        aftX(h),
+        deckY(aftX(h), h),
+      ],
     ),
-    // The pool deck, with the bridge at its head.
-    band(14, 286, 42, 45),
-    band(268, 285.6, 35.8, 39.2),
-  ].join("");
+    ...tops.map(
+      (x): Pt => [
+        x,
+        deckY(x, TOP),
+      ],
+    ),
+    ...[
+      ...hs,
+    ]
+      .reverse()
+      .map(
+        (h): Pt => [
+          foreX(h),
+          deckY(foreX(h), h),
+        ],
+      ),
+  ]);
+  // The bridge, its front standing just proud of the superstructure's.
+  const decks = block + band(268, 289, 35.8, 39.2);
+  // Balconies sit on one grid of columns (GRID from x 5), so every deck's line up; the HERO lights need it.
+  const GRID = 2.2;
+  const onGrid = (x: number) => 5 + Math.ceil((x - 5) / GRID) * GRID;
+  const rowH = (i: number) => 6 + DECK * i + 1.55;
   // The lifeboat recess along decks 4 and 5, and the boats hanging in it.
   const recess = band(28, 284, 0.6, 5.4);
   const boats = Array.from(
@@ -6473,12 +6696,26 @@ function cruiseArt(): ShipArt {
       deckY(x, h),
     ]);
   const tower = band(62, 72, 44.8, 52.5);
-  const wall = band(20, 25, 44.8, 52) + band(28, 33, 44.8, 51);
+  const wall = band(38, 43, 44.8, 52) + band(46, 51, 44.8, 51);
   const slides = [
-    `M${at(64, 52)}C${at(46, 54)} ${at(44, 47)} ${at(56, 48)}S${at(46, 44)} ${at(38, 45.2)}`,
+    `M${at(64, 52)}C${at(52, 54)} ${at(50, 47.5)} ${at(58, 48.4)}S${at(54, 45.4)} ${at(52, 45.2)}`,
     `M${at(70, 51)}C${at(86, 55)} ${at(94, 48)} ${at(84, 47.5)}S${at(92, 45)} ${at(100, 45.3)}`,
   ];
-  const abyss = `M${at(60, 50)}C${at(30, 52)} ${at(8, 44)} ${at(14, 40)}S${at(4, 33)} ${at(12, 30)}S${at(4, 24)} ${at(11, 21)}S${at(4, 15)} ${at(9, 12)}`;
+  // The long slide, coiling down just off the slanted stern.
+  const coil = [
+    40,
+    33,
+    26,
+    19,
+    12,
+  ].map(
+    (h, i): Pt => [
+      aftX(h) + (i % 2 ? 4 : -2.5),
+      h,
+    ],
+  );
+  let abyss = `M${at(60, 50)}C${at(40, 52)} ${at(aftX(46) - 6, 46)} ${at(...coil[0])}`;
+  for (let i = 1; i < coil.length; i++) abyss += `S${at(coil[i][0] + (i % 2 ? -3 : 3), coil[i][1] + 3.5)} ${at(...coil[i])}`;
   const radar = mastOf(276, sheer(276) + 45, sheer(276) + 53, 0.6, 0);
   const windows = windowsOf(
     [
@@ -6516,9 +6753,9 @@ function cruiseArt(): ShipArt {
           length: DECKS,
         },
         (_, i): WinRow => ({
-          h: 6 + DECK * i + 1.55,
-          x0: 5,
-          x1: foreEnd(i + 1) - 2,
+          h: rowH(i),
+          x0: onGrid(aftX(rowH(i) + 1) + 1.8),
+          x1: foreX(rowH(i) + 1) - 2,
           step: 2.2,
           w: 1.75,
           t: 1.6,
@@ -6558,6 +6795,16 @@ function cruiseArt(): ShipArt {
     ],
     deckY,
     rand,
+  );
+  const hero = heroLights(
+    (x, i) => deckY(x, rowH(i)),
+    (j) => 5 + j * GRID,
+    {
+      row0: 1,
+      col0: 47,
+      w: 1.75,
+      t: 1.6,
+    },
   );
   const water = shipWater(rand, {
     stern: sternX(0),
@@ -6645,6 +6892,7 @@ function cruiseArt(): ShipArt {
         cls: "sh-cr-band",
       },
       ...windows.inks,
+      ...hero,
       {
         d: boats,
         cls: "sh-cr-tender",
@@ -6690,7 +6938,7 @@ const SHIP_ART: Record<ShipKind, ShipArt> = {
  *  back to front (rigging and masts, the reflection and the wake on the water, the hull and everything on it,
  *  the windows, the foam over the hull's foot), then its running lights. Night-only parts (the halos, the
  *  lights' streaks, the running lights) sit in .sh-night groups. */
-function Ship({ kind }: { kind: ShipKind }) {
+function Ship({ kind, west = false }: { kind: ShipKind; west?: boolean }) {
   const art = SHIP_ART[kind];
   const { frame } = art;
   // Per instance: url(#…) resolves to the first matching id in the document (see ForestRidge).
@@ -6775,11 +7023,17 @@ function Ship({ kind }: { kind: ShipKind }) {
         <circle key={`${f1(cx)},${f1(cy)}`} cx={f1(cx)} cy={f1(cy)} r={f1(r)} opacity={f2(o)} fill={url("smoke")} />
       ))}
       {art.inks
-        .filter(({ d }) => d)
-        .map(({ d, cls, grad, mask, night }, i) => {
+        .filter(({ d, only }) => d && only !== (west ? "east" : "west"))
+        .map(({ d, cls, grad, mask, night, wrap }, i) => {
           const path = <path key={i} className={cls} d={d} fill={grad ? url(grad) : undefined} mask={mask ? url(mask) : undefined} />;
-          return night ? (
-            <g key={i} className="sh-night">
+          const group = [
+            night ? "sh-night" : "",
+            wrap ?? "",
+          ]
+            .join(" ")
+            .trim();
+          return group ? (
+            <g key={i} className={group}>
               {path}
             </g>
           ) : (
@@ -6798,6 +7052,87 @@ function Ship({ kind }: { kind: ShipKind }) {
       </g>
     </svg>
   );
+}
+
+/** The lights that switch on and off, and the cruise ship's HERO. Each BLINK_SETS set keeps its own clock:
+ *  the even sets are lit and go dark for a stretch (sh-lights-out), the odd ones are dark and come on
+ *  (sh-lights-on), and still (Speed 0, reduced motion) each holds its resting state. A switch is instant:
+ *  steps(1, end) holds every keyframe until the next. The HERO lights run on two crossings' clock, phased
+ *  with the crossing, so they show every other one as the ship passes mid-scene: the block goes dark, the
+ *  letters come on one after another and go out in the same order. Built outside SHIPIT_STYLES, as
+ *  seaRowRules is. */
+function lightsRules() {
+  const clocks = [
+    [
+      5.3,
+      -1.9,
+    ],
+    [
+      4.1,
+      -0.7,
+    ],
+    [
+      6.7,
+      -4.6,
+    ],
+    [
+      3.7,
+      -2.9,
+    ],
+    [
+      7.9,
+      -0.4,
+    ],
+    [
+      5.9,
+      -3.3,
+    ],
+  ];
+  const sets = Array.from(
+    {
+      length: BLINK_SETS,
+    },
+    (_, i) => {
+      const [k, d] = clocks[i % clocks.length];
+      return `.sh-blink-${i} { --sh-bk: ${k}; --sh-bd: ${d};${i % 2 ? " opacity: 0; animation-name: sh-lights-on;" : ""} }`;
+    },
+  ).join("\n");
+  const start = f2(-SHIP_LOOP * SHIP_REST);
+  return `.sh-blink {
+  animation: sh-lights-out calc(var(--pat-dur, 8s) * var(--sh-bk, 5)) steps(1, end) calc(var(--pat-dur, 8s) * var(--sh-bd, 0)) infinite;
+}
+${sets}
+@keyframes sh-lights-out {
+  0%, 30% { opacity: 1; }
+  31%, 54% { opacity: 0; }
+  55%, 100% { opacity: 1; }
+}
+@keyframes sh-lights-on {
+  0%, 18% { opacity: 0; }
+  19%, 63% { opacity: 1; }
+  64%, 100% { opacity: 0; }
+}
+.sh-hero-dark, .sh-hero {
+  opacity: 0;
+  animation: sh-hero-dark calc(var(--pat-dur, 8s) * ${2 * SHIP_LOOP}) steps(1, end) calc(var(--pat-dur, 8s) * ${start}) infinite;
+}
+.sh-hero {
+  animation-name: sh-hero;
+  animation-delay: calc(var(--pat-dur, 8s) * (${start} + var(--sh-hd, 0)));
+}
+.sh-hero-1 { --sh-hd: 0.08; }
+.sh-hero-2 { --sh-hd: 0.16; }
+.sh-hero-3 { --sh-hd: 0.24; }
+@keyframes sh-hero-dark {
+  0%, 22% { opacity: 0; }
+  22.1%, 29.5% { opacity: 1; }
+  29.6%, 100% { opacity: 0; }
+}
+@keyframes sh-hero {
+  0%, 22.6% { opacity: 0; }
+  22.7%, 28% { opacity: 1; }
+  28.1%, 100% { opacity: 0; }
+}`;
 }
 
 /** Each ship's box: as wide and tall as its drawing, its waterline on SHIP_WATERLINE. Built outside
@@ -6920,7 +7255,6 @@ const SHIPIT_STYLES = `
   --sh-cargo-5: oklch(0.7 0.15 58);
   --sh-cargo-6: oklch(0.6 0.01 250);
   --sh-cargo-gap: oklch(0.22 0.02 250);
-  --sh-cargo-hi: oklch(1 0 0 / 0.24);
   --sh-refl-fr: oklch(0.52 0.08 236);
   --sh-refl-navy: oklch(0.34 0.05 255);
   --sh-refl-cargo: oklch(0.56 0.08 230);
@@ -7017,7 +7351,6 @@ const SHIPIT_STYLES = `
   --sh-cargo-5: oklch(0.32 0.07 58);
   --sh-cargo-6: oklch(0.27 0.01 250);
   --sh-cargo-gap: oklch(0.08 0.01 260);
-  --sh-cargo-hi: oklch(0.7 0.02 250 / 0.1);
   --sh-refl-fr: oklch(0.11 0.02 240);
   --sh-refl-navy: oklch(0.08 0.015 258);
   --sh-refl-cargo: oklch(0.14 0.02 250);
@@ -7192,7 +7525,6 @@ ${shipBoxRules()}
 .sh-fr-funnel { fill: var(--sh-fr-funnel); }
 .sh-fr-mark { fill: var(--sh-fr-mark); }
 .sh-cargo-gap { fill: var(--sh-cargo-gap); }
-.sh-cargo-hi { fill: var(--sh-cargo-hi); }
 .sh-refl-fr { fill: var(--sh-refl-fr); }
 .sh-cargo-1 { fill: var(--sh-cargo-1); }
 .sh-cargo-2 { fill: var(--sh-cargo-2); }
@@ -7210,7 +7542,8 @@ ${shipBoxRules()}
 .sh-cr-slide-3 { stroke: var(--sh-cr-slide-3); }
 .sh-cr-funnel { fill: var(--sh-cr-funnel); }
 .sh-cr-tender { fill: var(--sh-cr-tender); }
-${stopRules(".sh-ship")}`;
+${lightsRules()}
+${stopRules(".sh-ship", ".sh-blink", ".sh-hero-dark", ".sh-hero")}`;
 
 // Starfield — a deep night field by night, a "morning haze" by day: an azure sky leaning toward the chosen
 // colour where it agrees, the nebulae in that colour, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
@@ -8553,7 +8886,7 @@ function PatternScene({
                 toward the disc: west when the disc is on the left. Keyed on the ship, so a new one starts
                 its crossing from the still pose rather than mid-stride in another ship's box. */}
             <div key={ship} className={`sh-ship sh-k-${ship}${disc === "left" ? " sh-west" : ""}`}>
-              <Ship kind={ship} />
+              <Ship kind={ship} west={disc === "left"} />
             </div>
           </div>
         </div>
