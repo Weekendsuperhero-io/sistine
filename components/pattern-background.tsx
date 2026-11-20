@@ -6053,105 +6053,131 @@ function clipperArt(): ShipArt {
   };
 }
 
-/** THE FREIGHTER: a container ship, her bridge and funnel aft. A navy hull on a red bottom with a white
- *  boot-top line, a bulwark at the bow, bays of containers stacked five to seven high in a dozen colours'
- *  worth of lines, a white accommodation block with its bridge wings, a funnel banded in the chosen colour,
- *  a radar mast, a foremast, and a free-fall lifeboat on her stern. */
+/** THE FREIGHTER, after the Mærsk Mc-Kinney Møller (the Triple E class): a 400m container ship in the line's
+ *  light blue over a red bottom. Her deckhouse is set well forward, two fifths of her length back from the
+ *  bow, so the boxes stack high before it and her engines and funnel can sit aft; and from bow to stern she
+ *  is a wall of 20ft boxes (so they read nearly square from the side, as 40ft ones do not), mostly in the
+ *  line's own blue, stacked eight to ten high and stepping down into the bow. Her funnel is banded in the
+ *  chosen colour; a free-fall lifeboat sits on her stern. */
 function freighterArt(): ShipArt {
+  const len = 330;
   const frame = frameOf({
-    len: 290,
-    right: 296,
-    top: -58,
+    len,
+    right: len + 6,
+    top: -66,
     bottom: 16,
   });
-  const rand = mulberry32(1956);
-  const sheer = (x: number) => 13 + 3 * Math.max(0, (x - 236) / 54) ** 2 + 1.2 * Math.max(0, (36 - x) / 36) ** 2;
+  const rand = mulberry32(2013);
+  const sheer = (x: number) => 15 + 2.6 * Math.max(0, (x - (len - 50)) / 50) ** 2 + 0.8 * Math.max(0, (30 - x) / 30) ** 2;
   const deckY = (x: number, h: number) => -(sheer(x) + h);
   // A transom stern, and a raked, flared bow.
   const sternX = (h: number) => (h <= 6 ? 7 - 4.5 * (h / 6) ** 0.7 : 2.5 - (0.6 * (h - 6)) / (sheer(0) - 6));
-  const bowX = (h: number) => 282 + 8.4 * (h / sheer(290)) ** 1.6;
+  const bowX = (h: number) => len - 8 + 8 * (h / sheer(len)) ** 1.4;
   const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
-  // Bays of 40ft boxes, in pairs between lashing bridges; the stacks step down into the bow.
+  const [houseA, houseB] = [
+    190,
+    206,
+  ];
+  const [funnelA, funnelB] = [
+    40,
+    53,
+  ];
+  // Stacks of 20ft boxes, two to a 40ft slot, between lashing bridges: aft of the funnel, between the funnel
+  // and the house, and before the house to the bow, where they step down.
+  const BOX = 6.05;
+  const TIER = 2.9;
   const cargo: string[][] = Array.from(
     {
       length: 6,
     },
     () => [],
   );
+  const tops: string[] = [];
   const stacks: string[] = [];
-  let x = 60;
-  for (let bay = 0; x + 12.4 < 266; bay++) {
-    const tiers = 5 + Math.floor(rand() * 3) - (x > 238 ? 2 : x > 222 ? 1 : 0);
-    const base = deckY(x + 6.2, 0.6);
-    stacks.push(shipRect(x, base - tiers * 2.6, 12.4, tiers * 2.6 + 0.6));
-    let colour = Math.floor(rand() * 6);
-    for (let t = 0; t < tiers; t++) {
-      // A line's boxes are often stowed together.
-      if (rand() > 0.45) colour = Math.floor(rand() * 6);
-      cargo[colour].push(shipRect(x + 0.14, base - (t + 1) * 2.6 + 0.1, 12.12, 2.4));
+  for (const [from, to] of [
+    [
+      13,
+      funnelA - 1,
+    ],
+    [
+      funnelB + 1.5,
+      houseA - 1.5,
+    ],
+    [
+      houseB + 1.5,
+      len - 14,
+    ],
+  ]) {
+    for (let x = from; x + 2 * BOX + 0.2 <= to; x += 2 * BOX + 0.2 + 0.9) {
+      // One height to a slot, the pair now and then a box apart; the bays step down into the bow.
+      const slot = 8 + Math.floor(rand() * 3);
+      for (const sx of [
+        x,
+        x + BOX + 0.2,
+      ]) {
+        const tiers = Math.max(2, slot - (sx > len - 40 ? 3 : sx > len - 60 ? 1 : 0) - (rand() < 0.15 ? 1 : 0));
+        const base = deckY(sx + BOX / 2, 1);
+        stacks.push(shipRect(sx - 0.1, base - tiers * TIER, BOX + 0.2, tiers * TIER + 1));
+        let colour = 0;
+        for (let t = 0; t < tiers; t++) {
+          // Mostly the line's own blue; others in runs, as boxes of one line are stowed together.
+          if (t === 0 || rand() > 0.4) colour = rand() < 0.55 ? 0 : 1 + Math.floor(rand() * 5);
+          const y = base - (t + 1) * TIER + 0.12;
+          cargo[colour].push(shipRect(sx + 0.08, y, BOX - 0.16, TIER - 0.2));
+          tops.push(shipRect(sx + 0.08, y, BOX - 0.16, 0.28));
+        }
+      }
     }
-    x += 12.6 + (bay % 2 === 1 ? 1.6 : 0);
   }
-  // The funnel, on the after end of the house's roof and raked aft; f runs 0 (its foot) to 1 (its top).
   const funnel = (f0: number, f1: number) =>
     poly([
       [
-        32.5 - 1.2 * f0,
-        deckY(32.5, 21 + 8 * f0),
+        funnelA - 0.6 * f0,
+        deckY(funnelA, 34 * f0),
       ],
       [
-        42.5 - 1.2 * f0,
-        deckY(42.5, 21 + 8 * f0),
+        funnelB - 0.6 * f0,
+        deckY(funnelB, 34 * f0),
       ],
       [
-        42.5 - 1.2 * f1,
-        deckY(42.5, 21 + 8 * f1),
+        funnelB - 0.6 * f1,
+        deckY(funnelB, 34 * f1),
       ],
       [
-        32.5 - 1.2 * f1,
-        deckY(32.5, 21 + 8 * f1),
+        funnelA - 0.6 * f1,
+        deckY(funnelA, 34 * f1),
       ],
     ]);
-  const radar = mastOf(48, sheer(48) + 20.8, sheer(48) + 27.5, 0.6, 0);
-  const fore = mastOf(284, sheer(284) + 1, 31, 0.7, 0.02);
+  const radar = mastOf(198, sheer(198) + 35, sheer(198) + 42, 0.6, 0);
+  const fore = mastOf(len - 8, sheer(len - 8) + 1, 40, 0.7, 0.02);
   const windows = windowsOf(
     [
       ...winRows(
-        [
-          [
-            3,
-            32,
-            50,
+        Array.from(
+          {
+            length: 9,
+          },
+          (
+            _,
+            i,
+          ): [
+            number,
+            number,
+            number,
+          ] => [
+            4 + 3 * i,
+            houseA + 1.6,
+            houseB - 1.6,
           ],
-          [
-            6,
-            32,
-            50,
-          ],
-          [
-            9,
-            32,
-            50,
-          ],
-          [
-            12,
-            32,
-            50,
-          ],
-          [
-            15,
-            32,
-            50,
-          ],
-        ],
+        ),
         {
-          step: 2.25,
+          step: 2.15,
           w: 1.2,
           t: 1.1,
           part: "super",
           group: [
             3,
-            9,
+            7,
           ],
           gap: 1,
           off: 0.3,
@@ -6162,9 +6188,9 @@ function freighterArt(): ShipArt {
       ...winRows(
         [
           [
-            19.6,
-            31.2,
-            50.8,
+            32.4,
+            houseA - 3.4,
+            houseB + 3.4,
           ],
         ],
         {
@@ -6190,7 +6216,7 @@ function freighterArt(): ShipArt {
     bow: bowX(0),
     left: frame.left,
     bottom: frame.bottom,
-    len: 290,
+    len,
     litAt: windows.litAt,
     bands: [
       {
@@ -6200,40 +6226,29 @@ function freighterArt(): ShipArt {
         spans: [
           [
             10,
-            284,
+            len - 8,
           ],
         ],
       },
       {
         from: 1.4,
-        to: 7.6,
-        cls: "sh-refl-navy",
+        to: 8,
+        cls: "sh-refl-fr",
         spans: [
           [
             10,
-            284,
+            len - 8,
           ],
         ],
       },
       {
-        from: 7.6,
-        to: 14,
+        from: 8,
+        to: 15,
         cls: "sh-refl-cargo",
         spans: [
           [
-            60,
-            264,
-          ],
-        ],
-      },
-      {
-        from: 7.6,
-        to: 15,
-        cls: "sh-refl-white",
-        spans: [
-          [
-            30,
-            52,
+            14,
+            len - 16,
           ],
         ],
       },
@@ -6242,39 +6257,36 @@ function freighterArt(): ShipArt {
   return {
     frame,
     grads: [
-      vGrad("hull", -16, 0, "var(--sh-fr-hull-hi)", "var(--sh-fr-hull)"),
-      vGrad("white", -36, -13, "var(--sh-white-hi)", "var(--sh-white)"),
+      vGrad("hull", -18, 0, "var(--sh-fr-hull-hi)", "var(--sh-fr-hull)"),
+      vGrad("white", -50, -15, "var(--sh-white-hi)", "var(--sh-white)"),
     ],
     smoke: smokeFrom(
       rand,
       [
-        36.4,
-        deckY(37, 29.2),
+        funnelA + 6,
+        deckY(funnelA + 6, 34.4),
       ],
       7,
-      0.7,
+      0.75,
       0.24,
     ),
     inks: [
       {
-        d: radar.d + shipRect(45, deckY(48, 25.6), 6, 0.45) + fore.d,
+        d: radar.d + shipRect(195, deckY(198, 40.4), 6, 0.45) + fore.d,
         cls: "sh-mast",
       },
       ...water.back,
       {
-        d: hullOf(sternX, bowX, sheer, 290),
+        d: hullOf(sternX, bowX, sheer, len),
         grad: "hull",
       },
       {
-        d: hullBand(sternX, bowX, 0, 3.2),
+        d: hullBand(sternX, bowX, 0, 3.4),
         cls: "sh-red",
       },
       {
-        d: hullBand(sternX, bowX, 3.2, 3.65),
-        cls: "sh-boat",
-      },
-      {
-        d: band(262, 289, -0.2, 1.5),
+        // The breakwater on the forecastle.
+        d: band(len - 30, len - 2, -0.2, 1.8),
         cls: "sh-fr-deck",
       },
       {
@@ -6288,7 +6300,11 @@ function freighterArt(): ShipArt {
         }),
       ),
       {
-        d: band(30, 52, -0.3, 18.8) + band(26, 56.8, 18.6, 21),
+        d: tops.join(""),
+        cls: "sh-cargo-hi",
+      },
+      {
+        d: band(houseA, houseB, -0.3, 31) + band(houseA - 4, houseB + 4, 31, 34),
         grad: "white",
       },
       {
@@ -6296,31 +6312,31 @@ function freighterArt(): ShipArt {
         cls: "sh-fr-funnel",
       },
       {
-        d: funnel(0.55, 0.75),
+        d: funnel(0.74, 0.86),
         cls: "sh-fr-mark",
       },
       {
-        d: funnel(0.88, 1),
+        d: funnel(0.95, 1),
         cls: "sh-black",
       },
       {
         // The free-fall lifeboat on its ramp at the stern, its bow pointing down and aft.
         d: poly([
           [
-            5,
-            deckY(5, 0.2),
+            4,
+            deckY(4, 0.4),
           ],
           [
-            5.4,
-            deckY(5.4, 2.6),
+            4.4,
+            deckY(4.4, 2.9),
           ],
           [
-            15,
-            deckY(15, 4.8),
+            12.5,
+            deckY(12.5, 5),
           ],
           [
-            15.6,
-            deckY(15.6, 2.4),
+            13,
+            deckY(13, 2.6),
           ],
         ]),
         cls: "sh-cr-tender",
@@ -6337,151 +6353,147 @@ function freighterArt(): ShipArt {
       ],
     ],
     green: [
-      56.4,
-      deckY(56.4, 20.2),
+      houseB + 3.6,
+      deckY(houseB + 3.6, 33),
     ],
     aft: water.aft,
     bow: water.bow,
   };
 }
 
-/** THE CRUISE SHIP: white from the boot-topping up, a stripe in the chosen colour sweeping up the hull to the
- *  bow, nine decks of balconies terraced at the stern and stepped back at the bow, a row of orange tenders in
- *  their recess, a swept funnel in the chosen colour, and a radar mast over the bridge. By night she is lit
- *  nearly end to end. */
+/** THE CRUISE SHIP, after Allure of the Seas (the Oasis class): white from her navy boot-topping up, a hull
+ *  with two rows of ports, then a long recess where her big orange lifeboats hang, and over it a sheer block
+ *  of a dozen balcony decks, flush at the stern and leaning back a little toward the bow. On top, the pool
+ *  deck under a glass solarium forward, her bridge at the head of it, two funnels abreast a little aft of
+ *  amidships (one in profile, banded in the chosen colour), and aft the waterslide tower with its tubes, the
+ *  long slide coiling down the stern, and a climbing wall. By night her balconies are lit end to end. */
 function cruiseArt(): ShipArt {
+  const len = 320;
   const frame = frameOf({
-    len: 260,
-    right: 266,
-    top: -58,
+    len,
+    right: len + 6,
+    top: -82,
     bottom: 16,
   });
-  const rand = mulberry32(1970);
-  const sheer = (x: number) => 12 + 2 * Math.max(0, (x - 215) / 45) ** 2;
+  const rand = mulberry32(2010);
+  const sheer = (x: number) => 14 + 2.4 * Math.max(0, (x - (len - 50)) / 50) ** 2;
   const deckY = (x: number, h: number) => -(sheer(x) + h);
   const sternX = (h: number) => (h <= 4 ? 6 - 0.75 * h : 3);
-  const bowX = (h: number) => 249 + 11 * (h / sheer(260)) ** 1.3;
+  const bowX = (h: number) => len - 14 + 14 * (h / sheer(len)) ** 1.3;
   const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
-  const DECK = 2.9;
-  // Each deck's after and forward ends: terraced at the stern, stepped back toward the bow.
-  const ends = (
-    k: number,
-  ): [
-    number,
-    number,
-  ] => [
-    6 + Math.max(0, k - 3) * 2.4,
-    234 - (k - 1) * 3.4,
-  ];
-  const decks = Array.from(
+  const DECK = 3;
+  const DECKS = 12;
+  // Each balcony deck's forward end, leaning back toward the top; aft they run flush to the stern.
+  const foreEnd = (k: number) => 302 - k * 1.7;
+  const decks = [
+    band(3, 303, -0.3, 6.2),
+    ...Array.from(
+      {
+        length: DECKS,
+      },
+      (_, i) => band(3, foreEnd(i + 1), 6 + DECK * i - 0.2, 6 + DECK * (i + 1)),
+    ),
+    // The pool deck, with the bridge at its head.
+    band(14, 286, 42, 45),
+    band(268, 285.6, 35.8, 39.2),
+  ].join("");
+  // The lifeboat recess along decks 4 and 5, and the boats hanging in it.
+  const recess = band(28, 284, 0.6, 5.4);
+  const boats = Array.from(
     {
-      length: 9,
+      length: 17,
     },
-    (_, i) => {
-      const [a, b] = ends(i + 1);
-      return band(a, b, DECK * i - 0.3, DECK * (i + 1));
-    },
-  ).join("");
-  // The stripe: low aft, sweeping up toward the bow.
-  const stripeAt = (x: number) => 3.6 + 3.4 * (x / 250) ** 2;
-  const stripe: Pt[] = [];
-  for (let sx = 8; sx <= 248; sx += 8)
-    stripe.push([
-      sx,
-      -stripeAt(sx),
-    ]);
-  const stripePath = poly([
-    ...stripe,
-    ...[
-      ...stripe,
-    ]
-      .reverse()
-      .map(
-        ([sx, sy]): Pt => [
-          sx,
-          sy + 1.1,
-        ],
-      ),
-  ]);
-  const funnelPath = poly([
-    [
-      40,
-      deckY(40, 26),
-    ],
-    [
-      60,
-      deckY(60, 26),
-    ],
-    [
-      55,
-      deckY(55, 35),
-    ],
-    [
-      35,
-      deckY(35, 38),
-    ],
-  ]);
-  const funnelTop = poly([
-    [
-      55.6,
-      deckY(55.6, 33.8),
-    ],
-    [
-      55,
-      deckY(55, 35),
-    ],
-    [
-      35,
-      deckY(35, 38),
-    ],
-    [
-      35.7,
-      deckY(35.7, 36.6),
-    ],
-  ]);
-  const radar = mastOf(206, sheer(206) + 26, sheer(206) + 33, 0.6, 0);
-  const tenders = Array.from(
-    {
-      length: 10,
-    },
-    (_, i) => 66 + i * 13.5,
+    (_, i) => 36 + i * 14.4,
   )
-    .map((t) => {
-      const y = deckY(t, DECK * 2 + 0.5);
+    .map((b) => {
+      const y = deckY(b, 4.9);
       return poly([
         [
-          t - 5,
-          y - 2,
-        ],
-        [
-          t + 5,
-          y - 2,
-        ],
-        [
-          t + 4.2,
+          b - 5.6,
           y,
         ],
         [
-          t - 4.2,
+          b + 5.6,
           y,
+        ],
+        [
+          b + 4.8,
+          y + 3.4,
+        ],
+        [
+          b - 4.8,
+          y + 3.4,
         ],
       ]);
     })
     .join("");
+  // The solarium's glass roof forward, sloping down to the bow.
+  const solarium = poly([
+    [
+      242,
+      deckY(242, 44.6),
+    ],
+    [
+      286,
+      deckY(286, 44.6),
+    ],
+    [
+      276,
+      deckY(276, 48.4),
+    ],
+    [
+      246,
+      deckY(246, 49),
+    ],
+  ]);
+  // Two funnels abreast, one in profile, a little aft of amidships.
+  const funnel = (f0: number, f1: number) =>
+    poly([
+      [
+        112 - 1.4 * f0,
+        deckY(112, 45 + 10 * f0),
+      ],
+      [
+        136 - 1.4 * f0,
+        deckY(136, 45 + 10 * f0),
+      ],
+      [
+        136 - 1.4 * f1,
+        deckY(136, 45 + 10 * f1),
+      ],
+      [
+        112 - 1.4 * f1,
+        deckY(112, 45 + 10 * f1),
+      ],
+    ]);
+  // Aft: the slide tower, its tubes, the long slide coiling down the stern, and a climbing wall.
+  const at = (x: number, h: number) =>
+    shipAt([
+      x,
+      deckY(x, h),
+    ]);
+  const tower = band(62, 72, 44.8, 52.5);
+  const wall = band(20, 25, 44.8, 52) + band(28, 33, 44.8, 51);
+  const slides = [
+    `M${at(64, 52)}C${at(46, 54)} ${at(44, 47)} ${at(56, 48)}S${at(46, 44)} ${at(38, 45.2)}`,
+    `M${at(70, 51)}C${at(86, 55)} ${at(94, 48)} ${at(84, 47.5)}S${at(92, 45)} ${at(100, 45.3)}`,
+  ];
+  const abyss = `M${at(60, 50)}C${at(30, 52)} ${at(8, 44)} ${at(14, 40)}S${at(4, 33)} ${at(12, 30)}S${at(4, 24)} ${at(11, 21)}S${at(4, 15)} ${at(9, 12)}`;
+  const radar = mastOf(276, sheer(276) + 45, sheer(276) + 53, 0.6, 0);
   const windows = windowsOf(
     [
-      // Two rows of portholes in the hull.
+      // Two rows of ports in the hull.
       ...winRows(
         [
           [
-            -3,
-            14,
-            244,
+            -3.5,
+            16,
+            298,
           ],
           [
-            -6,
-            16,
-            240,
+            -7,
+            18,
+            294,
           ],
         ],
         {
@@ -6498,29 +6510,49 @@ function cruiseArt(): ShipArt {
           on: 0.5,
         },
       ),
-      // A row of balcony doors along every deck.
+      // A row of balconies along every deck.
       ...Array.from(
         {
-          length: 8,
+          length: DECKS,
         },
-        (_, i): WinRow => {
-          const [a, b] = ends(i + 1);
-          return {
-            h: DECK * i + 1.45,
-            x0: a + 2,
-            x1: b - 2,
-            step: 2,
-            w: 1.6,
-            t: 1.8,
-            part: "super",
-            group: [
-              10,
-              40,
-            ],
-            gap: 1,
-            off: 0.22,
-            on: 0.42,
-          };
+        (_, i): WinRow => ({
+          h: 6 + DECK * i + 1.55,
+          x0: 5,
+          x1: foreEnd(i + 1) - 2,
+          step: 2.2,
+          w: 1.75,
+          t: 1.6,
+          part: "super",
+          group: [
+            12,
+            40,
+          ],
+          gap: 1,
+          off: 0.22,
+          on: 0.42,
+        }),
+      ),
+      // The bridge.
+      ...winRows(
+        [
+          [
+            37.5,
+            269.5,
+            284.5,
+          ],
+        ],
+        {
+          step: 1.4,
+          w: 1.2,
+          t: 1.4,
+          part: "super",
+          group: [
+            20,
+            20,
+          ],
+          gap: 1,
+          off: 0.05,
+          on: 0.9,
         },
       ),
     ],
@@ -6532,7 +6564,7 @@ function cruiseArt(): ShipArt {
     bow: bowX(0),
     left: frame.left,
     bottom: frame.bottom,
-    len: 260,
+    len,
     litAt: windows.litAt,
     bands: [
       {
@@ -6542,7 +6574,7 @@ function cruiseArt(): ShipArt {
         spans: [
           [
             8,
-            252,
+            len - 10,
           ],
         ],
       },
@@ -6553,7 +6585,7 @@ function cruiseArt(): ShipArt {
         spans: [
           [
             8,
-            250,
+            len - 14,
           ],
         ],
       },
@@ -6562,48 +6594,72 @@ function cruiseArt(): ShipArt {
   return {
     frame,
     grads: [
-      vGrad("white", -40, -2, "var(--sh-white-hi)", "var(--sh-white)"),
+      vGrad("white", -62, -2, "var(--sh-white-hi)", "var(--sh-white)"),
     ],
     smoke: smokeFrom(
       rand,
       [
-        44,
-        deckY(44, 37.5),
+        122,
+        deckY(122, 55.4),
       ],
       6,
       0.8,
-      0.18,
+      0.16,
     ),
     inks: [
       {
-        d: radar.d + shipRect(203, deckY(206, 31.6), 6, 0.45),
+        d: radar.d + shipRect(273, deckY(276, 51.4), 6, 0.45),
         cls: "sh-mast",
       },
       ...water.back,
       {
-        d: hullOf(sternX, bowX, sheer, 260) + decks,
+        d: hullOf(sternX, bowX, sheer, len) + decks + tower,
         grad: "white",
       },
       {
-        d: hullBand(sternX, bowX, 0, 2.6),
+        d: hullBand(sternX, bowX, 0, 2.4),
         cls: "sh-cr-band",
       },
       {
-        d: stripePath,
-        cls: "sh-cr-stripe",
+        d: recess,
+        cls: "sh-cr-recess",
       },
       {
-        d: funnelPath,
+        d: solarium,
+        cls: "sh-win",
+      },
+      {
+        d: wall,
+        cls: "sh-cr-wall",
+      },
+      {
+        d: funnel(0, 1),
+        cls: "sh-boat",
+      },
+      {
+        d: funnel(0.55, 0.75),
         cls: "sh-cr-funnel",
       },
       {
-        d: funnelTop,
-        cls: "sh-black",
+        d: funnel(0.88, 1),
+        cls: "sh-cr-band",
       },
       ...windows.inks,
       {
-        d: tenders,
+        d: boats,
         cls: "sh-cr-tender",
+      },
+      {
+        d: abyss,
+        cls: "sh-cr-slide-3",
+      },
+      {
+        d: slides[0],
+        cls: "sh-cr-slide-1",
+      },
+      {
+        d: slides[1],
+        cls: "sh-cr-slide-2",
       },
       water.foam,
     ],
@@ -6615,8 +6671,8 @@ function cruiseArt(): ShipArt {
       ],
     ],
     green: [
-      ends(8)[1] + 1,
-      deckY(ends(8)[1] + 1, DECK * 7 + 1.5),
+      286.4,
+      deckY(286.4, 37.6),
     ],
     aft: water.aft,
     bow: water.bow,
@@ -6852,25 +6908,32 @@ const SHIPIT_STYLES = `
   --sh-refl-band: oklch(0.76 0.05 85);
   --sh-refl-sail: oklch(0.88 0.04 80);
   /* The freighter: a navy hull, boxes in a run of lines' colours, a funnel banded in the chosen colour. */
-  --sh-fr-hull: oklch(0.28 0.06 258);
-  --sh-fr-hull-hi: oklch(0.4 0.07 255);
+  --sh-fr-hull: oklch(0.56 0.11 238);
+  --sh-fr-hull-hi: oklch(0.67 0.1 232);
   --sh-fr-deck: oklch(0.76 0.01 250);
-  --sh-fr-funnel: oklch(0.32 0.01 250);
+  --sh-fr-funnel: oklch(0.6 0.11 236);
   --sh-fr-mark: oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h, 25)));
-  --sh-cargo-1: oklch(0.52 0.15 28);
-  --sh-cargo-2: oklch(0.48 0.12 252);
-  --sh-cargo-3: oklch(0.7 0.15 58);
-  --sh-cargo-4: oklch(0.52 0.1 158);
-  --sh-cargo-5: oklch(0.64 0.01 250);
-  --sh-cargo-6: oklch(0.84 0.03 210);
+  --sh-cargo-1: oklch(0.67 0.11 230); /* the line's own blue */
+  --sh-cargo-2: oklch(0.42 0.09 258);
+  --sh-cargo-3: oklch(0.88 0.01 240);
+  --sh-cargo-4: oklch(0.52 0.15 28);
+  --sh-cargo-5: oklch(0.7 0.15 58);
+  --sh-cargo-6: oklch(0.6 0.01 250);
   --sh-cargo-gap: oklch(0.22 0.02 250);
+  --sh-cargo-hi: oklch(1 0 0 / 0.24);
+  --sh-refl-fr: oklch(0.52 0.08 236);
   --sh-refl-navy: oklch(0.34 0.05 255);
-  --sh-refl-cargo: oklch(0.52 0.06 40);
-  /* The cruise ship: white over a navy boot-topping, a stripe and funnel in the chosen colour, orange tenders. */
+  --sh-refl-cargo: oklch(0.56 0.08 230);
+  /* The cruise ship: white over a navy boot-topping, orange lifeboats in a dark recess, a funnel band and
+     a waterslide in the chosen colour. */
   --sh-cr-band: oklch(0.3 0.07 258);
-  --sh-cr-stripe: oklch(0.6 0.15 var(--accent-h, var(--glass-tint-h, 250)));
   --sh-cr-funnel: oklch(0.55 0.14 var(--accent-h, var(--glass-tint-h, 250)));
   --sh-cr-tender: oklch(0.7 0.17 55);
+  --sh-cr-recess: oklch(0.42 0.02 250);
+  --sh-cr-wall: oklch(0.72 0.04 70);
+  --sh-cr-slide-1: oklch(0.62 0.17 var(--accent-h, var(--glass-tint-h, 300)));
+  --sh-cr-slide-2: oklch(0.72 0.16 60);
+  --sh-cr-slide-3: oklch(0.56 0.15 285);
   --sw-sun-o: 1;
   --sw-moon-o: 0;
   --sw-sun-d: block;
@@ -6942,24 +7005,30 @@ const SHIPIT_STYLES = `
   --sh-refl-copper: oklch(0.15 0.03 45);
   --sh-refl-band: oklch(0.24 0.02 255);
   --sh-refl-sail: oklch(0.3 0.02 255);
-  --sh-fr-hull: oklch(0.13 0.03 258);
-  --sh-fr-hull-hi: oklch(0.2 0.035 255);
+  --sh-fr-hull: oklch(0.17 0.04 240);
+  --sh-fr-hull-hi: oklch(0.25 0.045 236);
   --sh-fr-deck: oklch(0.34 0.015 255);
-  --sh-fr-funnel: oklch(0.14 0.01 260);
+  --sh-fr-funnel: oklch(0.22 0.04 238);
   --sh-fr-mark: oklch(0.32 0.09 var(--accent-h, var(--glass-tint-h, 25)));
-  --sh-cargo-1: oklch(0.26 0.07 28);
-  --sh-cargo-2: oklch(0.22 0.05 252);
-  --sh-cargo-3: oklch(0.32 0.07 58);
-  --sh-cargo-4: oklch(0.24 0.045 158);
-  --sh-cargo-5: oklch(0.29 0.01 250);
-  --sh-cargo-6: oklch(0.38 0.02 220);
+  --sh-cargo-1: oklch(0.28 0.05 232);
+  --sh-cargo-2: oklch(0.2 0.04 258);
+  --sh-cargo-3: oklch(0.38 0.01 245);
+  --sh-cargo-4: oklch(0.25 0.07 28);
+  --sh-cargo-5: oklch(0.32 0.07 58);
+  --sh-cargo-6: oklch(0.27 0.01 250);
   --sh-cargo-gap: oklch(0.08 0.01 260);
+  --sh-cargo-hi: oklch(0.7 0.02 250 / 0.1);
+  --sh-refl-fr: oklch(0.11 0.02 240);
   --sh-refl-navy: oklch(0.08 0.015 258);
   --sh-refl-cargo: oklch(0.14 0.02 250);
   --sh-cr-band: oklch(0.14 0.03 258);
-  --sh-cr-stripe: oklch(0.32 0.08 var(--accent-h, var(--glass-tint-h, 250)));
   --sh-cr-funnel: oklch(0.28 0.07 var(--accent-h, var(--glass-tint-h, 250)));
   --sh-cr-tender: oklch(0.36 0.08 50);
+  --sh-cr-recess: oklch(0.12 0.01 260);
+  --sh-cr-wall: oklch(0.3 0.02 70);
+  --sh-cr-slide-1: oklch(0.32 0.08 var(--accent-h, var(--glass-tint-h, 300)));
+  --sh-cr-slide-2: oklch(0.36 0.08 60);
+  --sh-cr-slide-3: oklch(0.3 0.08 285);
   --sh-night-d: inline;
   --sw-sun-o: 0;
   --sw-moon-o: 1;
@@ -7123,6 +7192,8 @@ ${shipBoxRules()}
 .sh-fr-funnel { fill: var(--sh-fr-funnel); }
 .sh-fr-mark { fill: var(--sh-fr-mark); }
 .sh-cargo-gap { fill: var(--sh-cargo-gap); }
+.sh-cargo-hi { fill: var(--sh-cargo-hi); }
+.sh-refl-fr { fill: var(--sh-refl-fr); }
 .sh-cargo-1 { fill: var(--sh-cargo-1); }
 .sh-cargo-2 { fill: var(--sh-cargo-2); }
 .sh-cargo-3 { fill: var(--sh-cargo-3); }
@@ -7130,7 +7201,13 @@ ${shipBoxRules()}
 .sh-cargo-5 { fill: var(--sh-cargo-5); }
 .sh-cargo-6 { fill: var(--sh-cargo-6); }
 .sh-cr-band { fill: var(--sh-cr-band); }
-.sh-cr-stripe { fill: var(--sh-cr-stripe); }
+.sh-cr-recess { fill: var(--sh-cr-recess); }
+.sh-cr-wall { fill: var(--sh-cr-wall); }
+/* The waterslides: tubes, so a stroke along a curve. */
+.sh-cr-slide-1, .sh-cr-slide-2, .sh-cr-slide-3 { fill: none; stroke-width: 1.1; stroke-linecap: round; }
+.sh-cr-slide-1 { stroke: var(--sh-cr-slide-1); }
+.sh-cr-slide-2 { stroke: var(--sh-cr-slide-2); }
+.sh-cr-slide-3 { stroke: var(--sh-cr-slide-3); }
 .sh-cr-funnel { fill: var(--sh-cr-funnel); }
 .sh-cr-tender { fill: var(--sh-cr-tender); }
 ${stopRules(".sh-ship")}`;

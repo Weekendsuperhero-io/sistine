@@ -464,8 +464,8 @@ describe("shipit", () => {
   const HULL: Record<ShipKind, number> = {
     liner: 270,
     clipper: 150,
-    freighter: 290,
-    cruise: 260,
+    freighter: 330,
+    cruise: 320,
   };
   const css = (html: string) =>
     (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? [])
