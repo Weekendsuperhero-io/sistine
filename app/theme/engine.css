@@ -121,13 +121,18 @@
      30% of the way down, the streak half way along its diagonal, the glow at 70% of its radius), which is
      right for a card and wrong for a panel: on a 640px-tall surface the top shine was a 190px wash, and a
      whole crystal window read as a white sheet with a white shine on it. Each fade now ends at its share
-     OR these lengths, whichever comes first, so a card (up to ~400px) is unchanged and a panel gets a band
-     at its top edge, a streak across its corner and a glow along its foot. Leaves, in rem, so a consumer
+     OR these lengths, whichever comes first, so a small card is unchanged and a panel gets a band at its
+     top edge, a streak across its corner and a glow along its foot. The top reach is 5rem (it was 8rem; the
+     owner asked for a shallower band, so a card over ~260px tall now meets it). Leaves, in rem, so a consumer
      can widen or tighten them. Lustre's top and glow take the same reach; the hue flavor's sweep is meant
      to cross the whole face and keeps its shares. */
-  --glass-gloss-reach-top: 8rem;
+  --glass-gloss-reach-top: 5rem;
   --glass-gloss-reach-streak: 16rem;
   --glass-gloss-reach-glow: 14rem;
+  /* The SIDE band (--glass-gloss-side): the light down the leading edge, the side the streak starts from
+     (left, or right with the direction flipped), fainter than the top and narrower, so the two read as one
+     lit bevel and text starting near that edge still reads at night. */
+  --glass-gloss-reach-side: 3rem;
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
      single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
@@ -190,6 +195,11 @@
      presets in light and two in dark, where the browser, not the theme, picked the delivered colour.
      Measured after capping: --primary-foreground holds Lc 88.1 light / 62.9 dark at the worst hue. */
   --primary: oklch(var(--primary-l) min(calc(var(--glass-tint-c) * 1.2), var(--primary-c-max)) var(--glass-fg-h));
+  /* THE TWIN (default Button): the other mode's glass, at the twin's lightness and the tint's chroma × the
+     twin's multiplier, capped per mode (tokens.css), with its own ink. Composed here because it reads the
+     tint, so a scoped data-glass-tint re-resolves it. */
+  --twin-bg: oklch(calc(var(--twin-l) * 1%) min(calc(var(--glass-tint-c) * var(--twin-c-mult)), var(--twin-c-max)) var(--glass-tint-h));
+  --twin-fg: oklch(calc(var(--twin-fg-l) * 1%) min(var(--glass-tint-c), var(--twin-fg-c-max)) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
   --color-complement: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-complement));
   --color-analogous-1: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-analogous-1));
@@ -397,7 +407,7 @@
   --glass-gloss-ink: var(--glass-gloss-ink-white, var(--glass-gloss-ink-tonal));
   --glass-gloss-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent min(30%, var(--glass-gloss-reach-top, 8rem)))
+    linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent min(30%, var(--glass-gloss-reach-top, 5rem)))
   );
   --glass-gloss-streak: var(
     --glass-gloss-streak-hue,
@@ -405,6 +415,14 @@
       calc(135deg * var(--glass-gloss-hue-dir, 1)),
       oklch(var(--glass-gloss-ink, 100% 0 0) / 0.15),
       transparent min(50%, var(--glass-gloss-reach-streak, 16rem))
+    )
+  );
+  --glass-gloss-side: var(
+    --glass-gloss-side-hue,
+    linear-gradient(
+      calc(90deg * var(--glass-gloss-hue-dir, 1)),
+      oklch(var(--glass-gloss-ink, 100% 0 0) / 0.22),
+      transparent min(25%, var(--glass-gloss-reach-side, 3rem))
     )
   );
   --glass-gloss-glow: var(
@@ -432,9 +450,11 @@
      block B). Baked into the background, not ::before/::after: the crystal PAGE style re-skins every
      surface, and pseudo layers would need position:relative, which breaks sticky/fixed surfaces. */
   --crystal-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-side), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none),
+    var(--glass-wash-layer);
   --glass-chakra-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-side), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none),
+    var(--glass-wash-layer);
   /* Lustre's pigmented body sits ABOVE the adjustable backing. This preserves its deep color even
      when the page is bright, while opacity and veil still determine how much backdrop survives. */
   --glass-lustre-bg: oklch(
@@ -446,7 +466,7 @@
   --glass-lustre-ink: var(--glass-gloss-ink-white, var(--glass-lustre-ink-tonal));
   --glass-lustre-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-gloss-reach-top, 8rem)))
+    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-gloss-reach-top, 5rem)))
   );
   --glass-lustre-streak: var(
     --glass-gloss-streak-hue,
@@ -493,7 +513,7 @@
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       calc(0.4 * var(--glass-gloss-is-hue))
     ),
-    transparent min(35%, var(--glass-gloss-reach-top, 8rem))
+    transparent min(35%, var(--glass-gloss-reach-top, 5rem))
   );
   --glass-gloss-streak-hue: linear-gradient(
     115deg in oklch,
@@ -511,6 +531,15 @@
       )
       85%,
     transparent
+  );
+  --glass-gloss-side-hue: linear-gradient(
+    calc(90deg * var(--glass-gloss-hue-dir, 1)) in oklch,
+    oklch(
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
+        calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
+      calc(0.22 * var(--glass-gloss-is-hue))
+    ),
+    transparent min(25%, var(--glass-gloss-reach-side, 3rem))
   );
   --glass-gloss-glow-hue: radial-gradient(
     circle at 50% 120%,

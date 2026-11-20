@@ -324,7 +324,12 @@
   --press-shadow: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2);
   --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2), inset 0 1px 2px oklch(var(--shadow-ink) / 0.15);
   --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.25), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
-  --active-shadow: 0 1px 3px oklch(var(--shadow-ink) / 0.1), inset 0 1px 1px oklch(var(--shadow-highlight) / 0.5);
+  /* The selected chip's LIFT, by day built as the night's is (a deeper drop shadow and an inner glow over the
+     top highlight), at day strengths. The old day lift (a 1px drop at 0.1) left a pale chip on a pale list
+     with nothing to set it apart: Preview and Code read the same. */
+  --active-shadow:
+    0 2px 6px oklch(var(--shadow-ink) / 0.22), 0 1px 2px oklch(var(--shadow-ink) / 0.12),
+    inset 0 1px 1px oklch(var(--shadow-highlight) / 0.7), inset 0 0 8px oklch(var(--shadow-highlight) / 0.45);
   /* Selected-control FILL — the twin of --active-shadow, which had the lift but no surface, so tabs and
      toggle-group each hardcoded `bg-white/80 dark:bg-white/20`. The colour is composed in engine.css;
      these are its knobs.
@@ -606,6 +611,18 @@
 
   /* Primary colors - Light mode */
   --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
+  /* THE TWIN — the default Button wears the OTHER mode's glass, so the one filled action reads as glass and
+     still stands apart from every surface around it. By day: the NIGHT glass, deep and rich at the night
+     wash's own lightness (L35) and multiplier (×2.5), capped by the night wash's own fit (--twin-c-max,
+     below), with light ink, a faint white rim and a soft top gloss. At night: the DAY glass (see .dark). The
+     colours are composed in the engine beside --primary. */
+  --twin-l: 35;
+  --twin-c-mult: 2.5;
+  --twin-fg-l: 97;
+  --twin-fg-c-max: 0.0125; /* ≤ 92% of 0.0136, the lowest sRGB ceiling at L97 across every hue (h267.75) */
+  --twin-rim: oklch(100% 0 0 / 0.22);
+  --twin-gloss-a: 0.2;
+  --twin-shadow: 0 4px 14px oklch(var(--shadow-ink) / 0.3), inset 0 1px 0 oklch(100% 0 0 / 0.25);
   /* Ceiling on the primary ink's chroma. The ×1.2 in the engine is intent — primary should read MORE
      saturated than the base tint — but uncapped it asked past the sRGB edge for five presets in light
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
@@ -771,6 +788,13 @@
   inherits: true;
   initial-value: 0.012;
 }
+/* The default Button's twin cap: the night wash's L35 fit by day (one number per scope, as the caps above,
+   rather than the fit's 467 tokens stored on every element under it), a fixed 0.052 at night. */
+@property --twin-c-max {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.052;
+}
 @property --glass-wash-c-max {
   syntax: "<number>";
   inherits: true;
@@ -882,6 +906,60 @@
       max(calc(0.11361 + 0.0007912 * (var(--glass-wash-hue) + 164.85))),
       calc(0.21101 + 200 * (var(--glass-wash-hue) + 233.276)),
       calc(0.11363 + 200 * (-164.833 - var(--glass-wash-hue)))
+    )
+  );
+  /* The twin's day cap: the night wash's L35 fit, copied as written, since the twin wears the night glass by
+     day at exactly that lightness (tests/twin.test.ts holds the copy identical to --glass-wash-c-max's
+     night rule). */
+  --twin-c-max: max(
+    0.057,
+    min(
+      max(
+        calc(0.13883 - 0.004206 * (var(--glass-wash-hue) - 29.3)),
+        calc(0.11097 - 0.002422 * (var(--glass-wash-hue) - 38)),
+        calc(0.08818 - 0.001213 * (var(--glass-wash-hue) - 51.15)),
+        calc(0.0715 - 0.0003214 * (var(--glass-wash-hue) - 75)),
+        calc(0.06946 - 0.00009153 * (var(--glass-wash-hue) - 85)),
+        calc(0.07046 + 0.0002299 * (var(--glass-wash-hue) - 100)),
+        calc(0.08861 + 0.001235 * (var(--glass-wash-hue) - 128))
+      ),
+      calc(0.13891 + 200 * (var(--glass-wash-hue) - 29.281)),
+      calc(0.11527 + 200 * (142.484 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.09326 - 0.002224 * (var(--glass-wash-hue) - 150)),
+        calc(0.07921 - 0.001377 * (var(--glass-wash-hue) - 158)),
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) - 190))
+      ),
+      calc(0.11527 + 200 * (var(--glass-wash-hue) - 142.484)),
+      calc(0.23411 + 200 * (264.135 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.23406 - 0.002322 * (var(--glass-wash-hue) + 95.85)),
+        calc(0.19897 - 0.001345 * (var(--glass-wash-hue) + 76)),
+        calc(0.1806 - 0.001 * (var(--glass-wash-hue) + 60)),
+        calc(0.14578 - 0.0006322 * (var(--glass-wash-hue) + 18)),
+        calc(0.13556 - 0.0001171 * (var(--glass-wash-hue) - 8)),
+        calc(0.1389 + 0.0004619 * (var(--glass-wash-hue) - 29.26))
+      ),
+      calc(0.23411 + 200 * (var(--glass-wash-hue) + 95.865)),
+      calc(0.13891 + 200 * (29.281 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) + 170)),
+        calc(0.05783 + 0.0001 * (var(--glass-wash-hue) + 155)),
+        calc(0.05983 + 0.0003065 * (var(--glass-wash-hue) + 145)),
+        calc(0.06749 + 0.0007599 * (var(--glass-wash-hue) + 130)),
+        calc(0.0959 + 0.002531 * (var(--glass-wash-hue) + 110)),
+        calc(0.11159 + 0.00391 * (var(--glass-wash-hue) + 105)),
+        calc(0.15698 + 0.01186 * (var(--glass-wash-hue) + 98)),
+        calc(0.20655 + 0.1035 * (var(--glass-wash-hue) + 95.88))
+      ),
+      calc(0.11527 + 200 * (var(--glass-wash-hue) + 217.516)),
+      calc(0.23411 + 200 * (-95.865 - var(--glass-wash-hue)))
     )
   );
   --glass-solidify-c-max-at-18: max(
@@ -1216,6 +1294,18 @@
 
   /* Primary colors — dark mode */
   --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
+  /* The twin at night: the DAY glass, pale (L88) at the day backing's scale (×1.36), with dark ink, a bright
+     rim and a stronger top gloss. Its cap is a FIXED 0.052 (the night cap rule): 92% of the lowest sRGB
+     ceiling at L88 across every hue (0.0564, at h267.5), so it holds for any tint without evaluating a fitted
+     cap at night, the cost the night rule avoids. A pale surface needs little chroma; at L92 the same floor
+     was 0.034 and the pill read white. */
+  --twin-l: 88;
+  --twin-c-mult: 1.36;
+  --twin-fg-l: 22;
+  --twin-fg-c-max: 0.0335; /* ≤ 92% of 0.0366, the lowest sRGB ceiling at L22 across every hue (h199.75) */
+  --twin-rim: oklch(100% 0 0 / 0.75);
+  --twin-gloss-a: 0.5;
+  --twin-shadow: 0 4px 14px oklch(var(--shadow-ink) / 0.35), inset 0 1px 0 oklch(100% 0 0 / 0.9);
   --primary-c-max: 0.107; /* ≤ 0.1077, the L-78 ceiling floor (h268 lapis) */
   /* Near-black text on the primary ink — Lc 62.9 at the worst hue, sistine (measured). It was 60.9
      before --primary-c-max: capping the chroma the browser used to gamut-map moved the worst case back
@@ -1359,6 +1449,7 @@
 .dark[data-glass-tint],
 .dark [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
+  --twin-c-max: 0.052; /* the twin's night cap: 92% of the lowest L88 ceiling across hues (see .dark's --twin-l) */
   --glass-solidify-c-scale: var(--glass-opaque-c-scale);
   --glass-solidify-c-max: var(--glass-opaque-c-max);
   --glass-solidify-c-max-at-92: initial;
@@ -1618,13 +1709,18 @@
      30% of the way down, the streak half way along its diagonal, the glow at 70% of its radius), which is
      right for a card and wrong for a panel: on a 640px-tall surface the top shine was a 190px wash, and a
      whole crystal window read as a white sheet with a white shine on it. Each fade now ends at its share
-     OR these lengths, whichever comes first, so a card (up to ~400px) is unchanged and a panel gets a band
-     at its top edge, a streak across its corner and a glow along its foot. Leaves, in rem, so a consumer
+     OR these lengths, whichever comes first, so a small card is unchanged and a panel gets a band at its
+     top edge, a streak across its corner and a glow along its foot. The top reach is 5rem (it was 8rem; the
+     owner asked for a shallower band, so a card over ~260px tall now meets it). Leaves, in rem, so a consumer
      can widen or tighten them. Lustre's top and glow take the same reach; the hue flavor's sweep is meant
      to cross the whole face and keeps its shares. */
-  --glass-gloss-reach-top: 8rem;
+  --glass-gloss-reach-top: 5rem;
   --glass-gloss-reach-streak: 16rem;
   --glass-gloss-reach-glow: 14rem;
+  /* The SIDE band (--glass-gloss-side): the light down the leading edge, the side the streak starts from
+     (left, or right with the direction flipped), fainter than the top and narrower, so the two read as one
+     lit bevel and text starting near that edge still reads at night. */
+  --glass-gloss-reach-side: 3rem;
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
      single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
@@ -1687,6 +1783,11 @@
      presets in light and two in dark, where the browser, not the theme, picked the delivered colour.
      Measured after capping: --primary-foreground holds Lc 88.1 light / 62.9 dark at the worst hue. */
   --primary: oklch(var(--primary-l) min(calc(var(--glass-tint-c) * 1.2), var(--primary-c-max)) var(--glass-fg-h));
+  /* THE TWIN (default Button): the other mode's glass, at the twin's lightness and the tint's chroma × the
+     twin's multiplier, capped per mode (tokens.css), with its own ink. Composed here because it reads the
+     tint, so a scoped data-glass-tint re-resolves it. */
+  --twin-bg: oklch(calc(var(--twin-l) * 1%) min(calc(var(--glass-tint-c) * var(--twin-c-mult)), var(--twin-c-max)) var(--glass-tint-h));
+  --twin-fg: oklch(calc(var(--twin-fg-l) * 1%) min(var(--glass-tint-c), var(--twin-fg-c-max)) var(--glass-fg-h));
   /* Ready accent-tier colors (hue angles from the anchors block; L is the mode envelope --harmonic-l). */
   --color-complement: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-complement));
   --color-analogous-1: oklch(var(--harmonic-l) var(--color-chroma) var(--hue-analogous-1));
@@ -1894,7 +1995,7 @@
   --glass-gloss-ink: var(--glass-gloss-ink-white, var(--glass-gloss-ink-tonal));
   --glass-gloss-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent min(30%, var(--glass-gloss-reach-top, 8rem)))
+    linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent min(30%, var(--glass-gloss-reach-top, 5rem)))
   );
   --glass-gloss-streak: var(
     --glass-gloss-streak-hue,
@@ -1902,6 +2003,14 @@
       calc(135deg * var(--glass-gloss-hue-dir, 1)),
       oklch(var(--glass-gloss-ink, 100% 0 0) / 0.15),
       transparent min(50%, var(--glass-gloss-reach-streak, 16rem))
+    )
+  );
+  --glass-gloss-side: var(
+    --glass-gloss-side-hue,
+    linear-gradient(
+      calc(90deg * var(--glass-gloss-hue-dir, 1)),
+      oklch(var(--glass-gloss-ink, 100% 0 0) / 0.22),
+      transparent min(25%, var(--glass-gloss-reach-side, 3rem))
     )
   );
   --glass-gloss-glow: var(
@@ -1929,9 +2038,11 @@
      block B). Baked into the background, not ::before/::after: the crystal PAGE style re-skins every
      surface, and pseudo layers would need position:relative, which breaks sticky/fixed surfaces. */
   --crystal-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-side), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none),
+    var(--glass-wash-layer);
   --glass-chakra-stack-bg:
-    var(--glass-gloss-top), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none), var(--glass-wash-layer);
+    var(--glass-gloss-top), var(--glass-gloss-side), var(--glass-gloss-glow), var(--glass-gloss-streak), var(--glass-crystal-fresco, none),
+    var(--glass-wash-layer);
   /* Lustre's pigmented body sits ABOVE the adjustable backing. This preserves its deep color even
      when the page is bright, while opacity and veil still determine how much backdrop survives. */
   --glass-lustre-bg: oklch(
@@ -1943,7 +2054,7 @@
   --glass-lustre-ink: var(--glass-gloss-ink-white, var(--glass-lustre-ink-tonal));
   --glass-lustre-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-gloss-reach-top, 8rem)))
+    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-gloss-reach-top, 5rem)))
   );
   --glass-lustre-streak: var(
     --glass-gloss-streak-hue,
@@ -1990,7 +2101,7 @@
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       calc(0.4 * var(--glass-gloss-is-hue))
     ),
-    transparent min(35%, var(--glass-gloss-reach-top, 8rem))
+    transparent min(35%, var(--glass-gloss-reach-top, 5rem))
   );
   --glass-gloss-streak-hue: linear-gradient(
     115deg in oklch,
@@ -2008,6 +2119,15 @@
       )
       85%,
     transparent
+  );
+  --glass-gloss-side-hue: linear-gradient(
+    calc(90deg * var(--glass-gloss-hue-dir, 1)) in oklch,
+    oklch(
+      calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
+        calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
+      calc(0.22 * var(--glass-gloss-is-hue))
+    ),
+    transparent min(25%, var(--glass-gloss-reach-side, 3rem))
   );
   --glass-gloss-glow-hue: radial-gradient(
     circle at 50% 120%,

@@ -101,7 +101,7 @@ describe("Button", () => {
     // Its shadow folds the lit edge and the glow layer in, which is how both reach a variant without the
     // `glass` utility.
     expect(screen.getByRole("button").className).toContain(
-      "shadow-[var(--srf-shadow,var(--glass-shadow)),var(--lit-layer,0_0_0_0_transparent),var(--glow-layer,0_0_0_0_transparent)]",
+      "shadow-[var(--twin-shadow),var(--lit-layer,0_0_0_0_transparent),var(--glow-layer,0_0_0_0_transparent)]",
     );
   });
 
@@ -142,11 +142,19 @@ describe("Button", () => {
     expect(classes).toContain("hover:glass-glow-lg");
   });
 
-  it("lays the material's FILL image over the default variant's fill, not its full surface", () => {
+  it("wears the other mode's glass, the twin, in the default variant", () => {
+    // The flat --primary fill with the page material laid over it read as a plain block in every theme. The
+    // filled action now wears the TWIN (tokens.css / engine.css --twin-*, tests/twin.test.ts): its fill, its
+    // own ink, a rim, a top gloss and the twin's shadow, and no page material over it, which would bury it.
     render(<Button variant="default">Go</Button>);
-    const cls = screen.getByRole("button").className;
-    expect(cls).toContain("bg-primary");
-    expect(cls).toContain("text-primary-foreground");
-    expect(cls).toContain("[background-image:var(--srf-fill-image,var(--srf-bg-image,var(--glass-stack-bg)))]");
+    const classes = screen.getByRole("button").className.split(/\s+/);
+    for (const c of [
+      "bg-[var(--twin-bg)]",
+      "text-[color:var(--twin-fg)]",
+      "border-[color:var(--twin-rim)]",
+      "[background-image:linear-gradient(to_bottom,oklch(100%_0_0/var(--twin-gloss-a)),transparent_55%)]",
+    ])
+      expect(classes).toContain(c);
+    expect(classes.join(" ")).not.toMatch(/bg-primary|text-primary-foreground|--srf-fill-image/);
   });
 });

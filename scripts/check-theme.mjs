@@ -536,7 +536,7 @@ function splitTop(sel) {
 //     each, so a nested flavor overrides its ancestor's. The old blocks re-pinned the ink alone and the
 //     pre-composed gradients and stacks rode in from <html>: every scoped flavor painted the page's.
 {
-  const GLOSS = /^--(glass-gloss-(ink|top|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
+  const GLOSS = /^--(glass-gloss-(ink|top|side|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
   const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]"];
   for (const r of rules) {
     const sels = splitTop(r.selector);
