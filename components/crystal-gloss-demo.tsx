@@ -14,6 +14,23 @@ const L_KEY = "sistine-gloss-l";
 const TINT_KEY = "sistine-gloss-tint";
 const SPAN_KEY = "sistine-gloss-span";
 const DIR_KEY = "sistine-gloss-dir";
+/* The gloss SHAPE (data-gloss-shape on <html>), apart from the flavor: the bevel (a band down from the
+   top and a fainter one in from the leading edge) or the frame (one 2rem band in from all four edges). */
+type Shape = "bevel" | "frame";
+const SHAPE_KEY = "sistine-gloss-shape";
+const SHAPES: {
+  key: Shape;
+  label: string;
+}[] = [
+  {
+    key: "bevel",
+    label: "Bevel",
+  },
+  {
+    key: "frame",
+    label: "Frame",
+  },
+];
 
 const MODES: {
   key: Mode;
@@ -120,6 +137,7 @@ export function CrystalGlossDemo() {
   const [tintAuto, setTintAuto] = React.useState(true);
   const [span, setSpan] = React.useState(40);
   const [dir, setDir] = React.useState(1);
+  const [shape, setShape] = React.useState<Shape>("bevel");
   const [dark, setDark] = React.useState(false);
 
   /* Light is stored as a PER-MODE map, the same shape the tint switcher uses for --glass-opaque-l (the
@@ -226,6 +244,9 @@ export function CrystalGlossDemo() {
     setDir(D);
     setTintAuto(T === null);
     apply(m, T, S, D);
+    const sh: Shape = localStorage.getItem(SHAPE_KEY) === "frame" ? "frame" : "bevel";
+    setShape(sh);
+    root.dataset.glossShape = sh;
     /* Read AFTER apply(): with no override the inline prop is gone, so this reports what the active
        preset's CSS actually resolves — the number the slider should show, not the 4.25 global. */
     const live = Number.parseFloat(getComputedStyle(root).getPropertyValue("--glass-gloss-tint"));
@@ -270,6 +291,12 @@ export function CrystalGlossDemo() {
     persist(SPAN_KEY, String(v));
   };
 
+  const changeShape = (sh: Shape) => {
+    setShape(sh);
+    document.documentElement.dataset.glossShape = sh;
+    persist(SHAPE_KEY, sh);
+  };
+
   const changeDir = (nd: number) => {
     setDir(nd);
     apply(mode, tintAuto ? null : tint, span, nd);
@@ -282,7 +309,9 @@ export function CrystalGlossDemo() {
       <p className="mb-4 text-muted-foreground text-sm">
         The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
         <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent: the highlight sweeps hues
-        shifted up &amp; down from the tint. The knobs apply site-wide, so switching the glass style to Crystal shows the same everywhere.
+        shifted up &amp; down from the tint. Its shape (<code className="text-xs">data-gloss-shape</code>) is apart from its flavor:{" "}
+        <strong>Bevel</strong> lights the top and the leading edge, <strong>Frame</strong> runs one 2rem band around every edge. The knobs apply
+        site-wide, so switching the glass style to Crystal shows the same everywhere.
       </p>
 
       <div className="mb-4 inline-flex rounded-lg border border-foreground/15 p-0.5">
@@ -308,6 +337,25 @@ export function CrystalGlossDemo() {
       </div>
 
       <div className="space-y-3">
+        <div className="space-y-1.5">
+          <div className="text-muted-foreground text-xs">Shape</div>
+          <div className="inline-flex rounded-lg border border-foreground/15 p-0.5">
+            {SHAPES.map((o) => (
+              <button
+                type="button"
+                key={o.key}
+                aria-pressed={shape === o.key}
+                onClick={() => changeShape(o.key)}
+                className={cn(
+                  "rounded-md px-3 py-1 font-medium text-xs transition-colors",
+                  shape === o.key ? "bg-foreground/10 text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {mode !== "white" && (
           <SliderRow
             label="Light"

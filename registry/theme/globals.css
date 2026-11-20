@@ -72,6 +72,17 @@
   inherits: false;
 }
 
+/* The far edges' ink in the crystal gloss's FRAME shape (engine.css block C): the ink at the frame's alpha,
+   or at 0 in the bevel. Registered as a colour so every crystal and chakra stack carries it as one token
+   rather than the ink's whole expression twice over: the stacks sit near the token budget (check-theme
+   [token-budget]). Every path to it has a fallback, so it never falls back to its initial value; it is
+   composed in block C, so it bakes at each scope that can change it, as the gradients that read it do. */
+@property --glass-gloss-edge-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
 /* The veil floor, NON-inheriting for the same reason as the glow: `glass-veil` sets it on the element
    and `glass` paints it as that element's background-color. Inherited, a plain glass surface nested in
    a veiled menu, popover, tooltip, select or card painted its PARENT's veil as its own floor (under the
@@ -1721,6 +1732,10 @@
      (left, or right with the direction flipped), fainter than the top and narrower, so the two read as one
      lit bevel and text starting near that edge still reads at night. */
   --glass-gloss-reach-side: 3rem;
+  /* THE FRAME SHAPE (data-gloss-shape="frame"): in place of the bevel's top and side bands, one band of
+     the same depth runs around all four edges. Each ends at this reach or a share of the surface (30% of
+     its height, 25% of its width), whichever comes first, so a small control is not all edge. */
+  --glass-gloss-reach-frame: 2rem;
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
      single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
@@ -1979,11 +1994,23 @@
    so with the switch `initial` the variant is invalid at computed-value time and the var() fallback here,
    the tonal shape, applies. The switches are leaves, so they inherit, and a nested [data-gloss] sets both
    to pick its own flavor; a nested [data-glass-tint] recomposes from the inherited switches and keeps the
-   page's flavor (it used to reset it to tonal). Each layer applies its own alpha. */
+   page's flavor (it used to reset it to tonal). Each layer applies its own alpha.
+   TWO SHAPES, by a third switch, --glass-gloss-is-frame, set by the [data-gloss-shape] blocks in
+   materials.css (unset = bevel), composed the same way and so recomposed at every [data-gloss-shape]:
+     bevel → a band down from the top (--glass-gloss-reach-top) and a fainter one in from the leading
+             edge (--glass-gloss-reach-side): a lit bevel
+     frame → one band, at one alpha, in from all four edges (--glass-gloss-reach-frame, 2rem)
+   The frame adds no layers: the top band runs on down to the bottom edge and the side band across to the
+   far side, each ending in a second stop group, transparent at the frame's reach in from the far edge
+   and --glass-gloss-edge-ink at it. The --glass-gloss-edge-a / -y / -x stops are valid only in the frame,
+   so the near stops read them with the bevel's own as the fallback, and the far ink (a registered
+   <color>, so the stacks carry one token for it) is the ink at alpha 0 in the bevel. The streak and the
+   glow are the same in both. */
 :root,
 .dark,
 [data-glass-tint],
-[data-gloss] {
+[data-gloss],
+[data-gloss-shape] {
   /* The tonal ink as its own token (not inline in the fallback below) so check-gamut's scraper, which
      reads `--x: <L> <chroma> <h>` declarations, still sweeps it.
      DEEP NIGHT, as the wash (block B): the DARKER of --glass-gloss-l and --glass-night-depth, so the night
@@ -1993,9 +2020,21 @@
   --glass-gloss-ink-tonal: calc(min(var(--glass-gloss-l, 94), var(--glass-night-depth, 100)) * 1%)
     min(calc(var(--glass-tint-c) * var(--glass-gloss-tint, 2)), var(--glass-gloss-c-max, 0.3)) var(--glass-tint-h);
   --glass-gloss-ink: var(--glass-gloss-ink-white, var(--glass-gloss-ink-tonal));
+  /* The frame's stops: its alpha, where its band ends across the height (y) and the width (x), and the
+     far edges' ink (the hue flavor's is the sweep's other end, block C′, so the light turns as it goes round). */
+  --glass-gloss-edge-a: calc(0.3 * var(--glass-gloss-is-frame));
+  --glass-gloss-edge-y: calc(min(30%, var(--glass-gloss-reach-frame, 2rem)) * var(--glass-gloss-is-frame));
+  --glass-gloss-edge-x: calc(min(25%, var(--glass-gloss-reach-frame, 2rem)) * var(--glass-gloss-is-frame));
+  --glass-gloss-edge-ink: var(--glass-gloss-edge-ink-hue, oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0)));
   --glass-gloss-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.4), transparent min(30%, var(--glass-gloss-reach-top, 5rem)))
+    linear-gradient(
+      to bottom,
+      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.4)),
+      transparent var(--glass-gloss-edge-y, min(30%, var(--glass-gloss-reach-top, 5rem))),
+      transparent calc(100% - min(30%, var(--glass-gloss-reach-frame, 2rem))),
+      var(--glass-gloss-edge-ink)
+    )
   );
   --glass-gloss-streak: var(
     --glass-gloss-streak-hue,
@@ -2009,8 +2048,10 @@
     --glass-gloss-side-hue,
     linear-gradient(
       calc(90deg * var(--glass-gloss-hue-dir, 1)),
-      oklch(var(--glass-gloss-ink, 100% 0 0) / 0.22),
-      transparent min(25%, var(--glass-gloss-reach-side, 3rem))
+      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.22)),
+      transparent var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 3rem))),
+      transparent calc(100% - min(25%, var(--glass-gloss-reach-frame, 2rem))),
+      var(--glass-gloss-edge-ink)
     )
   );
   --glass-gloss-glow: var(
@@ -2092,16 +2133,19 @@
 :root,
 .dark,
 [data-glass-tint],
-[data-gloss] {
+[data-gloss],
+[data-gloss-shape] {
   --glass-gloss-ink-white: calc(var(--glass-gloss-is-white) * 100%) 0 0;
   --glass-gloss-top-hue: linear-gradient(
     to bottom in oklch,
     oklch(
       calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-      calc(0.4 * var(--glass-gloss-is-hue))
+      calc(var(--glass-gloss-edge-a, 0.4) * var(--glass-gloss-is-hue))
     ),
-    transparent min(35%, var(--glass-gloss-reach-top, 5rem))
+    transparent var(--glass-gloss-edge-y, min(35%, var(--glass-gloss-reach-top, 5rem))),
+    transparent calc(100% - min(30%, var(--glass-gloss-reach-frame, 2rem))),
+    var(--glass-gloss-edge-ink)
   );
   --glass-gloss-streak-hue: linear-gradient(
     115deg in oklch,
@@ -2125,9 +2169,18 @@
     oklch(
       calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
-      calc(0.22 * var(--glass-gloss-is-hue))
+      calc(var(--glass-gloss-edge-a, 0.22) * var(--glass-gloss-is-hue))
     ),
-    transparent min(25%, var(--glass-gloss-reach-side, 3rem))
+    transparent var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 3rem))),
+    transparent calc(100% - min(25%, var(--glass-gloss-reach-frame, 2rem))),
+    var(--glass-gloss-edge-ink)
+  );
+  /* The frame's far edges (bottom, far side) take the sweep's other end, so the light turns hue as it
+     goes round. Alpha 0 in the bevel, as the tonal far ink is. */
+  --glass-gloss-edge-ink-hue: oklch(
+    calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
+      calc(var(--glass-tint-h) + var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
+    calc(var(--glass-gloss-edge-a, 0) * var(--glass-gloss-is-hue))
   );
   --glass-gloss-glow-hue: radial-gradient(
     circle at 50% 120%,
@@ -2674,6 +2727,18 @@
    They compose with [data-material="crystal"] AND the [data-glass="crystal"] page style, in both modes.
    Known edge: hue's pinned --glass-gloss-l and bevel-less crystal shadows are mode-twinned leaves that a
    white/tonal section nested INSIDE a hue scope inherits (no mode-aware reset exists for them here). */
+/* ── Gloss shapes ─────────────────────────────────────────────────────────────
+   data-gloss-shape on <html> or ANY element picks the crystal (and chakra) gloss's SHAPE for that
+   subtree, apart from its flavor: unset = bevel (a band down from the top and a fainter one in from the
+   leading edge), "frame" = one band in from all four edges (--glass-gloss-reach-frame, 2rem). A leaf
+   switch, like the flavors, and engine.css block C recomposes at every [data-gloss-shape]. Each block
+   sets it, so a nested shape overrides an ancestor's. Lustre keeps its own polish in either. */
+[data-gloss-shape="frame"] {
+  --glass-gloss-is-frame: 1;
+}
+[data-gloss-shape="bevel"] {
+  --glass-gloss-is-frame: initial;
+}
 [data-gloss="white"] {
   --glass-gloss-is-white: 1; /* the ink becomes the flat white specular, 100% 0 0 */
   --glass-gloss-is-hue: initial;

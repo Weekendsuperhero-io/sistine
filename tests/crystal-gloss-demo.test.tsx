@@ -265,3 +265,38 @@ describe("CrystalGlossDemo: the night depth caps the tonal Light", () => {
     expect(screen.queryByText(/night caps/)).not.toBeInTheDocument();
   });
 });
+
+describe("CrystalGlossDemo: the gloss shape", () => {
+  afterEach(() => {
+    delete root().dataset.glossShape;
+  });
+
+  it("starts on the bevel, and Frame sets data-gloss-shape on <html> and remembers it", async () => {
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(root().dataset.glossShape).toBe("bevel"));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Frame",
+      }),
+    );
+    expect(root().dataset.glossShape).toBe("frame");
+    expect(localStorage.getItem("sistine-gloss-shape")).toBe("frame");
+    expect(
+      screen.getByRole("button", {
+        name: "Frame",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("restores a stored frame on mount, in every flavor", async () => {
+    localStorage.setItem("sistine-gloss-shape", "frame");
+    localStorage.setItem(MODE_KEY, "white");
+    render(<CrystalGlossDemo />);
+    await waitFor(() => expect(root().dataset.glossShape).toBe("frame"));
+    expect(
+      screen.getByRole("button", {
+        name: "Frame",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+});

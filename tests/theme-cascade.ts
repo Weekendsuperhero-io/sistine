@@ -16,7 +16,7 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { compile, evaluate, substitute } from "../scripts/lib/css-math.mjs";
+import { compile, evaluate } from "../scripts/lib/css-math.mjs";
 
 /** An element in the model: its classes, its attributes and its inline custom properties. */
 export interface ModelElement {
@@ -248,6 +248,42 @@ function matchSelector(selector: string, chain: ModelElement[], inNot = false): 
   return spec;
 }
 
+/** The var() that opens at `start` in `value`: the name it references, its fallback, and where it closes. */
+function parseVar(
+  value: string,
+  start: number,
+): {
+  name: string;
+  fallback?: string;
+  end: number;
+} {
+  let depth = 0;
+  let end = -1;
+  for (let j = start + 3; j < value.length; j++) {
+    if (value[j] === "(") depth++;
+    else if (value[j] === ")" && --depth === 0) {
+      end = j;
+      break;
+    }
+  }
+  if (end === -1) throw new Error(`theme-cascade: unclosed var() in ${value}`);
+  const inner = value.slice(start + 4, end);
+  for (let j = 0, d = 0; j < inner.length; j++) {
+    if (inner[j] === "(") d++;
+    else if (inner[j] === ")") d--;
+    else if (inner[j] === "," && d === 0)
+      return {
+        name: inner.slice(0, j).trim(),
+        fallback: inner.slice(j + 1).trim(),
+        end,
+      };
+  }
+  return {
+    name: inner.trim(),
+    end,
+  };
+}
+
 /* computedVars is a pure function of the chain (the partials are read once), and every nested scope recomputes
    its parents, so results are kept by the chain's shape: a section inside a page resolves the page once. */
 const computedCache = new Map<string, Map<string, string>>();
@@ -316,26 +352,56 @@ function resolveVars(chain: ModelElement[]): Map<string, string> {
       const parent = inherited.get(name);
       if (parent === undefined) own.delete(name);
       else own.set(name, parent);
+    } else if (w.value.trim() === "initial") {
+      /* An unregistered custom property's initial value is the guaranteed-invalid value: how the theme's
+         switches turn off ([data-gloss="tonal"], [data-gloss-shape="bevel"]). */
+      own.delete(name);
     } else own.set(name, w.value);
   }
-  const out = new Map<string, string>();
-  for (const [name, raw] of own) {
-    try {
-      out.set(
-        name,
-        winners.has(name)
-          ? substitute(
-              raw,
-              own,
-              new Set([
-                name,
-              ]),
-            )
-          : raw,
-      );
-    } catch {
-      // An unresolvable declaration computes to the guaranteed-invalid value: leave it out.
+  /* An unresolvable declaration computes to the guaranteed-invalid value, and a var() that references it
+     takes its fallback, as one that references an undeclared property does. The theme's switches depend
+     on that (a flavor's or a shape's variant is invalid while its switch is off, and its readers fall back
+     to the default), so the invalid ones are dropped from what the others substitute against, round by
+     round, until every one left resolves. */
+  const memo = new Map<string, string | null>();
+  const resolve = (name: string, seen: Set<string>): string | null => {
+    const known = memo.get(name);
+    if (known !== undefined) return known;
+    const raw = own.get(name);
+    // Undeclared, or a cycle (every property in one is invalid at computed-value time).
+    if (raw === undefined || seen.has(name)) return null;
+    // An inherited value arrives already substituted, as a computed custom property does.
+    const value = winners.has(name)
+      ? substituteOrNull(
+          raw,
+          new Set([
+            ...seen,
+            name,
+          ]),
+        )
+      : raw;
+    memo.set(name, value);
+    return value;
+  };
+  /** `value` with each var() replaced by what it references, or its fallback where that is invalid; null if
+   *  a var() with no fallback references an invalid property. */
+  const substituteOrNull = (value: string, seen: Set<string>): string | null => {
+    let rest = value;
+    let done = "";
+    for (let i = rest.indexOf("var("); i !== -1; i = rest.indexOf("var(")) {
+      const { name, fallback, end } = parseVar(rest, i);
+      let replacement = resolve(name, seen);
+      if (replacement === null && fallback !== undefined) replacement = substituteOrNull(fallback, seen);
+      if (replacement === null) return null;
+      done += rest.slice(0, i) + replacement;
+      rest = rest.slice(end + 1);
     }
+    return done + rest;
+  };
+  const out = new Map<string, string>();
+  for (const name of own.keys()) {
+    const value = resolve(name, new Set());
+    if (value !== null) out.set(name, value);
   }
   return out;
 }
@@ -405,12 +471,12 @@ export function numberOf(name: string, chain: ModelElement[]): number {
 }
 
 /**
- * A theme token selector: :root / .dark / [data-glass-tint…] / [data-gloss…], alone, compounded, or as a
+ * A theme token selector: :root / .dark / [data-glass-tint…] / [data-gloss…] / [data-gloss-shape…], alone, compounded, or as a
  * descendant. A compound is a run of those tokens, and compounds are separated by required whitespace, so
  * every selector has exactly one way to match. The earlier form put an optional space inside two nested
  * repeats, `(?:(?:…)+\s*)+`, which backtracks exponentially on a long run of tokens (code scanning).
  */
-const SCOPE_TOKEN = String.raw`(?::root|\.dark|\[data-glass-tint(?:="[a-z-]*")?\]|\[data-gloss(?:="[a-z-]*")?\])`;
+const SCOPE_TOKEN = String.raw`(?::root|\.dark|\[data-glass-tint(?:="[a-z-]*")?\]|\[data-gloss(?:-shape)?(?:="[a-z-]*")?\])`;
 export const SCOPE_SELECTOR = new RegExp(String.raw`^${SCOPE_TOKEN}+(?:\s+${SCOPE_TOKEN}+)*\s*$`);
 
 /**

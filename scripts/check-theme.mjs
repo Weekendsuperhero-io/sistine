@@ -20,7 +20,7 @@
  *   6g.[double-slash] no class with two "/" modifiers (Tailwind drops it silently).
  *   6h.[surface-marker] element rules keyed on .glass / .glass-veil also accept [data-surface] / ="veil".
  *   6i.[solidify-owner] only the opaque material/page drop the solidify layer; the veil restores it.
- *   6j.[gloss-scope] the gloss is composed on [data-gloss] scopes too; flavor blocks set leaves only.
+ *   6j.[gloss-scope] the gloss is composed on [data-gloss] and [data-gloss-shape] scopes too; flavor and shape blocks set leaves only.
  *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset.
  *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
  *   6m.[night-knob] a --night-* knob is registered non-inheriting, read by the night rule with a fallback,
@@ -536,8 +536,8 @@ function splitTop(sel) {
 //     each, so a nested flavor overrides its ancestor's. The old blocks re-pinned the ink alone and the
 //     pre-composed gradients and stacks rode in from <html>: every scoped flavor painted the page's.
 {
-  const GLOSS = /^--(glass-gloss-(ink|top|side|streak|glow)(-[a-z]+)?|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
-  const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]"];
+  const GLOSS = /^--(glass-gloss-(ink|top|side|streak|glow|edge)(-[a-z]+)*|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
+  const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]", "[data-gloss-shape]"];
   for (const r of rules) {
     const sels = splitTop(r.selector);
     for (const d of decls(r.body)) {
@@ -557,6 +557,19 @@ function splitTop(sel) {
     for (const sw of ["--glass-gloss-is-white", "--glass-gloss-is-hue"]) {
       if (!names.has(sw)) fail(`[gloss-scope] [data-gloss="${flavor}"] does not set ${sw} — a nested flavor would combine with its ancestor's instead of replacing it.`);
     }
+  }
+  /* The shape (data-gloss-shape, bevel or frame) is a third leaf switch: each block sets it, so a nested
+     shape replaces its ancestor's, and the shape blocks set nothing else (a composed value there would hand
+     its children <html>'s gloss). */
+  for (const shape of ["bevel", "frame"]) {
+    const block = rules.find((r) => r.selector === `[data-gloss-shape="${shape}"]`);
+    if (!block) {
+      fail(`[gloss-scope] no [data-gloss-shape="${shape}"] block.`);
+      continue;
+    }
+    const names = decls(block.body).map((d) => d.name);
+    if (!names.includes("--glass-gloss-is-frame")) fail(`[gloss-scope] [data-gloss-shape="${shape}"] does not set --glass-gloss-is-frame.`);
+    for (const n of names) if (n !== "--glass-gloss-is-frame") fail(`[gloss-scope] [data-gloss-shape="${shape}"] sets ${n}; the shape blocks set the switch alone.`);
   }
 }
 
