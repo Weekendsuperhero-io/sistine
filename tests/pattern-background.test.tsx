@@ -244,8 +244,12 @@ describe("previews", () => {
   it("promotes nothing unconditionally, in a preview or a wallpaper", () => {
     // `var(--pat-wc, …)` is the speed-gated hint (stopRules releases it at Speed 0); a LITERAL
     // `will-change: transform` promotes whatever the scene is doing, even when nothing moves.
-    const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />))
-      .match(/<style[^>]*>([\s\S]*?)<\/style>/g)!
+    const css = [
+      ...renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />)).matchAll(
+        /<style[^>]*>([\s\S]*?)<\/style>/g,
+      ),
+    ]
+      .map((m) => m[1])
       .join("\n")
       .replace(/\/\*[\s\S]*?\*\//g, "");
     const rules = [
@@ -467,10 +471,13 @@ describe("shipit", () => {
     freighter: 330,
     cruise: 320,
   };
+  // Each stylesheet's text is its match's capture group, so no tag has to be stripped back out of it.
   const css = (html: string) =>
-    (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? [])
+    [
+      ...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g),
+    ]
+      .map((m) => m[1])
       .join("\n")
-      .replace(/<\/?style[^>]*>/g, "")
       .replace(/\/\*[\s\S]*?\*\//g, "");
   const rules = (html: string) =>
     [
@@ -1237,7 +1244,12 @@ describe("chase", () => {
     // carries the nominal place; the stylesheet puts the lane there and snaps it under @supports, and the
     // snap must come AFTER the lane's own rule, or that rule's nominal place wins at equal specificity (the
     // N–S lanes once stood 2px off their dot column that way).
-    const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? []).join("\n").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = [
+      ...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g),
+    ]
+      .map((m) => m[1])
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
     const lanes = [
       ...html.matchAll(/class="pac-(v?)lane[^"]*" style="([^"]*)"/g),
     ];
