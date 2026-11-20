@@ -210,8 +210,8 @@ const FILL_AUDIT = new Map(
     "accordion.tsx hover:bg-muted/50": [["muted", 0.5, "body"]], // glass variant trigger hover
     "alert-dialog.tsx bg-muted": [["muted", 1, "icon"]], // AlertDialogMedia tile
     "badge.tsx [a&]:hover:bg-accent": [["accent", 1, "accent-fg"]],
-    "button.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // ghost; at night dark:hover paints /50 over it
-    "button.tsx dark:hover:bg-accent/50": [["accent", 0.5, "accent-fg"]],
+    "button.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // ghost; at night dark:hover paints it at --ghost-hover-a (0.5) over it
+    "button.tsx dark:hover:bg-accent/[calc(var(--ghost-hover-a,0.5)*100%)]": [["accent", 0.5, "accent-fg"]], // --ghost-hover-a's fallback; the theme declares none
     "button.tsx active:bg-accent/80": [["accent", 0.8, "accent-fg"]],
     "button.tsx dark:active:bg-accent/60": [["accent", 0.6, "accent-fg"]],
     "calendar.tsx bg-accent": [["accent", 1, "none"]], // range start/end cell, under the day's own primary fill
@@ -256,7 +256,7 @@ const FILL_AUDIT = new Map(
     "table.tsx data-[state=selected]:bg-muted": [["muted", 1, "body"]], // a selected row
     "tabs.tsx bg-muted": [
       ["muted", 1, "muted"], // the list's inactive triggers
-      ["muted", 1, "chip-strong"], // the active trigger, strong at night (dark:data-[state=active]:text-foreground-strong)
+      ["muted", 1, "chip-strong"], // the active trigger, strong at night (dark:data-[state=active]:text-active-foreground-strong)
     ],
     "toggle-group.tsx hover:bg-accent/50": [["accent", 0.5, "accent-fg"]],
     "toggle.tsx hover:bg-accent": [["accent", 1, "accent-fg"]],
@@ -269,7 +269,8 @@ const FILL_AUDIT = new Map(
    chip sits straight on the ground. */
 const CHIP_AUDIT = new Map(
   Object.entries({
-    // Each says dark:…:text-foreground-strong, so the night text on the chip is the strong tier.
+    // Each says dark:…:text-active-foreground-strong, whose fallback (the theme declares no
+    // --active-foreground) is --foreground-strong, so the night text on the chip is the strong tier.
     "tabs.tsx data-[state=active]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
     "toggle.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
     "toggle-group.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
@@ -301,7 +302,7 @@ const auditFailures = [];
     const src = read(`${dir}/${file}`)
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
-    for (const m of src.matchAll(/(?<=^|[\s"'`])([^\s"'`]*?(?:bg-(?:muted|secondary|accent)(?:\/\d+)?|glass-hover-accent|bg-\[var\(--active-bg\)\]))(?=[\s"'`]|$)/gm)) {
+    for (const m of src.matchAll(/(?<=^|[\s"'`])([^\s"'`]*?(?:bg-(?:muted|secondary|accent)(?:\/(?:\d+|\[[^\s"'`]*\]))?|glass-hover-accent|bg-\[var\(--active-bg\)\]))(?=[\s"'`]|$)/gm)) {
       found.add(`${file} ${m[1]}`);
     }
   }

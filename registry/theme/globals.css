@@ -324,6 +324,17 @@
   --color-foreground-soft: var(--foreground-soft);
   --color-foreground-strong: var(--foreground-strong);
   --color-foreground-ui: var(--foreground-ui);
+  /* The selected-control INK, the text twin of --active-bg (the active tab, a pressed toggle, an on
+     toggle-group item, the menus' open trigger). Like the motion tokens above, the consumer token
+     --active-foreground is NOT declared by the theme, and each utility's fallback is the ink those
+     controls drew before it existed: the body ink by day (text-active-foreground) and the strong ink at
+     night (dark:text-active-foreground-strong). A fallback resolves on the element itself, so it follows
+     the material, preset and AutoForeground refinements of --foreground exactly as text-foreground did;
+     a value declared on :root would have frozen the root's ink into every nested scope. A consumer that
+     moves the fill (a dark chip by day) sets --active-foreground beside --active-bg, both modes, and both
+     utilities take it. */
+  --color-active-foreground: var(--active-foreground, var(--foreground));
+  --color-active-foreground-strong: var(--active-foreground, var(--foreground-strong));
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
