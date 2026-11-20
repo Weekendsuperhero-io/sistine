@@ -305,8 +305,9 @@ export function CrystalGlossDemo() {
         The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
         <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent: the highlight sweeps hues
         shifted up &amp; down from the tint. Its shape (<code className="text-xs">data-gloss-shape</code>) is apart from its flavor:{" "}
-        <strong>Bevel</strong> lights the top and the leading edge, <strong>Frame</strong> runs one 2rem band around every edge. The knobs apply
-        site-wide, so switching the glass style to Crystal shows the same everywhere.
+        <strong>Bevel</strong> lights the top and the leading edge, <strong>Frame</strong> runs one band around every edge, 0.5rem on a small surface
+        like these swatches and up to 2rem on a card (under Hue each edge fans the same sweep across the band). The knobs apply site-wide, so
+        switching the glass style to Crystal shows the same everywhere; the glass style menu offers the shape too.
       </p>
 
       <div className="mb-4 inline-flex rounded-lg border border-foreground/15 p-0.5">

@@ -99,6 +99,26 @@ describe("GlassStyleSwitcher", () => {
         name: "Bevel",
       }),
     ).toHaveAttribute("aria-checked", "true");
+    /* The chosen shape is marked as the chosen style is, a check after its label; the other is bare. */
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Bevel",
+        })
+        .querySelector("svg"),
+    ).not.toBeNull();
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Frame",
+        })
+        .querySelector("svg"),
+    ).toBeNull();
+    expect(
+      screen.getByRole("menuitemradio", {
+        name: "Frame",
+      }),
+    ).toHaveAttribute("aria-checked", "false");
     await user.click(
       screen.getByRole("menuitemradio", {
         name: "Frame",
@@ -116,6 +136,20 @@ describe("GlassStyleSwitcher", () => {
         name: "Frame",
       }),
     ).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Frame",
+        })
+        .querySelector("svg"),
+    ).not.toBeNull();
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Bevel",
+        })
+        .querySelector("svg"),
+    ).toBeNull();
     await user.click(
       screen.getByRole("menuitemradio", {
         name: "Bevel",

@@ -9,8 +9,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -129,8 +127,7 @@ export function GlassStyleSwitcher() {
     }
   };
 
-  const chooseShape = (next: string) => {
-    const sh: GlossShape = next === "frame" ? "frame" : "bevel";
+  const chooseShape = (sh: GlossShape) => {
     setShape(sh);
     document.documentElement.dataset.glossShape = sh;
     try {
@@ -160,13 +157,21 @@ export function GlassStyleSwitcher() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Gloss shape</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={shape} onValueChange={chooseShape}>
+            {/* Marked as the styles above are, a check after the chosen one, and announced as a radio group. */}
+            <DropdownMenuGroup role="group" aria-label="Gloss shape">
               {GLOSS_SHAPES.map((o) => (
-                <DropdownMenuRadioItem key={o.value} value={o.value}>
+                <DropdownMenuItem
+                  key={o.value}
+                  role="menuitemradio"
+                  aria-checked={shape === o.value}
+                  onClick={() => chooseShape(o.value)}
+                  className="justify-between gap-4"
+                >
                   {o.label}
-                </DropdownMenuRadioItem>
+                  {shape === o.value && <CheckIcon aria-hidden />}
+                </DropdownMenuItem>
               ))}
-            </DropdownMenuRadioGroup>
+            </DropdownMenuGroup>
           </>
         )}
       </DropdownMenuContent>

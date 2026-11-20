@@ -81,6 +81,13 @@
   inherits: true;
   initial-value: transparent;
 }
+/* The colour each near band climbs from: transparent, or under the hue flavor in the frame the sweep's
+   far end at alpha 0, so the near bands fan the sweep across their depth as the far edges do. */
+@property --glass-gloss-edge-from {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
 /* How deep each crystal gloss band reaches (engine.css block C): the top and side bands' near edge
    (the bevel's reach, or the frame's) and the frame's far edges. Each is read at four to five stops of
    its band, so registered as a length the stacks carry one token per stop rather than the whole min()
