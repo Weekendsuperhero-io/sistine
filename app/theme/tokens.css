@@ -141,7 +141,12 @@
   --press-shadow: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2);
   --press-shadow-strong: inset 0 2px 4px oklch(var(--shadow-ink) / 0.2), inset 0 1px 2px oklch(var(--shadow-ink) / 0.15);
   --press-shadow-deep: inset 0 2px 4px oklch(var(--shadow-ink) / 0.25), inset 0 1px 2px oklch(var(--shadow-ink) / 0.2);
-  --active-shadow: 0 1px 3px oklch(var(--shadow-ink) / 0.1), inset 0 1px 1px oklch(var(--shadow-highlight) / 0.5);
+  /* The selected chip's LIFT, by day built as the night's is (a deeper drop shadow and an inner glow over the
+     top highlight), at day strengths. The old day lift (a 1px drop at 0.1) left a pale chip on a pale list
+     with nothing to set it apart: Preview and Code read the same. */
+  --active-shadow:
+    0 2px 6px oklch(var(--shadow-ink) / 0.22), 0 1px 2px oklch(var(--shadow-ink) / 0.12),
+    inset 0 1px 1px oklch(var(--shadow-highlight) / 0.7), inset 0 0 8px oklch(var(--shadow-highlight) / 0.45);
   /* Selected-control FILL — the twin of --active-shadow, which had the lift but no surface, so tabs and
      toggle-group each hardcoded `bg-white/80 dark:bg-white/20`. The colour is composed in engine.css;
      these are its knobs.
@@ -423,6 +428,18 @@
 
   /* Primary colors - Light mode */
   --primary-l: 0.42; /* primary ink lightness (dark pill on light pages) — the color itself is composed in the engine, following the theme hue */
+  /* THE TWIN — the default Button wears the OTHER mode's glass, so the one filled action reads as glass and
+     still stands apart from every surface around it. By day: the NIGHT glass, deep and rich at the night
+     wash's own lightness (L35) and multiplier (×2.5), capped by the night wash's own fit (--twin-c-max,
+     below), with light ink, a faint white rim and a soft top gloss. At night: the DAY glass (see .dark). The
+     colours are composed in the engine beside --primary. */
+  --twin-l: 35;
+  --twin-c-mult: 2.5;
+  --twin-fg-l: 97;
+  --twin-fg-c-max: 0.0125; /* ≤ 92% of 0.0136, the lowest sRGB ceiling at L97 across every hue (h267.75) */
+  --twin-rim: oklch(100% 0 0 / 0.22);
+  --twin-gloss-a: 0.2;
+  --twin-shadow: 0 4px 14px oklch(var(--shadow-ink) / 0.3), inset 0 1px 0 oklch(100% 0 0 / 0.25);
   /* Ceiling on the primary ink's chroma. The ×1.2 in the engine is intent — primary should read MORE
      saturated than the base tint — but uncapped it asked past the sRGB edge for five presets in light
      (turquoise, aquamarine, success, warning, aurora) and two in dark (lapis, info), where the browser
@@ -588,6 +605,13 @@
   inherits: true;
   initial-value: 0.012;
 }
+/* The default Button's twin cap: the night wash's L35 fit by day (one number per scope, as the caps above,
+   rather than the fit's 467 tokens stored on every element under it), a fixed 0.052 at night. */
+@property --twin-c-max {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.052;
+}
 @property --glass-wash-c-max {
   syntax: "<number>";
   inherits: true;
@@ -699,6 +723,60 @@
       max(calc(0.11361 + 0.0007912 * (var(--glass-wash-hue) + 164.85))),
       calc(0.21101 + 200 * (var(--glass-wash-hue) + 233.276)),
       calc(0.11363 + 200 * (-164.833 - var(--glass-wash-hue)))
+    )
+  );
+  /* The twin's day cap: the night wash's L35 fit, copied as written, since the twin wears the night glass by
+     day at exactly that lightness (tests/twin.test.ts holds the copy identical to --glass-wash-c-max's
+     night rule). */
+  --twin-c-max: max(
+    0.057,
+    min(
+      max(
+        calc(0.13883 - 0.004206 * (var(--glass-wash-hue) - 29.3)),
+        calc(0.11097 - 0.002422 * (var(--glass-wash-hue) - 38)),
+        calc(0.08818 - 0.001213 * (var(--glass-wash-hue) - 51.15)),
+        calc(0.0715 - 0.0003214 * (var(--glass-wash-hue) - 75)),
+        calc(0.06946 - 0.00009153 * (var(--glass-wash-hue) - 85)),
+        calc(0.07046 + 0.0002299 * (var(--glass-wash-hue) - 100)),
+        calc(0.08861 + 0.001235 * (var(--glass-wash-hue) - 128))
+      ),
+      calc(0.13891 + 200 * (var(--glass-wash-hue) - 29.281)),
+      calc(0.11527 + 200 * (142.484 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.09326 - 0.002224 * (var(--glass-wash-hue) - 150)),
+        calc(0.07921 - 0.001377 * (var(--glass-wash-hue) - 158)),
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) - 190))
+      ),
+      calc(0.11527 + 200 * (var(--glass-wash-hue) - 142.484)),
+      calc(0.23411 + 200 * (264.135 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.23406 - 0.002322 * (var(--glass-wash-hue) + 95.85)),
+        calc(0.19897 - 0.001345 * (var(--glass-wash-hue) + 76)),
+        calc(0.1806 - 0.001 * (var(--glass-wash-hue) + 60)),
+        calc(0.14578 - 0.0006322 * (var(--glass-wash-hue) + 18)),
+        calc(0.13556 - 0.0001171 * (var(--glass-wash-hue) - 8)),
+        calc(0.1389 + 0.0004619 * (var(--glass-wash-hue) - 29.26))
+      ),
+      calc(0.23411 + 200 * (var(--glass-wash-hue) + 95.865)),
+      calc(0.13891 + 200 * (29.281 - var(--glass-wash-hue)))
+    ),
+    min(
+      max(
+        calc(0.05848 - 0.0001873 * (var(--glass-wash-hue) + 170)),
+        calc(0.05783 + 0.0001 * (var(--glass-wash-hue) + 155)),
+        calc(0.05983 + 0.0003065 * (var(--glass-wash-hue) + 145)),
+        calc(0.06749 + 0.0007599 * (var(--glass-wash-hue) + 130)),
+        calc(0.0959 + 0.002531 * (var(--glass-wash-hue) + 110)),
+        calc(0.11159 + 0.00391 * (var(--glass-wash-hue) + 105)),
+        calc(0.15698 + 0.01186 * (var(--glass-wash-hue) + 98)),
+        calc(0.20655 + 0.1035 * (var(--glass-wash-hue) + 95.88))
+      ),
+      calc(0.11527 + 200 * (var(--glass-wash-hue) + 217.516)),
+      calc(0.23411 + 200 * (-95.865 - var(--glass-wash-hue)))
     )
   );
   --glass-solidify-c-max-at-18: max(
@@ -1033,6 +1111,18 @@
 
   /* Primary colors — dark mode */
   --primary-l: 0.78; /* primary ink lightness in dark mode (light pill) — color composed in the engine */
+  /* The twin at night: the DAY glass, pale (L88) at the day backing's scale (×1.36), with dark ink, a bright
+     rim and a stronger top gloss. Its cap is a FIXED 0.052 (the night cap rule): 92% of the lowest sRGB
+     ceiling at L88 across every hue (0.0564, at h267.5), so it holds for any tint without evaluating a fitted
+     cap at night, the cost the night rule avoids. A pale surface needs little chroma; at L92 the same floor
+     was 0.034 and the pill read white. */
+  --twin-l: 88;
+  --twin-c-mult: 1.36;
+  --twin-fg-l: 22;
+  --twin-fg-c-max: 0.0335; /* ≤ 92% of 0.0366, the lowest sRGB ceiling at L22 across every hue (h199.75) */
+  --twin-rim: oklch(100% 0 0 / 0.75);
+  --twin-gloss-a: 0.5;
+  --twin-shadow: 0 4px 14px oklch(var(--shadow-ink) / 0.35), inset 0 1px 0 oklch(100% 0 0 / 0.9);
   --primary-c-max: 0.107; /* ≤ 0.1077, the L-78 ceiling floor (h268 lapis) */
   /* Near-black text on the primary ink — Lc 62.9 at the worst hue, sistine (measured). It was 60.9
      before --primary-c-max: capping the chroma the browser used to gamut-map moved the worst case back
@@ -1176,6 +1266,7 @@
 .dark[data-glass-tint],
 .dark [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
+  --twin-c-max: 0.052; /* the twin's night cap: 92% of the lowest L88 ceiling across hues (see .dark's --twin-l) */
   --glass-solidify-c-scale: var(--glass-opaque-c-scale);
   --glass-solidify-c-max: var(--glass-opaque-c-max);
   --glass-solidify-c-max-at-92: initial;

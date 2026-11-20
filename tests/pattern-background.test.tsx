@@ -1,7 +1,16 @@
 import { render } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ANIMATED_PATTERNS, DISC_PATTERNS, floorGridPath, PATTERN_STYLES, PatternBackground, stopRules } from "@/components/pattern-background";
+import {
+  ANIMATED_PATTERNS,
+  DISC_PATTERNS,
+  floorGridPath,
+  PATTERN_STYLES,
+  PatternBackground,
+  SHIP_KINDS,
+  type ShipKind,
+  stopRules,
+} from "@/components/pattern-background";
 import { GLASS_TINT_PRESETS } from "@/lib/glass-presets";
 
 /**
@@ -235,8 +244,12 @@ describe("previews", () => {
   it("promotes nothing unconditionally, in a preview or a wallpaper", () => {
     // `var(--pat-wc, …)` is the speed-gated hint (stopRules releases it at Speed 0); a LITERAL
     // `will-change: transform` promotes whatever the scene is doing, even when nothing moves.
-    const css = renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />))
-      .match(/<style[^>]*>([\s\S]*?)<\/style>/g)!
+    const css = [
+      ...renderToStaticMarkup(PATTERN_STYLES.map((style) => <PatternBackground key={style} style={style} />)).matchAll(
+        /<style[^>]*>([\s\S]*?)<\/style>/g,
+      ),
+    ]
+      .map((m) => m[1])
       .join("\n")
       .replace(/\/\*[\s\S]*?\*\//g, "");
     const rules = [
@@ -289,6 +302,7 @@ describe("previews", () => {
         "meadow",
         "muse",
         "peaks",
+        "shipit",
         "sky",
         "starfield",
         "synthwave",
@@ -334,6 +348,7 @@ describe("disc display gates", () => {
     "forest",
     "peaks",
     "meadow",
+    "shipit",
   ] as const)("%s keeps only the sun by day and only the moon by night", (style) => {
     expect(shownDiscs(style, false)).toEqual([
       "sw-sun",
@@ -437,6 +452,285 @@ describe("meadow", () => {
     const html = markup();
     expect(html.match(/class="mw-hill mw-h\d mw-fill"/g)).toHaveLength(4);
     expect(html).toContain("left: calc(var(--sw-disc-x, 50%) - 375vh)");
+  });
+});
+
+/**
+ * Shipit: a liner crossing a sea of generated swell. The rows' tiles have to end at the height they start at,
+ * or every repeat steps. The liner moves only by transform and draws on a still child. It sails toward the
+ * disc, and its still pose is the pose the loop starts from, at every scene width, so a scene set moving
+ * sails on from where it stood instead of jumping.
+ */
+describe("shipit", () => {
+  const markup = (disc?: "left" | "center" | "right", ship?: ShipKind) =>
+    renderToStaticMarkup(<PatternBackground style="shipit" disc={disc} ship={ship} />);
+  /** Each ship's hull length, in its drawing's units: the hull's middle is half of it. */
+  const HULL: Record<ShipKind, number> = {
+    liner: 270,
+    clipper: 150,
+    freighter: 330,
+    cruise: 320,
+  };
+  // Each stylesheet's text is its match's capture group, so no tag has to be stripped back out of it.
+  const css = (html: string) =>
+    [
+      ...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g),
+    ]
+      .map((m) => m[1])
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = (html: string) =>
+    [
+      ...css(html).matchAll(/([^{}]*)\{([^{}]*)\}/g),
+    ].map(([, selector, body]) => ({
+      selector: selector.replace(/\s+/g, " ").trim(),
+      body,
+    }));
+  const rule = (html: string, selector: string) => rules(html).find((r) => r.selector === selector)?.body ?? "";
+  const decl = (body: string, name: string) => body.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1].trim();
+
+  it("draws the same sea and liner on every render", () => {
+    expect(markup()).toBe(markup());
+  });
+
+  it("draws eight rows of swell, each tile ending at the height it starts at", () => {
+    const tiles = [
+      ...css(markup()).matchAll(/--sh-m: url\("data:image\/svg\+xml,([^"]+)"\)/g),
+    ].map((m) => decodeURIComponent(m[1]));
+    expect(tiles).toHaveLength(8);
+    for (const svg of tiles) {
+      const width = svg.match(/viewBox='0 0 ([\d.]+) [\d.]+'/)?.[1];
+      const d = svg.match(/d='([^']+)'/)?.[1] ?? "";
+      // M0 <foot> L0 <start> … L<tile> <end> L<tile> <foot> Z
+      const start = d.match(/^M0 [\d.]+L0 ([\d.]+)L/)?.[1];
+      const end = d.match(/L([\d.]+) ([\d.]+)L\1 [\d.]+Z$/);
+      expect(start, d.slice(0, 40)).toBeDefined();
+      expect(end?.[1]).toBe(width);
+      expect(end?.[2]).toBe(start);
+    }
+  });
+
+  it("sails toward the disc: east unless the disc is on the left", () => {
+    expect(markup("right")).toContain('class="sh-ship sh-k-liner"');
+    expect(markup("center")).toContain('class="sh-ship sh-k-liner"');
+    expect(markup("left")).toContain('class="sh-ship sh-k-liner sh-west"');
+  });
+
+  it("sails each of its ships, each its own drawing and box, the liner by default", () => {
+    expect(SHIP_KINDS).toEqual([
+      "liner",
+      "clipper",
+      "freighter",
+      "cruise",
+    ]);
+    const drawings = new Set<string>();
+    for (const ship of SHIP_KINDS) {
+      const html = markup("right", ship);
+      expect(html, ship).toBe(markup("right", ship));
+      expect(html, ship).toContain(`class="sh-ship sh-k-${ship}"`);
+      drawings.add(html.match(/<svg class="sh-paint"[\s\S]*?<\/svg>/)?.[0] ?? "");
+      const box = rule(html, `.sh-k-${ship}`);
+      for (const prop of [
+        "bottom",
+        "width",
+        "height",
+      ])
+        expect(decl(box, prop), `${ship} ${prop}`).toMatch(/^[\d.]+vh$/);
+    }
+    expect(drawings.size).toBe(SHIP_KINDS.length);
+    expect(markup()).toBe(markup("right", "liner"));
+  });
+
+  it.each(SHIP_KINDS)("rests the %s where its loop begins, the same share of the way across at every width", (ship) => {
+    const html = markup("right", ship);
+    const box = rule(html, ".sh-ship");
+    // The box's viewBox puts the hull's middle this far across the box.
+    const [x0, , w] = (html.match(/<svg class="sh-paint" viewBox="([^"]+)"/)?.[1] ?? "").split(" ").map(Number);
+    const hull = (HULL[ship] / 2 - x0) / w;
+    const [, loop, delay] =
+      decl(box, "animation")?.match(/^sh-east calc\(var\(--pat-dur, 8s\) \* ([\d.]+)\) linear calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\) infinite$/) ??
+      [];
+    const start = -Number(delay) / Number(loop);
+    for (const [selector, east] of [
+      [
+        ".sh-ship",
+        true,
+      ],
+      [
+        ".sh-ship.sh-west",
+        false,
+      ],
+    ] as const) {
+      const [, cqw, own] = decl(rule(html, selector), "transform")?.match(/^translateX\(calc\(([\d.]+)cqw - ([\d.]+)%\)\)$/) ?? [];
+      for (const scene of [
+        430,
+        1440,
+        3440,
+      ]) {
+        const boxW = 600;
+        // Where the keyframes put the box at the loop's start (east: -100% → 100cqw; west the reverse).
+        const looped = east ? -boxW + start * (scene + boxW) : scene - start * (scene + boxW);
+        const still = (Number(cqw) / 100) * scene - (Number(own) / 100) * boxW;
+        expect(still, `${selector} at ${scene}px`).toBeCloseTo(looped, 6);
+        // And the hull's middle sits a third of the way in from the side it sails from (mirrored going west).
+        const middle = still + (east ? hull : 1 - hull) * boxW;
+        // (To 1e-3: the viewBox is written to a tenth of a unit, about 0.01px.)
+        expect(middle / scene, `${selector} at ${scene}px`).toBeCloseTo(east ? start : 1 - start, 3);
+      }
+    }
+    expect(start).toBeCloseTo(0.32, 6);
+  });
+
+  it("moves only by transform, and draws on a still child", () => {
+    const html = markup();
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    const ship = host.querySelector(".sh-ship")!;
+    expect(
+      [
+        ...ship.children,
+      ].map((child) => child.getAttribute("class")),
+    ).toEqual([
+      "sh-paint",
+    ]);
+    const own = rules(html).filter(({ selector }) => selector.split(",").some((s) => /\.sh-ship(\.sh-west)?$/.test(s.trim())));
+    expect(own.length).toBeGreaterThan(0);
+    for (const { selector, body } of own) expect(body, selector).not.toMatch(/filter|mask|clip-path/);
+  });
+
+  it("lights its windows yellow by night, and only by night", () => {
+    const html = markup();
+    const day = rule(html, '[data-pattern="shipit"]');
+    const night = rule(html, '.dark [data-pattern="shipit"]');
+    for (const lit of [
+      "sh-port-lit",
+      "sh-win-lit",
+    ]) {
+      expect(html.match(new RegExp(`<path class="${lit}" d="(M[^"]+)"`))?.[1].split("M").length ?? 0, lit).toBeGreaterThan(20);
+    }
+    // By day a lit window is the same glass as a dark one; by night it is the lamp.
+    expect(decl(day, "--sh-port-lit")).toBe("var(--sh-port)");
+    expect(decl(day, "--sh-glass-lit")).toBe("var(--sh-glass)");
+    expect(decl(night, "--sh-port-lit")).toBe("var(--sh-lamp)");
+    expect(decl(night, "--sh-glass-lit")).toBe("var(--sh-lamp)");
+    expect(decl(night, "--sh-lamp")).toMatch(/^oklch\(0\.9 0\.1\d 8\d\)$/);
+    // The halos, the lights' streaks on the water and the running lights are gated: off unless night says.
+    expect(decl(rule(html, ".sh-night"), "display")).toBe("var(--sh-night-d, none)");
+    expect(decl(day, "--sh-night-d")).toBeUndefined();
+    expect(decl(night, "--sh-night-d")).toBe("inline");
+  });
+
+  it.each(SHIP_KINDS)("switches some of the %s's lights on and off in sets, and holds them still with the scene", (ship) => {
+    const html = markup("right", ship);
+    // Several sets carry lit windows (a ship with few windows may leave one empty), and each set's halos sit
+    // in the same set, behind the night gate.
+    const sets = Array.from(
+      {
+        length: 6,
+      },
+      (_, set) => set,
+    ).filter((set) => new RegExp(`<g class="sh-blink sh-blink-${set}"><path class="sh-(win|port)-lit" d="M`).test(html));
+    expect(sets.length, ship).toBeGreaterThanOrEqual(4);
+    for (const set of sets) expect(html, `${ship} set ${set}`).toContain(`<g class="sh-night sh-blink sh-blink-${set}"><path class="sh-halo"`);
+    // Even sets rest lit and go out for a while; odd sets rest dark and come on. Speed 0 and reduced motion
+    // stop all of them, at rest.
+    expect(decl(rule(html, ".sh-blink-0"), "opacity")).toBeUndefined();
+    expect(decl(rule(html, ".sh-blink-1"), "opacity")).toBe("0");
+    expect(decl(rule(html, ".sh-blink-1"), "animation-name")).toBe("sh-lights-on");
+    for (const selector of [
+      ".sh-blink",
+      ".sh-hero-dark",
+      ".sh-hero",
+    ])
+      expect(css(html), selector).toContain(`[data-pat-static] ${selector}`);
+  });
+
+  it("spells HERO in the cruise ship's lights by night, the right way round whichever way she sails", () => {
+    // Font pixels per letter (H, E, R, O), each two windows by two.
+    const PIXELS = [
+      12,
+      13,
+      12,
+      10,
+    ];
+    const centres = (html: string, k: number) =>
+      [
+        ...(html.match(new RegExp(`<g class="sh-night sh-hero sh-hero-${k}"><path class="sh-win-lit" d="([^"]+)"`))?.[1] ?? "").matchAll(
+          /M([\d.-]+) [\d.-]+h([\d.]+)/g,
+        ),
+      ].map((m) => Number(m[1]) + Number(m[2]) / 2);
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    for (const [disc, east] of [
+      [
+        "right",
+        true,
+      ],
+      [
+        "left",
+        false,
+      ],
+    ] as const) {
+      const html = markup(disc, "cruise");
+      const letters = PIXELS.map((_, k) => centres(html, k));
+      letters.forEach((cells, k) => expect(cells, `${disc} letter ${k}`).toHaveLength(PIXELS[k] * 4));
+      // Drawn heading east, the letters run left to right in the drawing; the west-bound copy is drawn
+      // mirrored, so that once CSS mirrors the ship they read left to right on screen.
+      const order = letters.map(mean);
+      for (let k = 1; k < 4; k++) expect(order[k] > order[k - 1], `${disc} letter ${k}`).toBe(east);
+    }
+    // Night only, every other crossing, phased with the crossing.
+    const html = markup("right", "cruise");
+    expect(html).not.toMatch(/<g class="sh-hero/);
+    const [, loop, start] =
+      decl(rule(html, ".sh-hero-dark, .sh-hero"), "animation")?.match(
+        /^sh-hero-dark calc\(var\(--pat-dur, 8s\) \* ([\d.]+)\) steps\(1, end\) calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\) infinite$/,
+      ) ?? [];
+    const crossing = decl(rule(html, ".sh-ship"), "animation")?.match(/\* ([\d.]+)\) linear calc\(var\(--pat-dur, 8s\) \* (-[\d.]+)\)/) ?? [];
+    expect(Number(loop)).toBe(2 * Number(crossing[1]));
+    expect(start).toBe(crossing[2]);
+    // The other ships have no HERO.
+    for (const ship of SHIP_KINDS.filter((k) => k !== "cruise"))
+      expect(markup("right", ship).match(/<svg class="sh-paint"[\s\S]*?<\/svg>/)?.[0], ship).not.toContain("sh-hero");
+  });
+
+  it("stacks the freighter's boxes 1.5 tall to 1 wide, large enough to read as boxes", () => {
+    const html = markup("right", "freighter");
+    const boxes = [
+      ...html.matchAll(/<path class="sh-cargo-\d" d="([^"]+)"/g),
+    ].flatMap((m) =>
+      [
+        ...m[1].matchAll(/h([\d.]+)v([\d.]+)/g),
+      ].map((b) => ({
+        w: Number(b[1]),
+        h: Number(b[2]),
+      })),
+    );
+    expect(boxes.length).toBeGreaterThan(150);
+    // Each box is drawn a hair inside its slot (a gap all round), and to a tenth of a unit.
+    for (const { w, h } of boxes) {
+      expect(h / w).toBeGreaterThan(1.35);
+      expect(h / w).toBeLessThan(1.6);
+      // About five units tall on a 330-unit hull: a box, not a speck.
+      expect(h).toBeGreaterThan(4.5);
+    }
+  });
+
+  it.each(SHIP_KINDS)("defines every colour it paints the %s with", (ship) => {
+    // A part painted from an undefined variable silently draws nothing (see forest). Every --sh-* the scene
+    // reads is set by day (night overrides on top), or by a row's own rule.
+    const html = markup("right", ship);
+    const day = rule(html, '[data-pattern="shipit"]');
+    const rows = rules(html)
+      .filter(({ selector }) => /^\.sh-r\d$/.test(selector))
+      .map(({ body }) => body)
+      .join("\n");
+    const used = new Set(
+      [
+        ...html.matchAll(/var\((--sh-[\w-]+)\)/g),
+      ].map((m) => m[1]),
+    );
+    expect(used.size).toBeGreaterThan(25);
+    for (const name of used) expect(day.includes(`${name}:`) || rows.includes(`${name}:`), name).toBe(true);
   });
 });
 
@@ -565,7 +859,7 @@ describe("the theme cast in the day skies", () => {
 
   it("weights every cast by how far the tint's hue agrees with the stop's", () => {
     // Ungated, a warm tint swung a blue sky round the wheel through teal (in OKLCH) or greyed it (in OKLab).
-    expect(casts).toHaveLength(26);
+    expect(casts).toHaveLength(29);
     for (const cast of casts) {
       const m = cast.match(
         /^color-mix\(in oklch, oklch\(([\d.]+) [\d.]+ (\d+)\), oklch\(([\d.]+) [\d.]+ var\(--glass-tint-h, (\d+)\)\) calc\(var\(--sw-cast\) \* max\(0, cos\(calc\(\(var\(--glass-tint-h, (\d+)\) - (\d+)\) \* 1deg\)\)\)\)\);$/,
@@ -950,7 +1244,12 @@ describe("chase", () => {
     // carries the nominal place; the stylesheet puts the lane there and snaps it under @supports, and the
     // snap must come AFTER the lane's own rule, or that rule's nominal place wins at equal specificity (the
     // N–S lanes once stood 2px off their dot column that way).
-    const css = (html.match(/<style[^>]*>([\s\S]*?)<\/style>/g) ?? []).join("\n").replace(/\/\*[\s\S]*?\*\//g, "");
+    const css = [
+      ...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g),
+    ]
+      .map((m) => m[1])
+      .join("\n")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
     const lanes = [
       ...html.matchAll(/class="pac-(v?)lane[^"]*" style="([^"]*)"/g),
     ];

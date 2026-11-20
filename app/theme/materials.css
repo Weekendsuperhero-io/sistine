@@ -198,6 +198,18 @@
    They compose with [data-material="crystal"] AND the [data-glass="crystal"] page style, in both modes.
    Known edge: hue's pinned --glass-gloss-l and bevel-less crystal shadows are mode-twinned leaves that a
    white/tonal section nested INSIDE a hue scope inherits (no mode-aware reset exists for them here). */
+/* ── Gloss shapes ─────────────────────────────────────────────────────────────
+   data-gloss-shape on <html> or ANY element picks the crystal (and chakra) gloss's SHAPE for that
+   subtree, apart from its flavor: unset = bevel (a band down from the top and a fainter one in from the
+   leading edge), "frame" = one band in from all four edges (--glass-gloss-reach-frame, 2rem). A leaf
+   switch, like the flavors, and engine.css block C recomposes at every [data-gloss-shape]. Each block
+   sets it, so a nested shape overrides an ancestor's. Lustre keeps its own polish in either. */
+[data-gloss-shape="frame"] {
+  --glass-gloss-is-frame: 1;
+}
+[data-gloss-shape="bevel"] {
+  --glass-gloss-is-frame: initial;
+}
 [data-gloss="white"] {
   --glass-gloss-is-white: 1; /* the ink becomes the flat white specular, 100% 0 0 */
   --glass-gloss-is-hue: initial;

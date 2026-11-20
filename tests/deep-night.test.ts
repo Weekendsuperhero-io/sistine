@@ -682,6 +682,8 @@ describe("the token-selector pattern the cascade helper filters with", () => {
       ".dark [data-glass-tint]",
       '.dark[data-glass-tint="onyx"]',
       ':root .dark [data-glass-tint="lapis"][data-gloss="hue"] ',
+      "[data-gloss-shape]",
+      '[data-gloss="white"][data-gloss-shape="frame"]',
     ]) {
       expect(SCOPE_SELECTOR.test(s), s).toBe(true);
     }

@@ -99,6 +99,7 @@ function fgPageState(root: HTMLElement): string {
     root.className,
     root.dataset.glassTint ?? "",
     root.dataset.gloss ?? "",
+    root.dataset.glossShape ?? "",
     root.dataset.glass ?? "",
     ...inline.sort(),
   ].join("\n");
@@ -460,12 +461,17 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const tintCHi = Math.min(tintC, TINT_C_HI_MAX);
       /* The gloss triple (top / streak / glow) — crystal AND chakra bake the same --glass-gloss-ink, so
          it is derived once here. Only the TOP highlight is modeled: it peaks at 0.4α and fades out by
-         30% height, so ≈0.2 is its mean across the title zone (modeling the 0.4 peak would make the band
-         unsatisfiable on mid-gray). The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
+         30% height (or --glass-gloss-reach-top, 5rem, on a tall surface), so ≈0.2 is its mean across the
+         title zone (modeling the 0.4 peak would make the band unsatisfiable on mid-gray). On a tall panel
+         the capped fade is steeper, but the title zone's mean stays above 0.2 (≈0.25 at 30px of an 80px
+         fade), so the model holds in the same direction as on a card. The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
          at 50% 120%, i.e. BELOW the card) are left out: the glow is past its 70% fade before it reaches
          the title zone, and the streak's mean there is a geometry estimate rather than a measurement.
-         Both would only ADD light, so omitting them is the conservative direction. */
-      const GLOSS_TOP_A = 0.2;
+         Both would only ADD light, so omitting them is the conservative direction.
+         The FRAME shape (data-gloss-shape="frame") draws 0.3α in from every edge, gone by 2rem: by the title
+         zone (about 24–40px in) it is down to under a tenth, with the side band where the text starts at
+         about the same, so it is modelled at 0.06. */
+      const GLOSS_TOP_A = root.dataset.glossShape === "frame" ? 0.06 : 0.2;
       /* Only the TONAL ink takes the night depth (engine.css block C); the white and hue flavors keep their
          own lightness, so they are modelled as they were. */
       const tonalGloss = root.dataset.gloss !== "white" && root.dataset.gloss !== "hue";
@@ -861,6 +867,7 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
         "class",
         "style",
         "data-gloss",
+        "data-gloss-shape",
         "data-glass-tint",
       ],
     });

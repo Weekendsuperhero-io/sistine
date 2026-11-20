@@ -233,10 +233,8 @@ const FILL_AUDIT = new Map(
     "dropdown-menu.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]],
     "dropdown-menu.tsx bg-muted": [["muted", 1, "none"]], // separator
     "item.tsx [a]:hover:bg-accent": [["accent", 1, "accent-fg"]], // link items; dark:[a]:hover:text-accent-foreground
-    "menu-bar.tsx bg-accent": [["accent", 1, "accent-fg"]],
-    "menubar.tsx hover:bg-accent": [["accent", 1, "accent-fg"]], // trigger; dark:hover:text-accent-foreground
-    "menubar.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
-    "menubar.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]],
+    "menubar.tsx focus:bg-accent": [["accent", 1, "accent-fg"]], // the open menu's items and sub-trigger
+    "menubar.tsx data-[state=open]:bg-accent": [["accent", 1, "accent-fg"]], // the open sub-trigger
     "menubar.tsx bg-muted": [["muted", 1, "none"]], // separator
     "navigation-menu.tsx hover:bg-accent": [["accent", 1, "accent-fg"]],
     "navigation-menu.tsx focus:bg-accent": [["accent", 1, "accent-fg"]],
@@ -275,6 +273,14 @@ const CHIP_AUDIT = new Map(
     "tabs.tsx data-[state=active]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
     "toggle.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
     "toggle-group.tsx data-[state=on]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    // The menus' active / open / hovered item is the same selected-control chip (it was --accent, a
+    // near-grey at night), its text the strong tier at night likewise.
+    "menu-bar.tsx bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "menu-bar.tsx hover:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "menu-bar.tsx dark:hover:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "menubar.tsx hover:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "menubar.tsx focus:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
+    "menubar.tsx data-[state=open]:bg-[var(--active-bg)]": [["surface", 1, "chip-strong"]],
   }),
 );
 /* The shadcn role contract, which holds whatever a component does: each fill carries its own text. */

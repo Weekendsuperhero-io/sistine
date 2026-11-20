@@ -49,6 +49,26 @@
   inherits: false;
 }
 
+/* The EDGE of a lit control, NON-inheriting for the same reason: a lit Button sets it to a 1px ring in
+   its own light (--lit) and every glass box-shadow folds it in beside the glow layer, so a borderless
+   button is outlined in the colour of the line standing off it. Inherited, a lit button would ring
+   every glass surface inside it. */
+@property --lit-layer {
+  syntax: "*";
+  inherits: false;
+}
+
+/* The far edges' ink in the crystal gloss's FRAME shape (engine.css block C): the ink at the frame's alpha,
+   or at 0 in the bevel. Registered as a colour so every crystal and chakra stack carries it as one token
+   rather than the ink's whole expression twice over: the stacks sit near the token budget (check-theme
+   [token-budget]). Every path to it has a fallback, so it never falls back to its initial value; it is
+   composed in block C, so it bakes at each scope that can change it, as the gradients that read it do. */
+@property --glass-gloss-edge-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
 /* The veil floor, NON-inheriting for the same reason as the glow: `glass-veil` sets it on the element
    and `glass` paints it as that element's background-color. Inherited, a plain glass surface nested in
    a veiled menu, popover, tooltip, select or card painted its PARENT's veil as its own floor (under the

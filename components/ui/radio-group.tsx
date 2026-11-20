@@ -43,13 +43,18 @@ const RadioGroupItem = React.forwardRef<
         m?.className,
         "aspect-square h-4 w-4 shrink-0 rounded-full border shadow transition-[color,box-shadow] focus:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40",
         m === null && "border-primary",
+        /* CHECKED is a solid disc in the primary colour with a light dot, readable from across the room on
+           any theme: a primary dot inside a glass ring of nearly the same colour (an amber page) was not. On
+           glass the disc replaces the material's image layer (--srf-bg-image), since a background colour sits
+           UNDER the glass's image layers. */
+        "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:[--srf-bg-image:linear-gradient(var(--primary),var(--primary))]",
         axes.glow && "data-[state=checked]:glass-glow transition duration-200",
         className,
       )}
       {...rest}
     >
       <RadioGroupPrimitive.Indicator data-slot="radio-group-indicator" className="flex items-center justify-center">
-        <Circle className="h-2.5 w-2.5 fill-primary text-primary" />
+        <Circle className="h-2 w-2 fill-primary-foreground text-primary-foreground" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );

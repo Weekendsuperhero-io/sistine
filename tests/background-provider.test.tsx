@@ -8,6 +8,7 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { BackgroundProvider, PATTERN_SANDS, useBackground } from "@/components/background-provider";
+import { SHIP_KINDS } from "@/components/pattern-background";
 
 function SandProbe() {
   const { patternSand, cyclePatternSand } = useBackground();
@@ -81,5 +82,38 @@ describe("BackgroundProvider: patternSand", () => {
 
     expect(screen.getByRole("button").textContent).toBe(initial);
     expect(localStorage.getItem("sistine-pattern-sand")).toBeNull();
+  });
+});
+
+function ShipProbe() {
+  const { patternShip, cyclePatternShip } = useBackground();
+  return (
+    <button type="button" onClick={cyclePatternShip}>
+      {patternShip}
+    </button>
+  );
+}
+
+describe("BackgroundProvider: patternShip", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("starts on the liner and visits every ship once per lap", async () => {
+    const user = userEvent.setup();
+    render(
+      <BackgroundProvider>
+        <ShipProbe />
+      </BackgroundProvider>,
+    );
+    const button = screen.getByRole("button");
+    expect(button.textContent).toBe("liner");
+    const seen: string[] = [];
+    for (let i = 0; i < SHIP_KINDS.length; i++) {
+      await user.click(button);
+      seen.push(button.textContent ?? "");
+    }
+    expect(seen).toEqual([
+      ...SHIP_KINDS.slice(1),
+      SHIP_KINDS[0],
+    ]);
   });
 });

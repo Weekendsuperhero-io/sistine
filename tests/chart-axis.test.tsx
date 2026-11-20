@@ -81,6 +81,17 @@ describe("chart axis labels", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("wins over the fill Recharts writes inline, so the rule is important", () => {
+    // Recharts 3.11 writes the tick's fill as an inline STYLE as well as the presentation attribute; a
+    // matching selector alone then loses to it and every tick is #666 again. Only an important rule wins.
+    const { container } = render(<Chart />);
+    const tick = container.querySelector("text.recharts-cartesian-axis-tick-value");
+    const src = readFileSync(join(root, "components/ui/chart.tsx"), "utf8");
+    if (tick?.getAttribute("style")?.includes("fill")) {
+      expect(src).toMatch(/\[&_[^\]]+\]:fill-muted-foreground!/);
+    }
+  });
+
   it("regression: the Recharts 2 descendant shape no longer matches, which is why it had to change", () => {
     const { container } = render(<Chart />);
     // Documents the actual breakage. If a future Recharts restores this nesting, this test tells you.

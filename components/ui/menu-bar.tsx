@@ -65,7 +65,19 @@ export interface MenuBarItemProps extends React.ComponentProps<typeof Button> {
 
 const MenuBarItem = React.forwardRef<HTMLButtonElement, MenuBarItemProps>(({ className, active, variant = "ghost", ...props }, ref) => {
   return (
-    <Button ref={ref} variant={variant} className={cn("h-8 px-3 text-sm", active && "bg-accent text-accent-foreground", className)} {...props} />
+    <Button
+      ref={ref}
+      variant={variant}
+      className={cn(
+        "h-8 px-3 text-sm",
+        /* Active (the open menu) is the selected-control pair Tabs and ToggleGroup use; --accent, the ghost
+           button's hover wash, is a near-grey at night. Hover takes the same lift, less of it. */
+        "hover:bg-[var(--active-bg)] hover:text-foreground dark:hover:bg-[var(--active-bg)] dark:hover:text-foreground-strong",
+        active && "bg-[var(--active-bg)] text-foreground shadow-[var(--active-shadow)] dark:text-foreground-strong",
+        className,
+      )}
+      {...props}
+    />
   );
 });
 MenuBarItem.displayName = "MenuBarItem";

@@ -155,12 +155,14 @@ const ChartContainer = React.forwardRef<
           // .recharts-cartesian-axis-tick-label > text). The old descendant selector matched nothing after
           // the upgrade, so every tick kept Recharts' own `fill="#666"` — grey in all 17 themes, in both
           // modes, which is what made the axes unreadable. .recharts-cartesian-axis-tick-value sits ON the
-          // <text> in both Recharts 2 and 3, so it survives the structure change. (A CSS `fill` beats the
-          // fill presentation attribute Recharts sets, so no !important is needed.)
+          // <text> in both Recharts 2 and 3, so it survives the structure change. `!`: Recharts 3.11 writes
+          // the tick's fill as an inline STYLE as well as the presentation attribute (style="fill:
+          // rgb(102, 102, 102)"), and only an important rule beats an inline style; without it every tick
+          // was #666 again, in every theme. Vendor styling lives here, in the component that renders it.
           /* ONE size contract: the caller's height (`h-[300px]`), else the aspect. `min-h-[150px]` is the
              floor the old `minHeight={150}` gave the chart, moved onto this box so it no longer feeds back
              through what the observer measures; a caller's min-h-* still wins. */
-          "flex w-full min-w-0 min-h-[150px] aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-hidden [&_.recharts-surface]:outline-hidden",
+          "flex w-full min-w-0 min-h-[150px] aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick-value]:fill-muted-foreground! [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line-line]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-hidden [&_.recharts-surface]:outline-hidden",
           variants[variant],
           className,
         )}

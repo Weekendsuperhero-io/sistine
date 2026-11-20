@@ -3,7 +3,15 @@
 import * as React from "react";
 import { CanvasBackground } from "@/components/canvas-background";
 import { GradientBackground } from "@/components/gradient-background";
-import { PATTERN_DENSITIES, PATTERN_STYLES, PatternBackground, type PatternDensity, type PatternStyle } from "@/components/pattern-background";
+import {
+  PATTERN_DENSITIES,
+  PATTERN_STYLES,
+  PatternBackground,
+  type PatternDensity,
+  type PatternStyle,
+  SHIP_KINDS,
+  type ShipKind,
+} from "@/components/pattern-background";
 import type { CanvasStyle } from "@/lib/canvas-background-utils";
 import type { GradientGeometry, GradientShape, RampGradientAxis } from "@/lib/oklch-utils";
 
@@ -250,6 +258,10 @@ interface BackgroundContextValue {
   patternSand: (typeof PATTERN_SANDS)[number];
   /** Advance to the next blowing-sand level. */
   cyclePatternSand: () => void;
+  /** The ship the shipit scene sails (liner | clipper | freighter | cruise). */
+  patternShip: ShipKind;
+  /** Advance to the next ship. */
+  cyclePatternShip: () => void;
   // ── Base color (the "none" backdrop) ──
   /** Base color for the "none" backdrop; null = follow the theme (tint-tinted, light/dark aware). */
   baseColor: string | null;
@@ -286,6 +298,7 @@ interface RenderArgs {
   patternSpeed: number;
   patternDisc: (typeof PATTERN_DISCS)[number];
   patternSand: (typeof PATTERN_SANDS)[number];
+  patternShip: ShipKind;
   baseColor: string | null;
 }
 
@@ -313,6 +326,7 @@ function renderBackground(background: BackgroundType, args: RenderArgs) {
           speed={args.patternSpeed}
           disc={args.patternDisc}
           sand={args.patternSand}
+          ship={args.patternShip}
         />
       );
     case "none":
@@ -378,6 +392,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
   const [baseColor, setBaseColor] = React.useState<string | null>(null);
   const [patternDisc, cyclePatternDiscState] = useCycle(PATTERN_DISCS, "right");
   const [patternSand, cyclePatternSandState] = useCycle(PATTERN_SANDS, "breeze");
+  const [patternShip, cyclePatternShipState] = useCycle(SHIP_KINDS, "liner");
 
   React.useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -441,6 +456,8 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
     cyclePatternDisc: withType("pattern", cyclePatternDiscState),
     patternSand,
     cyclePatternSand: withType("pattern", cyclePatternSandState),
+    patternShip,
+    cyclePatternShip: withType("pattern", cyclePatternShipState),
     baseColor,
     setBaseColor,
   };
@@ -466,6 +483,7 @@ export function BackgroundProvider({ children }: { children: React.ReactNode }) 
         patternSpeed,
         patternDisc,
         patternSand,
+        patternShip,
         baseColor,
       })}
       {children}

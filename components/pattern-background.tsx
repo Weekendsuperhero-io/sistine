@@ -24,6 +24,7 @@ export type PatternStyle =
   | "forest"
   | "peaks"
   | "meadow"
+  | "shipit"
   | "chase";
 
 export const PATTERN_STYLES: PatternStyle[] = [
@@ -39,6 +40,7 @@ export const PATTERN_STYLES: PatternStyle[] = [
   "forest",
   "peaks",
   "meadow",
+  "shipit",
   "chase",
 ];
 
@@ -80,6 +82,7 @@ export const ANIMATED_PATTERNS = new Set<PatternStyle>([
   "forest",
   "peaks",
   "meadow",
+  "shipit",
   "chase",
 ]);
 
@@ -93,11 +96,25 @@ export const DISC_PATTERNS = new Set<PatternStyle>([
   "forest",
   "peaks",
   "meadow",
+  "shipit",
 ]);
 
 /** Scenes with a blowing-sand control (still / breeze / storm). */
 export const SAND_PATTERNS = new Set<PatternStyle>([
   "dune",
+]);
+
+/** The ships shipit can sail, in the order the switcher cycles them. */
+export type ShipKind = "liner" | "clipper" | "freighter" | "cruise";
+export const SHIP_KINDS: ShipKind[] = [
+  "liner",
+  "clipper",
+  "freighter",
+  "cruise",
+];
+/** Scenes with a ship control. */
+export const SHIP_PATTERNS = new Set<PatternStyle>([
+  "shipit",
 ]);
 
 /** Star-field density — how many of the star field's points render (a "range of stars"). */
@@ -4213,6 +4230,3326 @@ ${MEADOW_PATHS.map(
 }
 ${stopRules(".mw-cloud")}`;
 
+// Shipit — an ocean liner steaming across the open sea at sunset (by night, under the moon, its windows lit
+// yellow). THE SEA is eight rows of swell receding to the horizon by aerial perspective, from a pale, hazy
+// blue at the skyline to a deep blue up close. Each row is ONE periodic tile of waves (peaked crests over
+// broad troughs, each leaning a little), used as a CSS mask and repeated across the scene; the near rows are
+// taller and longer than the far ones, and the gaps between rows widen toward the viewer, so the sea
+// compresses toward the horizon as a real one does. The upper part of every crest catches the light (a cap
+// drawn inside the wave, thickest at its tip), and the caps brighten toward the disc in a band that widens
+// toward the viewer: the sun's or the moon's glitter path, made of nothing but lit crests.
+// THE LINER is an inline SVG from a seeded generator, as forest's and peaks' ridges are: a four-funnel liner
+// in profile with a black hull over a red boot-topping band and a white superstructure, buff funnels with
+// black tops and the steam pipes up their fronts (smoke from the forward three; the fourth only ventilated),
+// lifeboats in their davits, two masts and their wire, and rows of portholes and windows. By day the
+// windows are dark glass; by night most of them are lit, in runs as cabins are, haloed, and streaking the
+// water below. It carries its own wake, bow wave, waterline foam and broken reflection, so nothing on the
+// sea has to move.
+// MOTION is the liner alone, crossing the whole scene on a compositor-only transform, always sailing toward
+// the disc (east when it is on the right or centred, west when it is on the left). Still, it rests a third
+// of the way in from the side it sails from, and the loop is phased so a scene set moving sails on from
+// exactly that pose. Nothing is filtered, nothing tilts in 3D, and its paint is a still child of the box
+// that moves (see .au-paint).
+
+type SwellSpec = {
+  /** The row's highest crest, in vh from the top of the scene; the row runs from there to the bottom. */
+  top: number;
+  /** The tallest crest's height above the troughs, in vh. */
+  amp: number;
+  /** The mean wavelength, in vh. */
+  wave: number;
+  /** The repeating tile's width, in vh. It holds a whole number of waves, so it ends where it starts. */
+  tile: number;
+  seed: number;
+};
+
+const SEA_ROWS: SwellSpec[] = [
+  {
+    top: 58.3,
+    amp: 0.3,
+    wave: 2.2,
+    tile: 29,
+    seed: 3,
+  },
+  {
+    top: 59.1,
+    amp: 0.42,
+    wave: 3.1,
+    tile: 37,
+    seed: 5,
+  },
+  {
+    top: 60.4,
+    amp: 0.6,
+    wave: 4.4,
+    tile: 43,
+    seed: 13,
+  },
+  {
+    top: 62.3,
+    amp: 0.85,
+    wave: 6.2,
+    tile: 53,
+    seed: 17,
+  },
+  {
+    top: 65,
+    amp: 1.2,
+    wave: 8.8,
+    tile: 67,
+    seed: 31,
+  },
+  {
+    top: 68.8,
+    amp: 1.65,
+    wave: 12.4,
+    tile: 83,
+    seed: 41,
+  },
+  {
+    top: 74.2,
+    amp: 2.3,
+    wave: 17.5,
+    tile: 107,
+    seed: 47,
+  },
+  {
+    top: 82,
+    amp: 3.2,
+    wave: 24.5,
+    tile: 139,
+    seed: 59,
+  },
+];
+
+/** Hundredths: a far row's waves are a few tenths of a vh tall, and tenths would step them. */
+const f2 = (n: number) => String(Math.round(n * 100) / 100);
+
+/** One row's tile, in vh: the wave line as a mask (everything below it), and the lit caps of its crests as a
+ *  second mask. A wave is a raised cosine sharpened to a peak, its crest pushed off-centre so the faces are
+ *  unequal, with a little chop that vanishes at the troughs. The troughs ride a long, low swell that runs
+ *  whole cycles across the tile (without it every row stood on a ruled line, a row of scallops), and every
+ *  wave starts and ends on it, so the waves join smoothly and the tile repeats without a step. Deterministic. */
+function swellRow({ top, amp, wave, tile, seed }: SwellSpec) {
+  const h = 100 - top;
+  const rand = mulberry32(seed);
+  const n = Math.max(2, Math.round(tile / wave));
+  const share = Array.from(
+    {
+      length: n,
+    },
+    () => 0.75 + rand() * 0.5,
+  );
+  const total = share.reduce((a, b) => a + b, 0);
+  /** How deep a cap reaches into its crest, at the tip. */
+  const cap = 0.1 + amp * 0.4;
+  const [cycles, phase] = [
+    1 + Math.floor(rand() * 2),
+    rand() * Math.PI * 2,
+  ];
+  const swell = (x: number) => (amp * 0.32 * (1 - Math.cos((2 * Math.PI * cycles * x) / tile + phase))) / 2;
+  const line: Pt[] = [];
+  const caps: string[] = [];
+  let x0 = 0;
+  for (const s of share) {
+    const w = (s / total) * tile;
+    const a = amp * (0.4 + 0.6 * rand() ** 0.7);
+    const lean = -(0.2 + rand() * 0.25);
+    const chop = (rand() - 0.5) * 0.16;
+    const m = 16;
+    const samples = Array.from(
+      {
+        length: m,
+      },
+      (_, j) => {
+        const u = j / m;
+        const g = ((1 - Math.cos(2 * Math.PI * (u + lean * u * (1 - u)))) / 2) ** 1.7;
+        return {
+          pt: [
+            x0 + w * u,
+            Math.max(0.02, amp - a * g + amp * chop * Math.sin(6 * Math.PI * u) + swell(x0 + w * u)),
+          ] as Pt,
+          g,
+        };
+      },
+    );
+    for (const { pt } of samples) line.push(pt);
+    // The cap: the crest line on top, and under it the same line pushed down by a depth that is greatest at
+    // the tip and nothing where the crest falls below 30% of its height.
+    const upper = samples.filter(({ g }) => g > 0.3);
+    if (upper.length > 2 && a > amp * 0.6) {
+      caps.push(
+        poly([
+          ...upper.map(({ pt }) => pt),
+          ...[
+            ...upper,
+          ]
+            .reverse()
+            .map(
+              ({ pt, g }): Pt => [
+                pt[0],
+                pt[1] + cap * ((g - 0.3) / 0.7) ** 0.75,
+              ],
+            ),
+        ]),
+      );
+    }
+    x0 += w;
+  }
+  const at = ([x, y]: Pt) => `${f2(x)} ${f2(y)}`;
+  const d = `M0 ${f2(h)}L${line.map(at).join("L")}L${f2(tile)} ${f2(line[0][1])}L${f2(tile)} ${f2(h)}Z`;
+  const viewBox = `0 0 ${f2(tile)} ${f2(h)}`;
+  return {
+    h,
+    mask: svgMask(`<path d='${d}'/>`, viewBox),
+    caps: svgMask(`<path d='${caps.join("")}'/>`, viewBox),
+  };
+}
+
+const SEA_PATHS = SEA_ROWS.map(swellRow);
+
+/** Every ship is drawn in the same units, about a metre each at the liner's scale: a unit is SHIP_SU vh on
+ *  screen whichever ship it is, so the wake, the foam, the windows and the reflection's strokes are the same
+ *  size under all of them, and a ship's length on screen is its length in units. Screen y runs down, from the
+ *  waterline at 0, and every ship is drawn heading east (a west-bound crossing mirrors it in CSS). */
+const SHIP_SU = 64 / 270;
+/** Where the middle of the hull rests when the scene is still: this share of the scene's width in from the
+ *  side the ship sails from. */
+const SHIP_REST = 0.32;
+/** The waterline, in vh from the top of the scene: 6vh below the horizon, so a ship's upperworks stand
+ *  against the sky and its hull against the sea. */
+const SHIP_WATERLINE = 65;
+/** One crossing, in loops of the scene's pace (--pat-dur): 80s at the default 8s. */
+const SHIP_LOOP = 10;
+
+type ShipFrame = {
+  /** Hull length, stern (0) to stem, in units. */
+  len: number;
+  /** The painting's box: past the bow (its spray, or a bowsprit), above the highest smoke or masthead, and
+   *  down to the reflection's foot. Its left edge is worked out (frameOf). */
+  right: number;
+  top: number;
+  bottom: number;
+};
+
+/** A ship's box, with its left edge past the end of the wake, placed so the middle of the hull sits
+ *  (1 - SHIP_REST) of the way across the box. Carried from just off one side of the scene to just off the
+ *  other, such a box puts the hull SHIP_REST of the way across the scene at SHIP_REST of the way through the
+ *  loop, at EVERY scene width: so the still pose is one transform, the same for every ship, and the loop is
+ *  phased to start from it (see .sh-ship). */
+function frameOf(f: ShipFrame) {
+  const left = (f.len / 2 - (1 - SHIP_REST) * f.right) / SHIP_REST;
+  return {
+    ...f,
+    left,
+    w: f.right - left,
+    h: f.bottom - f.top,
+  };
+}
+
+/** One path of a ship's drawing: painted by a class (its colour a palette variable) or by one of the ship's
+ *  gradients, optionally faded by one of the water masks, optionally shown only at night, optionally inside
+ *  a group with classes of its own (`wrap`: the lights that switch on and off), and optionally drawn only
+ *  when the ship sails one way (`only`: anything that has to read the right way round when mirrored). */
+type Ink = {
+  d: string;
+  cls?: string;
+  grad?: string;
+  mask?: "down" | "aft" | "bow";
+  night?: boolean;
+  wrap?: string;
+  only?: "east" | "west";
+};
+/** A linear gradient a ship paints with, x1 y1 → x2 y2: in the drawing's units when `user`, else across each
+ *  shape's own box. Stops are [offset, colour, opacity?]. */
+type Grad = {
+  key: string;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  user?: boolean;
+  stops: [
+    number,
+    string,
+    number?,
+  ][];
+};
+type Puff = {
+  cx: number;
+  cy: number;
+  r: number;
+  o: number;
+};
+type ShipArt = {
+  frame: ReturnType<typeof frameOf>;
+  grads: Grad[];
+  smoke: Puff[];
+  /** Back to front. */
+  inks: Ink[];
+  /** Running lights: white lamps, and the green starboard light. */
+  lamps: Pt[];
+  green: Pt;
+  /** Where the wake's fade runs (x, from → to), and the bow wave's arm's. */
+  aft: [
+    number,
+    number,
+  ];
+  bow: [
+    number,
+    number,
+  ];
+};
+
+const shipRect = (x: number, y: number, w: number, h: number) => `M${f1(x)} ${f1(y)}h${f1(w)}v${f1(h)}h${f1(-w)}Z`;
+const shipAt = ([x, y]: Pt) => `${f1(x)} ${f1(y)}`;
+
+/** A strip between h0 and h1 above a sheer line, from x0 to x1, sampled so it follows the curve. */
+function sheerBand(sheer: (x: number) => number, x0: number, x1: number, h0: number, h1: number): string {
+  const xs: number[] = [];
+  for (let x = x0; x < x1; x += 6) xs.push(x);
+  xs.push(x1);
+  return poly([
+    ...xs.map(
+      (x): Pt => [
+        x,
+        -(sheer(x) + h1),
+      ],
+    ),
+    ...[
+      ...xs,
+    ]
+      .reverse()
+      .map(
+        (x): Pt => [
+          x,
+          -(sheer(x) + h0),
+        ],
+      ),
+  ]);
+}
+
+/** A hull: up the stern's profile from the waterline, along the sheer, and down the stem. */
+function hullOf(sternX: (h: number) => number, bowX: (h: number) => number, sheer: (x: number) => number, len: number): string {
+  const [hs, hb] = [
+    sheer(0),
+    sheer(len),
+  ];
+  const along: Pt[] = [];
+  for (let x = 6; x < len - 4; x += 6)
+    along.push([
+      x,
+      -sheer(x),
+    ]);
+  return poly([
+    ...Array.from(
+      {
+        length: 17,
+      },
+      (_, i): Pt => [
+        sternX((hs * i) / 16),
+        -(hs * i) / 16,
+      ],
+    ),
+    ...along,
+    [
+      bowX(hb),
+      -hb,
+    ],
+    [
+      bowX(0),
+      0,
+    ],
+  ]);
+}
+
+/** A band right across the hull between two heights above the waterline (a boot-topping, a copper bottom),
+ *  its ends on the stern's and the stem's profiles. */
+function hullBand(sternX: (h: number) => number, bowX: (h: number) => number, h0: number, h1: number): string {
+  const hm = (h0 + h1) / 2;
+  return poly([
+    [
+      sternX(h0),
+      -h0,
+    ],
+    [
+      sternX(hm),
+      -hm,
+    ],
+    [
+      sternX(h1),
+      -h1,
+    ],
+    [
+      bowX(h1),
+      -h1,
+    ],
+    [
+      bowX(hm),
+      -hm,
+    ],
+    [
+      bowX(h0),
+      -h0,
+    ],
+  ]);
+}
+
+/** A mast (or a pole), raked aft, tapering from `base` to `top` (heights above the waterline). */
+function mastOf(x: number, base: number, top: number, w = 0.9, rake = 0.045) {
+  const xAt = (h: number) => x - rake * (h - base);
+  return {
+    xAt,
+    top: [
+      xAt(top),
+      -top,
+    ] as Pt,
+    d: poly([
+      [
+        xAt(base) - w / 2,
+        -base,
+      ],
+      [
+        xAt(base) + w / 2,
+        -base,
+      ],
+      [
+        xAt(top) + w * 0.3,
+        -top,
+      ],
+      [
+        xAt(top) - w * 0.3,
+        -top,
+      ],
+    ]),
+  };
+}
+
+/** Smoke streaming aft from a funnel's top and rising as it thins. */
+function smokeFrom(rand: () => number, [x0, y0]: Pt, puffs: number, size: number, strength: number): Puff[] {
+  return Array.from(
+    {
+      length: puffs,
+    },
+    (_, k) => ({
+      cx: x0 - 0.5 - k * 4.6 * size - k ** 1.4 * 0.4 + (rand() - 0.5) * 1.2,
+      cy: y0 - 1.2 * size - k * 0.75 * size - rand() * 0.6,
+      r: (2.4 + k * 0.8 + rand() * 0.6) * size,
+      o: strength * (1 - k / (puffs + 0.5)) ** 1.2,
+    }),
+  );
+}
+
+type WinRow = {
+  /** Centre height above the sheer line (negative: down the side of the hull). */
+  h: number;
+  x0: number;
+  x1: number;
+  step: number;
+  /** Window width and height. */
+  w: number;
+  t: number;
+  /** Portholes in the hull, or windows in the superstructure (which glow wider at night). */
+  part: "hull" | "super";
+  /** Windows to a group, and the blank slots between groups (plating, bulkheads). */
+  group: [
+    number,
+    number,
+  ];
+  gap: number;
+  /** At night, the chance a lit window's neighbour is dark, and a dark one's lit: lit cabins come in runs. */
+  off: number;
+  on: number;
+};
+/** A run of rows sharing everything but their height and extent: [h, x0, x1]. */
+const winRows = (
+  rows: [
+    number,
+    number,
+    number,
+  ][],
+  rest: Omit<WinRow, "h" | "x0" | "x1">,
+): WinRow[] =>
+  rows.map(([h, x0, x1]) => ({
+    h,
+    x0,
+    x1,
+    ...rest,
+  }));
+
+/** How many sets of windows switch on and off on their own schedules (see .sh-blink). The even sets start
+ *  lit and go dark for a while; the odd ones start dark and come on. */
+const BLINK_SETS = 6;
+
+/** Windows, laid out in groups with blank plating between them and lit (at night) in runs. `at` is the screen
+ *  y of a point h above the sheer at x. A share of them (`flicker`) are SWITCHERS: drawn dark, with a lit
+ *  copy over them in one of BLINK_SETS groups that turn on and off on their own clocks, as people come and go
+ *  from their cabins. Returns the inks that draw them all with their night halos, and where the light falls
+ *  for the streaks on the water. */
+function windowsOf(rows: WinRow[], at: (x: number, h: number) => number, rand: () => number, flicker = 0.1) {
+  const port: string[] = [];
+  const portLit: string[] = [];
+  const win: string[] = [];
+  const winLit: string[] = [];
+  const sets = Array.from(
+    {
+      length: BLINK_SETS,
+    },
+    () => ({
+      port: [] as string[],
+      win: [] as string[],
+    }),
+  );
+  const litAt: [
+    number,
+    number,
+  ][] = [];
+  for (const row of rows) {
+    const groupOf = () => row.group[0] + Math.floor(rand() * (row.group[1] - row.group[0] + 1));
+    let left = groupOf();
+    let skip = 0;
+    let lit = rand() < 0.6;
+    for (let x = row.x0; x <= row.x1 + 1e-6; x += row.step) {
+      if (skip > 0) {
+        skip--;
+        continue;
+      }
+      if (left === 0) {
+        skip = row.gap - 1;
+        left = groupOf();
+        continue;
+      }
+      left--;
+      lit = lit ? rand() >= row.off : rand() < row.on;
+      const d = shipRect(x - row.w / 2, at(x, row.h) - row.t / 2, row.w, row.t);
+      const set = rand() < flicker ? Math.floor(rand() * BLINK_SETS) : -1;
+      if (set >= 0) {
+        // A switcher: dark underneath, its light in its set.
+        (row.part === "hull" ? port : win).push(d);
+        (row.part === "hull" ? sets[set].port : sets[set].win).push(d);
+      } else if (row.part === "hull") (lit ? portLit : port).push(d);
+      else (lit ? winLit : win).push(d);
+      if (set >= 0 ? set % 2 === 0 : lit)
+        litAt.push([
+          x,
+          row.part === "super" ? 1 : 0.4,
+        ]);
+    }
+  }
+  const [p, pl, w, wl] = [
+    port,
+    portLit,
+    win,
+    winLit,
+  ].map((list) => list.join(""));
+  return {
+    litAt,
+    // The superstructure's big windows glow wide; a porthole only a little.
+    inks: [
+      {
+        d: wl,
+        cls: "sh-halo-wide",
+        night: true,
+      },
+      {
+        d: pl + wl,
+        cls: "sh-halo",
+        night: true,
+      },
+      {
+        d: p,
+        cls: "sh-port",
+      },
+      {
+        d: pl,
+        cls: "sh-port-lit",
+      },
+      {
+        d: w,
+        cls: "sh-win",
+      },
+      {
+        d: wl,
+        cls: "sh-win-lit",
+      },
+      ...sets.flatMap((set, i): Ink[] => {
+        const wrap = `sh-blink sh-blink-${i}`;
+        const [sp, sw] = [
+          set.port.join(""),
+          set.win.join(""),
+        ];
+        return [
+          {
+            d: sw,
+            cls: "sh-halo-wide",
+            night: true,
+            wrap,
+          },
+          {
+            d: sp + sw,
+            cls: "sh-halo",
+            night: true,
+            wrap,
+          },
+          {
+            d: sp,
+            cls: "sh-port-lit",
+            wrap,
+          },
+          {
+            d: sw,
+            cls: "sh-win-lit",
+            wrap,
+          },
+        ];
+      }),
+    ] as Ink[],
+  };
+}
+
+/** A depth range of the reflection (in units below the waterline), the class that colours it, and the
+ *  stretches of the ship it mirrors there. */
+type ReflBand = {
+  from: number;
+  to: number;
+  cls: string;
+  spans: [
+    number,
+    number,
+  ][];
+};
+
+/** What every ship puts on the water: its broken reflection, the lit windows' streaks, the wake churned up
+ *  astern between the two arms of the wave it throws, the bow wave's near arm, and the foam along the
+ *  waterline, climbing the stem as the bow wave and curling ahead of it, with the wash under the stern.
+ *  `stern` and `bow` are where the hull meets the water. */
+function shipWater(
+  rand: () => number,
+  {
+    stern,
+    bow,
+    left,
+    bottom,
+    len,
+    bands,
+    litAt,
+  }: {
+    stern: number;
+    bow: number;
+    left: number;
+    bottom: number;
+    len: number;
+    bands: ReflBand[];
+    litAt: [
+      number,
+      number,
+    ][];
+  },
+) {
+  // The reflection, in broken strokes that come apart with depth.
+  const refl = new Map<string, string[]>();
+  for (let y = 0.7; y < bottom - 1; y += 0.62) {
+    for (const band of bands.filter((b) => y >= b.from && y < b.to)) {
+      const out = refl.get(band.cls) ?? [];
+      refl.set(band.cls, out);
+      for (const [xa, xb] of band.spans) {
+        let x = xa + (rand() - 0.5) * 1.5;
+        while (x < xb) {
+          const run = Math.min(2.5 + rand() * 9, xb - x);
+          if (run > 0.6) out.push(shipRect(x, y, run, 0.3));
+          x += run + 0.5 + rand() * (0.8 + y * 0.18);
+        }
+      }
+    }
+  }
+  // The lit windows' light on the water: a broken column of glints under every stretch with enough of it.
+  const streaks: string[] = [];
+  for (let b = 0; b < len; b += 2.8) {
+    const weight = litAt.filter(([x]) => x >= b && x < b + 2.8).reduce((sum, [, k]) => sum + k, 0);
+    if (weight < 2.6) continue;
+    const reach = 3 + Math.min(9, weight * 1.4) + rand() * 2;
+    for (let y = 0.9; y < 0.9 + reach; y += 0.75 + rand() * 0.5) {
+      const w = 0.35 + rand() * 1 + (y / 15) * 0.8;
+      streaks.push(shipRect(b + 1.4 + (rand() - 0.5) * 1.6 - w / 2, y, w, 0.26));
+    }
+  }
+  // The wake: a churned trail spreading aft of the stern, then the two arms of the wave it throws.
+  const [from, to] = [
+    stern + 1,
+    left + 14,
+  ];
+  const wake: string[] = [];
+  for (let lane = 0; lane < 6; lane++) {
+    let x = from - rand() * 4;
+    while (x > to) {
+      const d = from - x;
+      const run = 1.5 + rand() * 5;
+      const t = 0.34 - 0.14 * Math.min(1, d / 150);
+      const y = 0.35 + (lane - 2.5) * 0.34 * (1 + d / 110) + (rand() - 0.5) * 0.25;
+      wake.push(shipRect(x - run, y - t / 2, run, t));
+      x -= run + (0.5 + rand() * 2.2) * (1 + d / 50);
+    }
+  }
+  const arm = (a: Pt, b: Pt, out: string[]) => {
+    const span = Math.abs(b[0] - a[0]);
+    for (let f = 0; f < 1; ) {
+      const run = 2 + rand() * 5;
+      const t = 0.42 - 0.18 * f;
+      const x = a[0] + (b[0] - a[0]) * f;
+      const y = a[1] + (b[1] - a[1]) * f + (rand() - 0.5) * 0.3;
+      out.push(shipRect(x - run, y - t / 2, run, t));
+      f += (run + 0.8 + rand() * 3 * (1 + f * 2)) / span;
+    }
+  };
+  const reach = (from - to) / 156;
+  arm(
+    [
+      stern - 6,
+      0.9,
+    ],
+    [
+      to,
+      0.9 + 4.5 * reach,
+    ],
+    wake,
+  );
+  arm(
+    [
+      stern - 8,
+      -0.25,
+    ],
+    [
+      to,
+      -0.25 - 1.25 * reach,
+    ],
+    wake,
+  );
+  const bowArm: string[] = [];
+  arm(
+    [
+      bow - 6.6,
+      0.9,
+    ],
+    [
+      bow - 72.6,
+      3.4,
+    ],
+    bowArm,
+  );
+  // Foam along the waterline, the bow wave and its curl, and the wash under the stern.
+  const phase = [
+    rand(),
+    rand(),
+    rand(),
+  ].map((r) => r * Math.PI * 2);
+  const wob = (x: number) => 0.5 * Math.sin(x / 7 + phase[0]) + 0.3 * Math.sin(x / 3.1 + phase[1]) + 0.2 * Math.sin(x / 1.7 + phase[2]);
+  const top: Pt[] = [];
+  const foot: Pt[] = [];
+  for (let x = stern; x <= bow - 0.5; x += 2) {
+    const rise = Math.max(0, (x - (bow - 30.6)) / 30) ** 2;
+    top.push([
+      x,
+      -0.15 - 0.2 * (1 + wob(x)) - 2.1 * rise,
+    ]);
+    foot.push([
+      x,
+      0.45 + 0.3 * (1 + wob(x + 40)) + 0.5 * rise,
+    ]);
+  }
+  const s = stern - 12;
+  const foam =
+    poly([
+      ...top,
+      [
+        bow + 1.2,
+        -2.5,
+      ],
+      [
+        bow + 3.2,
+        -1.1,
+      ],
+      [
+        bow + 4.2,
+        0.4,
+      ],
+      [
+        bow + 2.4,
+        1.2,
+      ],
+      ...foot.reverse(),
+    ]) +
+    poly(
+      [
+        [
+          17,
+          -0.4,
+        ],
+        [
+          12,
+          -1.1,
+        ],
+        [
+          7,
+          -0.8,
+        ],
+        [
+          2,
+          -1.2,
+        ],
+        [
+          -3,
+          -0.5,
+        ],
+        [
+          -7,
+          0.5,
+        ],
+        [
+          -2,
+          1.5,
+        ],
+        [
+          6,
+          1.6,
+        ],
+        [
+          13,
+          1.2,
+        ],
+        [
+          18,
+          0.7,
+        ],
+      ].map(
+        ([x, y]): Pt => [
+          x + s,
+          y,
+        ],
+      ),
+    );
+  return {
+    back: [
+      ...[
+        ...refl,
+      ].map(
+        ([cls, out]): Ink => ({
+          d: out.join(""),
+          cls,
+          mask: "down",
+        }),
+      ),
+      {
+        d: streaks.join(""),
+        cls: "sh-streak",
+        mask: "down",
+        night: true,
+      },
+      {
+        d: wake.join(""),
+        cls: "sh-foam",
+        mask: "aft",
+      },
+      {
+        d: bowArm.join(""),
+        cls: "sh-foam",
+        mask: "bow",
+      },
+    ] as Ink[],
+    foam: {
+      d: foam,
+      cls: "sh-foam",
+    } as Ink,
+    aft: [
+      from + 1,
+      to,
+    ] as [
+      number,
+      number,
+    ],
+    bow: [
+      bow - 2.6,
+      bow - 72.6,
+    ] as [
+      number,
+      number,
+    ],
+  };
+}
+
+/** A vertical gradient across the drawing, top colour at y1, bottom at y2. */
+const vGrad = (key: string, y1: number, y2: number, hi: string, lo: string): Grad => ({
+  key,
+  user: true,
+  x1: 0,
+  y1,
+  x2: 0,
+  y2,
+  stops: [
+    [
+      0,
+      hi,
+    ],
+    [
+      1,
+      lo,
+    ],
+  ],
+});
+/** Round, or bellied, and lit on its forward side: the disc is always ahead, since a ship sails toward it. */
+const roundGrad = (key: string, shade: string, lit: string): Grad => ({
+  key,
+  x1: 0,
+  y1: 0,
+  x2: 1,
+  y2: 0,
+  stops: [
+    [
+      0,
+      shade,
+    ],
+    [
+      0.72,
+      lit,
+    ],
+    [
+      1,
+      `color-mix(in oklab, ${lit}, ${shade} 45%)`,
+    ],
+  ],
+});
+
+/** THE LINER: a four-funnel liner in profile, black hull over a red boot-topping band and a gilt sheer line,
+ *  white superstructure, buff funnels with black tops and the steam pipes up their fronts (smoke from the
+ *  forward three; the fourth only ventilated), lifeboats in their davits, two masts and their wire, and four
+ *  decks of portholes under two of windows. */
+function linerArt(): ShipArt {
+  const frame = frameOf({
+    len: 270,
+    right: 276,
+    top: -64,
+    bottom: 16,
+  });
+  const rand = mulberry32(1912);
+  // The top of the black hull: lowest a little aft of amidships, rising to the bow and the stern.
+  const sheer = (x: number) => 15 + 2.4 * ((x - 130) / 135) ** 2;
+  const deckY = (x: number, h: number) => -(sheer(x) + h);
+  // A counter stern: the waterline ends 12 units in, and the hull sweeps aft over it to the deck.
+  const sternX = (h: number) => (h <= 9 ? 0.6 + 11.4 * (1 - h / 9) ** 2 : 0.6 - (0.5 * (h - 9)) / (sheer(0) - 9));
+  // The stem: straight, raked a little forward.
+  const bowX = (h: number) => 268.6 + (1.8 * h) / sheer(270);
+  const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
+  const funnelsAt = [
+    180,
+    147,
+    114,
+    81,
+  ];
+  const rake = 2.6;
+  const funnels = funnelsAt.map((c, i) => {
+    const [base, top] = [
+      deckY(c, 8.6),
+      deckY(c, 29.6),
+    ];
+    const at = (f: number, side: -1 | 1): Pt => [
+      c + side * (4.4 - 0.2 * f) - rake * f,
+      base + (top - base) * f,
+    ];
+    // The steam pipe up the funnel's forward face, standing clear of its top; only the working three.
+    const pipe = (f0: number, f1: number) => {
+      const p = (f: number, dx: number): Pt => [
+        c + 4.5 + dx - rake * f,
+        base + (top - base) * f,
+      ];
+      return poly([
+        p(f0, 0),
+        p(f0, 0.8),
+        p(f1, 0.8),
+        p(f1, 0),
+      ]);
+    };
+    return {
+      body: poly([
+        at(0, -1),
+        at(0, 1),
+        at(1, 1),
+        at(1, -1),
+      ]),
+      pipe: i < 3 ? pipe(0, 1.07) : "",
+      black:
+        poly([
+          at(0.82, -1),
+          at(0.82, 1),
+          at(1, 1),
+          at(1, -1),
+        ]) + (i < 3 ? pipe(0.82, 1.07) : ""),
+    };
+  });
+  const smoke = funnelsAt.slice(0, 3).flatMap((c) =>
+    smokeFrom(
+      rand,
+      [
+        c - rake,
+        deckY(c, 29.6),
+      ],
+      10,
+      1,
+      0.42,
+    ),
+  );
+  const fore = mastOf(236, sheer(236) - 0.5, 50);
+  const main = mastOf(34, sheer(34) - 0.5, 46);
+  const masts = [
+    fore.d,
+    main.d,
+    shipRect(fore.xAt(36) - 0.95, -36.8, 1.9, 1.6),
+    // The posts under the docking bridge.
+    ...[
+      6.5,
+      28.5,
+    ].map((x) => shipRect(x, deckY(x, 3.1), 0.45, 1.1)),
+  ].join("");
+  const stem: Pt = [
+    bowX(sheer(270)),
+    -sheer(270),
+  ];
+  const sternTop: Pt = [
+    sternX(sheer(0)),
+    -sheer(0),
+  ];
+  const wires = [
+    `M${shipAt(fore.top)}Q${shipAt([
+      (fore.top[0] + main.top[0]) / 2,
+      (fore.top[1] + main.top[1]) / 2 + 4,
+    ])} ${shipAt(main.top)}`,
+    `M${shipAt(fore.top)}L${shipAt(stem)}`,
+    `M${shipAt(main.top)}L${shipAt(sternTop)}`,
+  ].join("");
+  const boatsAt = [
+    158,
+    167.5,
+    191,
+    200.5,
+    70,
+    79.5,
+    101,
+    110.5,
+  ];
+  const boats = boatsAt
+    .map((b) => {
+      const y = deckY(b, 9.15);
+      return poly([
+        [
+          b - 4.3,
+          y - 1.45,
+        ],
+        [
+          b + 4.3,
+          y - 1.45,
+        ],
+        [
+          b + 3.5,
+          y,
+        ],
+        [
+          b - 3.5,
+          y,
+        ],
+      ]);
+    })
+    .join("");
+  const davits = boatsAt
+    .flatMap((b) =>
+      [
+        -3.1,
+        3.1,
+      ].map((dx) => shipRect(b + dx - 0.15, deckY(b + dx, 11.4), 0.3, 2.8)),
+    )
+    .join("");
+  const windows = windowsOf(
+    [
+      // The hull's four decks of portholes, C (just under the sheer) down to F.
+      ...winRows(
+        [
+          [
+            -2.5,
+            22,
+            258,
+          ],
+          [
+            -5.3,
+            18,
+            260,
+          ],
+          [
+            -8.1,
+            30,
+            254,
+          ],
+          [
+            -10.5,
+            48,
+            240,
+          ],
+        ],
+        {
+          step: 2.4,
+          w: 0.75,
+          t: 0.8,
+          part: "hull",
+          group: [
+            5,
+            14,
+          ],
+          gap: 2,
+          off: 0.34,
+          on: 0.3,
+        },
+      ),
+      // B deck, A deck's promenade, the officers' quarters and the wheelhouse.
+      {
+        h: 2.4,
+        x0: 60.5,
+        x1: 212,
+        step: 2.35,
+        w: 1,
+        t: 1.35,
+        part: "super",
+        group: [
+          8,
+          24,
+        ],
+        gap: 1,
+        off: 0.18,
+        on: 0.5,
+      },
+      {
+        h: 6.4,
+        x0: 68.5,
+        x1: 208,
+        step: 2.75,
+        w: 1.75,
+        t: 1.65,
+        part: "super",
+        group: [
+          8,
+          24,
+        ],
+        gap: 1,
+        off: 0.18,
+        on: 0.5,
+      },
+      ...winRows(
+        [
+          [
+            10,
+            186,
+            204,
+          ],
+        ],
+        {
+          step: 2.3,
+          w: 0.9,
+          t: 0.9,
+          part: "super",
+          group: [
+            8,
+            24,
+          ],
+          gap: 1,
+          off: 0.18,
+          on: 0.5,
+        },
+      ),
+      ...winRows(
+        [
+          [
+            11.55,
+            206.2,
+            210.8,
+          ],
+        ],
+        {
+          step: 1.15,
+          w: 0.75,
+          t: 0.5,
+          part: "super",
+          group: [
+            8,
+            24,
+          ],
+          gap: 1,
+          off: 0.18,
+          on: 0.5,
+        },
+      ),
+    ],
+    deckY,
+    rand,
+  );
+  const water = shipWater(rand, {
+    stern: sternX(0),
+    bow: bowX(0),
+    left: frame.left,
+    bottom: frame.bottom,
+    len: 270,
+    litAt: windows.litAt,
+    bands: [
+      {
+        from: 0,
+        to: 1.4,
+        cls: "sh-refl-red",
+        spans: [
+          [
+            14,
+            266,
+          ],
+        ],
+      },
+      {
+        from: 1.4,
+        to: 8.6,
+        cls: "sh-refl-hull",
+        spans: [
+          [
+            14,
+            266,
+          ],
+        ],
+      },
+      {
+        from: 8.6,
+        to: 12.8,
+        cls: "sh-refl-white",
+        spans: [
+          [
+            60,
+            212,
+          ],
+        ],
+      },
+      {
+        from: 12.8,
+        to: 99,
+        cls: "sh-refl-buff",
+        spans: funnelsAt.map((c) => [
+          c - 5.8,
+          c + 3.2,
+        ]),
+      },
+    ],
+  });
+  return {
+    frame,
+    grads: [
+      vGrad("hull", -18, 0, "var(--sh-hull-hi)", "var(--sh-hull)"),
+      vGrad("white", -29, -15, "var(--sh-white-hi)", "var(--sh-white)"),
+      roundGrad("funnel", "var(--sh-buff)", "var(--sh-buff-lit)"),
+    ],
+    smoke,
+    inks: [
+      {
+        d: wires,
+        cls: "sh-wire",
+      },
+      {
+        d: masts,
+        cls: "sh-mast",
+      },
+      ...water.back,
+      {
+        d: hullOf(sternX, bowX, sheer, 270),
+        grad: "hull",
+      },
+      {
+        d: hullBand(sternX, bowX, 0, 3.6),
+        cls: "sh-red",
+      },
+      {
+        d: band(3, 267, -1.32, -0.98),
+        cls: "sh-gold",
+      },
+      {
+        d: [
+          band(58, 214, -0.4, 4.6), // B deck, seated a little into the hull
+          band(66, 210, 4.5, 8.6), // A deck
+          band(184, 211, 8.5, 11.2), // the officers' quarters
+          band(205, 211.5, 11.1, 12), // the wheelhouse
+          band(211, 214.6, 10.8, 11.25), // the bridge wing
+          band(120, 132, 8.5, 10.6),
+          band(150, 158, 8.5, 10.3),
+          band(70, 84, 8.5, 10.4),
+          band(12, 24, -0.2, 2), // the poop deckhouse
+          band(5, 30, 3.1, 3.6), // the docking bridge
+        ].join(""),
+        grad: "white",
+      },
+      {
+        d: band(58, 214, 4.4, 4.7) + band(66, 210, 8.35, 8.65),
+        cls: "sh-deck",
+      },
+      ...funnels.flatMap(({ body, pipe }): Ink[] => [
+        {
+          d: body,
+          grad: "funnel",
+        },
+        {
+          d: pipe,
+          grad: "funnel",
+        },
+      ]),
+      {
+        d: funnels.map((f) => f.black).join(""),
+        cls: "sh-black",
+      },
+      {
+        d: davits,
+        cls: "sh-mast",
+      },
+      {
+        d: boats,
+        cls: "sh-boat",
+      },
+      ...windows.inks,
+      water.foam,
+    ],
+    lamps: [
+      [
+        fore.xAt(42),
+        -42,
+      ],
+      [
+        main.xAt(38),
+        -38,
+      ],
+      [
+        1.4,
+        deckY(1.4, 1.6),
+      ],
+    ],
+    green: [
+      214.2,
+      deckY(214.2, 11),
+    ],
+    aft: water.aft,
+    bow: water.bow,
+  };
+}
+
+/** THE CLIPPER: a three-masted full-rigged ship under all plain sail. A black hull on a copper bottom with a
+ *  painted band of gun ports, a raked clipper bow under a long bowsprit, square sails stacked five high on
+ *  the fore and main and four on the mizzen, three jibs, a spanker, and her standing rigging. By night her
+ *  stern windows and deckhouses are lit and her canvas pales under the moon. */
+function clipperArt(): ShipArt {
+  const frame = frameOf({
+    len: 150,
+    right: 180,
+    top: -84,
+    bottom: 16,
+  });
+  const rand = mulberry32(1869);
+  const sheer = (x: number) => 8 + 3.2 * ((x - 72) / 78) ** 2;
+  const deckY = (x: number, h: number) => -(sheer(x) + h);
+  // A raked counter, and the clipper's cutwater sweeping forward to the bowsprit.
+  const sternX = (h: number) => (h <= 5 ? 3.5 + 7 * (1 - h / 5) ** 2 : 3.5 - (2.5 * (h - 5)) / (sheer(0) - 5));
+  const bowX = (h: number) => 141 + 10 * (h / sheer(150)) ** 1.5;
+  const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
+  // Fore, main and mizzen: [x, height above the waterline, square sails as [foot, head, half-width at the
+  // foot, half-width at the head]].
+  const rig: [
+    number,
+    number,
+    [
+      number,
+      number,
+      number,
+      number,
+    ][],
+  ][] = [
+    [
+      118,
+      76,
+      [
+        [
+          16,
+          27,
+          17,
+          15.5,
+        ],
+        [
+          28,
+          37,
+          15,
+          13.2,
+        ],
+        [
+          38,
+          46,
+          13,
+          11.2,
+        ],
+        [
+          47,
+          54.5,
+          10.5,
+          9,
+        ],
+        [
+          55.5,
+          62,
+          8.4,
+          7,
+        ],
+      ],
+    ],
+    [
+      80,
+      82,
+      [
+        [
+          16,
+          28,
+          19,
+          17,
+        ],
+        [
+          29,
+          39,
+          16.5,
+          14.5,
+        ],
+        [
+          40,
+          49,
+          14.2,
+          12.2,
+        ],
+        [
+          50,
+          58,
+          11.5,
+          9.6,
+        ],
+        [
+          59,
+          66,
+          9,
+          7.4,
+        ],
+      ],
+    ],
+    [
+      38,
+      64,
+      [
+        [
+          26,
+          34,
+          12.5,
+          11,
+        ],
+        [
+          35,
+          42,
+          10.8,
+          9.4,
+        ],
+        [
+          43,
+          49.5,
+          9,
+          7.6,
+        ],
+        [
+          50.5,
+          55.5,
+          7.2,
+          6,
+        ],
+      ],
+    ],
+  ];
+  const masts = rig.map(([x, top]) => mastOf(x, sheer(x) - 0.5, top, 0.9, 0.035));
+  const [fore, main, mizzen] = masts;
+  // A square sail: straight along its yard, its leeches and foot bellied out by the wind.
+  const sail = (
+    xAt: (h: number) => number,
+    [h0, h1, w0, w1]: [
+      number,
+      number,
+      number,
+      number,
+    ],
+  ) => {
+    const [c0, c1, cm] = [
+      xAt(h0),
+      xAt(h1),
+      xAt((h0 + h1) / 2),
+    ];
+    const hm = (h0 + h1) / 2;
+    return `M${shipAt([
+      c1 - w1,
+      -h1,
+    ])}L${shipAt([
+      c1 + w1,
+      -h1,
+    ])}Q${shipAt([
+      cm + (w0 + w1) / 2 + 1,
+      -hm,
+    ])} ${shipAt([
+      c0 + w0,
+      -h0,
+    ])}Q${shipAt([
+      c0,
+      -h0 + 1.6,
+    ])} ${shipAt([
+      c0 - w0,
+      -h0,
+    ])}Q${shipAt([
+      cm - (w0 + w1) / 2 - 1,
+      -hm,
+    ])} ${shipAt([
+      c1 - w1,
+      -h1,
+    ])}Z`;
+  };
+  const squares = rig.flatMap(([, , sails], i) => sails.map((s) => sail(masts[i].xAt, s)));
+  const yards = rig
+    .flatMap(([, , sails], i) =>
+      sails.map(([, h1, , w1]) => {
+        const c = masts[i].xAt(h1);
+        return shipRect(c - w1 - 1, -h1 - 0.5, 2 * w1 + 2, 0.55);
+      }),
+    )
+    .join("");
+  const sprit: Pt = [
+    176,
+    -17.5,
+  ];
+  const head: Pt = [
+    bowX(sheer(150)),
+    -sheer(150),
+  ];
+  const jibs = [
+    poly([
+      [
+        fore.xAt(66) + 0.6,
+        -66,
+      ],
+      sprit,
+      [
+        160,
+        -20,
+      ],
+    ]),
+    poly([
+      [
+        fore.xAt(56) + 0.6,
+        -56,
+      ],
+      [
+        169,
+        -16.2,
+      ],
+      [
+        152,
+        -17,
+      ],
+    ]),
+    poly([
+      [
+        fore.xAt(44) + 0.6,
+        -44,
+      ],
+      [
+        158,
+        -13.4,
+      ],
+      [
+        142,
+        -14.6,
+      ],
+    ]),
+  ];
+  // The spanker, a gaff sail abaft the mizzen on its gaff and boom, set behind the square sails: only its
+  // after part shows past them.
+  const spanker = poly([
+    [
+      mizzen.xAt(13.5) - 0.5,
+      -13.5,
+    ],
+    [
+      mizzen.xAt(34) - 0.5,
+      -34,
+    ],
+    [
+      12,
+      -40,
+    ],
+    [
+      6.5,
+      -14,
+    ],
+  ]);
+  const spankerSpars =
+    poly([
+      [
+        mizzen.xAt(34),
+        -34.4,
+      ],
+      [
+        mizzen.xAt(34),
+        -33.8,
+      ],
+      [
+        11.6,
+        -39.7,
+      ],
+      [
+        11.8,
+        -40.4,
+      ],
+    ]) + shipRect(6.5, -14.2, mizzen.xAt(13.5) - 6.5, 0.5);
+  const spars = [
+    yards,
+    // The bowsprit and jib boom, from the head out over the bow.
+    poly([
+      [
+        head[0] - 4,
+        head[1] + 0.2,
+      ],
+      [
+        head[0] - 4,
+        head[1] - 0.9,
+      ],
+      sprit,
+      [
+        sprit[0],
+        sprit[1] + 0.45,
+      ],
+    ]),
+  ].join("");
+  const line = (a: Pt, b: Pt) => `M${shipAt(a)}L${shipAt(b)}`;
+  const rail = (x: number): Pt => [
+    x,
+    deckY(x, 0.15),
+  ];
+  const wires = [
+    // Stays, forward from each masthead, and the fore's out to the jib boom.
+    line(fore.top, sprit),
+    line(main.top, [
+      fore.xAt(62),
+      -62,
+    ]),
+    line(mizzen.top, [
+      main.xAt(58),
+      -58,
+    ]),
+    line(mizzen.top, rail(3)),
+    // Shrouds, fanning from the tops down to the rail abreast of each mast.
+    ...masts.flatMap((m, i) => {
+      const [x, , sails] = rig[i];
+      const h = sails[0][1];
+      return [
+        -6,
+        -3,
+        -0.5,
+      ].map((dx) =>
+        line(
+          [
+            m.xAt(h),
+            -h,
+          ],
+          rail(x + dx),
+        ),
+      );
+    }),
+  ].join("");
+  const windows = windowsOf(
+    [
+      // The stern gallery, the after cabin and the deckhouse amidships.
+      ...winRows(
+        [
+          [
+            -4.6,
+            5.5,
+            12.5,
+          ],
+        ],
+        {
+          step: 2.3,
+          w: 1,
+          t: 1,
+          part: "hull",
+          group: [
+            4,
+            4,
+          ],
+          gap: 1,
+          off: 0.08,
+          on: 0.8,
+        },
+      ),
+      ...winRows(
+        [
+          [
+            1.3,
+            6,
+            20,
+          ],
+          [
+            1.7,
+            88.5,
+            98,
+          ],
+        ],
+        {
+          step: 2.6,
+          w: 1.1,
+          t: 0.95,
+          part: "super",
+          group: [
+            6,
+            6,
+          ],
+          gap: 1,
+          off: 0.1,
+          on: 0.7,
+        },
+      ),
+      // A few ports along the 'tween deck.
+      ...winRows(
+        [
+          [
+            -5.4,
+            22,
+            134,
+          ],
+        ],
+        {
+          step: 5.2,
+          w: 0.65,
+          t: 0.65,
+          part: "hull",
+          group: [
+            3,
+            6,
+          ],
+          gap: 1,
+          off: 0.45,
+          on: 0.25,
+        },
+      ),
+    ],
+    deckY,
+    rand,
+    0.3,
+  );
+  const water = shipWater(rand, {
+    stern: sternX(0),
+    bow: bowX(0),
+    left: frame.left,
+    bottom: frame.bottom,
+    len: 150,
+    litAt: windows.litAt,
+    bands: [
+      {
+        from: 0,
+        to: 1.2,
+        cls: "sh-refl-copper",
+        spans: [
+          [
+            12,
+            140,
+          ],
+        ],
+      },
+      {
+        from: 1.2,
+        to: 5.6,
+        cls: "sh-refl-hull",
+        spans: [
+          [
+            12,
+            142,
+          ],
+        ],
+      },
+      {
+        from: 5.6,
+        to: 7,
+        cls: "sh-refl-band",
+        spans: [
+          [
+            10,
+            144,
+          ],
+        ],
+      },
+      {
+        from: 7.6,
+        to: 99,
+        cls: "sh-refl-sail",
+        spans: rig.map(([x, , sails]) => [
+          x - sails[0][2],
+          x + sails[0][2],
+        ]),
+      },
+    ],
+  });
+  return {
+    frame,
+    grads: [
+      vGrad("hull", -12, 0, "var(--sh-cl-hull-hi)", "var(--sh-cl-hull)"),
+      vGrad("white", -12, -8, "var(--sh-white-hi)", "var(--sh-white)"),
+      roundGrad("sail", "var(--sh-sail)", "var(--sh-sail-lit)"),
+    ],
+    smoke: [],
+    inks: [
+      {
+        d: wires,
+        cls: "sh-wire",
+      },
+      {
+        d: masts.map((m) => m.d).join(""),
+        cls: "sh-spar",
+      },
+      ...water.back,
+      {
+        d: hullOf(sternX, bowX, sheer, 150),
+        grad: "hull",
+      },
+      {
+        d: hullBand(sternX, bowX, 0, 1.6),
+        cls: "sh-cl-copper",
+      },
+      {
+        d: band(2.6, 147.5, -3.4, -1.8),
+        cls: "sh-cl-band",
+      },
+      {
+        // The painted gun ports along the band.
+        d: Array.from(
+          {
+            length: 23,
+          },
+          (_, i) => 13 + i * 5.6,
+        )
+          .map((x) => shipRect(x - 0.7, deckY(x, -2.95), 1.4, 0.75))
+          .join(""),
+        cls: "sh-black",
+      },
+      {
+        d: band(1.5, 149, -0.35, 0.15),
+        cls: "sh-cl-rail",
+      },
+      {
+        d: band(4, 22, 0.1, 2.4) + band(86, 100, 0.1, 3.1),
+        grad: "white",
+      },
+      {
+        d: spanker,
+        grad: "sail",
+      },
+      {
+        d: spankerSpars,
+        cls: "sh-spar",
+      },
+      ...[
+        ...squares,
+        ...jibs,
+      ].map(
+        (d): Ink => ({
+          d,
+          grad: "sail",
+        }),
+      ),
+      {
+        d: spars,
+        cls: "sh-spar",
+      },
+      ...windows.inks,
+      water.foam,
+    ],
+    lamps: [
+      [
+        1.2,
+        deckY(1.2, 2.6),
+      ],
+    ],
+    green: [
+      121,
+      deckY(121, 1),
+    ],
+    aft: water.aft,
+    bow: water.bow,
+  };
+}
+
+/** THE FREIGHTER, after the Mærsk Mc-Kinney Møller (the Triple E class): a 400m container ship in the line's
+ *  light blue over a red bottom. Her deckhouse is set well forward, two fifths of her length back from the
+ *  bow, so the boxes stack high before it and her engines and funnel can sit aft; and from bow to stern she
+ *  is a wall of 20ft boxes (so they read nearly square from the side, as 40ft ones do not), mostly in the
+ *  line's own blue, stacked eight to ten high and stepping down into the bow. Her funnel is banded in the
+ *  chosen colour; a free-fall lifeboat sits on her stern. */
+function freighterArt(): ShipArt {
+  const len = 330;
+  const frame = frameOf({
+    len,
+    right: len + 6,
+    top: -66,
+    bottom: 16,
+  });
+  const rand = mulberry32(2013);
+  const sheer = (x: number) => 15 + 2.6 * Math.max(0, (x - (len - 50)) / 50) ** 2 + 0.8 * Math.max(0, (30 - x) / 30) ** 2;
+  const deckY = (x: number, h: number) => -(sheer(x) + h);
+  // A transom stern, and a raked, flared bow.
+  const sternX = (h: number) => (h <= 6 ? 7 - 4.5 * (h / 6) ** 0.7 : 2.5 - (0.6 * (h - 6)) / (sheer(0) - 6));
+  const bowX = (h: number) => len - 8 + 8 * (h / sheer(len)) ** 1.4;
+  const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
+  const [houseA, houseB] = [
+    190,
+    206,
+  ];
+  const [funnelA, funnelB] = [
+    40,
+    53,
+  ];
+  // Stacks of boxes, each drawn 1.5 tall to 1 wide and large enough to read as boxes at this scale (5.2 units
+  // tall, about 1.2vh), in columns grouped four to a bay between lashing bridges:
+  // aft of the funnel, between the funnel and the house, and before the house to the bow, where they step
+  // down. A bay's columns stand mostly one height, now and then a box apart.
+  const TIER = 5.2;
+  const COL = TIER / 1.5;
+  const PITCH = COL + 0.16;
+  const BAY = 4;
+  const cargo: string[][] = Array.from(
+    {
+      length: 6,
+    },
+    () => [],
+  );
+  const stacks: string[] = [];
+  for (const [from, to] of [
+    [
+      13,
+      funnelA - 1,
+    ],
+    [
+      funnelB + 1.5,
+      houseA - 1.5,
+    ],
+    [
+      houseB + 1.5,
+      len - 14,
+    ],
+  ]) {
+    for (let x = from; x + BAY * PITCH <= to; x += BAY * PITCH + 0.9) {
+      const height = 4 + Math.floor(rand() * 2);
+      for (let c = 0; c < BAY; c++) {
+        const sx = x + c * PITCH;
+        const tiers = Math.max(2, height - (sx > len - 40 ? 2 : sx > len - 60 ? 1 : 0) - (rand() < 0.12 ? 1 : 0));
+        const base = deckY(sx + COL / 2, 1);
+        stacks.push(shipRect(sx - 0.06, base - tiers * TIER - 0.06, PITCH, tiers * TIER + 1.06));
+        let colour = 0;
+        for (let t = 0; t < tiers; t++) {
+          // Mostly the line's own blue; others in runs, as boxes of one line are stowed together.
+          if (t === 0 || rand() > 0.4) colour = rand() < 0.55 ? 0 : 1 + Math.floor(rand() * 5);
+          cargo[colour].push(shipRect(sx, base - (t + 1) * TIER + 0.14, COL, TIER - 0.28));
+        }
+      }
+    }
+  }
+  const funnel = (f0: number, f1: number) =>
+    poly([
+      [
+        funnelA - 0.6 * f0,
+        deckY(funnelA, 34 * f0),
+      ],
+      [
+        funnelB - 0.6 * f0,
+        deckY(funnelB, 34 * f0),
+      ],
+      [
+        funnelB - 0.6 * f1,
+        deckY(funnelB, 34 * f1),
+      ],
+      [
+        funnelA - 0.6 * f1,
+        deckY(funnelA, 34 * f1),
+      ],
+    ]);
+  const radar = mastOf(198, sheer(198) + 35, sheer(198) + 42, 0.6, 0);
+  const fore = mastOf(len - 8, sheer(len - 8) + 1, 40, 0.7, 0.02);
+  const windows = windowsOf(
+    [
+      ...winRows(
+        Array.from(
+          {
+            length: 9,
+          },
+          (
+            _,
+            i,
+          ): [
+            number,
+            number,
+            number,
+          ] => [
+            4 + 3 * i,
+            houseA + 1.6,
+            houseB - 1.6,
+          ],
+        ),
+        {
+          step: 2.15,
+          w: 1.2,
+          t: 1.1,
+          part: "super",
+          group: [
+            3,
+            7,
+          ],
+          gap: 1,
+          off: 0.3,
+          on: 0.45,
+        },
+      ),
+      // The bridge, a band of glass right across.
+      ...winRows(
+        [
+          [
+            32.4,
+            houseA - 3.4,
+            houseB + 3.4,
+          ],
+        ],
+        {
+          step: 1.4,
+          w: 1.2,
+          t: 1.4,
+          part: "super",
+          group: [
+            20,
+            20,
+          ],
+          gap: 1,
+          off: 0.05,
+          on: 0.9,
+        },
+      ),
+    ],
+    deckY,
+    rand,
+    0.25,
+  );
+  const water = shipWater(rand, {
+    stern: sternX(0),
+    bow: bowX(0),
+    left: frame.left,
+    bottom: frame.bottom,
+    len,
+    litAt: windows.litAt,
+    bands: [
+      {
+        from: 0,
+        to: 1.4,
+        cls: "sh-refl-red",
+        spans: [
+          [
+            10,
+            len - 8,
+          ],
+        ],
+      },
+      {
+        from: 1.4,
+        to: 8,
+        cls: "sh-refl-fr",
+        spans: [
+          [
+            10,
+            len - 8,
+          ],
+        ],
+      },
+      {
+        from: 8,
+        to: 15,
+        cls: "sh-refl-cargo",
+        spans: [
+          [
+            14,
+            len - 16,
+          ],
+        ],
+      },
+    ],
+  });
+  return {
+    frame,
+    grads: [
+      vGrad("hull", -18, 0, "var(--sh-fr-hull-hi)", "var(--sh-fr-hull)"),
+      vGrad("white", -50, -15, "var(--sh-white-hi)", "var(--sh-white)"),
+    ],
+    smoke: smokeFrom(
+      rand,
+      [
+        funnelA + 6,
+        deckY(funnelA + 6, 34.4),
+      ],
+      7,
+      0.75,
+      0.24,
+    ),
+    inks: [
+      {
+        d: radar.d + shipRect(195, deckY(198, 40.4), 6, 0.45) + fore.d,
+        cls: "sh-mast",
+      },
+      ...water.back,
+      {
+        d: hullOf(sternX, bowX, sheer, len),
+        grad: "hull",
+      },
+      {
+        d: hullBand(sternX, bowX, 0, 3.4),
+        cls: "sh-red",
+      },
+      {
+        // The breakwater on the forecastle.
+        d: band(len - 30, len - 2, -0.2, 1.8),
+        cls: "sh-fr-deck",
+      },
+      {
+        d: stacks.join(""),
+        cls: "sh-cargo-gap",
+      },
+      ...cargo.map(
+        (boxes, i): Ink => ({
+          d: boxes.join(""),
+          cls: `sh-cargo-${i + 1}`,
+        }),
+      ),
+      {
+        d: band(houseA, houseB, -0.3, 31) + band(houseA - 4, houseB + 4, 31, 34),
+        grad: "white",
+      },
+      {
+        d: funnel(0, 1),
+        cls: "sh-fr-funnel",
+      },
+      {
+        d: funnel(0.74, 0.86),
+        cls: "sh-fr-mark",
+      },
+      {
+        d: funnel(0.95, 1),
+        cls: "sh-black",
+      },
+      {
+        // The free-fall lifeboat on its ramp at the stern, its bow pointing down and aft.
+        d: poly([
+          [
+            4,
+            deckY(4, 0.4),
+          ],
+          [
+            4.4,
+            deckY(4.4, 2.9),
+          ],
+          [
+            12.5,
+            deckY(12.5, 5),
+          ],
+          [
+            13,
+            deckY(13, 2.6),
+          ],
+        ]),
+        cls: "sh-cr-tender",
+      },
+      ...windows.inks,
+      water.foam,
+    ],
+    lamps: [
+      fore.top,
+      radar.top,
+      [
+        3,
+        deckY(3, 1.5),
+      ],
+    ],
+    green: [
+      houseB + 3.6,
+      deckY(houseB + 3.6, 33),
+    ],
+    aft: water.aft,
+    bow: water.bow,
+  };
+}
+
+/** The easter egg's letters, five rows of four, top row first. */
+const HERO_FONT: Record<string, string[]> = {
+  H: [
+    "X..X",
+    "X..X",
+    "XXXX",
+    "X..X",
+    "X..X",
+  ],
+  E: [
+    "XXXX",
+    "X...",
+    "XXX.",
+    "X...",
+    "XXXX",
+  ],
+  R: [
+    "XXX.",
+    "X..X",
+    "XXX.",
+    "X.X.",
+    "X..X",
+  ],
+  O: [
+    ".XX.",
+    "X..X",
+    "X..X",
+    "X..X",
+    ".XX.",
+  ],
+};
+
+/** The cruise ship's easter egg: now and then, by night, a block of her balconies goes dark and H, E, R and O
+ *  light up across it one after another, each font pixel two windows by two, then go out again (see
+ *  .sh-hero). The block covers ten rows of windows from `row0` and 38 columns from `col0`: a wall behind
+ *  (hiding the halos of the windows it covers), every cell dark, then each letter's cells lit and haloed.
+ *  `y(x, row)` is a window row's centre and `x(col)` a column's. Drawn twice, once for each heading: the
+ *  ship is mirrored when it sails west, so that copy's letters are mirrored to read the right way round. */
+function heroLights(
+  y: (x: number, row: number) => number,
+  x: (col: number) => number,
+  {
+    row0,
+    col0,
+    w,
+    t,
+  }: {
+    row0: number;
+    col0: number;
+    w: number;
+    t: number;
+  },
+): Ink[] {
+  const COLS = 38;
+  const ROWS = 10;
+  // The text's lit cells, as [screen column, row from the bottom, letter].
+  const lit: [
+    number,
+    number,
+    number,
+  ][] = [];
+  [
+    ..."HERO",
+  ].forEach((letter, k) =>
+    HERO_FONT[letter].forEach((line, r) =>
+      [
+        ...line,
+      ].forEach((px, c) => {
+        if (px !== "X") return;
+        for (const dc of [
+          0,
+          1,
+        ])
+          for (const dr of [
+            0,
+            1,
+          ])
+            lit.push([
+              k * 10 + c * 2 + dc,
+              ROWS - 1 - (r * 2 + dr),
+              k,
+            ]);
+      }),
+    ),
+  );
+  const cell = (col: number, row: number) => {
+    const cx = x(col0 + col);
+    return shipRect(cx - w / 2, y(cx, row0 + row) - t / 2, w, t);
+  };
+  const [left, right] = [
+    x(col0) - w / 2 - 0.9,
+    x(col0 + COLS - 1) + w / 2 + 0.9,
+  ];
+  const [top, foot] = [
+    y(left, row0 + ROWS - 1) - t / 2 - 1.1,
+    y(left, row0) + t / 2 + 1.1,
+  ];
+  const inks: Ink[] = [
+    {
+      d: shipRect(left, top, right - left, foot - top),
+      grad: "white",
+      night: true,
+      wrap: "sh-hero-dark",
+    },
+  ];
+  for (const heading of [
+    "east",
+    "west",
+  ] as const) {
+    // Mirrored going west: screen column s is drawn at COLS - 1 - s.
+    const at = (s: number) => (heading === "east" ? s : COLS - 1 - s);
+    const on = new Set(lit.map(([s, row]) => `${at(s)},${row}`));
+    const dark: string[] = [];
+    for (let col = 0; col < COLS; col++) for (let row = 0; row < ROWS; row++) if (!on.has(`${col},${row}`)) dark.push(cell(col, row));
+    inks.push({
+      d: dark.join(""),
+      cls: "sh-win",
+      night: true,
+      wrap: "sh-hero-dark",
+      only: heading,
+    });
+    for (let k = 0; k < 4; k++) {
+      const d = lit
+        .filter(([, , letter]) => letter === k)
+        .map(([s, row]) => cell(at(s), row))
+        .join("");
+      const wrap = `sh-hero sh-hero-${k}`;
+      for (const cls of [
+        "sh-halo-wide",
+        "sh-halo",
+        "sh-win-lit",
+      ])
+        inks.push({
+          d,
+          cls,
+          night: true,
+          wrap,
+          only: heading,
+        });
+    }
+  }
+  return inks;
+}
+
+/** THE CRUISE SHIP, after Allure of the Seas (the Oasis class): white from her navy boot-topping up, a hull
+ *  with two rows of ports, then a long recess where her big orange lifeboats hang, and over it a sheer block
+ *  of a dozen balcony decks, flush at the stern and leaning back a little toward the bow. On top, the pool
+ *  deck under a glass solarium forward, her bridge at the head of it, two funnels abreast a little aft of
+ *  amidships (one in profile, banded in the chosen colour), and aft the waterslide tower with its tubes, the
+ *  long slide coiling down the stern, and a climbing wall. By night her balconies are lit end to end. */
+function cruiseArt(): ShipArt {
+  const len = 320;
+  const frame = frameOf({
+    len,
+    right: len + 6,
+    top: -82,
+    bottom: 16,
+  });
+  const rand = mulberry32(2010);
+  const sheer = (x: number) => 14 + 2.4 * Math.max(0, (x - (len - 50)) / 50) ** 2;
+  const deckY = (x: number, h: number) => -(sheer(x) + h);
+  const sternX = (h: number) => (h <= 4 ? 6 - 0.75 * h : 3);
+  const bowX = (h: number) => len - 14 + 14 * (h / sheer(len)) ** 1.3;
+  const band = (x0: number, x1: number, h0: number, h1: number) => sheerBand(sheer, x0, x1, h0, h1);
+  const DECK = 3;
+  const DECKS = 12;
+  const TOP = 45;
+  // The superstructure's after edge, h above the sheer: a smooth slant from the stern up and forward to the
+  // pool deck, steepest low down; and its forward edge, a gentle lean back toward the top.
+  const aftX = (h: number) => 3 + 30 * (Math.max(0, h) / TOP) ** 1.2;
+  const foreX = (h: number) => 303 - 0.42 * h;
+  const hs = Array.from(
+    {
+      length: 16,
+    },
+    (_, i) => -0.3 + ((TOP + 0.3) * i) / 15,
+  );
+  const tops: number[] = [];
+  for (let x = aftX(TOP) + 8; x < foreX(TOP); x += 8) tops.push(x);
+  const block = poly([
+    ...hs.map(
+      (h): Pt => [
+        aftX(h),
+        deckY(aftX(h), h),
+      ],
+    ),
+    ...tops.map(
+      (x): Pt => [
+        x,
+        deckY(x, TOP),
+      ],
+    ),
+    ...[
+      ...hs,
+    ]
+      .reverse()
+      .map(
+        (h): Pt => [
+          foreX(h),
+          deckY(foreX(h), h),
+        ],
+      ),
+  ]);
+  // The bridge, its front standing just proud of the superstructure's.
+  const decks = block + band(268, 289, 35.8, 39.2);
+  // Balconies sit on one grid of columns (GRID from x 5), so every deck's line up; the HERO lights need it.
+  const GRID = 2.2;
+  const onGrid = (x: number) => 5 + Math.ceil((x - 5) / GRID) * GRID;
+  const rowH = (i: number) => 6 + DECK * i + 1.55;
+  // The lifeboat recess along decks 4 and 5, and the boats hanging in it.
+  const recess = band(28, 284, 0.6, 5.4);
+  const boats = Array.from(
+    {
+      length: 17,
+    },
+    (_, i) => 36 + i * 14.4,
+  )
+    .map((b) => {
+      const y = deckY(b, 4.9);
+      return poly([
+        [
+          b - 5.6,
+          y,
+        ],
+        [
+          b + 5.6,
+          y,
+        ],
+        [
+          b + 4.8,
+          y + 3.4,
+        ],
+        [
+          b - 4.8,
+          y + 3.4,
+        ],
+      ]);
+    })
+    .join("");
+  // The solarium's glass roof forward, sloping down to the bow.
+  const solarium = poly([
+    [
+      242,
+      deckY(242, 44.6),
+    ],
+    [
+      286,
+      deckY(286, 44.6),
+    ],
+    [
+      276,
+      deckY(276, 48.4),
+    ],
+    [
+      246,
+      deckY(246, 49),
+    ],
+  ]);
+  // Two funnels abreast, one in profile, a little aft of amidships.
+  const funnel = (f0: number, f1: number) =>
+    poly([
+      [
+        112 - 1.4 * f0,
+        deckY(112, 45 + 10 * f0),
+      ],
+      [
+        136 - 1.4 * f0,
+        deckY(136, 45 + 10 * f0),
+      ],
+      [
+        136 - 1.4 * f1,
+        deckY(136, 45 + 10 * f1),
+      ],
+      [
+        112 - 1.4 * f1,
+        deckY(112, 45 + 10 * f1),
+      ],
+    ]);
+  // Aft: the slide tower, its tubes, the long slide coiling down the stern, and a climbing wall.
+  const at = (x: number, h: number) =>
+    shipAt([
+      x,
+      deckY(x, h),
+    ]);
+  const tower = band(62, 72, 44.8, 52.5);
+  const wall = band(38, 43, 44.8, 52) + band(46, 51, 44.8, 51);
+  const slides = [
+    `M${at(64, 52)}C${at(52, 54)} ${at(50, 47.5)} ${at(58, 48.4)}S${at(54, 45.4)} ${at(52, 45.2)}`,
+    `M${at(70, 51)}C${at(86, 55)} ${at(94, 48)} ${at(84, 47.5)}S${at(92, 45)} ${at(100, 45.3)}`,
+  ];
+  // The long slide, coiling down just off the slanted stern.
+  const coil = [
+    40,
+    33,
+    26,
+    19,
+    12,
+  ].map(
+    (h, i): Pt => [
+      aftX(h) + (i % 2 ? 4 : -2.5),
+      h,
+    ],
+  );
+  let abyss = `M${at(60, 50)}C${at(40, 52)} ${at(aftX(46) - 6, 46)} ${at(...coil[0])}`;
+  for (let i = 1; i < coil.length; i++) abyss += `S${at(coil[i][0] + (i % 2 ? -3 : 3), coil[i][1] + 3.5)} ${at(...coil[i])}`;
+  const radar = mastOf(276, sheer(276) + 45, sheer(276) + 53, 0.6, 0);
+  const windows = windowsOf(
+    [
+      // Two rows of ports in the hull.
+      ...winRows(
+        [
+          [
+            -3.5,
+            16,
+            298,
+          ],
+          [
+            -7,
+            18,
+            294,
+          ],
+        ],
+        {
+          step: 2.4,
+          w: 0.8,
+          t: 0.8,
+          part: "hull",
+          group: [
+            8,
+            20,
+          ],
+          gap: 1,
+          off: 0.2,
+          on: 0.5,
+        },
+      ),
+      // A row of balconies along every deck.
+      ...Array.from(
+        {
+          length: DECKS,
+        },
+        (_, i): WinRow => ({
+          h: rowH(i),
+          x0: onGrid(aftX(rowH(i) + 1) + 1.8),
+          x1: foreX(rowH(i) + 1) - 2,
+          step: 2.2,
+          w: 1.75,
+          t: 1.6,
+          part: "super",
+          group: [
+            12,
+            40,
+          ],
+          gap: 1,
+          off: 0.22,
+          on: 0.42,
+        }),
+      ),
+      // The bridge.
+      ...winRows(
+        [
+          [
+            37.5,
+            269.5,
+            284.5,
+          ],
+        ],
+        {
+          step: 1.4,
+          w: 1.2,
+          t: 1.4,
+          part: "super",
+          group: [
+            20,
+            20,
+          ],
+          gap: 1,
+          off: 0.05,
+          on: 0.9,
+        },
+      ),
+    ],
+    deckY,
+    rand,
+  );
+  const hero = heroLights(
+    (x, i) => deckY(x, rowH(i)),
+    (j) => 5 + j * GRID,
+    {
+      row0: 1,
+      col0: 47,
+      w: 1.75,
+      t: 1.6,
+    },
+  );
+  const water = shipWater(rand, {
+    stern: sternX(0),
+    bow: bowX(0),
+    left: frame.left,
+    bottom: frame.bottom,
+    len,
+    litAt: windows.litAt,
+    bands: [
+      {
+        from: 0,
+        to: 1.4,
+        cls: "sh-refl-navy",
+        spans: [
+          [
+            8,
+            len - 10,
+          ],
+        ],
+      },
+      {
+        from: 1.4,
+        to: 15,
+        cls: "sh-refl-white",
+        spans: [
+          [
+            8,
+            len - 14,
+          ],
+        ],
+      },
+    ],
+  });
+  return {
+    frame,
+    grads: [
+      vGrad("white", -62, -2, "var(--sh-white-hi)", "var(--sh-white)"),
+    ],
+    smoke: smokeFrom(
+      rand,
+      [
+        122,
+        deckY(122, 55.4),
+      ],
+      6,
+      0.8,
+      0.16,
+    ),
+    inks: [
+      {
+        d: radar.d + shipRect(273, deckY(276, 51.4), 6, 0.45),
+        cls: "sh-mast",
+      },
+      ...water.back,
+      {
+        d: hullOf(sternX, bowX, sheer, len) + decks + tower,
+        grad: "white",
+      },
+      {
+        d: hullBand(sternX, bowX, 0, 2.4),
+        cls: "sh-cr-band",
+      },
+      {
+        d: recess,
+        cls: "sh-cr-recess",
+      },
+      {
+        d: solarium,
+        cls: "sh-win",
+      },
+      {
+        d: wall,
+        cls: "sh-cr-wall",
+      },
+      {
+        d: funnel(0, 1),
+        cls: "sh-boat",
+      },
+      {
+        d: funnel(0.55, 0.75),
+        cls: "sh-cr-funnel",
+      },
+      {
+        d: funnel(0.88, 1),
+        cls: "sh-cr-band",
+      },
+      ...windows.inks,
+      ...hero,
+      {
+        d: boats,
+        cls: "sh-cr-tender",
+      },
+      {
+        d: abyss,
+        cls: "sh-cr-slide-3",
+      },
+      {
+        d: slides[0],
+        cls: "sh-cr-slide-1",
+      },
+      {
+        d: slides[1],
+        cls: "sh-cr-slide-2",
+      },
+      water.foam,
+    ],
+    lamps: [
+      radar.top,
+      [
+        3.4,
+        deckY(3.4, 2),
+      ],
+    ],
+    green: [
+      286.4,
+      deckY(286.4, 37.6),
+    ],
+    aft: water.aft,
+    bow: water.bow,
+  };
+}
+
+const SHIP_ART: Record<ShipKind, ShipArt> = {
+  liner: linerArt(),
+  clipper: clipperArt(),
+  freighter: freighterArt(),
+  cruise: cruiseArt(),
+};
+
+/** A ship as one inline SVG, heading east (a west-bound crossing mirrors it in CSS): its smoke, then its inks
+ *  back to front (rigging and masts, the reflection and the wake on the water, the hull and everything on it,
+ *  the windows, the foam over the hull's foot), then its running lights. Night-only parts (the halos, the
+ *  lights' streaks, the running lights) sit in .sh-night groups. */
+function Ship({ kind, west = false }: { kind: ShipKind; west?: boolean }) {
+  const art = SHIP_ART[kind];
+  const { frame } = art;
+  // Per instance: url(#…) resolves to the first matching id in the document (see ForestRidge).
+  const scope = useId().replace(/[^\w-]/g, "");
+  const id = (part: string) => `${scope}sh-${part}`;
+  const url = (part: string) => `url(#${id(part)})`;
+  const stop = (offset: number, color: string, opacity?: number) => (
+    <stop
+      key={offset}
+      offset={offset}
+      style={{
+        stopColor: color,
+        stopOpacity: opacity,
+      }}
+    />
+  );
+  /** A luminance mask that fades what it masks out along one axis, from `start` (white: fully drawn) to nothing. */
+  const fade = (name: string, [x1, y1]: Pt, [x2, y2]: Pt, start = "#fff") => (
+    <>
+      <linearGradient id={id(`${name}-ramp`)} gradientUnits="userSpaceOnUse" x1={x1} y1={y1} x2={x2} y2={y2}>
+        <stop offset="0" stopColor={start} />
+        <stop offset="1" stopColor="#000" />
+      </linearGradient>
+      <mask id={id(name)} maskUnits="userSpaceOnUse" x={frame.left} y={frame.top} width={frame.w} height={frame.h}>
+        <rect x={frame.left} y={frame.top} width={frame.w} height={frame.h} fill={url(`${name}-ramp`)} />
+      </mask>
+    </>
+  );
+  return (
+    <svg className="sh-paint" viewBox={`${f1(frame.left)} ${frame.top} ${f1(frame.w)} ${frame.h}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        {art.grads.map((g) => (
+          <linearGradient key={g.key} id={id(g.key)} gradientUnits={g.user ? "userSpaceOnUse" : undefined} x1={g.x1} y1={g.y1} x2={g.x2} y2={g.y2}>
+            {g.stops.map(([offset, color, opacity]) => stop(offset, color, opacity))}
+          </linearGradient>
+        ))}
+        <radialGradient id={id("smoke")}>
+          {stop(0, "var(--sh-smoke)", 0.9)}
+          {stop(0.55, "var(--sh-smoke)", 0.45)}
+          {stop(1, "var(--sh-smoke)", 0)}
+        </radialGradient>
+        <radialGradient id={id("halo")}>
+          {stop(0, "var(--sh-lamp)", 0.7)}
+          {stop(1, "var(--sh-lamp)", 0)}
+        </radialGradient>
+        {fade(
+          "down",
+          [
+            0,
+            0.5,
+          ],
+          [
+            0,
+            frame.bottom - 1,
+          ],
+          "#a6a6a6",
+        )}
+        {fade(
+          "aft",
+          [
+            art.aft[0],
+            0,
+          ],
+          [
+            art.aft[1],
+            0,
+          ],
+        )}
+        {fade(
+          "bow",
+          [
+            art.bow[0],
+            0,
+          ],
+          [
+            art.bow[1],
+            0,
+          ],
+        )}
+      </defs>
+      {art.smoke.map(({ cx, cy, r, o }) => (
+        <circle key={`${f1(cx)},${f1(cy)}`} cx={f1(cx)} cy={f1(cy)} r={f1(r)} opacity={f2(o)} fill={url("smoke")} />
+      ))}
+      {art.inks
+        .filter(({ d, only }) => d && only !== (west ? "east" : "west"))
+        .map(({ d, cls, grad, mask, night, wrap }, i) => {
+          const path = <path key={i} className={cls} d={d} fill={grad ? url(grad) : undefined} mask={mask ? url(mask) : undefined} />;
+          const group = [
+            night ? "sh-night" : "",
+            wrap ?? "",
+          ]
+            .join(" ")
+            .trim();
+          return group ? (
+            <g key={i} className={group}>
+              {path}
+            </g>
+          ) : (
+            path
+          );
+        })}
+      <g className="sh-night">
+        {art.lamps.map(([x, y]) => (
+          <Fragment key={`${f1(x)},${f1(y)}`}>
+            <circle cx={f1(x)} cy={f1(y)} r="2.6" fill={url("halo")} />
+            <circle className="sh-lamp" cx={f1(x)} cy={f1(y)} r="0.45" />
+          </Fragment>
+        ))}
+        <circle className="sh-green" cx={f1(art.green[0])} cy={f1(art.green[1])} r="1.2" opacity="0.35" />
+        <circle className="sh-green" cx={f1(art.green[0])} cy={f1(art.green[1])} r="0.45" />
+      </g>
+    </svg>
+  );
+}
+
+/** The lights that switch on and off, and the cruise ship's HERO. Each BLINK_SETS set keeps its own clock:
+ *  the even sets are lit and go dark for a stretch (sh-lights-out), the odd ones are dark and come on
+ *  (sh-lights-on), and still (Speed 0, reduced motion) each holds its resting state. A switch is instant:
+ *  steps(1, end) holds every keyframe until the next. The HERO lights run on two crossings' clock, phased
+ *  with the crossing, so they show every other one as the ship passes mid-scene: the block goes dark, the
+ *  letters come on one after another and go out in the same order. Built outside SHIPIT_STYLES, as
+ *  seaRowRules is. */
+function lightsRules() {
+  const clocks = [
+    [
+      5.3,
+      -1.9,
+    ],
+    [
+      4.1,
+      -0.7,
+    ],
+    [
+      6.7,
+      -4.6,
+    ],
+    [
+      3.7,
+      -2.9,
+    ],
+    [
+      7.9,
+      -0.4,
+    ],
+    [
+      5.9,
+      -3.3,
+    ],
+  ];
+  const sets = Array.from(
+    {
+      length: BLINK_SETS,
+    },
+    (_, i) => {
+      const [k, d] = clocks[i % clocks.length];
+      return `.sh-blink-${i} { --sh-bk: ${k}; --sh-bd: ${d};${i % 2 ? " opacity: 0; animation-name: sh-lights-on;" : ""} }`;
+    },
+  ).join("\n");
+  const start = f2(-SHIP_LOOP * SHIP_REST);
+  return `.sh-blink {
+  animation: sh-lights-out calc(var(--pat-dur, 8s) * var(--sh-bk, 5)) steps(1, end) calc(var(--pat-dur, 8s) * var(--sh-bd, 0)) infinite;
+}
+${sets}
+@keyframes sh-lights-out {
+  0%, 30% { opacity: 1; }
+  31%, 54% { opacity: 0; }
+  55%, 100% { opacity: 1; }
+}
+@keyframes sh-lights-on {
+  0%, 18% { opacity: 0; }
+  19%, 63% { opacity: 1; }
+  64%, 100% { opacity: 0; }
+}
+.sh-hero-dark, .sh-hero {
+  opacity: 0;
+  animation: sh-hero-dark calc(var(--pat-dur, 8s) * ${2 * SHIP_LOOP}) steps(1, end) calc(var(--pat-dur, 8s) * ${start}) infinite;
+}
+.sh-hero {
+  animation-name: sh-hero;
+  animation-delay: calc(var(--pat-dur, 8s) * (${start} + var(--sh-hd, 0)));
+}
+.sh-hero-1 { --sh-hd: 0.08; }
+.sh-hero-2 { --sh-hd: 0.16; }
+.sh-hero-3 { --sh-hd: 0.24; }
+@keyframes sh-hero-dark {
+  0%, 22% { opacity: 0; }
+  22.1%, 29.5% { opacity: 1; }
+  29.6%, 100% { opacity: 0; }
+}
+@keyframes sh-hero {
+  0%, 22.6% { opacity: 0; }
+  22.7%, 28% { opacity: 1; }
+  28.1%, 100% { opacity: 0; }
+}`;
+}
+
+/** Each ship's box: as wide and tall as its drawing, its waterline on SHIP_WATERLINE. Built outside
+ *  SHIPIT_STYLES, as seaRowRules is. */
+function shipBoxRules() {
+  return SHIP_KINDS.map((kind) => {
+    const { frame } = SHIP_ART[kind];
+    return `.sh-k-${kind} {
+  bottom: ${f2(100 - SHIP_WATERLINE - frame.bottom * SHIP_SU)}vh;
+  width: ${f2(frame.w * SHIP_SU)}vh;
+  height: ${f2(frame.h * SHIP_SU)}vh;
+}`;
+  }).join("\n");
+}
+
+/** Each row's own knobs: its tile and caps, its colours by nearness, and how wide its glitter runs. Built
+ *  outside SHIPIT_STYLES so the stylesheet holds no nested template (check-patterns reads it to its first
+ *  backtick-semicolon). */
+function seaRowRules() {
+  return SEA_PATHS.map(({ h, mask, caps }, i) => {
+    const row = SEA_ROWS[i];
+    const next = SEA_ROWS[i + 1];
+    // How near the row is, 0 at the horizon to 1 at the front.
+    const k = (i / (SEA_ROWS.length - 1)) ** 0.85;
+    return `.sh-r${i} {
+  --sh-rh: ${f2(h)}vh;
+  --sh-m: ${mask};
+  --sh-cm: ${caps};
+  --sh-rt: ${row.tile}vh;
+  --sh-mx: ${f2(-mulberry32(row.seed + 1)() * row.tile)}vh;
+  --sh-c: color-mix(in oklab, var(--sh-far), var(--sh-near) ${Math.round(k * 100)}%);
+  --sh-d: color-mix(in oklab, var(--sh-far-deep), var(--sh-near-deep) ${Math.round(k * 100)}%);
+  --sh-band: ${f2(next ? next.top + next.amp - row.top : h)}vh;
+  --sh-gw: ${f2(3 + 24 * k)}vh;
+  --sh-gh: ${f2(row.amp * 3 + 1)}vh;
+  --sh-ga: ${100 - Math.round(k * 30)}%;
+}`;
+  }).join("\n");
+}
+
+const SHIPIT_STYLES = `
+[data-pattern="shipit"] {
+  /* DAY — SUNSET at sea. A clear blue zenith (the top stops take the theme cast like the other day skies)
+     warming to gold at the skyline, where the sun sits on the water. The sea runs from a pale hazy blue at
+     the horizon to a deep blue up close, and stays light enough (the nearest trough at L 0.55) for dark
+     text on a light page. */
+  --sw-cast: min(calc(var(--glass-tint-c, 0.018) * 250%), 16%);
+  --sh-sky-a: ${tintCast(0.62, 0.1, 248, 0.09)};
+  --sh-sky-b: ${tintCast(0.74, 0.08, 238, 0.07)};
+  --sh-sky-c: ${tintCast(0.84, 0.05, 222, 0.045)};
+  --sh-sky-d: oklch(0.9 0.055 82);
+  --sh-sky-e: oklch(0.88 0.075 62);
+  --sh-far: oklch(0.8 0.045 218);
+  --sh-far-deep: oklch(0.73 0.055 225);
+  --sh-near: oklch(0.63 0.085 234);
+  --sh-near-deep: oklch(0.55 0.09 240);
+  --sh-crest: oklch(0.93 0.03 205); /* what a crest's cap leans toward, away from the glitter */
+  --sh-crest-mix: 42%;
+  --sh-glint: oklch(0.97 0.1 88); /* the glitter path: low sun on the crests */
+  /* The water under the sun is LIGHTER, not warmer: a warm wash composited over blue greys it. The warmth
+     is the glitter's. */
+  --sh-sheen: oklch(0.9 0.035 210 / 0.35);
+  /* The sun's path: near white at the horizon, warming to gold toward the viewer as it fades. */
+  --sh-path-1: oklch(0.98 0.07 92);
+  --sh-path-2: oklch(0.94 0.1 84 / 0.85);
+  --sh-path-3: oklch(0.88 0.12 72 / 0.7);
+  --sh-path-4: oklch(0.84 0.12 62 / 0.55);
+  --sh-path-w: 70vh;
+  --sh-glow: oklch(0.93 0.09 75 / 0.55);
+  --sh-haze: oklch(0.91 0.045 70 / 0.55);
+  /* The liner: black hull, red band, white superstructure, buff funnels with black tops. */
+  --sh-hull: oklch(0.17 0.01 260);
+  --sh-hull-hi: oklch(0.31 0.015 250);
+  --sh-red: oklch(0.5 0.16 27);
+  --sh-gold: oklch(0.8 0.1 82);
+  --sh-white: oklch(0.88 0.015 245);
+  --sh-white-hi: oklch(0.97 0.018 85);
+  --sh-deck: oklch(0.78 0.02 245);
+  --sh-buff: oklch(0.62 0.09 66);
+  --sh-buff-lit: oklch(0.8 0.11 76);
+  --sh-black: oklch(0.2 0.01 60);
+  --sh-boat: oklch(0.95 0.012 85);
+  --sh-mast: oklch(0.5 0.05 60);
+  --sh-wire: oklch(0.3 0.01 250 / 0.5);
+  /* By day every window is glass: the portholes catch the sky, the superstructure's are dark. */
+  --sh-port: oklch(0.55 0.03 235);
+  --sh-port-lit: var(--sh-port);
+  --sh-glass: oklch(0.42 0.03 250);
+  --sh-glass-lit: var(--sh-glass);
+  --sh-lamp: oklch(0.92 0.13 88);
+  /* Shown only at night (the .sh-night parts), set once here for both modes. */
+  --sh-halo: oklch(0.85 0.16 82 / 0.3);
+  --sh-halo-wide: oklch(0.8 0.15 75 / 0.12);
+  --sh-green: oklch(0.8 0.2 150);
+  --sh-foam: oklch(0.98 0.012 220 / 0.92);
+  --sh-smoke: oklch(0.6 0.015 60);
+  --sh-refl-red: oklch(0.45 0.1 30);
+  --sh-refl-hull: oklch(0.3 0.03 245);
+  --sh-refl-white: oklch(0.9 0.03 215);
+  --sh-refl-buff: oklch(0.72 0.08 70);
+  /* The clipper: black wood on a copper bottom, a cream band of ports, canvas warmed by the low sun. */
+  --sh-cl-hull: oklch(0.19 0.012 50);
+  --sh-cl-hull-hi: oklch(0.31 0.02 55);
+  --sh-cl-band: oklch(0.86 0.06 85);
+  --sh-cl-copper: oklch(0.62 0.12 50);
+  --sh-cl-rail: oklch(0.9 0.02 85);
+  --sh-spar: oklch(0.34 0.04 55);
+  --sh-sail: oklch(0.8 0.045 72);
+  --sh-sail-lit: oklch(0.97 0.035 88);
+  --sh-refl-copper: oklch(0.5 0.09 50);
+  --sh-refl-band: oklch(0.76 0.05 85);
+  --sh-refl-sail: oklch(0.88 0.04 80);
+  /* The freighter: a navy hull, boxes in a run of lines' colours, a funnel banded in the chosen colour. */
+  --sh-fr-hull: oklch(0.56 0.11 238);
+  --sh-fr-hull-hi: oklch(0.67 0.1 232);
+  --sh-fr-deck: oklch(0.76 0.01 250);
+  --sh-fr-funnel: oklch(0.6 0.11 236);
+  --sh-fr-mark: oklch(0.6 0.16 var(--accent-h, var(--glass-tint-h, 25)));
+  --sh-cargo-1: oklch(0.67 0.11 230); /* the line's own blue */
+  --sh-cargo-2: oklch(0.42 0.09 258);
+  --sh-cargo-3: oklch(0.88 0.01 240);
+  --sh-cargo-4: oklch(0.52 0.15 28);
+  --sh-cargo-5: oklch(0.7 0.15 58);
+  --sh-cargo-6: oklch(0.6 0.01 250);
+  --sh-cargo-gap: oklch(0.22 0.02 250);
+  --sh-refl-fr: oklch(0.52 0.08 236);
+  --sh-refl-navy: oklch(0.34 0.05 255);
+  --sh-refl-cargo: oklch(0.56 0.08 230);
+  /* The cruise ship: white over a navy boot-topping, orange lifeboats in a dark recess, a funnel band and
+     a waterslide in the chosen colour. */
+  --sh-cr-band: oklch(0.3 0.07 258);
+  --sh-cr-funnel: oklch(0.55 0.14 var(--accent-h, var(--glass-tint-h, 250)));
+  --sh-cr-tender: oklch(0.7 0.17 55);
+  --sh-cr-recess: oklch(0.42 0.02 250);
+  --sh-cr-wall: oklch(0.72 0.04 70);
+  --sh-cr-slide-1: oklch(0.62 0.17 var(--accent-h, var(--glass-tint-h, 300)));
+  --sh-cr-slide-2: oklch(0.72 0.16 60);
+  --sh-cr-slide-3: oklch(0.56 0.15 285);
+  --sw-sun-o: 1;
+  --sw-moon-o: 0;
+  --sw-sun-d: block;
+  --sw-moon-d: none;
+  --sun-size: 34vh;
+  --sun-h: var(--accent-h, var(--glass-tint-h, 35));
+  --sw-disc-1: oklch(0.6 0.21 var(--sun-h));
+  --sw-disc-2: color-mix(in oklch, oklch(0.68 0.2 var(--sun-h)), oklch(0.74 0.18 48) 30%);
+  --sw-disc-3: color-mix(in oklch, oklch(0.76 0.18 var(--sun-h)), oklch(0.82 0.17 66) 58%);
+  --sw-disc-4: color-mix(in oklch, oklch(0.85 0.15 var(--sun-h)), oklch(0.89 0.15 80) 80%);
+  --sw-disc-5: oklch(0.94 0.13 94);
+  --sw-disc-glow: oklch(0.84 0.15 var(--sun-h) / 0.42);
+  --sw-stars-o: 0;
+}
+.dark [data-pattern="shipit"] {
+  /* NIGHT — the same sea under the moon: navy sky, dark swell with a silver path to the moon, and the
+     liner a black shape picked out by its lit windows, their light streaking the water. */
+  --sh-sky-a: oklch(0.09 0.035 262);
+  --sh-sky-b: oklch(0.12 0.045 266);
+  --sh-sky-c: oklch(0.16 0.05 270);
+  --sh-sky-d: oklch(0.2 0.05 268);
+  --sh-sky-e: oklch(0.23 0.045 262);
+  --sh-far: oklch(0.21 0.04 255);
+  --sh-far-deep: oklch(0.17 0.04 256);
+  --sh-near: oklch(0.13 0.035 252);
+  --sh-near-deep: oklch(0.09 0.03 255);
+  --sh-crest: oklch(0.38 0.04 248);
+  --sh-crest-mix: 30%;
+  --sh-glint: oklch(0.86 0.03 250);
+  --sh-sheen: oklch(0.55 0.04 250 / 0.25);
+  /* The moon's path: silver, cooling and fading toward the viewer. */
+  --sh-path-1: oklch(0.95 0.015 250);
+  --sh-path-2: oklch(0.9 0.025 252 / 0.85);
+  --sh-path-3: oklch(0.82 0.035 258 / 0.7);
+  --sh-path-4: oklch(0.74 0.04 262 / 0.55);
+  --sh-path-w: 46vh;
+  --sh-glow: oklch(0.6 0.05 262 / 0.3);
+  --sh-haze: oklch(0.3 0.04 260 / 0.35);
+  --sh-hull: oklch(0.1 0.01 260);
+  --sh-hull-hi: oklch(0.2 0.02 255);
+  --sh-red: oklch(0.27 0.07 25);
+  --sh-gold: oklch(0.45 0.06 80);
+  --sh-white: oklch(0.4 0.025 258);
+  --sh-white-hi: oklch(0.54 0.025 255);
+  --sh-deck: oklch(0.33 0.02 258);
+  --sh-buff: oklch(0.28 0.035 66);
+  --sh-buff-lit: oklch(0.4 0.05 72);
+  --sh-black: oklch(0.1 0.01 260);
+  --sh-boat: oklch(0.55 0.02 255);
+  --sh-mast: oklch(0.28 0.03 65);
+  --sh-wire: oklch(0.4 0.02 255 / 0.5);
+  --sh-port: oklch(0.17 0.015 255);
+  --sh-glass: oklch(0.2 0.02 260);
+  /* Lit windows: lamplight yellow, haloed. */
+  --sh-lamp: oklch(0.9 0.15 88);
+  --sh-port-lit: var(--sh-lamp);
+  --sh-glass-lit: var(--sh-lamp);
+  --sh-foam: oklch(0.6 0.02 250 / 0.8);
+  --sh-smoke: oklch(0.32 0.015 258);
+  --sh-refl-red: oklch(0.14 0.03 25);
+  --sh-refl-hull: oklch(0.07 0.01 260);
+  --sh-refl-white: oklch(0.32 0.025 255);
+  --sh-refl-buff: oklch(0.2 0.03 70);
+  --sh-cl-hull: oklch(0.1 0.01 50);
+  --sh-cl-hull-hi: oklch(0.18 0.015 55);
+  --sh-cl-band: oklch(0.4 0.03 80);
+  --sh-cl-copper: oklch(0.28 0.06 45);
+  --sh-cl-rail: oklch(0.45 0.02 255);
+  --sh-spar: oklch(0.17 0.02 260);
+  --sh-sail: oklch(0.34 0.02 258);
+  --sh-sail-lit: oklch(0.56 0.025 255);
+  --sh-refl-copper: oklch(0.15 0.03 45);
+  --sh-refl-band: oklch(0.24 0.02 255);
+  --sh-refl-sail: oklch(0.3 0.02 255);
+  --sh-fr-hull: oklch(0.17 0.04 240);
+  --sh-fr-hull-hi: oklch(0.25 0.045 236);
+  --sh-fr-deck: oklch(0.34 0.015 255);
+  --sh-fr-funnel: oklch(0.22 0.04 238);
+  --sh-fr-mark: oklch(0.32 0.09 var(--accent-h, var(--glass-tint-h, 25)));
+  --sh-cargo-1: oklch(0.28 0.05 232);
+  --sh-cargo-2: oklch(0.2 0.04 258);
+  --sh-cargo-3: oklch(0.38 0.01 245);
+  --sh-cargo-4: oklch(0.25 0.07 28);
+  --sh-cargo-5: oklch(0.32 0.07 58);
+  --sh-cargo-6: oklch(0.27 0.01 250);
+  --sh-cargo-gap: oklch(0.08 0.01 260);
+  --sh-refl-fr: oklch(0.11 0.02 240);
+  --sh-refl-navy: oklch(0.08 0.015 258);
+  --sh-refl-cargo: oklch(0.14 0.02 250);
+  --sh-cr-band: oklch(0.14 0.03 258);
+  --sh-cr-funnel: oklch(0.28 0.07 var(--accent-h, var(--glass-tint-h, 250)));
+  --sh-cr-tender: oklch(0.36 0.08 50);
+  --sh-cr-recess: oklch(0.12 0.01 260);
+  --sh-cr-wall: oklch(0.3 0.02 70);
+  --sh-cr-slide-1: oklch(0.32 0.08 var(--accent-h, var(--glass-tint-h, 300)));
+  --sh-cr-slide-2: oklch(0.36 0.08 60);
+  --sh-cr-slide-3: oklch(0.3 0.08 285);
+  --sh-night-d: inline;
+  --sw-sun-o: 0;
+  --sw-moon-o: 1;
+  --sw-sun-d: none;
+  --sw-moon-d: block;
+  /* Risen a little clear of the horizon, so its path runs down the sea to the viewer. */
+  --moon-size: 22vh;
+  --moon-bottom: 52%;
+  --moon-dip: 0%;
+  --sw-moon-1: oklch(0.95 0.015 255);
+  --sw-moon-2: oklch(0.85 0.035 262);
+  --sw-moon-3: oklch(0.72 0.06 270);
+  --sw-maria: 0.64 0.05 268;
+  --sw-disc-glow: oklch(0.82 0.05 250 / 0.45);
+  --sw-stars-o: 1;
+}
+/* A size container, so the liner's crossing can be measured in the scene's own width (cqw), which holds in
+   a preview swatch as well as in a full window. */
+.sh-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: inline-size;
+  background: linear-gradient(
+    to bottom,
+    var(--sh-sky-a) 0%,
+    var(--sh-sky-b) 24%,
+    var(--sh-sky-c) 40%,
+    var(--sh-sky-d) 51%,
+    var(--sh-sky-e) 58%,
+    var(--sh-far) 58.3%
+  );
+}
+/* The bloom around the disc. Painted before the sea, so only its sky half shows: on the water the caps'
+   glitter and the rows' sheen carry the light. */
+.sh-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(70vh 22vh at var(--sw-disc-x, 50%) 56vh, var(--sh-glow) 0%, transparent 100%);
+}
+/* A thin haze over the horizon, faded out before the third row starts. */
+.sh-haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 55%;
+  height: 5.4%;
+  background: linear-gradient(to bottom, transparent, var(--sh-haze) 45%, var(--sh-haze) 60%, transparent);
+}
+/* A row of swell: full width, masked by its repeating tile. */
+.sh-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--sh-rh);
+}
+${seaRowRules()}
+/* The wave: its row colour at the crests deepening to the trough colour where the next row takes over, with
+   a sheen toward the disc. Mixed in OKLab, as every scene mixes light into shade. */
+.sh-fill {
+  -webkit-mask: var(--sh-m) var(--sh-mx) 0 / var(--sh-rt) 100% repeat-x;
+  mask: var(--sh-m) var(--sh-mx) 0 / var(--sh-rt) 100% repeat-x;
+  background:
+    radial-gradient(calc(var(--sh-gw) * 1.8) calc(var(--sh-band) * 1.6) at var(--sw-disc-x, 50%) 0, var(--sh-sheen) 0%, transparent 100%),
+    linear-gradient(to bottom, var(--sh-c) 0, var(--sh-d) var(--sh-band));
+}
+/* The crests' caps: lighter than the wave everywhere, and the glitter where they face the disc. */
+.sh-cap {
+  -webkit-mask: var(--sh-cm) var(--sh-mx) 0 / var(--sh-rt) 100% repeat-x;
+  mask: var(--sh-cm) var(--sh-mx) 0 / var(--sh-rt) 100% repeat-x;
+  background:
+    radial-gradient(var(--sh-gw) var(--sh-gh) at var(--sw-disc-x, 50%) 0, color-mix(in oklab, var(--sh-glint) var(--sh-ga), transparent) 0%, transparent 100%),
+    color-mix(in oklab, var(--sh-c), var(--sh-crest) var(--sh-crest-mix, 40%));
+}
+/* THE SUN / MOON PATH, aurora's technique (.au-sunpath): the disc's light broken on the water as a column of
+   soft glints that widens toward the viewer, each one nudged off the centre line, blurred so no edge is hard,
+   and broken into lines by a fine ripple mask. It replaces a column of hard-edged bars, which near the
+   viewer read as pixels. The lit crests in the column (the caps' glint) still sparkle over it. Still, so its
+   blur and masks are drawn into the scene group once; the box carries none, as aurora's does not. */
+.sh-path {
+  position: absolute;
+  top: 58.3%;
+  bottom: 0;
+  left: var(--sw-disc-x, 50%);
+  width: var(--sh-path-w, 70vh);
+  transform: translateX(-50%);
+}
+.sh-path-paint {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(9% 5% at 50% 2%, var(--sh-path-1) 0 45%, transparent 78%),
+    radial-gradient(13% 6% at 47% 10%, var(--sh-path-1) 0 42%, transparent 78%),
+    radial-gradient(18% 7% at 53% 20%, var(--sh-path-2) 0 40%, transparent 80%),
+    radial-gradient(24% 7.5% at 46% 32%, var(--sh-path-2) 0 38%, transparent 80%),
+    radial-gradient(31% 8% at 54% 46%, var(--sh-path-3) 0 36%, transparent 82%),
+    radial-gradient(38% 8.5% at 48% 61%, var(--sh-path-3) 0 34%, transparent 82%),
+    radial-gradient(45% 9% at 52% 77%, var(--sh-path-4) 0 32%, transparent 84%),
+    radial-gradient(50% 9% at 49% 92%, var(--sh-path-4) 0 30%, transparent 84%);
+  filter: blur(6px);
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0 10%, rgb(0 0 0 / 0.7) 50%, transparent 98%),
+    repeating-linear-gradient(to bottom, #000 0 3px, rgb(0 0 0 / 0.3) 3px 8px, #000 8px 13px, rgb(0 0 0 / 0.45) 13px 19px);
+  mask-image:
+    linear-gradient(to bottom, #000 0 10%, rgb(0 0 0 / 0.7) 50%, transparent 98%),
+    repeating-linear-gradient(to bottom, #000 0 3px, rgb(0 0 0 / 0.3) 3px 8px, #000 8px 13px, rgb(0 0 0 / 0.45) 13px 19px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+/* THE SHIP. This box only moves; its SVG child draws. It crosses from just off one side of the scene to just
+   off the other (100cqw is the scene's width), and at rest it holds the pose the crossing passes through at
+   SHIP_REST of the loop, which the negative delay starts the loop at: set moving, it sails on from where it
+   stood. Every ship's box puts the hull's middle (1 - SHIP_REST) of the way across it (frameOf), which is what
+   makes that pose the same share of the scene at every width, and one transform serve every ship; each
+   ship's own size is its .sh-k-* rule. */
+.sh-ship {
+  position: absolute;
+  left: 0;
+  transform: translateX(calc(${Math.round(SHIP_REST * 100)}cqw - ${Math.round((1 - SHIP_REST) * 100)}%));
+  animation: sh-east calc(var(--pat-dur, 8s) * ${SHIP_LOOP}) linear calc(var(--pat-dur, 8s) * ${f2(-SHIP_LOOP * SHIP_REST)}) infinite;
+  will-change: var(--pat-wc, transform);
+}
+${shipBoxRules()}
+/* Sailing west (the disc on the left), mirrored: it rests as far in from the right. */
+.sh-ship.sh-west {
+  transform: translateX(calc(${Math.round((1 - SHIP_REST) * 100)}cqw - ${Math.round(SHIP_REST * 100)}%));
+  animation-name: sh-west;
+}
+@keyframes sh-east {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100cqw); }
+}
+@keyframes sh-west {
+  from { transform: translateX(100cqw); }
+  to   { transform: translateX(-100%); }
+}
+.sh-paint {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.sh-west .sh-paint {
+  transform: scaleX(-1);
+}
+.sh-night { display: var(--sh-night-d, none); }
+.sh-red { fill: var(--sh-red); }
+.sh-gold { fill: var(--sh-gold); }
+.sh-deck { fill: var(--sh-deck); }
+.sh-black { fill: var(--sh-black); }
+.sh-boat { fill: var(--sh-boat); }
+.sh-mast { fill: var(--sh-mast); }
+.sh-wire { fill: none; stroke: var(--sh-wire); stroke-width: 0.22; }
+.sh-port { fill: var(--sh-port); }
+.sh-port-lit { fill: var(--sh-port-lit); }
+.sh-win { fill: var(--sh-glass); }
+.sh-win-lit { fill: var(--sh-glass-lit); }
+/* A lit window's halo: its own outline stroked wide and faint, twice. One path, so where neighbours' halos
+   overlap they do not stack: a run of lit cabins reads as one glowing strip. */
+.sh-halo, .sh-halo-wide { fill: none; stroke-linejoin: round; }
+.sh-halo { stroke: var(--sh-halo); stroke-width: 1.3; }
+.sh-halo-wide { stroke: var(--sh-halo-wide); stroke-width: 3.2; }
+.sh-lamp, .sh-streak { fill: var(--sh-lamp); }
+.sh-green { fill: var(--sh-green); }
+.sh-foam { fill: var(--sh-foam); }
+.sh-refl-red { fill: var(--sh-refl-red); }
+.sh-refl-hull { fill: var(--sh-refl-hull); }
+.sh-refl-white { fill: var(--sh-refl-white); }
+.sh-refl-buff { fill: var(--sh-refl-buff); }
+.sh-refl-copper { fill: var(--sh-refl-copper); }
+.sh-refl-band { fill: var(--sh-refl-band); }
+.sh-refl-sail { fill: var(--sh-refl-sail); }
+.sh-refl-navy { fill: var(--sh-refl-navy); }
+.sh-refl-cargo { fill: var(--sh-refl-cargo); }
+.sh-cl-band { fill: var(--sh-cl-band); }
+.sh-cl-copper { fill: var(--sh-cl-copper); }
+.sh-cl-rail { fill: var(--sh-cl-rail); }
+.sh-spar { fill: var(--sh-spar); }
+.sh-fr-deck { fill: var(--sh-fr-deck); }
+.sh-fr-funnel { fill: var(--sh-fr-funnel); }
+.sh-fr-mark { fill: var(--sh-fr-mark); }
+.sh-cargo-gap { fill: var(--sh-cargo-gap); }
+.sh-refl-fr { fill: var(--sh-refl-fr); }
+.sh-cargo-1 { fill: var(--sh-cargo-1); }
+.sh-cargo-2 { fill: var(--sh-cargo-2); }
+.sh-cargo-3 { fill: var(--sh-cargo-3); }
+.sh-cargo-4 { fill: var(--sh-cargo-4); }
+.sh-cargo-5 { fill: var(--sh-cargo-5); }
+.sh-cargo-6 { fill: var(--sh-cargo-6); }
+.sh-cr-band { fill: var(--sh-cr-band); }
+.sh-cr-recess { fill: var(--sh-cr-recess); }
+.sh-cr-wall { fill: var(--sh-cr-wall); }
+/* The waterslides: tubes, so a stroke along a curve. */
+.sh-cr-slide-1, .sh-cr-slide-2, .sh-cr-slide-3 { fill: none; stroke-width: 1.1; stroke-linecap: round; }
+.sh-cr-slide-1 { stroke: var(--sh-cr-slide-1); }
+.sh-cr-slide-2 { stroke: var(--sh-cr-slide-2); }
+.sh-cr-slide-3 { stroke: var(--sh-cr-slide-3); }
+.sh-cr-funnel { fill: var(--sh-cr-funnel); }
+.sh-cr-tender { fill: var(--sh-cr-tender); }
+${lightsRules()}
+${stopRules(".sh-ship", ".sh-blink", ".sh-hero-dark", ".sh-hero")}`;
+
 // Starfield — a deep night field by night, a "morning haze" by day: an azure sky leaning toward the chosen
 // colour where it agrees, the nebulae in that colour, and the glints SOFTENED but kept (identity over astronomy — hiding the stars would
 // leave an empty gradient; the Tron scenes can hide theirs because the sun/grid carry the scene).
@@ -4944,6 +8281,11 @@ function styleFor(style: PatternStyle, density: PatternDensity, tileScale?: numb
       return {
         backgroundColor: "oklch(0.09 0.035 262)",
       };
+    case "shipit":
+      // Rendered by its own layered branch in PatternBackground (palettes in SHIPIT_STYLES); kept exhaustive here.
+      return {
+        backgroundColor: "oklch(0.09 0.035 262)",
+      };
     case "chase":
       // Pac-Man chase is rendered by its own branch in PatternBackground; kept exhaustive here.
       return {
@@ -4959,6 +8301,8 @@ export type PatternBackgroundProps = {
   disc?: "left" | "center" | "right";
   /** Blowing-sand intensity for the dune scene — drives the wind veils and the airborne specks. */
   sand?: "still" | "breeze" | "storm";
+  /** The ship the shipit scene sails: a liner, a clipper, a container freighter or a cruise ship. */
+  ship?: ShipKind;
   /** The geometric tiles' (dots, grid) scale, in place of the density's: a picker chip draws smaller
    *  tiles than the wallpaper, or a 48px chip shows one dot of a 48px-spaced field and no grid line. */
   tileScale?: number;
@@ -4987,6 +8331,7 @@ function PatternScene({
   speed = 8,
   disc = "right",
   sand = "breeze",
+  ship = "liner",
   tileScale,
   preview = false,
 }: PatternBackgroundProps) {
@@ -5498,6 +8843,58 @@ function PatternScene({
                 <div className={`mw-hill mw-h${i} mw-fill`} />
               </Fragment>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (style === "shipit") {
+    const stars = STAR_GRADIENTS.slice(0, STAR_COUNT[density]).join(", ");
+    return (
+      <div
+        className={root}
+        style={
+          {
+            "--sw-disc-x": discX,
+            "--pat-dur": patDur,
+            "--pat-wc": patWc,
+          } as CSSProperties
+        }
+        data-pattern="shipit"
+        data-pat-static={patStatic}
+        data-pat-preview={patPreview}
+      >
+        <SceneStyles name="sky" css={SKY_STYLES} />
+        <SceneStyles name="shipit" css={SHIPIT_STYLES} />
+        <div className="sh-scene">
+          <div
+            className="sw-stars"
+            style={{
+              backgroundImage: stars,
+            }}
+          />
+          <MuseConstellation />
+          {/* The disc first: the sea covers its foot, and the ship crosses in front of it. */}
+          <div className="sw-sun" />
+          <div className="scene-moon" />
+          <div className="scene-group">
+            <div className="sh-glow" />
+            {SEA_ROWS.map((_, i) => (
+              <Fragment key={i}>
+                {i === 2 ? <div className="sh-haze" /> : null}
+                <div className={`sh-row sh-r${i} sh-fill`} />
+                <div className={`sh-row sh-r${i} sh-cap`} />
+              </Fragment>
+            ))}
+            <div className="sh-path">
+              <div className="sh-path-paint" />
+            </div>
+            {/* Last, so nothing still is painted over the one part that moves (see .scene-group). It sails
+                toward the disc: west when the disc is on the left. Keyed on the ship, so a new one starts
+                its crossing from the still pose rather than mid-stride in another ship's box. */}
+            <div key={ship} className={`sh-ship sh-k-${ship}${disc === "left" ? " sh-west" : ""}`}>
+              <Ship kind={ship} west={disc === "left"} />
+            </div>
           </div>
         </div>
       </div>
