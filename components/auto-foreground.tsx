@@ -461,10 +461,11 @@ export function AutoForeground({ palette: paletteProp, ramp: rampProp }: AutoFor
       const tintCHi = Math.min(tintC, TINT_C_HI_MAX);
       /* The gloss triple (top / streak / glow) — crystal AND chakra bake the same --glass-gloss-ink, so
          it is derived once here. Only the TOP highlight is modeled: it peaks at 0.4α and fades out by
-         30% height (or --glass-gloss-reach-top, 5rem, on a tall surface), so ≈0.2 is its mean across the
-         title zone (modeling the 0.4 peak would make the band unsatisfiable on mid-gray). On a tall panel
-         the capped fade is steeper, but the title zone's mean stays above 0.2 (≈0.25 at 30px of an 80px
-         fade), so the model holds in the same direction as on a card. The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
+         30% height, so ≈0.2 was its mean across the title zone (modeling the 0.4 peak would make the band
+         unsatisfiable on mid-gray). Since the bevel's bands keep to 1rem (--glass-gloss-reach-top /
+         -side) and fall off as a square, the top band is gone before a card's title zone (24px in), so 0.2
+         (and the frame's 0.06 below) now models MORE gloss than reaches the title; it is left as it was
+         while the 1rem bevel is reviewed, as moving it moves every crystal and chakra text tone. The streak (0.15α on a 135° diagonal) and glow (0.2α radial centred
          at 50% 120%, i.e. BELOW the card) are left out: the glow is past its 70% fade before it reaches
          the title zone, and the streak's mean there is a geometry estimate rather than a measurement.
          Both would only ADD light, so omitting them is the conservative direction.

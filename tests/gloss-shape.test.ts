@@ -3,6 +3,7 @@
  * down from the top and a fainter one in from the leading edge) or the frame ("frame": one band, at one
  * alpha, in from all four edges, gone by --glass-gloss-reach-frame). The frame adds no layer: the top and
  * side bands run on to the far edges and end in --glass-gloss-edge-ink, the ink at alpha 0 in the bevel.
+ * Every band falls off as the square of its depth, so where two meet at a corner they blend in a round.
  */
 import { describe, expect, it } from "vitest";
 import { colorOf, computedVars, html, type ModelElement, numberOf } from "./theme-cascade";
@@ -45,8 +46,67 @@ describe("the gloss shape", () => {
       expect(colorOf("--glass-gloss-edge-ink", bevel).a).toBe(0);
       const top = computedVars(bevel).get("--glass-gloss-top") ?? "";
       expect(top).toMatch(/\/ 0\.4\)/);
-      expect(top).toMatch(/min\(30%, 5rem\)/);
+      expect(top).toMatch(/min\(30%, 1rem\)/);
       expect(computedVars(bevel).get("--glass-gloss-side") ?? "").toMatch(/\/ 0\.22\)/);
+    });
+
+    it(`${mode}: the bevel's bands are 1rem deep, the top and the side alike`, () => {
+      const bevel = page(dark);
+      expect(computedVars(bevel).get("--glass-gloss-reach-top")).toBe("1rem");
+      expect(computedVars(bevel).get("--glass-gloss-reach-side")).toBe("1rem");
+      expect(computedVars(bevel).get("--glass-gloss-top-depth")).toBe("min(30%, 1rem)");
+      expect(computedVars(bevel).get("--glass-gloss-side-depth")).toBe("min(25%, 1rem)");
+      for (const name of [
+        "--glass-gloss-top",
+        "--glass-gloss-side",
+      ]) {
+        const band = computedVars(bevel).get(name) ?? "";
+        expect(band, name).not.toMatch(/[35]rem/);
+      }
+      // Lustre keeps its own, deeper top: the narrowing is the crystal bevel's.
+      expect(computedVars(bevel).get("--glass-lustre-top") ?? "").toMatch(/min\(32%, 5rem\)/);
+    });
+
+    /* THE CORNER: two bands laid over each other at the leading corner. A band that fell off in a straight
+       line ended in a crease, and the two creases boxed the corner in. Each band now runs from the far edge
+       to the near one and climbs its last segment, transparent to the ink, through a colour hint: CSS
+       raises that segment's progress to the power ln 0.5 / ln h, so a hint at h = 0.7071 of it is the
+       square, (1 − depth/reach)², which leaves zero flat. Two such bands sum to a level set of circles
+       round the point a reach in from the corner: the light turns it in a round, with no line anywhere. */
+    it(`${mode}: each band leaves zero flat, so the corner has no crease`, () => {
+      for (const [name, axis, start] of [
+        [
+          "--glass-gloss-top",
+          "--glass-gloss-top-depth",
+          /^linear-gradient\(\s*to top,/,
+        ],
+        [
+          "--glass-gloss-side",
+          "--glass-gloss-side-depth",
+          /^linear-gradient\(\s*calc\(-90deg \* 1\),/,
+        ],
+      ] as const) {
+        const depth = computedVars(page(dark)).get(axis) ?? "";
+        const band = computedVars(page(dark)).get(name) ?? "";
+        expect(band, name).toMatch(start);
+        const esc = depth.replace(/[()%]/g, (c) => `\\${c}`);
+        expect(band, name).toMatch(new RegExp(`transparent calc\\(100% - ${esc}\\),\\s*calc\\(100% - ${esc} \\* 0\\.2929\\),\\s*oklch\\(`));
+      }
+      const h = 1 - 0.2929;
+      expect(Math.log(0.5) / Math.log(h)).toBeCloseTo(2, 3);
+    });
+
+    it(`${mode}: the frame's far edges fall off as the square too, at thirds`, () => {
+      const frame = page(dark, {
+        "data-gloss-shape": "frame",
+      });
+      expect(computedVars(frame).get("--glass-gloss-edge-ink-mid") ?? "").toMatch(/ 44\.44%, transparent\)$/);
+      expect(computedVars(frame).get("--glass-gloss-edge-ink-low") ?? "").toMatch(/ 11\.11%, transparent\)$/);
+      expect((4 / 9) * 100).toBeCloseTo(44.44, 2);
+      expect((1 / 9) * 100).toBeCloseTo(11.11, 2);
+      const top = computedVars(frame).get("--glass-gloss-top") ?? "";
+      expect(top).toMatch(/calc\(min\(30%, 2rem\) \/ 3\),/);
+      expect(top).toMatch(/calc\(min\(30%, 2rem\) \/ 1\.5\),\s*transparent min\(30%, 2rem\),/);
     });
 
     it(`${mode}: the frame lights every edge at 0.3, out to 2rem`, () => {

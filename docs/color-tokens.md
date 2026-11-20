@@ -133,7 +133,8 @@ The crystal shine has three flavors: set `data-gloss` on any ancestor (default `
 | `--glass-gloss-hue-span` | `40` | Hue: ° the sweep shifts ± around the tint |
 | `--glass-gloss-c` | `0.12` | Hue: chroma of the swept stops |
 | `--glass-gloss-hue-dir` | `1` | Direction (±1): flips the tonal streak diagonal + the hue sweep order |
-| `--glass-gloss-reach-top` / `-side` | `5rem` / `3rem` | Bevel: how far the top band and the leading-edge band reach (or 30% / 25% of the surface, whichever is less) |
+| `--glass-gloss-reach-top` / `-side` | `1rem` / `1rem` | Bevel: how far the top band and the leading-edge band reach (or 30% / 25% of the surface, whichever is less); each fades as the square of its depth, so the two meet in a round at the corner |
+| `--glass-lustre-reach-top` | `5rem` | Lustre: how far its top band reaches (or 32% of the surface) |
 | `--glass-gloss-reach-frame` | `2rem` | Frame: how far the band reaches in from each edge (or 30% of the height / 25% of the width) |
 
 **Shape (`data-gloss-shape`).** Apart from the flavor: `bevel` (the default) lights the top and, fainter (0.22 against 0.4), the leading edge; `frame` runs one band at 0.3 in from all four edges. Set on any ancestor; a nested one replaces its ancestor's. The frame adds no layer: the top and side bands run on to the far edges and end in `--glass-gloss-edge-ink` (registered `<color>`, the ink at alpha 0 in the bevel; under `hue`, the sweep's other end).

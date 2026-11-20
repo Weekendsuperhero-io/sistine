@@ -69,6 +69,49 @@
   initial-value: transparent;
 }
 
+/* The frame's far ink at two thirds and one third of its band ((2/3)² and (1/3)² of it, engine.css block
+   C, THE CORNER), registered as colours for the same reason. */
+@property --glass-gloss-edge-ink-mid {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+@property --glass-gloss-edge-ink-low {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+/* How deep each crystal gloss band reaches (engine.css block C): the top and side bands' near edge
+   (the bevel's reach, or the frame's) and the frame's far edges. Each is read at four to five stops of
+   its band, so registered as a length the stacks carry one token per stop rather than the whole min()
+   (check-theme [token-budget]). A percentage stays a percentage, of the gradient line, where it is read.
+   Every path to them is valid, so none falls back to its initial value. */
+@property --glass-gloss-top-depth {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-top-hue-depth {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-side-depth {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-edge-depth-y {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-edge-depth-x {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 /* The veil floor, NON-inheriting for the same reason as the glow: `glass-veil` sets it on the element
    and `glass` paints it as that element's background-color. Inherited, a plain glass surface nested in
    a veiled menu, popover, tooltip, select or card painted its PARENT's veil as its own floor (under the

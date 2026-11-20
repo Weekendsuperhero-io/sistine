@@ -122,17 +122,19 @@
      right for a card and wrong for a panel: on a 640px-tall surface the top shine was a 190px wash, and a
      whole crystal window read as a white sheet with a white shine on it. Each fade now ends at its share
      OR these lengths, whichever comes first, so a small card is unchanged and a panel gets a band at its
-     top edge, a streak across its corner and a glow along its foot. The top reach is 5rem (it was 8rem; the
-     owner asked for a shallower band, so a card over ~260px tall now meets it). Leaves, in rem, so a consumer
-     can widen or tighten them. Lustre's top and glow take the same reach; the hue flavor's sweep is meant
-     to cross the whole face and keeps its shares. */
-  --glass-gloss-reach-top: 5rem;
+     top edge, a streak across its corner and a glow along its foot. The top reach is 1rem (it was 8rem, then
+     5rem; the owner asked for a band that keeps to the edge, so anything over ~53px tall meets it). Leaves, in
+     rem, so a consumer can widen or tighten them. Lustre's glow takes the same reach and its top its own,
+     --glass-lustre-reach-top (5rem, the reach it had before the crystal bevel was narrowed); the hue
+     flavor's sweep is meant to cross the whole face and keeps its shares. */
+  --glass-gloss-reach-top: 1rem;
   --glass-gloss-reach-streak: 16rem;
   --glass-gloss-reach-glow: 14rem;
   /* The SIDE band (--glass-gloss-side): the light down the leading edge, the side the streak starts from
-     (left, or right with the direction flipped), fainter than the top and narrower, so the two read as one
-     lit bevel and text starting near that edge still reads at night. */
-  --glass-gloss-reach-side: 3rem;
+     (left, or right with the direction flipped), fainter than the top and as deep (it was 3rem), so the two
+     read as one lit bevel and text starting near that edge still reads at night. */
+  --glass-gloss-reach-side: 1rem;
+  --glass-lustre-reach-top: 5rem;
   /* THE FRAME SHAPE (data-gloss-shape="frame"): in place of the bevel's top and side bands, one band of
      the same depth runs around all four edges. Each ends at this reach or a share of the surface (30% of
      its height, 25% of its width), whichever comes first, so a small control is not all edge. */
@@ -398,9 +400,19 @@
    page's flavor (it used to reset it to tonal). Each layer applies its own alpha.
    TWO SHAPES, by a third switch, --glass-gloss-is-frame, set by the [data-gloss-shape] blocks in
    materials.css (unset = bevel), composed the same way and so recomposed at every [data-gloss-shape]:
-     bevel → a band down from the top (--glass-gloss-reach-top) and a fainter one in from the leading
-             edge (--glass-gloss-reach-side): a lit bevel
+     bevel → a band down from the top (--glass-gloss-reach-top, 1rem) and a fainter one in from the
+             leading edge (--glass-gloss-reach-side, 1rem): a lit bevel
      frame → one band, at one alpha, in from all four edges (--glass-gloss-reach-frame, 2rem)
+   THE CORNER. Where two bands meet (the bevel's top and side at the leading corner, the frame's at all
+   four), each layer is laid over the other, so the corner wears both. A band that fell off in a straight
+   line drew a crease where it ended, and the two creases boxed the corner in a rectangle. Each band now
+   falls off as the square of its depth, (1 − d/reach)², which meets zero flat: the sum of two such bands
+   is level along circles round the point one reach in from the corner, so the light turns the corner in
+   a round, as the border does, with no line where either band ends. The near edge is exact: the gradient
+   runs from the far edge (`to top`, and the side at −90deg), so its last segment climbs from transparent
+   to the ink, and a colour hint at 70.71% of it (0.5 = 0.7071²) makes that climb a square. The far edge
+   (the frame's only) is that square at thirds of the reach (4/9 and 1/9 of the ink, two registered
+   colours, --glass-gloss-edge-ink-mid / -low, so the stacks keep to check-theme [token-budget]).
    The frame adds no layers: the top band runs on down to the bottom edge and the side band across to the
    far side, each ending in a second stop group, transparent at the frame's reach in from the far edge
    and --glass-gloss-edge-ink at it. The --glass-gloss-edge-a / -y / -x stops are valid only in the frame,
@@ -427,14 +439,22 @@
   --glass-gloss-edge-y: calc(min(30%, var(--glass-gloss-reach-frame, 2rem)) * var(--glass-gloss-is-frame));
   --glass-gloss-edge-x: calc(min(25%, var(--glass-gloss-reach-frame, 2rem)) * var(--glass-gloss-is-frame));
   --glass-gloss-edge-ink: var(--glass-gloss-edge-ink-hue, oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0)));
+  --glass-gloss-edge-ink-mid: color-mix(in oklab, var(--glass-gloss-edge-ink) 44.44%, transparent);
+  --glass-gloss-edge-ink-low: color-mix(in oklab, var(--glass-gloss-edge-ink) 11.11%, transparent);
+  --glass-gloss-edge-depth-y: min(30%, var(--glass-gloss-reach-frame, 2rem));
+  --glass-gloss-edge-depth-x: min(25%, var(--glass-gloss-reach-frame, 2rem));
+  --glass-gloss-top-depth: var(--glass-gloss-edge-y, min(30%, var(--glass-gloss-reach-top, 1rem)));
   --glass-gloss-top: var(
     --glass-gloss-top-hue,
     linear-gradient(
-      to bottom,
-      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.4)),
-      transparent var(--glass-gloss-edge-y, min(30%, var(--glass-gloss-reach-top, 5rem))),
-      transparent calc(100% - min(30%, var(--glass-gloss-reach-frame, 2rem))),
-      var(--glass-gloss-edge-ink)
+      to top,
+      var(--glass-gloss-edge-ink),
+      var(--glass-gloss-edge-ink-mid) calc(var(--glass-gloss-edge-depth-y) / 3),
+      var(--glass-gloss-edge-ink-low) calc(var(--glass-gloss-edge-depth-y) / 1.5),
+      transparent var(--glass-gloss-edge-depth-y),
+      transparent calc(100% - var(--glass-gloss-top-depth)),
+      calc(100% - var(--glass-gloss-top-depth) * 0.2929),
+      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.4))
     )
   );
   --glass-gloss-streak: var(
@@ -445,14 +465,18 @@
       transparent min(50%, var(--glass-gloss-reach-streak, 16rem))
     )
   );
+  --glass-gloss-side-depth: var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 1rem)));
   --glass-gloss-side: var(
     --glass-gloss-side-hue,
     linear-gradient(
-      calc(90deg * var(--glass-gloss-hue-dir, 1)),
-      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.22)),
-      transparent var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 3rem))),
-      transparent calc(100% - min(25%, var(--glass-gloss-reach-frame, 2rem))),
-      var(--glass-gloss-edge-ink)
+      calc(-90deg * var(--glass-gloss-hue-dir, 1)),
+      var(--glass-gloss-edge-ink),
+      var(--glass-gloss-edge-ink-mid) calc(var(--glass-gloss-edge-depth-x) / 3),
+      var(--glass-gloss-edge-ink-low) calc(var(--glass-gloss-edge-depth-x) / 1.5),
+      transparent var(--glass-gloss-edge-depth-x),
+      transparent calc(100% - var(--glass-gloss-side-depth)),
+      calc(100% - var(--glass-gloss-side-depth) * 0.2929),
+      oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.22))
     )
   );
   --glass-gloss-glow: var(
@@ -496,7 +520,7 @@
   --glass-lustre-ink: var(--glass-gloss-ink-white, var(--glass-lustre-ink-tonal));
   --glass-lustre-top: var(
     --glass-gloss-top-hue,
-    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-gloss-reach-top, 5rem)))
+    linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-lustre-reach-top, 5rem)))
   );
   --glass-lustre-streak: var(
     --glass-gloss-streak-hue,
@@ -537,16 +561,20 @@
 [data-gloss],
 [data-gloss-shape] {
   --glass-gloss-ink-white: calc(var(--glass-gloss-is-white) * 100%) 0 0;
+  --glass-gloss-top-hue-depth: var(--glass-gloss-edge-y, min(35%, var(--glass-gloss-reach-top, 1rem)));
   --glass-gloss-top-hue: linear-gradient(
-    to bottom in oklch,
+    to top in oklch,
+    var(--glass-gloss-edge-ink),
+    var(--glass-gloss-edge-ink-mid) calc(var(--glass-gloss-edge-depth-y) / 3),
+    var(--glass-gloss-edge-ink-low) calc(var(--glass-gloss-edge-depth-y) / 1.5),
+    transparent var(--glass-gloss-edge-depth-y),
+    transparent calc(100% - var(--glass-gloss-top-hue-depth)),
+    calc(100% - var(--glass-gloss-top-hue-depth) * 0.2929),
     oklch(
       calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       calc(var(--glass-gloss-edge-a, 0.4) * var(--glass-gloss-is-hue))
-    ),
-    transparent var(--glass-gloss-edge-y, min(35%, var(--glass-gloss-reach-top, 5rem))),
-    transparent calc(100% - min(30%, var(--glass-gloss-reach-frame, 2rem))),
-    var(--glass-gloss-edge-ink)
+    )
   );
   --glass-gloss-streak-hue: linear-gradient(
     115deg in oklch,
@@ -566,15 +594,18 @@
     transparent
   );
   --glass-gloss-side-hue: linear-gradient(
-    calc(90deg * var(--glass-gloss-hue-dir, 1)) in oklch,
+    calc(-90deg * var(--glass-gloss-hue-dir, 1)) in oklch,
+    var(--glass-gloss-edge-ink),
+    var(--glass-gloss-edge-ink-mid) calc(var(--glass-gloss-edge-depth-x) / 3),
+    var(--glass-gloss-edge-ink-low) calc(var(--glass-gloss-edge-depth-x) / 1.5),
+    transparent var(--glass-gloss-edge-depth-x),
+    transparent calc(100% - var(--glass-gloss-side-depth)),
+    calc(100% - var(--glass-gloss-side-depth) * 0.2929),
     oklch(
       calc(var(--glass-gloss-l, 94) * 1%) var(--glass-gloss-c, 0.12)
         calc(var(--glass-tint-h) - var(--glass-gloss-hue-span, 40) * var(--glass-gloss-hue-dir, 1)) /
       calc(var(--glass-gloss-edge-a, 0.22) * var(--glass-gloss-is-hue))
-    ),
-    transparent var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 3rem))),
-    transparent calc(100% - min(25%, var(--glass-gloss-reach-frame, 2rem))),
-    var(--glass-gloss-edge-ink)
+    )
   );
   /* The frame's far edges (bottom, far side) take the sweep's other end, so the light turns hue as it
      goes round. Alpha 0 in the bevel, as the tonal far ink is. */
