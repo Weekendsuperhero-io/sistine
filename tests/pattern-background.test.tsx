@@ -686,20 +686,25 @@ describe("shipit", () => {
       expect(markup("right", ship).match(/<svg class="sh-paint"[\s\S]*?<\/svg>/)?.[0], ship).not.toContain("sh-hero");
   });
 
-  it("stacks the freighter's boxes 1.5 tall to 1 wide", () => {
+  it("stacks the freighter's boxes 1.5 tall to 1 wide, large enough to read as boxes", () => {
     const html = markup("right", "freighter");
     const boxes = [
       ...html.matchAll(/<path class="sh-cargo-\d" d="([^"]+)"/g),
     ].flatMap((m) =>
       [
         ...m[1].matchAll(/h([\d.]+)v([\d.]+)/g),
-      ].map((b) => Number(b[2]) / Number(b[1])),
+      ].map((b) => ({
+        w: Number(b[1]),
+        h: Number(b[2]),
+      })),
     );
-    expect(boxes.length).toBeGreaterThan(500);
+    expect(boxes.length).toBeGreaterThan(150);
     // Each box is drawn a hair inside its slot (a gap all round), and to a tenth of a unit.
-    for (const ratio of boxes) {
-      expect(ratio).toBeGreaterThan(1.35);
-      expect(ratio).toBeLessThan(1.6);
+    for (const { w, h } of boxes) {
+      expect(h / w).toBeGreaterThan(1.35);
+      expect(h / w).toBeLessThan(1.6);
+      // About five units tall on a 330-unit hull: a box, not a speck.
+      expect(h).toBeGreaterThan(4.5);
     }
   });
 

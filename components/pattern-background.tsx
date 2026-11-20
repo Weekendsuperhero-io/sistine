@@ -4408,30 +4408,6 @@ function swellRow({ top, amp, wave, tile, seed }: SwellSpec) {
 
 const SEA_PATHS = SEA_ROWS.map(swellRow);
 
-/** The glitter path's mask, in a 100 × 100 box stretched over the water under the disc: rows of short bars,
- *  packed toward the horizon and spreading out toward the viewer as the swell's rows do, scattered inside a
- *  wedge that widens toward the viewer. Bars only, no noise: they stretch cleanly (see dune's masks). */
-function glitterMask(seed: number) {
-  const rand = mulberry32(seed);
-  const bars: string[] = [];
-  for (let t = 0.003; t < 1; ) {
-    const step = 0.8 + 9 * t;
-    const half = 9 + 41 * t ** 0.9;
-    const count = 1 + Math.floor(rand() * (2 + 3 * t));
-    for (let i = 0; i < count; i++) {
-      // Shorter and thicker toward the viewer: long thin bars there read as ruled lines.
-      const w = (0.12 + rand() * (0.45 - 0.25 * t)) * half;
-      const cx = 50 + (rand() * 2 - 1) * (half - w / 2) * 0.92;
-      const th = step * (0.18 + 0.14 * t + rand() * 0.1);
-      bars.push(`M${f2(cx - w / 2)} ${f2(t * 100)}h${f2(w)}v${f2(th)}h${f2(-w)}Z`);
-    }
-    t += step / 100;
-  }
-  return svgMask(`<path d='${bars.join("")}'/>`, "0 0 100 100", true);
-}
-
-const GLITTER = glitterMask(97);
-
 /** Every ship is drawn in the same units, about a metre each at the liner's scale: a unit is SHIP_SU vh on
  *  screen whichever ship it is, so the wake, the foam, the windows and the reflection's strokes are the same
  *  size under all of them, and a ship's length on screen is its length in units. Screen y runs down, from the
@@ -6138,13 +6114,14 @@ function freighterArt(): ShipArt {
     40,
     53,
   ];
-  // Stacks of boxes, each drawn 1.5 tall to 1 wide, in columns grouped six to a bay between lashing bridges:
+  // Stacks of boxes, each drawn 1.5 tall to 1 wide and large enough to read as boxes at this scale (5.2 units
+  // tall, about 1.2vh), in columns grouped four to a bay between lashing bridges:
   // aft of the funnel, between the funnel and the house, and before the house to the bow, where they step
   // down. A bay's columns stand mostly one height, now and then a box apart.
-  const TIER = 2.9;
+  const TIER = 5.2;
   const COL = TIER / 1.5;
-  const PITCH = COL + 0.12;
-  const BAY = 6;
+  const PITCH = COL + 0.16;
+  const BAY = 4;
   const cargo: string[][] = Array.from(
     {
       length: 6,
@@ -6167,17 +6144,17 @@ function freighterArt(): ShipArt {
     ],
   ]) {
     for (let x = from; x + BAY * PITCH <= to; x += BAY * PITCH + 0.9) {
-      const height = 8 + Math.floor(rand() * 3);
+      const height = 4 + Math.floor(rand() * 2);
       for (let c = 0; c < BAY; c++) {
         const sx = x + c * PITCH;
-        const tiers = Math.max(2, height - (sx > len - 40 ? 3 : sx > len - 60 ? 1 : 0) - (rand() < 0.12 ? 1 : 0));
+        const tiers = Math.max(2, height - (sx > len - 40 ? 2 : sx > len - 60 ? 1 : 0) - (rand() < 0.12 ? 1 : 0));
         const base = deckY(sx + COL / 2, 1);
         stacks.push(shipRect(sx - 0.06, base - tiers * TIER - 0.06, PITCH, tiers * TIER + 1.06));
         let colour = 0;
         for (let t = 0; t < tiers; t++) {
           // Mostly the line's own blue; others in runs, as boxes of one line are stowed together.
           if (t === 0 || rand() > 0.4) colour = rand() < 0.55 ? 0 : 1 + Math.floor(rand() * 5);
-          cargo[colour].push(shipRect(sx, base - (t + 1) * TIER + 0.1, COL, TIER - 0.2));
+          cargo[colour].push(shipRect(sx, base - (t + 1) * TIER + 0.14, COL, TIER - 0.28));
         }
       }
     }
@@ -7195,8 +7172,11 @@ const SHIPIT_STYLES = `
   /* The water under the sun is LIGHTER, not warmer: a warm wash composited over blue greys it. The warmth
      is the glitter's. */
   --sh-sheen: oklch(0.9 0.035 210 / 0.35);
+  /* The sun's path: near white at the horizon, warming to gold toward the viewer as it fades. */
   --sh-path-1: oklch(0.98 0.07 92);
-  --sh-path-2: oklch(0.9 0.11 75 / 0.65);
+  --sh-path-2: oklch(0.94 0.1 84 / 0.85);
+  --sh-path-3: oklch(0.88 0.12 72 / 0.7);
+  --sh-path-4: oklch(0.84 0.12 62 / 0.55);
   --sh-path-w: 70vh;
   --sh-glow: oklch(0.93 0.09 75 / 0.55);
   --sh-haze: oklch(0.91 0.045 70 / 0.55);
@@ -7298,8 +7278,11 @@ const SHIPIT_STYLES = `
   --sh-crest-mix: 30%;
   --sh-glint: oklch(0.86 0.03 250);
   --sh-sheen: oklch(0.55 0.04 250 / 0.25);
-  --sh-path-1: oklch(0.93 0.02 250);
-  --sh-path-2: oklch(0.78 0.03 255 / 0.55);
+  /* The moon's path: silver, cooling and fading toward the viewer. */
+  --sh-path-1: oklch(0.95 0.015 250);
+  --sh-path-2: oklch(0.9 0.025 252 / 0.85);
+  --sh-path-3: oklch(0.82 0.035 258 / 0.7);
+  --sh-path-4: oklch(0.74 0.04 262 / 0.55);
   --sh-path-w: 46vh;
   --sh-glow: oklch(0.6 0.05 262 / 0.3);
   --sh-haze: oklch(0.3 0.04 260 / 0.35);
@@ -7437,8 +7420,11 @@ ${seaRowRules()}
     radial-gradient(var(--sh-gw) var(--sh-gh) at var(--sw-disc-x, 50%) 0, color-mix(in oklab, var(--sh-glint) var(--sh-ga), transparent) 0%, transparent 100%),
     color-mix(in oklab, var(--sh-c), var(--sh-crest) var(--sh-crest-mix, 40%));
 }
-/* THE GLITTER PATH: the disc's light broken on the swell, a column of bars under it that widens toward the
-   viewer (GLITTER), brightest at the horizon and toward its middle. */
+/* THE SUN / MOON PATH, aurora's technique (.au-sunpath): the disc's light broken on the water as a column of
+   soft glints that widens toward the viewer, each one nudged off the centre line, blurred so no edge is hard,
+   and broken into lines by a fine ripple mask. It replaces a column of hard-edged bars, which near the
+   viewer read as pixels. The lit crests in the column (the caps' glint) still sparkle over it. Still, so its
+   blur and masks are drawn into the scene group once; the box carries none, as aurora's does not. */
 .sh-path {
   position: absolute;
   top: 58.3%;
@@ -7446,9 +7432,28 @@ ${seaRowRules()}
   left: var(--sw-disc-x, 50%);
   width: var(--sh-path-w, 70vh);
   transform: translateX(-50%);
-  background: radial-gradient(55% 110% at 50% 0, var(--sh-path-1) 0%, var(--sh-path-2) 45%, transparent 100%);
-  -webkit-mask: ${GLITTER} 0 0 / 100% 100% no-repeat;
-  mask: ${GLITTER} 0 0 / 100% 100% no-repeat;
+}
+.sh-path-paint {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(9% 5% at 50% 2%, var(--sh-path-1) 0 45%, transparent 78%),
+    radial-gradient(13% 6% at 47% 10%, var(--sh-path-1) 0 42%, transparent 78%),
+    radial-gradient(18% 7% at 53% 20%, var(--sh-path-2) 0 40%, transparent 80%),
+    radial-gradient(24% 7.5% at 46% 32%, var(--sh-path-2) 0 38%, transparent 80%),
+    radial-gradient(31% 8% at 54% 46%, var(--sh-path-3) 0 36%, transparent 82%),
+    radial-gradient(38% 8.5% at 48% 61%, var(--sh-path-3) 0 34%, transparent 82%),
+    radial-gradient(45% 9% at 52% 77%, var(--sh-path-4) 0 32%, transparent 84%),
+    radial-gradient(50% 9% at 49% 92%, var(--sh-path-4) 0 30%, transparent 84%);
+  filter: blur(6px);
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0 10%, rgb(0 0 0 / 0.7) 50%, transparent 98%),
+    repeating-linear-gradient(to bottom, #000 0 3px, rgb(0 0 0 / 0.3) 3px 8px, #000 8px 13px, rgb(0 0 0 / 0.45) 13px 19px);
+  mask-image:
+    linear-gradient(to bottom, #000 0 10%, rgb(0 0 0 / 0.7) 50%, transparent 98%),
+    repeating-linear-gradient(to bottom, #000 0 3px, rgb(0 0 0 / 0.3) 3px 8px, #000 8px 13px, rgb(0 0 0 / 0.45) 13px 19px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }
 /* THE SHIP. This box only moves; its SVG child draws. It crosses from just off one side of the scene to just
    off the other (100cqw is the scene's width), and at rest it holds the pose the crossing passes through at
@@ -8881,7 +8886,9 @@ function PatternScene({
                 <div className={`sh-row sh-r${i} sh-cap`} />
               </Fragment>
             ))}
-            <div className="sh-path" />
+            <div className="sh-path">
+              <div className="sh-path-paint" />
+            </div>
             {/* Last, so nothing still is painted over the one part that moves (see .scene-group). It sails
                 toward the disc: west when the disc is on the left. Keyed on the ship, so a new one starts
                 its crossing from the still pose rather than mid-stride in another ship's box. */}
