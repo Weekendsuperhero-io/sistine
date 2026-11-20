@@ -14,6 +14,7 @@ afterEach(() => {
   localStorage.clear();
   delete document.documentElement.dataset.glass;
   delete document.documentElement.dataset.glassTint;
+  delete document.documentElement.dataset.glossShape;
 });
 
 describe("GlassStyleSwitcher", () => {
@@ -81,5 +82,119 @@ describe("GlassStyleSwitcher", () => {
     await user.keyboard("{Enter}{Home}{Enter}");
     expect(document.documentElement.dataset.glass).toBeUndefined();
     expect(document.documentElement.dataset.glassTint).toBe("onyx");
+  });
+
+  it("offers the gloss shape while Crystal is the style, and Frame sets and remembers it", async () => {
+    const user = userEvent.setup();
+    render(<GlassStyleSwitcher />);
+    expect(document.documentElement.dataset.glossShape).toBe("bevel");
+    await user.click(
+      screen.getByRole("button", {
+        name: "Glass style",
+      }),
+    );
+    expect(await screen.findByText("Gloss shape")).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitemradio", {
+        name: "Bevel",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    /* The chosen shape is marked as the chosen style is, a check after its label; the other is bare. */
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Bevel",
+        })
+        .querySelector("svg"),
+    ).not.toBeNull();
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Frame",
+        })
+        .querySelector("svg"),
+    ).toBeNull();
+    expect(
+      screen.getByRole("menuitemradio", {
+        name: "Frame",
+      }),
+    ).toHaveAttribute("aria-checked", "false");
+    await user.click(
+      screen.getByRole("menuitemradio", {
+        name: "Frame",
+      }),
+    );
+    expect(document.documentElement.dataset.glossShape).toBe("frame");
+    expect(localStorage.getItem("sistine-gloss-shape")).toBe("frame");
+    await user.click(
+      screen.getByRole("button", {
+        name: "Glass style",
+      }),
+    );
+    expect(
+      await screen.findByRole("menuitemradio", {
+        name: "Frame",
+      }),
+    ).toHaveAttribute("aria-checked", "true");
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Frame",
+        })
+        .querySelector("svg"),
+    ).not.toBeNull();
+    expect(
+      screen
+        .getByRole("menuitemradio", {
+          name: "Bevel",
+        })
+        .querySelector("svg"),
+    ).toBeNull();
+    await user.click(
+      screen.getByRole("menuitemradio", {
+        name: "Bevel",
+      }),
+    );
+    expect(document.documentElement.dataset.glossShape).toBe("bevel");
+    expect(localStorage.getItem("sistine-gloss-shape")).toBe("bevel");
+  });
+
+  it("offers the shape under Chakra, which wears the same gloss, and not under Lustre", async () => {
+    const user = userEvent.setup();
+    localStorage.setItem("sistine-glass-style", "chakra");
+    render(<GlassStyleSwitcher />);
+    await user.click(
+      screen.getByRole("button", {
+        name: "Glass style",
+      }),
+    );
+    expect(
+      await screen.findByRole("menuitemradio", {
+        name: "Frame",
+      }),
+    ).toBeInTheDocument();
+    cleanup();
+    localStorage.setItem("sistine-glass-style", "lustre");
+    render(<GlassStyleSwitcher />);
+    await user.click(
+      screen.getByRole("button", {
+        name: "Glass style",
+      }),
+    );
+    await screen.findByRole("menuitem", {
+      name: /^Lustre/,
+    });
+    expect(screen.queryByText("Gloss shape")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("menuitemradio", {
+        name: "Bevel",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("restores a stored frame on mount, on any page", () => {
+    localStorage.setItem("sistine-gloss-shape", "frame");
+    render(<GlassStyleSwitcher />);
+    expect(document.documentElement.dataset.glossShape).toBe("frame");
   });
 });

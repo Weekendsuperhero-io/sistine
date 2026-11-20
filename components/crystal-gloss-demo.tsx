@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { GLOSS_SHAPE_KEY, GLOSS_SHAPES, type GlossShape } from "@/components/glass-style-switcher";
 import { useReadableForeground } from "@/components/readable-text";
 import { Slider } from "@/components/ui/slider";
 import { glassSurface } from "@/lib/oklch-utils";
@@ -14,23 +15,14 @@ const L_KEY = "sistine-gloss-l";
 const TINT_KEY = "sistine-gloss-tint";
 const SPAN_KEY = "sistine-gloss-span";
 const DIR_KEY = "sistine-gloss-dir";
-/* The gloss SHAPE (data-gloss-shape on <html>), apart from the flavor: the bevel (a band down from the
-   top and a fainter one in from the leading edge) or the frame (one 2rem band in from all four edges). */
-type Shape = "bevel" | "frame";
-const SHAPE_KEY = "sistine-gloss-shape";
-const SHAPES: {
-  key: Shape;
-  label: string;
-}[] = [
-  {
-    key: "bevel",
-    label: "Bevel",
-  },
-  {
-    key: "frame",
-    label: "Frame",
-  },
-];
+/* The gloss SHAPE (data-gloss-shape on <html>), apart from the flavor: the bevel or the frame. The glass
+   style menu in the header offers the same choice under the same key. */
+type Shape = GlossShape;
+const SHAPE_KEY = GLOSS_SHAPE_KEY;
+const SHAPES = GLOSS_SHAPES.map((o) => ({
+  key: o.value,
+  label: o.label,
+}));
 
 const MODES: {
   key: Mode;
@@ -188,6 +180,8 @@ export function CrystalGlossDemo() {
        CSS value applies, and if an inline override is present it has to be swapped for that scheme's. */
     const read = () => {
       setDark(root.classList.contains("dark") || root.dataset.glassTint === "onyx");
+      /* The header's glass style menu sets the shape too; show what the page wears. */
+      if (root.dataset.glossShape) setShape(root.dataset.glossShape === "frame" ? "frame" : "bevel");
       syncL();
     };
     read();
@@ -197,6 +191,7 @@ export function CrystalGlossDemo() {
       attributeFilter: [
         "class",
         "data-glass-tint",
+        "data-gloss-shape",
       ],
     });
     return () => observer.disconnect();
@@ -310,8 +305,9 @@ export function CrystalGlossDemo() {
         The crystal shine has three flavors (<code className="text-xs">data-gloss</code>): <strong>White</strong> is the classic flat specular,{" "}
         <strong>Tonal</strong> is a tonally-close single-hue tint of the theme, and <strong>Hue</strong> is iridescent: the highlight sweeps hues
         shifted up &amp; down from the tint. Its shape (<code className="text-xs">data-gloss-shape</code>) is apart from its flavor:{" "}
-        <strong>Bevel</strong> lights the top and the leading edge, <strong>Frame</strong> runs one 2rem band around every edge. The knobs apply
-        site-wide, so switching the glass style to Crystal shows the same everywhere.
+        <strong>Bevel</strong> lights the top and the leading edge, <strong>Frame</strong> runs one band around every edge, 0.5rem on a small surface
+        like these swatches and up to 2rem on a card (under Hue each edge fans the same sweep across the band). The knobs apply site-wide, so
+        switching the glass style to Crystal shows the same everywhere; the glass style menu offers the shape too.
       </p>
 
       <div className="mb-4 inline-flex rounded-lg border border-foreground/15 p-0.5">

@@ -373,13 +373,15 @@ export default function ThemingPage() {
             <p className="text-muted-foreground">
               Its <strong>shape</strong> is set apart from its flavor, with <IC>data-gloss-shape</IC>, the same way (on <IC>&lt;html&gt;</IC> or any
               element, and a nested one replaces its ancestor&apos;s). <IC>bevel</IC>, the default, lights the top (a band to{" "}
-              <IC>--glass-gloss-reach-top</IC>, 5rem) and, fainter, the leading edge (<IC>--glass-gloss-reach-side</IC>, 3rem). <IC>frame</IC> runs
-              one band, at one strength, in from all four edges, to <IC>--glass-gloss-reach-frame</IC> (2rem, or 30% of the height and 25% of the
-              width on a small control). Under <IC>hue</IC> the frame turns from one end of the sweep at the top and leading edge to the other at the
-              bottom and far side. The streak and the glow are the same in both. Crystal and chakra take it; lustre keeps its own polish, though under{" "}
-              <IC>hue</IC>, whose top band it shares, it takes the frame&apos;s top and bottom.
+              <IC>--glass-gloss-reach-top</IC>, 1rem) and, fainter, the leading edge (<IC>--glass-gloss-reach-side</IC>, 1rem); each band fades as the
+              square of its depth, so where two meet the light turns the corner in a round. <IC>frame</IC> runs one band, at one strength, in from all
+              four edges, as deep as the surface is large: <IC>--glass-gloss-reach-frame-min</IC> (0.5rem) on a button, chip, menu item or swatch,
+              growing past 6rem of height and 16rem of width to <IC>--glass-gloss-reach-frame</IC> (2rem) on a card, and never more than 30% of the
+              height or 25% of the width. Under <IC>hue</IC> every edge carries the same sweep across the band, from one end at the edge to the other
+              where it fades, like a picture frame. The streak and the glow are the same in both. Crystal and chakra take it; lustre keeps its own
+              polish, though under <IC>hue</IC>, whose top band it shares, it takes the frame&apos;s top and bottom.
             </p>
-            <Code>{`<html data-gloss-shape="frame">                <!-- a 2rem band around every crystal surface -->
+            <Code>{`<html data-gloss-shape="frame">                <!-- a band around every crystal surface -->
 <section data-gloss-shape="bevel">…</section>   <!-- the top + side bevel, scoped -->`}</Code>
             <p className="text-muted-foreground">Tune the gloss with these tokens: all have safe defaults, so override only what you want:</p>
             <div className="overflow-x-auto">
