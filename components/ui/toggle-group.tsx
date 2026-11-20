@@ -118,7 +118,7 @@ const ToggleGroupItem = React.forwardRef<
         // Active state — the selected-control pair, both mode-aware tokens, so NO dark: twin (same as tabs)
         "data-[state=on]:bg-[var(--active-bg)]",
         /* The strong ink at night: body text on the night chip reads under the body floor (see Tabs). */
-        "data-[state=on]:text-foreground dark:data-[state=on]:text-foreground-strong",
+        "data-[state=on]:text-active-foreground dark:data-[state=on]:text-active-foreground-strong",
         "data-[state=on]:shadow-[var(--active-shadow)]",
         /* Plain bg-accent/50 is correct here: a ToggleGroup ITEM paints no material of its own (only the
            group root carries glass-border), so its background-color is the top layer and nothing covers

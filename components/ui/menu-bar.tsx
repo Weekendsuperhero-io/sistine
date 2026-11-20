@@ -72,8 +72,8 @@ const MenuBarItem = React.forwardRef<HTMLButtonElement, MenuBarItemProps>(({ cla
         "h-8 px-3 text-sm",
         /* Active (the open menu) is the selected-control pair Tabs and ToggleGroup use; --accent, the ghost
            button's hover wash, is a near-grey at night. Hover takes the same lift, less of it. */
-        "hover:bg-[var(--active-bg)] hover:text-foreground dark:hover:bg-[var(--active-bg)] dark:hover:text-foreground-strong",
-        active && "bg-[var(--active-bg)] text-foreground shadow-[var(--active-shadow)] dark:text-foreground-strong",
+        "hover:bg-[var(--active-bg)] hover:text-active-foreground dark:hover:bg-[var(--active-bg)] dark:hover:text-active-foreground-strong",
+        active && "bg-[var(--active-bg)] text-active-foreground shadow-[var(--active-shadow)] dark:text-active-foreground-strong",
         className,
       )}
       {...props}

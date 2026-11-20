@@ -55,9 +55,12 @@ const buttonVariants = cva(
            variant-level hover border would win the merge and split the looks. */
           "text-foreground border-2 border-foreground/20 dark:border-white/40 dark:text-white transition active:border-foreground/50 active:shadow-[var(--press-shadow-sm)]",
         secondary: "text-foreground hover:opacity-90 transition active:opacity-80 active:shadow-[var(--press-shadow-strong)]",
-        /* No surface, so no glass shadow: this one carries just the lit edge. */
+        /* No surface, so no glass shadow: this one carries just the lit edge. At night the hover is the accent
+           at --ghost-hover-a (0.5 unless a consumer sets it; the theme declares none): a half wash suits a
+           night accent a step above the surface, and a consumer whose accent is a light chip with a dark ink
+           sets it to 1, since half of that is a mid-tone neither ink reads on. */
         ghost:
-          "shadow-[var(--lit-layer,0_0_0_0_transparent)] hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50 active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
+          "shadow-[var(--lit-layer,0_0_0_0_transparent)] hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/[calc(var(--ghost-hover-a,0.5)*100%)] active:bg-accent/80 dark:active:bg-accent/60 active:shadow-[var(--press-shadow-sm)]",
         link: "shadow-[var(--lit-layer,0_0_0_0_transparent)] text-primary underline-offset-4 hover:underline active:opacity-80",
       },
       size: {

@@ -176,7 +176,9 @@ const namesState = (r: CompiledRule | undefined, attr: string) =>
   !!r?.rest.some((n) => (n.type === "attribute" && n.attribute === attr) || (n.type === "pseudo" && n.toString().includes(`[${attr}`)));
 
 /* ── Night colours, from the shipped tokens ───────────────────────────────────────────────────────── */
-/** A Tailwind colour value as a token and an alpha: var(--x) or color-mix(in oklab, var(--x) N%, transparent). */
+/** A Tailwind colour value as a token and an alpha: var(--x) or color-mix(in oklab, var(--x) N%, transparent).
+    A consumer token the theme leaves undeclared reads as its fallback, which is what Sistine renders:
+    var(--active-foreground, var(--x)) is --x, and an alpha of calc(var(--ghost-hover-a,N) * 100%) is N. */
 function tokenOf(value: string | undefined):
   | {
       token: string;
@@ -184,16 +186,16 @@ function tokenOf(value: string | undefined):
     }
   | undefined {
   if (!value) return undefined;
-  const mix = /color-mix\(in oklab, var\((--[a-z0-9-]+)\) ([\d.]+)%, transparent\)/.exec(value);
+  const mix = /color-mix\(in oklab, var\((--[a-z0-9-]+)\) (?:([\d.]+)%|calc\(var\(--[a-z0-9-]+, ?([\d.]+)\) \* 100%\)), transparent\)/.exec(value);
   if (mix)
     return {
       token: mix[1],
-      a: Number(mix[2]) / 100,
+      a: mix[2] !== undefined ? Number(mix[2]) / 100 : Number(mix[3]),
     };
-  const plain = /^var\((--[a-z0-9-]+)\)$/.exec(value.trim());
+  const plain = /^var\((--[a-z0-9-]+)(?:, ?var\((--[a-z0-9-]+)\))?\)$/.exec(value.trim());
   return plain
     ? {
-        token: plain[1],
+        token: plain[2] ?? plain[1],
         a: 1,
       }
     : undefined;
