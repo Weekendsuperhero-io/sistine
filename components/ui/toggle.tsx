@@ -24,7 +24,12 @@ const toggleVariants = cva(
         outline: "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
         /* glass-hover-accent, not just the base `hover:bg-accent`: this variant paints a material, and a
            background-COLOR sits under every one of its image layers. See utilities.css. */
-        glass: "glass-hover-accent hover:opacity-90",
+        /* ON paints the selected fill in --srf-hover, the state image slot: --active-bg as a background
+           COLOUR (the base's data-[state=on]:bg-…) sits under the material's image layers, so on a glass
+           toggle pressing it changed nothing you could see. Held on hover too, so hovering an ON toggle
+           does not swap it for the hover wash. */
+        glass:
+          "glass-hover-accent hover:opacity-90 data-[state=on]:[--srf-hover:linear-gradient(var(--active-bg),var(--active-bg))] data-[state=on]:hover:[--srf-hover:linear-gradient(var(--active-bg),var(--active-bg))]",
       },
       size: {
         default: "h-10 px-3",

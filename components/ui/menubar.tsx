@@ -77,7 +77,7 @@ function MenubarTrigger({ className, ...props }: React.ComponentProps<typeof Men
     <MenubarPrimitive.Trigger
       data-slot="menubar-trigger"
       className={cn(
-        "flex cursor-default items-center rounded-md px-2 py-1 text-sm font-medium outline-hidden select-none hover:bg-accent dark:hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+        "flex cursor-default items-center rounded-md px-2 py-1 text-sm font-medium outline-hidden select-none hover:bg-[var(--active-bg)] hover:text-foreground dark:hover:text-foreground-strong focus:bg-[var(--active-bg)] focus:text-foreground dark:focus:text-foreground-strong data-[state=open]:bg-[var(--active-bg)] data-[state=open]:text-foreground dark:data-[state=open]:text-foreground-strong data-[state=open]:shadow-[var(--active-shadow)]",
         className,
       )}
       {...props}

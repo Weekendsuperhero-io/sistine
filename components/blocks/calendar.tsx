@@ -114,7 +114,7 @@ export function CalendarBlock() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px]">
-              <div className="space-y-4">
+              <div className="space-y-4 p-4">
                 {dayEvents.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No events for this date. Use New Event to add one.</p>
                 ) : (
