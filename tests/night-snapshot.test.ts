@@ -25,6 +25,11 @@ import { computedVars, evalOklch, html, type ModelElement, presetNames } from ".
 const SNAPSHOT = "tests/fixtures/night-snapshot.json";
 /** Tokens that compute at night now and did not when the snapshot was taken, each with why it is safe. */
 const NEW_AT_NIGHT: Record<string, string> = {
+  /* Frosted's inner glow, as two knobs declared per mode (tokens.css) so engine.css's block D can keep it to the edge
+     on the day an inverse draws on a dark page, and a night scope inside that inverse restates them. The night
+     --glass-frosted-shadow they compose, pinned here, is what it was: 20px at 0.22. */
+  "--glass-frosted-glow-r": "Frosted's inner glow reach, 20px; --glass-frosted-shadow is what it was",
+  "--glass-frosted-glow-a": "Frosted's inner glow alpha, 0.22 at night; --glass-frosted-shadow is what it was",
   /* Vibrant day: the backing's own chroma scale, split from the opaque floor's so day can raise it. At night
      tokens.css's night rule sets it to var(--glass-opaque-c-scale), so --glass-solidify-bg (pinned here)
      is what it was. */

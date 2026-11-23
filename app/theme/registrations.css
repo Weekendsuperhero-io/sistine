@@ -10,7 +10,9 @@
   }
   &:where(
     [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),
-    [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) *
+    [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) *,
+    [data-mode="night"],
+    [data-mode="night"] *
   ) {
     @slot;
   }

@@ -296,11 +296,11 @@ describe("deep night: the night wash cap follows the hue", () => {
   it.each([
     [
       "the hue-following caps rule",
-      ':root,\n[data-glass-tint],\n[data-mode="inverse"] {',
+      ':root,\n[data-glass-tint],\n[data-mode="inverse"],\n[data-mode="night"] {',
     ],
     [
       "the night token rule",
-      '.dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),\n:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),\n[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {',
+      '.dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),\n:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),\n:root [data-mode="night"],\n[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint],\n[data-mode="night"] [data-glass-tint] {',
     ],
   ])("ships as written: Lightning CSS leaves every number in %s as it is", (_, opener) => {
     /* The build minifies with Lightning CSS, which rounds a long number (it shipped 1800000/π as 572958, so

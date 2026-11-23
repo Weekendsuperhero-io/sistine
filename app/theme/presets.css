@@ -14,6 +14,7 @@
 [data-glass-tint="selenite"],
 :where(:root.dark[data-glass-tint="selenite"]) [data-mode="inverse"],
 :where(:root[data-glass-tint="selenite"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="selenite"]) [data-mode="night"],
 :where(:root[data-glass-tint="onyx"]) [data-mode="inverse"] {
   --glass-tint-h: 250;
   --glass-tint-c: 0;
@@ -26,7 +27,8 @@
    tests/mode-inverse.test.ts) is Selenite by day, the clear stone to its black, in either page mode: the
    Selenite block above names it, it is never the day-page inverse that draws night (tokens.css), and block D
    of engine.css draws its marks to show. Its dark colour scheme stays on the page (below). */
-[data-glass-tint="onyx"] {
+[data-glass-tint="onyx"],
+:where(:root[data-glass-tint="onyx"]) [data-mode="night"] {
   color-scheme: dark;
   --glass-tint-h: 250;
   --glass-tint-c: 0;
@@ -109,8 +111,10 @@
      up from 0.20 to 0.24, which was 3.9 L above it ([role] holds each fill 7 L clear).
    Its wash needs nothing: at 16 it is already deeper than the night depth. */
 .dark[data-glass-tint="onyx"],
+:root[data-glass-tint="onyx"] [data-mode="night"],
 .dark [data-glass-tint="onyx"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="onyx"] {
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="onyx"],
+[data-mode="night"] [data-glass-tint="onyx"] {
   /* Its gloss carries no chroma, as by day: tokens.css's night rule declares the night gloss cap at every
      tint scope, which outranks the block above. */
   --glass-gloss-c-max: 0;
@@ -126,7 +130,8 @@
 }
 [data-glass-tint="celestite"],
 :where(:root.dark[data-glass-tint="celestite"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="celestite"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="celestite"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="celestite"]) [data-mode="night"] {
   /* Celestite — pale sky blue, the widest gap on the glass (aquamarine h215 → sapphire h255, 19.6 apart
      as washes). h235's sRGB chroma peaks at L74, between aquamarine's L82 and sapphire's L62. */
   --glass-tint-h: 235;
@@ -140,7 +145,8 @@
 }
 [data-glass-tint="sapphire"],
 :where(:root.dark[data-glass-tint="sapphire"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="sapphire"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="sapphire"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="sapphire"]) [data-mode="night"] {
   --glass-tint-h: 255;
   --glass-tint-c: 0.075;
   --glass-tint-a: 0.19;
@@ -150,7 +156,8 @@
 }
 [data-glass-tint="aventurine"],
 :where(:root.dark[data-glass-tint="aventurine"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="aventurine"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="aventurine"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="aventurine"]) [data-mode="night"] {
   --glass-tint-h: 158;
   --glass-tint-c: 0.076;
   --glass-tint-a: 0.54;
@@ -160,7 +167,8 @@
 }
 [data-glass-tint="tanzanite"],
 :where(:root.dark[data-glass-tint="tanzanite"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="tanzanite"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="tanzanite"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="tanzanite"]) [data-mode="night"] {
   /* Tanzanite — blue-violet, between lapis (h268, L46) and amethyst (h300, L55). h284's sRGB chroma peaks
      at L50, so its wash lands on the step between them, and the picker's last row of jewels fills. */
   --glass-tint-h: 284;
@@ -172,7 +180,8 @@
 }
 [data-glass-tint="amethyst"],
 :where(:root.dark[data-glass-tint="amethyst"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="amethyst"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="amethyst"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="amethyst"]) [data-mode="night"] {
   --glass-tint-h: 300;
   --glass-tint-c: 0.101;
   --glass-tint-a: 0.15;
@@ -182,7 +191,8 @@
 }
 [data-glass-tint="rose"],
 :where(:root.dark[data-glass-tint="rose"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="rose"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="rose"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="rose"]) [data-mode="night"] {
   --glass-tint-h: 8;
   --glass-tint-c: 0.095;
   --glass-tint-a: 0.17;
@@ -192,7 +202,8 @@
 }
 [data-glass-tint="amber"],
 :where(:root.dark[data-glass-tint="amber"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="amber"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="amber"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="amber"]) [data-mode="night"] {
   --glass-tint-h: 75;
   --glass-tint-c: 0.062;
   --glass-tint-a: 0.38;
@@ -202,7 +213,8 @@
 }
 [data-glass-tint="carnelian"],
 :where(:root.dark[data-glass-tint="carnelian"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="carnelian"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="carnelian"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="carnelian"]) [data-mode="night"] {
   --glass-tint-h: 38;
   --glass-tint-c: 0.081;
   --glass-tint-a: 0.19;
@@ -212,7 +224,8 @@
 }
 [data-glass-tint="citrine"],
 :where(:root.dark[data-glass-tint="citrine"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="citrine"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="citrine"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="citrine"]) [data-mode="night"] {
   /* Citrine — true yellow, the gap between amber (h75) and peridot (h128). Yellow's sRGB chroma peaks
      LIGHT (L91 at h100, against amber's L80), so it washes like peridot: a pale wash near the light
      floor, which takes high alpha by day and little at night. Its chroma is bound by the DARK end
@@ -226,7 +239,8 @@
 }
 [data-glass-tint="peridot"],
 :where(:root.dark[data-glass-tint="peridot"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="peridot"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="peridot"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="peridot"]) [data-mode="night"] {
   --glass-tint-h: 128;
   --glass-tint-c: 0.083;
   --glass-tint-a: 0.54;
@@ -236,7 +250,8 @@
 }
 [data-glass-tint="turquoise"],
 :where(:root.dark[data-glass-tint="turquoise"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="turquoise"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="turquoise"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="turquoise"]) [data-mode="night"] {
   --glass-tint-h: 190;
   --glass-tint-c: 0.057;
   --glass-tint-a: 0.54;
@@ -246,7 +261,8 @@
 }
 [data-glass-tint="aquamarine"],
 :where(:root.dark[data-glass-tint="aquamarine"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="aquamarine"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="aquamarine"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="aquamarine"]) [data-mode="night"] {
   --glass-tint-h: 215;
   --glass-tint-c: 0.053;
   --glass-tint-a: 0.5;
@@ -256,7 +272,8 @@
 }
 [data-glass-tint="tourmaline"],
 :where(:root.dark[data-glass-tint="tourmaline"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="tourmaline"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="tourmaline"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="tourmaline"]) [data-mode="night"] {
   --glass-tint-h: 342;
   --glass-tint-c: 0.106;
   --glass-tint-a: 0.18;
@@ -266,7 +283,8 @@
 }
 [data-glass-tint="sodalite"],
 :where(:root.dark[data-glass-tint="sodalite"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="sodalite"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="sodalite"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="sodalite"]) [data-mode="night"] {
   /* Sodalite — royal blue, between sapphire (h255, L62) and lapis (h268, L46): only 13° of hue apart but
      17.1 as washes, almost all of it lightness. h262 peaks at L54, so it lands on the step between them. */
   --glass-tint-h: 262;
@@ -278,7 +296,8 @@
 }
 [data-glass-tint="lapis"],
 :where(:root.dark[data-glass-tint="lapis"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="lapis"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="lapis"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="lapis"]) [data-mode="night"] {
   /* Lapis lazuli IS the deep saturated ultramarine, and at plain jewel chroma it reads as just another
      blue next to sapphire. It used to buy that depth by declaring c 0.15 — far past the sRGB ceiling —
      and letting the browser clip. That DID deliver a deep blue, but by accident rather than by design:
@@ -299,7 +318,8 @@
 }
 [data-glass-tint="goldstone"],
 :where(:root.dark[data-glass-tint="goldstone"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="goldstone"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="goldstone"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="goldstone"]) [data-mode="night"] {
   --glass-tint-h: 22;
   --glass-tint-c: 0.094;
   --glass-tint-a: 0.17;
@@ -327,102 +347,135 @@
 .dark[data-glass-tint="rose"],
 .dark [data-glass-tint="rose"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="rose"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="rose"] {
+:root[data-glass-tint="rose"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="rose"],
+[data-mode="night"] [data-glass-tint="rose"] {
   --glass-tint-a: 0.49;
 }
 .dark[data-glass-tint="goldstone"],
 .dark [data-glass-tint="goldstone"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="goldstone"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="goldstone"] {
+:root[data-glass-tint="goldstone"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="goldstone"],
+[data-mode="night"] [data-glass-tint="goldstone"] {
   --glass-tint-a: 0.5;
 }
 .dark[data-glass-tint="carnelian"],
 .dark [data-glass-tint="carnelian"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="carnelian"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="carnelian"] {
+:root[data-glass-tint="carnelian"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="carnelian"],
+[data-mode="night"] [data-glass-tint="carnelian"] {
   --glass-tint-a: 0.45;
 }
 .dark[data-glass-tint="amber"],
 .dark [data-glass-tint="amber"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="amber"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="amber"] {
+:root[data-glass-tint="amber"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="amber"],
+[data-mode="night"] [data-glass-tint="amber"] {
   --glass-tint-a: 0.34;
 }
 .dark[data-glass-tint="citrine"],
 .dark [data-glass-tint="citrine"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="citrine"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="citrine"] {
+:root[data-glass-tint="citrine"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="citrine"],
+[data-mode="night"] [data-glass-tint="citrine"] {
   --glass-tint-a: 0.2;
 }
 .dark[data-glass-tint="peridot"],
 .dark [data-glass-tint="peridot"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="peridot"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="peridot"] {
+:root[data-glass-tint="peridot"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="peridot"],
+[data-mode="night"] [data-glass-tint="peridot"] {
   --glass-tint-a: 0.28;
 }
 .dark[data-glass-tint="aventurine"],
 .dark [data-glass-tint="aventurine"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="aventurine"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="aventurine"] {
+:root[data-glass-tint="aventurine"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="aventurine"],
+[data-mode="night"] [data-glass-tint="aventurine"] {
   --glass-tint-a: 0.29;
 }
 .dark[data-glass-tint="turquoise"],
 .dark [data-glass-tint="turquoise"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="turquoise"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="turquoise"] {
+:root[data-glass-tint="turquoise"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="turquoise"],
+[data-mode="night"] [data-glass-tint="turquoise"] {
   --glass-tint-a: 0.28;
 }
 .dark[data-glass-tint="aquamarine"],
 .dark [data-glass-tint="aquamarine"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="aquamarine"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="aquamarine"] {
+:root[data-glass-tint="aquamarine"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="aquamarine"],
+[data-mode="night"] [data-glass-tint="aquamarine"] {
   --glass-tint-a: 0.31;
 }
 .dark[data-glass-tint="sapphire"],
 .dark [data-glass-tint="sapphire"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="sapphire"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="sapphire"] {
+:root[data-glass-tint="sapphire"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="sapphire"],
+[data-mode="night"] [data-glass-tint="sapphire"] {
   --glass-tint-a: 0.48;
 }
 .dark[data-glass-tint="celestite"],
 .dark [data-glass-tint="celestite"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="celestite"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="celestite"] {
+:root[data-glass-tint="celestite"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="celestite"],
+[data-mode="night"] [data-glass-tint="celestite"] {
   --glass-tint-a: 0.3;
 }
 .dark[data-glass-tint="sodalite"],
 .dark [data-glass-tint="sodalite"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="sodalite"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="sodalite"] {
+:root[data-glass-tint="sodalite"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="sodalite"],
+[data-mode="night"] [data-glass-tint="sodalite"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="lapis"],
 .dark [data-glass-tint="lapis"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="lapis"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="lapis"] {
+:root[data-glass-tint="lapis"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="lapis"],
+[data-mode="night"] [data-glass-tint="lapis"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="tanzanite"],
 .dark [data-glass-tint="tanzanite"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="tanzanite"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="tanzanite"] {
+:root[data-glass-tint="tanzanite"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="tanzanite"],
+[data-mode="night"] [data-glass-tint="tanzanite"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="amethyst"],
 .dark [data-glass-tint="amethyst"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="amethyst"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="amethyst"] {
+:root[data-glass-tint="amethyst"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="amethyst"],
+[data-mode="night"] [data-glass-tint="amethyst"] {
   --glass-tint-a: 0.54;
 }
 .dark[data-glass-tint="tourmaline"],
 .dark [data-glass-tint="tourmaline"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="tourmaline"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="tourmaline"] {
+:root[data-glass-tint="tourmaline"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="tourmaline"],
+[data-mode="night"] [data-glass-tint="tourmaline"] {
   --glass-tint-a: 0.46;
 }
 [data-glass-tint="moonstone"],
 :where(:root.dark[data-glass-tint="moonstone"]) [data-mode="inverse"],
-:where(:root[data-glass-tint="moonstone"]:not(:where(.dark))) [data-mode="inverse"] {
+:where(:root[data-glass-tint="moonstone"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root[data-glass-tint="moonstone"]) [data-mode="night"] {
   /* Moonstone — a warm, very-low-chroma off-white glass (reads as cream, not yellow). A normal translucent
      tint: texture-preserving and light-text in both modes, just a desaturated warm hue. Anchors its harmony
      wheel at 0° (like selenite) so accents come out a colorful set, not a warp of the near-neutral hue. */
@@ -463,7 +516,9 @@
 .dark[data-glass-tint="moonstone"],
 .dark [data-glass-tint="moonstone"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root[data-glass-tint="moonstone"]:not(:where(.dark)) [data-mode="inverse"],
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="moonstone"] {
+:root[data-glass-tint="moonstone"] [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="moonstone"],
+[data-mode="night"] [data-glass-tint="moonstone"] {
   /* Moonstone night. The wash sits a few points above the standard 58% (warmth without glare; h75
      carries more real luminance per OKLCH point than the cool tints, so pale-warm washes read brighter
      than their numbers). AutoForeground reads BOTH wash knobs live (+ the [moonstone-sync] mirrored
@@ -607,7 +662,7 @@
    inside an inverse element that draws night (on a day page); inside one that draws the day (on a night page,
    or on an Onyx page, where it is Selenite by day) it is, as on a day page. */
 [data-slot="alert"]:is([data-glass-tint="info"], [data-glass-tint="success"], [data-glass-tint="warning"], [data-glass-tint="destructive"]):not(
-  :where(.dark, .dark *, [data-glass-tint="onyx"] *, [data-mode="inverse"] *)
+  :where(.dark, .dark *, [data-glass-tint="onyx"] *, [data-mode="inverse"] *, [data-mode="night"] *)
 ),
 .dark
   [data-mode="inverse"]

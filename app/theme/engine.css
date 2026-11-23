@@ -24,7 +24,8 @@
    light↔dark ratios are irregular — knobbing them would change values). */
 :root,
 [data-glass-tint],
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   /* Deliberately restrained glassmorphism — enough to read as glass, never enough to fog what is behind it. */
   /* Glass tint — recolor ALL glass by changing these; presets set them via [data-glass-tint].
      -h = hue, -c = chroma (gradient), -a = wash alpha. The gradient alone is too sheer
@@ -163,7 +164,8 @@
 :root,
 .dark,
 [data-glass-tint],
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   /* Solid colored floor under the sheer gradient (see --glass-tint-a) — mode via --glass-wash-l/-c-mult.
      DEEP NIGHT. The lightness is the DARKER of the scope's own --glass-wash-l and --glass-night-depth
      (tokens.css: 100 by day, so nothing moves; 35 at night), so every preset's night wash lands at L35
@@ -435,7 +437,8 @@
 [data-glass-tint],
 [data-gloss],
 [data-gloss-shape],
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   /* The tonal ink as its own token (not inline in the fallback below) so check-gamut's scraper, which
      reads `--x: <L> <chroma> <h>` declarations, still sweeps it.
      DEEP NIGHT, as the wash (block B): the DARKER of --glass-gloss-l and --glass-night-depth, so the night
@@ -577,7 +580,8 @@
 [data-glass-tint],
 [data-gloss],
 [data-gloss-shape],
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   --glass-gloss-ink-white: calc(var(--glass-gloss-is-white) * 100%) 0 0;
   --glass-gloss-top-hue-depth: var(--glass-gloss-edge-y, min(35%, var(--glass-gloss-reach-top, 1rem)));
   --glass-gloss-top-hue: linear-gradient(
