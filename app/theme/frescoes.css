@@ -29,7 +29,11 @@
    The preset was named `muse` until the product it is named for became HERO. The old id is still accepted:
    the second selector below keeps every page that carries data-glass-tint="muse" on these same values. */
 [data-glass-tint="hero"],
-[data-glass-tint="muse"] {
+[data-glass-tint="muse"],
+:where(:root.dark[data-glass-tint="hero"]) [data-mode="inverse"],
+:where(:root[data-glass-tint="hero"]:not(:where(.dark))) [data-mode="inverse"],
+:where(:root.dark[data-glass-tint="muse"]) [data-mode="inverse"],
+:where(:root[data-glass-tint="muse"]:not(:where(.dark))) [data-mode="inverse"] {
   --glass-tint-h: 230;
   --glass-fg-h: 290; /* text/accent anchor: violet, the sheet's second stop */
   --glass-tint-c: 0.056;
@@ -66,7 +70,9 @@
 /* Sistine — the signature: a painterly fresco of four jewels (amber → rose → sapphire → aventurine,
    in that order), interpolated `in oklch` so the warm→cool transitions stay vivid instead of
    averaging to grey. Border + crystal + accent pick up the rose base via the tint vars. */
-[data-glass-tint="sistine"] {
+[data-glass-tint="sistine"],
+:where(:root.dark[data-glass-tint="sistine"]) [data-mode="inverse"],
+:where(:root[data-glass-tint="sistine"]:not(:where(.dark))) [data-mode="inverse"] {
   --glass-tint-h: 75; /* surface: mirrors the Sistine switcher preset */
   --glass-fg-h: 18; /* text/accent anchor: crimson (hand-selected) — hue 18 reads as deep red, not the rose at h8 */
   --glass-tint-c: 0.062;
@@ -91,7 +97,9 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="sistine"],
-.dark [data-glass-tint="sistine"] {
+.dark [data-glass-tint="sistine"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
+:root[data-glass-tint="sistine"]:not(:where(.dark)) [data-mode="inverse"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="sistine"] {
   /* Night lines, this fresco's own (tokens.css resets the night role tokens at every tint scope): the
      sheet's lit stops (L74–86 at alpha 0.2–0.22) lift the night card toward the app-wide L65 line, which
      then read 2.1–2.4:1, under WCAG's 3:1 (scripts/check-contrast.mjs [edge], judged at the brightest stop
@@ -146,7 +154,9 @@
    Night is re-derived the same way, which also fixes a pre-existing clip: its violet stop asked 0.13
    against a 0.1068 ceiling at h292/L80 — 122% — so that stop has been gamut-mapped by the browser all
    along. */
-[data-glass-tint="aurora"] {
+[data-glass-tint="aurora"],
+:where(:root.dark[data-glass-tint="aurora"]) [data-mode="inverse"],
+:where(:root[data-glass-tint="aurora"]:not(:where(.dark))) [data-mode="inverse"] {
   --glass-tint-h: 205; /* the sweep's midpoint, was 178 */
   --glass-tint-c: 0.054;
   --glass-tint-a: 0.16;
@@ -167,7 +177,9 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="aurora"],
-.dark [data-glass-tint="aurora"] {
+.dark [data-glass-tint="aurora"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
+:root[data-glass-tint="aurora"]:not(:where(.dark)) [data-mode="inverse"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="aurora"] {
   /* Night lines: see Sistine's night block. */
   --border-l: 0.78;
   --input-l: 0.78;
@@ -183,7 +195,9 @@
 
 /* Gloaming — dusk: gold → rose → indigo, interpolated `in oklch` so the warm→cool fade keeps its
    glow. Night keeps the warm glow; day uses a dusk-rose anchor (the warm hue reads muddy as light-mode text). */
-[data-glass-tint="gloaming"] {
+[data-glass-tint="gloaming"],
+:where(:root.dark[data-glass-tint="gloaming"]) [data-mode="inverse"],
+:where(:root[data-glass-tint="gloaming"]:not(:where(.dark))) [data-mode="inverse"] {
   --glass-tint-h: 32; /* surface: mirrors the Gloaming switcher preset; text shares it (--glass-fg-h defaults to it) */
   --glass-tint-c: 0.089;
   /* 0.12, down from 0.16: with text solved against the gradient's hardest stop (the L78 violet, over a
@@ -197,7 +211,9 @@
   --glass-crystal-fresco: var(--glass-bg);
 }
 .dark[data-glass-tint="gloaming"],
-.dark [data-glass-tint="gloaming"] {
+.dark [data-glass-tint="gloaming"]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
+:root[data-glass-tint="gloaming"]:not(:where(.dark)) [data-mode="inverse"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="gloaming"] {
   /* Night lines: see Sistine's night block. */
   --border-l: 0.76;
   --input-l: 0.76;

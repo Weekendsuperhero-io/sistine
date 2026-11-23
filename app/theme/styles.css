@@ -21,7 +21,12 @@
    surfaces. `.glass` says so for the utility class; an element that wears the material through
    `@apply glass` has no class, so it opts in with a `data-surface` attribute (`data-surface="veil"`
    when it also applies glass-veil). Everything ABOVE is inherited tokens and needs no marker. */
-:where([data-glass="frosted"], [data-glass="frosted"] [data-glass-tint], [data-glass="frosted"][data-glass-tint]) {
+:where(
+  [data-glass="frosted"],
+  [data-glass="frosted"] [data-glass-tint],
+  [data-glass="frosted"][data-glass-tint],
+  [data-glass="frosted"] [data-mode="inverse"]
+) {
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-fill-image: var(--srf-bg-image);
   /* NO --srf-bg-color wash here: the wash already rides the IMAGE stack (--frosted-stack-bg), same
@@ -32,7 +37,12 @@
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
 }
-:where([data-glass="crystal"], [data-glass="crystal"] [data-glass-tint], [data-glass="crystal"][data-glass-tint]) {
+:where(
+  [data-glass="crystal"],
+  [data-glass="crystal"] [data-glass-tint],
+  [data-glass="crystal"][data-glass-tint],
+  [data-glass="crystal"] [data-mode="inverse"]
+) {
   /* Gloss rides inside --crystal-stack-bg (baked — sticky/fixed-safe). Shimmer stays the opt-in
      glass-sheen. No saturate(), matching the material. */
   --srf-bg-image: var(--crystal-stack-bg);
@@ -51,7 +61,12 @@
   --foreground-ui: var(--foreground-ui-crystal);
   --muted-foreground: var(--muted-foreground-crystal);
 }
-:where([data-glass="lustre"], [data-glass="lustre"] [data-glass-tint], [data-glass="lustre"][data-glass-tint]) {
+:where(
+  [data-glass="lustre"],
+  [data-glass="lustre"] [data-glass-tint],
+  [data-glass="lustre"][data-glass-tint],
+  [data-glass="lustre"] [data-mode="inverse"]
+) {
   --srf-bg-image: var(--glass-lustre-stack-bg);
   --srf-fill-image: var(--glass-lustre-polish-bg);
   --srf-bg-color: transparent;
@@ -76,7 +91,12 @@
 
 /* Chakra page — every adaptive surface becomes a step-cut gem. The cut rides --srf-shadow, so it
    follows each surface's own border-radius with nothing to keep in sync. */
-:where([data-glass="chakra"], [data-glass="chakra"] [data-glass-tint], [data-glass="chakra"][data-glass-tint]) {
+:where(
+  [data-glass="chakra"],
+  [data-glass="chakra"] [data-glass-tint],
+  [data-glass="chakra"][data-glass-tint],
+  [data-glass="chakra"] [data-mode="inverse"]
+) {
   --srf-bg-image: var(--glass-chakra-stack-bg);
   --srf-fill-image: var(--srf-bg-image);
   --srf-bg-color: var(--glass-chakra-bg);
@@ -99,6 +119,7 @@
   [data-glass="lucite"],
   [data-glass="lucite"] [data-glass-tint],
   [data-glass="lucite"][data-glass-tint],
+  [data-glass="lucite"] [data-mode="inverse"],
   [data-glass="opaque"],
   [data-glass="opaque"] [data-glass-tint],
   [data-glass="opaque"][data-glass-tint]

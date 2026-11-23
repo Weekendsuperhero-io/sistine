@@ -21,7 +21,8 @@
  *   6h.[surface-marker] element rules keyed on .glass / .glass-veil also accept [data-surface] / ="veil".
  *   6i.[solidify-owner] only the opaque material/page drop the solidify layer; the veil restores it.
  *   6j.[gloss-scope] the gloss is composed on [data-gloss] and [data-gloss-shape] scopes too; flavor and shape blocks set leaves only.
- *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset.
+ *   6k.[night-scope] every `.dark[data-glass-tint="x"]` night block also matches a scoped preset, outside an inverse.
+ *   6k′.[inverse-scope] every page preset restates itself on an inverse element (`data-mode="inverse"`), in both modes.
  *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
  *   6m.[night-knob] a --night-* knob is registered non-inheriting, read by the night rule with a fallback,
  *               and set only in an unscoped preset block.
@@ -45,6 +46,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { evaluate, substitute } from "./lib/css-math.mjs";
 import { flattenTheme } from "./lib/flatten-theme.mjs";
+import { darkRegion, lightRegion } from "./lib/theme-openers.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 // The theme is authored as app/theme/* partials behind the app/globals.css aggregator; every invariant
@@ -105,8 +107,11 @@ function decls(body) {
    only matched a single char before `)`, so `var(--glass-tint-c-hi)` slipped through. */
 const composesTint = (v) => /var\(--glass-tint-(?:[hca]\b|c-hi)|var\(--glass-fg-h\)/.test(v);
 const selectors = (sel) => sel.split(",").map((s) => s.trim());
+/* An inverse element (data-mode="inverse") is named beside :root and .dark (it draws the other mode), and is not a
+   tint scope: a block that names it is still the bare root or night block. */
+const notInverse = (s) => !s.includes('[data-mode="inverse"]');
 const isBareRootOrDark = (sel) => {
-  const l = selectors(sel);
+  const l = selectors(sel).filter(notInverse);
   return l.length === 1 && (l[0] === ":root" || l[0] === ".dark");
 };
 // matches the GENERAL grouped blocks only — preset blocks are [data-glass-tint="x"], not the bare attr
@@ -264,11 +269,11 @@ if (/-webkit-backdrop-filter/.test(css)) fail('[no-webkit-twin] hand-authored -w
     const cMult = moonstoneDark.body.match(/--glass-wash-c-mult:\s*([\d.]+)/)?.[1];
     /* Moonstone's day pins (its unscoped block), and the backing's day scale (tokens.css), which the JS
        fallbacks mirror. */
-    const moonstoneDay = rules.find((r) => splitTop(r.selector).includes('[data-glass-tint="moonstone"]') && !r.selector.includes(".dark"));
+    const moonstoneDay = rules.find((r) => splitTop(r.selector).includes('[data-glass-tint="moonstone"]') && !splitTop(r.selector).some((x) => x.startsWith(".dark")));
     const dayPin = (name) => moonstoneDay?.body.match(new RegExp(`${name}:\\s*([\\d.]+)`))?.[1];
     /* The backing cap it keeps is a formula over the opaque cap it inherits; on its own page that is
        :root's, which is the number a drag's snapshot (no live value to read) has to fall back to. */
-    const rootOpaqueCMax = rules.find((r) => r.selector.trim() === ":root")?.body.match(/--glass-opaque-c-max:\s*([\d.]+)/)?.[1];
+    const rootOpaqueCMax = rules.find((r) => isBareRootOrDark(r.selector) && splitTop(r.selector)[0] === ":root")?.body.match(/--glass-opaque-c-max:\s*([\d.]+)/)?.[1];
     const backingFormula = moonstoneDay?.body.match(/--glass-solidify-c-max:\s*([^;]+);/)?.[1];
     let backingPin;
     try {
@@ -506,7 +511,10 @@ function splitTop(sel) {
     for (const d of decls(r.body)) {
       if (d.name !== "--srf-solidify" || d.value !== "none") continue;
       const sels = splitTop(r.selector);
-      const opaqueMaterial = sels.length > 0 && sels.every((s) => /^\[data-material="(?:lucite|opaque)"\]$/.test(s));
+      // The opaque material, and an inverse element re-composing it inside one (data-mode="inverse", materials.css).
+      const opaqueMaterial =
+        sels.length > 0 &&
+        sels.every((s) => /^\[data-material="(?:lucite|opaque)"\](?: \[data-mode="inverse"\]:not\(:where\(\[data-material\]\)\))?$/.test(s));
       const whereArgs = sels.length === 1 && /^:where\(([\s\S]*)\)$/.exec(sels[0])?.[1];
       const opaquePage = !!whereArgs && splitTop(whereArgs).every((x) => /^\[data-glass="(?:lucite|opaque)"\]/.test(x));
       if (!opaqueMaterial && !opaquePage) {
@@ -538,11 +546,17 @@ function splitTop(sel) {
 {
   const GLOSS = /^--(glass-gloss-(ink|top|side|streak|glow|edge)(-[a-z]+)*|glass-crystal-bg(-hue)?|crystal-stack-bg|glass-chakra-stack-bg|glass-lustre-(ink(-tonal)?|top|streak|glow|stack-bg))$/;
   const SCOPE = [":root", ".dark", "[data-glass-tint]", "[data-gloss]", "[data-gloss-shape]"];
+  /* Block D (the day an inverse draws on a dark page) re-declares the inks and drops the streak and glow on the
+     inverse and on every scope block C composes inside it, [data-gloss] and [data-gloss-shape] included, so a
+     scoped flavor there recomposes with them: exactly these four selectors. */
+  const DAY_ON_DARK = ['.dark [data-mode="inverse"]', ':root[data-glass-tint="onyx"] [data-mode="inverse"]'];
+  const isBlockD = (sels) =>
+    sels.length === 4 && DAY_ON_DARK.every((d) => sels.includes(d) && sels.includes(`${d} :is([data-glass-tint], [data-gloss], [data-gloss-shape])`));
   for (const r of rules) {
     const sels = splitTop(r.selector);
     for (const d of decls(r.body)) {
       if (!GLOSS.test(d.name)) continue;
-      if (!SCOPE.every((x) => sels.includes(x))) {
+      if (!SCOPE.every((x) => sels.includes(x)) && !isBlockD(sels)) {
         fail(`[gloss-scope] ${d.name} is declared on "${r.selector.replace(/\s+/g, " ")}" — compose it in engine.css block C (${SCOPE.join(", ")}) so a scoped data-gloss recomposes it.`);
       }
     }
@@ -577,15 +591,69 @@ function splitTop(sel) {
 //     needs the class and the attribute on one element (normally <html>); a preset set on an element
 //     inside a dark page (`<section data-glass-tint="lapis">`) only matches the descendant form
 //     `.dark [data-glass-tint="x"]`. Without it the section rendered its DAY values in dark mode: lapis's
-//     wash at a quarter of its night alpha, moonstone's cream day floor under light night text.
+//     wash at a quarter of its night alpha, moonstone's cream day floor under light night text. The twin
+//     stops at an inverse element (`data-mode="inverse"`), which draws the day on a dark page.
+const INVERSE_EXCLUDED = ':not(:where([data-mode="inverse"], [data-mode="inverse"] *))';
 for (const r of rules) {
   const sels = splitTop(r.selector);
   for (const sel of sels) {
     const m = /^\.dark\[data-glass-tint="([a-z-]+)"\]$/.exec(sel);
-    if (m && !sels.includes(`.dark [data-glass-tint="${m[1]}"]`)) {
-      fail(`[night-scope] "${sel}" has no ".dark [data-glass-tint=\"${m[1]}\"]" twin — a ${m[1]} preset scoped inside a dark page would render its day values.`);
+    if (m && !sels.includes(`.dark [data-glass-tint="${m[1]}"]${INVERSE_EXCLUDED}`)) {
+      fail(`[night-scope] "${sel}" has no ".dark [data-glass-tint=\"${m[1]}\"]${INVERSE_EXCLUDED}" twin — a ${m[1]} preset scoped inside a dark page would render its day values (and one inside an inverse its night ones).`);
     }
   }
+}
+
+// 6k′. [inverse-scope] an inverse element (`data-mode="inverse"`) draws the page's glass in the other mode
+//     (tests/mode-inverse.test.ts holds every token): each page preset restates its inputs on it. Its day
+//     block names it on a night page and on a day page, the page part in :where() so the night rule and the
+//     night block out-rank the day block there as they do on <html>; its night block names it on a day page,
+//     and a scope of it inside an inverse on a day page. The four status tints are never a page's theme.
+//     Onyx is dark in either mode, so its other mode would be the same black glass: its inverse is Selenite
+//     by day (presets.css). Its blocks name no inverse on its own page, the Selenite block names one there,
+//     and the day-page inverse (which draws night) is never on an Onyx page.
+{
+  const STATUS = new Set(["info", "success", "warning", "destructive"]);
+  const ALWAYS_NIGHT = new Set(["onyx"]);
+  const DAY_PAGE_INVERSE = '[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *))';
+  for (const r of rules) {
+    const sels = splitTop(r.selector);
+    const day = sels.map((x) => /^\[data-glass-tint="([a-z-]+)"\]$/.exec(x)?.[1]).filter(Boolean);
+    const isDay = day.length > 0 && sels.every((x) => /^\[data-glass-tint="[a-z-]+"\]$/.test(x) || x.startsWith(":where(:root"));
+    if (isDay)
+      for (const name of day.filter((n) => !STATUS.has(n) && !ALWAYS_NIGHT.has(n)))
+        for (const want of [
+          `:where(:root.dark[data-glass-tint="${name}"]) [data-mode="inverse"]`,
+          `:where(:root[data-glass-tint="${name}"]:not(:where(.dark))) [data-mode="inverse"]`,
+        ])
+          if (!sels.includes(want)) fail(`[inverse-scope] the "${name}" day block does not name "${want}": an inverse element on such a page would draw the page's mode.`);
+    for (const sel of sels) {
+      const m = /^\.dark\[data-glass-tint="([a-z-]+)"\]$/.exec(sel);
+      if (!m) continue;
+      for (const want of [
+        ...(ALWAYS_NIGHT.has(m[1])
+          ? []
+          : [
+              `:root[data-glass-tint="${m[1]}"]:not(:where(.dark)) [data-mode="inverse"]`,
+            ]),
+        `${DAY_PAGE_INVERSE} [data-glass-tint="${m[1]}"]`,
+      ])
+        if (!sels.includes(want)) fail(`[inverse-scope] the "${m[1]}" night block does not name "${want}".`);
+    }
+    // Onyx's own blocks (day and night) name no inverse on an Onyx page.
+    for (const name of ALWAYS_NIGHT)
+      if (sels.some((x) => x === `[data-glass-tint="${name}"]` || x === `.dark[data-glass-tint="${name}"]`))
+        for (const sel of sels)
+          if (sel.includes(`:root[data-glass-tint="${name}"]`) && sel.endsWith('[data-mode="inverse"]'))
+            fail(`[inverse-scope] a ${name} block names "${sel}": an inverse on a ${name} page is Selenite by day.`);
+  }
+  const selenite = rules.find((r) => splitTop(r.selector)[0] === '[data-glass-tint="selenite"]');
+  for (const name of ALWAYS_NIGHT) {
+    const want = `:where(:root[data-glass-tint="${name}"]) [data-mode="inverse"]`;
+    if (!selenite || !splitTop(selenite.selector).includes(want))
+      fail(`[inverse-scope] the Selenite day block does not name "${want}": an inverse on a ${name} page would draw the same black glass.`);
+  }
+  if (css.includes('[data-mode="inverse"]:not(:where(.dark, .dark *))')) fail(`[inverse-scope] a day-page inverse selector without the Onyx exclusion: write it as "${DAY_PAGE_INVERSE}".`);
 }
 
 // 6m. [night-knob] a one-block preset (the neon city fresco) sets its night values through --night-* knobs that
@@ -594,7 +662,9 @@ for (const r of rules) {
 //     the night rule resets at every scope; it must be read with a fallback, or every other scope's token is
 //     unset; and it is set only in a preset's unscoped block (a .dark block would pin the token directly).
 {
-  const night = rules.find((r) => splitTop(r.selector).includes(".dark [data-glass-tint]") && /var\(--night-/.test(r.body));
+  const night = rules.find(
+    (r) => splitTop(r.selector).some((x) => x === ".dark [data-glass-tint]" || x === `.dark [data-glass-tint]${INVERSE_EXCLUDED}`) && /var\(--night-/.test(r.body),
+  );
   const read = new Set();
   for (const d of night ? decls(night.body) : []) {
     for (const [, knob, fallback] of d.value.matchAll(/var\((--night-[a-z0-9-]+)(?:\s*,\s*([^)]+))?\)/g)) {
@@ -610,7 +680,8 @@ for (const r of rules) {
     for (const d of decls(r.body)) {
       if (!/^--night-/.test(d.name)) continue;
       if (!read.has(d.name)) fail(`[night-knob] ${d.name} is set on "${r.selector.replace(/\s+/g, " ")}" but the night rule never reads it.`);
-      if (!splitTop(r.selector).every((x) => /^\[data-glass-tint="[a-z-]+"\]$/.test(x))) fail(`[night-knob] ${d.name} is set on "${r.selector.replace(/\s+/g, " ")}" — set a knob only in a preset's unscoped [data-glass-tint="x"] block.`);
+      // The preset's own unscoped block, and the two forms that restate it on an inverse element (6k′).
+      if (!splitTop(r.selector).every((x) => /^\[data-glass-tint="[a-z-]+"\]$/.test(x) || /^:where\(:root(\.dark)?\[data-glass-tint="[a-z-]+"\](:not\(:where\(\.dark\)\))?\) \[data-mode="inverse"\]$/.test(x))) fail(`[night-knob] ${d.name} is set on "${r.selector.replace(/\s+/g, " ")}" — set a knob only in a preset's unscoped [data-glass-tint="x"] block.`);
     }
   }
 }
@@ -725,7 +796,11 @@ const presetTint = new Map(
   ]),
 );
 for (const [value, tint] of presetTint) {
-  const blocks = rules.filter((r) => r.selector.includes(`[data-glass-tint="${value}"]`));
+  /* A preset's blocks are the rules a selector names it in, an inverse's forms aside: Selenite's block names an inverse
+     on an Onyx page, and every day-page inverse excludes Onyx pages, without being Onyx's. */
+  const blocks = rules.filter((r) =>
+    splitTop(r.selector).some((s) => !s.includes('[data-mode="inverse"]') && s.includes(`[data-glass-tint="${value}"]`)),
+  );
   if (blocks.length === 0) continue; // invariant 3 already flags a missing block
   for (const b of blocks) {
     /* --glass-tint-a is MODE-SPLIT now (a wash near that mode's floor tolerates far more alpha), and the
@@ -762,8 +837,8 @@ for (const [value, tint] of presetTint) {
   const af = readFileSync(join(root, "components/auto-foreground.tsx"), "utf8");
   const tokens = readFileSync(join(root, "app/theme/tokens.css"), "utf8");
   const bare = stripComments(tokens);
-  const lightBody = bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"));
-  const darkBody = bare.slice(bare.indexOf(".dark {"));
+  const lightBody = lightRegion(bare);
+  const darkBody = darkRegion(bare);
   const cssVal = (body, name) => {
     const m = new RegExp(`--${name}:\\s*([\\d.]+)`).exec(body);
     return m ? Number(m[1]) : null;

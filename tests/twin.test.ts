@@ -37,8 +37,12 @@ describe("the default Button's twin", () => {
   const tokens = readFileSync(join(process.cwd(), "app/theme/tokens.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
   it("caps by day with the night wash's own L35 fit, copied as written", () => {
-    const nightWash = declaration(tokens, ".dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint] {", "--glass-wash-c-max");
-    const twinDay = declaration(tokens, ":root,\n[data-glass-tint] {\n  --glass-wash-hue-hi", "--twin-c-max");
+    const nightWash = declaration(
+      tokens,
+      '.dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),\n:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),\n[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {',
+      "--glass-wash-c-max",
+    );
+    const twinDay = declaration(tokens, ':root,\n[data-glass-tint],\n[data-mode="inverse"] {\n  --glass-wash-hue-hi', "--twin-c-max");
     expect(nightWash.length).toBeGreaterThan(400);
     expect(twinDay).toBe(nightWash);
   });

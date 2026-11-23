@@ -86,6 +86,7 @@ import {
   TONAL_MIN_L,
 } from "../lib/oklch-utils.ts";
 import { ringTwins } from "./lib/ring-twins.mjs";
+import { beforeNight, darkRegion, lightRegion } from "./lib/theme-openers.mjs";
 
 /* The /colors ramp defaults AutoForeground solves at. The clip bounds, margins, ramp build and pick all
    come from lib/oklch-utils now — this file used to re-declare them and had drifted. */
@@ -164,7 +165,9 @@ const STATUS_TEXT = Object.fromEntries(
    backing's chroma is its day cap at that lightness (dayBackingCap tapers it toward white, as tokens.css and
    the rule's own formula do). */
 const PRESETS_SRC = read("app/theme/presets.css").replace(/\/\*[\s\S]*?\*\//g, "");
-const ALERT_DAY_RULE = /\[data-slot="alert"\]:is\(([^{]*?)\)\s*:not\(\s*:where\(([^{]*?)\)\s*\)\s*\{([^}]*)\}/.exec(PRESETS_SRC);
+/* The rule's first selector names the tints and where it is not (by night, inside Onyx, inside an inverse that draws
+   night); the rest of its list (inside an inverse that draws the day) wears the same surface. */
+const ALERT_DAY_RULE = /\[data-slot="alert"\]:is\(([^{]*?)\)\s*:not\(\s*:where\(([^{]*?)\)\s*\)\s*(?:,[^{]*)?\{([^}]*)\}/.exec(PRESETS_SRC);
 const ALERT_DAY = (() => {
   const body = ALERT_DAY_RULE?.[3];
   if (!body) return undefined;
@@ -178,7 +181,9 @@ const ALERT_DAY = (() => {
 })();
 /* Onyx's own status inks (presets.css): onyx is dark in either mode, so its status Alerts keep the tint and
    read the pale inks it re-declares, by day too. */
-const ONYX_BLOCK = /(?<![\w.\]-])\[data-glass-tint="onyx"\]\s*\{([^}]*)\}/.exec(PRESETS_SRC)?.[1] ?? "";
+// Its day block: the rule that opens a line with the preset (the night block opens with `.dark` and names it again at its
+// end, for a scope inside an inverse element).
+const ONYX_BLOCK = /^\[data-glass-tint="onyx"\][^{]*\{([^}]*)\}/m.exec(PRESETS_SRC)?.[1] ?? "";
 
 /* The default field's night fill, `dark:bg-input/(--input-fill-a)`, read from the components that paint it so
    the check measures what ships (all three must name the token), at each preset's own --input-fill-a (the
@@ -388,8 +393,8 @@ const withoutSlotRules = (s) => s.replace(/\[data-slot=[^{]*\{[^}]*\}/g, "");
 /** Mode knobs from tokens.css's :root / .dark. */
 function modeVars() {
   const t = strip(css.tokens);
-  const rootBody = t.slice(t.indexOf(":root {"), t.indexOf(".dark {"));
-  const darkBody = t.slice(t.indexOf(".dark {"));
+  const rootBody = lightRegion(t);
+  const darkBody = darkRegion(t);
   const grab = (b) => {
     const m = new Map();
     for (const [, k, v] of b.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) m.set(k, +v);
@@ -407,7 +412,7 @@ function modeVars() {
 function nightKnobs() {
   const t = strip(css.tokens);
   const out = new Map();
-  for (const [, token, knob, fallback] of t.slice(t.indexOf(".dark {")).matchAll(/--([a-z0-9-]+):\s*var\(--(night-[a-z0-9-]+),\s*([\d.]+)\)\s*;/g)) {
+  for (const [, token, knob, fallback] of darkRegion(t).matchAll(/--([a-z0-9-]+):\s*var\(--(night-[a-z0-9-]+),\s*([\d.]+)\)\s*;/g)) {
     out.set(knob, { token, fallback: +fallback });
   }
   return out;
@@ -468,7 +473,7 @@ const parseOklchLiteral = (s) => {
 };
 /* The focus ring at night: a preset's own --ring (onyx sets one in its unscoped block, which outranks
    .dark's by source order), else the night token. */
-const darkRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {")))?.[1]);
+const darkRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(darkRegion(strip(css.tokens)))?.[1]);
 const presetRings = new Map();
 for (const src of [css.presets, css.frescoes]) {
   for (const [, darkSel, name, body] of withoutSlotRules(strip(src)).matchAll(/(\.dark)?\[data-glass-tint="([a-z]+)"\][^{]*\{([^}]*)\}/g)) {
@@ -478,12 +483,12 @@ for (const src of [css.presets, css.frescoes]) {
 }
 const ringOf = (p) => presetRings.get(p.name) ?? darkRing;
 /* The day ring, :root's --ring, for "at least as visible at night as by day". */
-const dayRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(strip(css.tokens).slice(0, strip(css.tokens).indexOf(".dark {")))?.[1]);
+const dayRing = parseOklchLiteral(/--ring:\s*(oklch\([^)]*\))/.exec(beforeNight(strip(css.tokens)))?.[1]);
 /** Each preset's day ring readings by ground, filled on the day pass and read on the night pass. */
 const dayRingRatios = new Map();
 /* Which page tier the night accent and secondary fills carry as text: --accent-foreground /
    --secondary-foreground in tokens.css's .dark block, var(--foreground-strong) or var(--foreground). */
-const darkTokens = strip(css.tokens).slice(strip(css.tokens).indexOf(".dark {"));
+const darkTokens = darkRegion(strip(css.tokens));
 /* (Token names keep their leading dashes here: a bare quoted "accent-…" is a Tailwind class candidate, and
    the site build scans this file.) */
 const fillInk = (token) => /--foreground(-strong)?\)/.exec(new RegExp(`${token}:\\s*var\\(([^;]*);`).exec(darkTokens)?.[1] ?? "")?.[1] ? "strong" : "body";
@@ -658,7 +663,7 @@ for (const p of all) {
        by day, over a dark scene too. */
     if (p.name in STATUS_TEXT) {
       const token = STATUS_TEXT[p.name];
-      const body = dark ? darkTokens : strip(css.tokens).slice(0, strip(css.tokens).indexOf(".dark {"));
+      const body = dark ? darkTokens : beforeNight(strip(css.tokens));
       const ink = token ? parseOklchLiteral(new RegExp(`--${token}:\\s*(oklch\\([^)]*\\))`).exec(body)?.[1]) : undefined;
       if (!ink) {
         failures.push(`[status] ${p.name} (${mode}) — the Alert's ${p.name} words are text-${token ?? "?"}, which is not a status ink token in tokens.css: they need a --${p.name}-ink pair (dark by day, pale at night) read against the status tint.`);

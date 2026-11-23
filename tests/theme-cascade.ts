@@ -165,7 +165,11 @@ function matchCompound(
       rest = rest.slice(end + 1);
       continue;
     } else if ((m = /^:root/.exec(rest))) {
-      spec += 1; // :root is only ever asked of the top element (see matchSelector)
+      /* The top element only: `ancestors` is the chain down to this element, so it is the root when the chain is
+         it alone. Read here, not from a selector's text, since a :not() argument can name an ancestor's :root
+         (the day-page inverse's `:root[data-glass-tint="onyx"] *`) and :where(:root…) names this element's. */
+      if (ancestors.length !== 1) return null;
+      spec += 1;
     } else if ((m = /^\.([a-z0-9_-]+)/i.exec(rest))) {
       if (!el.classes?.includes(m[1])) return null;
       spec += 1;
@@ -186,7 +190,7 @@ function matchCompound(
         }
       }
       const args = splitTop(rest.slice(m[0].length, end), ",");
-      if (!args.some((a) => !/\s/.test(a) && matchCompound(a, el) !== null)) return null;
+      if (!args.some((a) => !/\s/.test(a) && matchCompound(a, el, ancestors) !== null)) return null;
       spec += Math.max(0, ...args.map(argSpecificity));
       rest = rest.slice(end + 1);
       continue;
@@ -203,7 +207,11 @@ function matchCompound(
       }
       const inner = rest.slice(m[0].length, end);
       // Inside a :not(), an argument may be complex (`.dark *`); elsewhere only compound arguments are read.
-      if (!splitTop(inner, ",").some((s) => (inNot ? matchSelector(s, ancestors, true) !== null : !/\s/.test(s) && matchCompound(s, el) !== null)))
+      if (
+        !splitTop(inner, ",").some((s) =>
+          inNot ? matchSelector(s, ancestors, true) !== null : !/\s/.test(s) && matchCompound(s, el, ancestors) !== null,
+        )
+      )
         return null;
       rest = rest.slice(end + 1);
       continue;
@@ -222,12 +230,13 @@ function argSpecificity(selector: string): number {
 
 /** Specificity of a selector against the LAST element of `chain`, or null. Only the descendant combinator. */
 function matchSelector(selector: string, chain: ModelElement[], inNot = false): number | null {
-  /* A selector with a :not(:where(…)), and the argument of one, is split outside its parentheses (the
-     argument can be complex, `.dark *`); every other one as it always was. */
-  const parts = inNot || selector.includes(":not(:where(") ? splitTop(selector, /\s/) : selector.split(/\s+/);
+  /* Split outside parentheses where it matters: a :not(:where(…)) argument can be complex (`.dark *`), and an :is()
+     list holds a space after each comma (engine.css's block D names the scopes inside an inverse that way). Every
+     other selector splits as it always did, so a top-level :where() list (styles.css's page-style remaps) stays
+     outside the model, as tests/night-snapshot.test.ts recorded it. */
+  const parts = inNot || selector.includes(":not(:where(") || selector.includes(":is(") ? splitTop(selector, /\s/) : selector.split(/\s+/);
   if (parts.some((p) => /^[>+~]$/.test(p))) return null;
   const subject = chain[chain.length - 1];
-  if (parts[parts.length - 1].includes(":root") && chain.length > 1) return null;
   const last = matchCompound(parts[parts.length - 1], subject, chain, inNot);
   if (last === null) return null;
   let spec = last;
@@ -236,7 +245,7 @@ function matchSelector(selector: string, chain: ModelElement[], inNot = false): 
     let found = false;
     for (; at >= 0; at--) {
       const s = matchCompound(parts[p], chain[at], chain.slice(0, at + 1), inNot);
-      if (s !== null && !(parts[p].includes(":root") && at !== 0)) {
+      if (s !== null) {
         spec += s;
         found = true;
         at--;
@@ -479,6 +488,12 @@ export function numberOf(name: string, chain: ModelElement[]): number {
 const SCOPE_TOKEN = String.raw`(?::root|\.dark|\[data-glass-tint(?:="[a-z-]*")?\]|\[data-gloss(?:-shape)?(?:="[a-z-]*")?\])`;
 export const SCOPE_SELECTOR = new RegExp(String.raw`^${SCOPE_TOKEN}+(?:\s+${SCOPE_TOKEN}+)*\s*$`);
 
+/* An inverse element (`data-mode="inverse"`, tests/mode-inverse.test.ts) is the model's to measure: a jsdom page here has
+   none, so a scope selector's twin that stops at one reads as that selector, and a form that names one is left out,
+   keeping each rule's own scope selectors in jsdom's sheet. */
+const INVERSE_EXCLUDED = ':not(:where([data-mode="inverse"], [data-mode="inverse"] *))';
+const withoutInverse = (s: string) => (s.endsWith(INVERSE_EXCLUDED) ? s.slice(0, -INVERSE_EXCLUDED.length) : s);
+
 /**
  * The theme's token rules as plain CSS, for a jsdom <style>: every top-level rule whose selectors are all
  * :root / .dark / [data-glass-tint…] / [data-gloss…] (alone, compounded, or as a descendant), in source
@@ -487,7 +502,11 @@ export const SCOPE_SELECTOR = new RegExp(String.raw`^${SCOPE_TOKEN}+(?:\s+${SCOP
  */
 export function themeTokenCss(): string {
   return rules()
-    .filter((r) => r.selectors.every((s) => SCOPE_SELECTOR.test(s)))
+    .map((r) => ({
+      ...r,
+      selectors: r.selectors.map(withoutInverse).filter((s) => !s.includes('[data-mode="inverse"]')),
+    }))
+    .filter((r) => r.selectors.length > 0 && r.selectors.every((s) => SCOPE_SELECTOR.test(s)))
     .map((r) => `${r.selectors.join(",\n")} {\n${r.decls.map((d) => `  ${d.name}: ${d.value};`).join("\n")}\n}`)
     .join("\n");
 }
