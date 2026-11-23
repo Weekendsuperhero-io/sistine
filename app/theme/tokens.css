@@ -130,7 +130,8 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
+:root,
+[data-mode="inverse"] {
   --radius: 1.25rem;
   /* Shadow ink — the base black/white that every shadow, pressed-inset, and bevel highlight is built
      from. Mode-invariant (only the ALPHA changes per surface/mode), so apply alpha at the call site:
@@ -393,7 +394,7 @@
   --glass-frosted-shadow:
     0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
     0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
-    0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
+    0 0 var(--glass-frosted-glow-r, 20px) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a, 0.18)) inset;
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
   /* Base colors - Light mode with dark text */
@@ -679,7 +680,8 @@
    The pale warm stone keeps its day values (its own pins, presets.css), and the near-black preset has no
    chroma to cap. */
 :root,
-[data-glass-tint] {
+[data-glass-tint],
+[data-mode="inverse"] {
   --glass-wash-hue-hi: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572958);
   --glass-wash-hue-lo: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572958 - var(--glass-wash-hue-hi));
   --glass-wash-hue: calc(var(--glass-wash-hue-hi) + var(--glass-wash-hue-lo));
@@ -955,7 +957,8 @@
   );
 }
 
-.dark {
+.dark,
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) {
   /* Base colors — light text on a dark ground */
   --background: transparent;
   /* Pressed/active shadow SCALE — dark overrides: primaries deepen +0.1, contact layers +0.05, so the
@@ -1085,7 +1088,7 @@
   --glass-frosted-border: oklch(100% 0 0 / 0.25);
   --glass-frosted-shadow:
     0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
-    0 0 20px oklch(var(--shadow-highlight) / 0.22) inset;
+    0 0 var(--glass-frosted-glow-r, 20px) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a, 0.22)) inset;
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
   --foreground: oklch(
@@ -1275,7 +1278,9 @@
       than be evaluated at every night scope: a fifth of a night theme pick's restyle in WebKit. */
 .dark,
 .dark[data-glass-tint],
-.dark [data-glass-tint] {
+.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
+:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
   --twin-c-max: 0.052; /* the twin's night cap: 92% of the lowest L88 ceiling across hues (see .dark's --twin-l) */
   --glass-solidify-c-scale: var(--glass-opaque-c-scale);
@@ -1346,8 +1351,14 @@
    declared one and every scope inherited it: the near-black preset's 0 still reaches a jewel scoped inside
    a near-black page. The day cap above is declared at every tint scope, so without this the night rule's
    0.057 would replace that inherited value, and night would change. */
-.dark [data-glass-tint] {
+.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {
   --glass-gloss-c-max: inherit;
+}
+/* An inverse element on a night page draws the day, which never declares the field's night fill alpha (read only by
+   `dark:bg-input/(--input-fill-a)`, off inside it): it goes, so nothing of night's is inherited there. */
+.dark [data-mode="inverse"] {
+  --input-fill-a: initial;
 }
 
 @layer base {

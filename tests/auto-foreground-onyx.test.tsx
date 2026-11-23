@@ -8,7 +8,9 @@ import { colorOf, html, themeTokenCss } from "./theme-cascade";
 
 // Read the shipped preset, rather than replacing its floor numbers with a parallel test fixture.
 const presets = readFileSync("app/theme/presets.css", "utf8");
-const onyxRule = presets.match(/\[data-glass-tint="onyx"\]\s*\{[^}]+\}/)?.[0];
+// Its day block: the rule that opens a line with the preset (the night block opens with `.dark`, and names the preset
+// again at its end, for a scope inside an inverse element).
+const onyxRule = presets.match(/^\[data-glass-tint="onyx"\][^{]*\{[^}]+\}/m)?.[0];
 if (!onyxRule) throw new Error("Onyx's CSS preset is missing");
 let style: HTMLStyleElement;
 

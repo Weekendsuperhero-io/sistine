@@ -190,6 +190,50 @@ The `--foreground*-lustre` tiers are solved against Lustre's body, tint wash, an
 
 `data-glass-tint="onyx"` is an achromatic preset that remains dark in either mode: an L16 wash and opaque floor, L18 backing and crystal body, L20 chakra body, and L18 Lustre body. L52 neutral gloss supplies silver reflections. It includes light foregrounds and matching control fills for CSS-only and scoped use. The color switcher stores Onyx lightness separately under `sistine-glass-onyx-l`, preserving other presets' lightness preferences.
 
+### The other mode on one element
+
+`data-mode="inverse"` on any element draws it in the page's glass of the other mode: it computes, token for token, what a
+plain element computes in the other mode (`tests/mode-inverse.test.ts`, every page theme in both modes, through the
+cascade model). How the rules name it, so a new rule keeps it working:
+
+- **The mode knobs.** The base rule (`:root`) names `[data-mode="inverse"]`, so an inverse on a night page restates the day
+  values; the night rule (`.dark`) names `[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *))`, an inverse on a day page
+  that is not an Onyx page, later in source, so it takes the night values there. The day caps (`:root, [data-glass-tint]`) name it too; the night caps
+  name `:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *))` (the `:root` lifts it over a preset's day block, as
+  `.dark[data-glass-tint]` out-ranks `[data-glass-tint="x"]` on `<html>`), and their scoped form `.dark [data-glass-tint]`
+  stops at an inverse (`:not(:where([data-mode="inverse"], [data-mode="inverse"] *))`). The engine's blocks (B, C, C′) and the
+  page styles' surface remaps name it, so it re-composes there; so does each explicit material (`[data-material="x"] [data-mode="inverse"]`), as a card's surface is otherwise inherited pre-composed in the page's mode (an inverse that names its own material keeps that). The field's night fill alpha (`--input-fill-a`), which day
+  never declares, is reset on an inverse on a night page.
+- **The page's theme.** Each preset restates its inputs on the inverse: its day block names
+  `:where(:root.dark[data-glass-tint="x"]) [data-mode="inverse"]` and
+  `:where(:root[data-glass-tint="x"]:not(:where(.dark))) [data-mode="inverse"]` (the page part in `:where()`, so it weighs what
+  the inverse does, as the bare preset weighs on `<html>`), and its night block names
+  `:root[data-glass-tint="x"]:not(:where(.dark)) [data-mode="inverse"]`. The page is `<html>`: the inverse takes the root's
+  preset over any tint scope between them, and a preset set inline (the custom dials) follows the page's mode. Its night
+  block's scoped form also names `[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint="x"]`, so a scope of
+  that preset inside an inverse on a day page draws its night. `check-theme` [inverse-scope] holds every page preset to
+  these forms; the four status tints are never a page's theme.
+- **`dark:`** matches inside `.dark` except within an inverse, and inside an inverse on a day page (not an Onyx page).
+- **The day on a dark page (engine.css, block D).** An inverse on a night page, and any inverse on an Onyx page, draws
+  the day glass, whose marks are near white and vanished on its light body: every page style's day glass looked the same
+  there. Block D draws them in a deep tone of the theme instead: `--shadow-highlight` (the bevels, the inner glows,
+  Chakra's top and left facets) at L42, the tonal gloss ink at L46 and Lustre's polish ink at L44 (the white flavor's
+  specular a neutral L46; the hue flavor keeps its own L74 sweep), each with the theme's chroma up to 95% of the tightest
+  sRGB ceiling at its lightness (h200), so no hue clips. Dark words on a light body need it above about L81 behind the
+  letters, where a solid day body is L87–89, so the marks keep to the edge: the gloss frame and bands reach 0.3rem
+  (`--glass-gloss-reach-*`), Lustre's polish band 0.35rem (`--glass-lustre-reach-top`), Frosted's glow is 7px at 0.32
+  (`--glass-frosted-glow-r` / `-a`, 20px at 0.18 and 0.22 elsewhere), and the streak and the glow that cross a surface's
+  middle are dropped. It is declared on the inverse and on every scope block C composes inside it, so a tint or gloss
+  scope there keeps the marks; `check-theme` [gloss-scope] names these four selectors as the one place outside block C
+  the gloss compositions may be declared. `tests/mode-inverse.test.ts` holds the inverse to the day with exactly block D's
+  declarations, and the deep inks inside sRGB on every theme.
+- **Onyx.** Onyx is dark in either mode, so its other mode would be the same black glass: an inverse on an Onyx page is
+  Selenite by day, in either page mode. Selenite's day block names `:where(:root[data-glass-tint="onyx"]) [data-mode="inverse"]`,
+  Onyx's blocks name no inverse on its own page, the day-page inverse excludes Onyx pages (above), and the inverse there
+  takes `color-scheme: light` under the page's dark one. `check-theme` [inverse-scope] holds all four.
+- **The status Alert.** Its day surface (presets.css, THE STATUS ALERT BY DAY) is worn inside an inverse that draws the
+  day, as on a day page, and not inside one that draws night.
+
 ### Shared mode knobs
 
 The dials the engine composes: leaf values (never composing tint vars) on bare `:root`/`.dark` in `tokens.css`, so they inherit into tint scopes where the engine re-resolves the derived tokens. Retune a mode by touching a knob, not a gradient body.

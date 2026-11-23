@@ -184,6 +184,26 @@ Built-in presets ship as `[data-glass-tint]` blocks: **jewels** (single hue: sel
 
 **Day follows the hue.** By day the backing under sheer glass, the tonal crystal gloss and the tint wash take a share of *their own hue's* sRGB ceiling (92% at L92, 95% at L97, 95% at L72: `--glass-solidify-c-max`, `--glass-gloss-c-max`, `--glass-wash-c-max`, each a function of the hue every tint scope evaluates) instead of a flat cap sized for the tightest hue. On green, yellow and teal themes, the status tints and the frescoes the gloss carries 1.7–5× the colour and the backing up to 3.3×, a custom colour's wash no longer clips, and body text keeps its floor on every preset. Moonstone keeps its cream, and night is unchanged.
 
+### The other mode on one element
+
+`data-mode="inverse"` draws an element (and what is inside it) in the page's glass of the OTHER mode: on a day page the
+page's night glass, on a night page its day glass, in the page's own theme and page style. It is for something that has to
+stand apart from the page in the page's own material, a chosen option for one:
+
+```html
+<html data-glass-tint="sapphire" data-glass="lustre">
+  <!-- day page: this tab is sapphire's night lustre, with night ink -->
+  <button class="glass" data-mode="inverse" aria-selected="true">Overview</button>
+</html>
+```
+
+Every knob the engine composes from, and the `dark:` variant, follow it; a tint scope inside it draws as the other mode
+draws that scope, and the page's theme wins over any tint scope between the page and it. On a night page its day glass
+draws each style's marks (the bevel, Chakra's facets, the crystal gloss, Lustre's polish, Frosted's glow) in a deep tone
+of the theme, kept to the edge, since near-white marks vanish on a light body and dark words on it need the middle clear.
+Onyx is dark in either mode, so on an Onyx page the inverse is Selenite by day. See
+[`docs/color-tokens.md`](./docs/color-tokens.md#the-other-mode-on-one-element).
+
 ### Per-Component Customization
 
 Pass CSS-variable overrides through the `glassVars` helper (the successor to the old `glass={{…}}` prop; it emits `--glass-*` / `--srf-*` custom properties that route through the token system):

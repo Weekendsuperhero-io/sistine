@@ -66,6 +66,7 @@ import { fileURLToPath } from "node:url";
 import { inSrgbGamut, maxSrgbChroma } from "../lib/oklch-utils.ts";
 import { compile, substitute } from "./lib/css-math.mjs";
 import { BACKING_L, breakpoints, HUE_CAPS as HUE_CAP_PROFILES, locateBreakpoint } from "./lib/hue-caps.mjs";
+import { darkRegion, lightRegion } from "./lib/theme-openers.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -121,6 +122,7 @@ const css = {
   tokens: read("app/theme/tokens.css"),
 };
 
+
 /* ── Presets: hue + chroma per [data-glass-tint] block ───────────────────────────────────────── */
 function collectPresets() {
   const out = new Map();
@@ -159,8 +161,8 @@ function collectPresets() {
 
 /* ── Lightness vars, resolved per mode from tokens.css's :root / .dark blocks ────────────────── */
 function lightnessVars() {
-  const rootBody = css.tokens.slice(css.tokens.indexOf(":root {"), css.tokens.indexOf(".dark {"));
-  const darkBody = css.tokens.slice(css.tokens.indexOf(".dark {"));
+  const rootBody = lightRegion(css.tokens);
+  const darkBody = darkRegion(css.tokens);
   const grab = (body) => {
     const m = new Map();
     for (const [, k, v] of body.matchAll(/--([a-z0-9-]+):\s*([\d.]+)%?\s*;/g)) m.set(k, +v);
@@ -194,8 +196,8 @@ function hueCaps() {
   const bare = css.tokens.replace(/\/\*[\s\S]*?\*\//g, "");
   const out = {};
   for (const [mode, body] of [
-    ["light", bare.slice(bare.indexOf(":root {"), bare.indexOf(".dark {"))],
-    ["dark", bare.slice(bare.indexOf(".dark {"))],
+    ["light", lightRegion(bare)],
+    ["dark", darkRegion(bare)],
   ]) {
     /* Every declaration the mode makes (first wins), its value read to the `;` at paren depth 0. */
     /* Night inherits what day declares and does not redeclare: :root's rules match <html class="dark">
@@ -814,8 +816,8 @@ if (process.argv.includes("--report")) {
 {
   const MIN_TINTABLE = 0.03; // ~RGB spread 30 at the tightest hue — the point a tint reads as a colour
   for (const [mode, body] of [
-    ["light", css.tokens.slice(css.tokens.indexOf(":root {"), css.tokens.indexOf(".dark {"))],
-    ["dark", css.tokens.slice(css.tokens.indexOf(".dark {"))],
+    ["light", lightRegion(css.tokens)],
+    ["dark", darkRegion(css.tokens)],
   ]) {
     const bare = body.replace(/\/\*[\s\S]*?\*\//g, "");
     const l = /--accent-bg-l:\s*([\d.]+)/.exec(bare);
