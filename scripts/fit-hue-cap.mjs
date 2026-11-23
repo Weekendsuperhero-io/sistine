@@ -292,8 +292,13 @@ console.log(`\n${profile.table} = ${JSON.stringify({ floor: FLOOR_C, cut: CUT, g
  *  L72 (there the day-wash fit already is that). */
 function printPins() {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
+  /* A preset's day block: its name, any old ids kept as aliases, and the inverse forms that restate it
+     (`:where(:root[.dark][data-glass-tint="x"][:not(:where(.dark))]) [data-mode="inverse"]`), each spelled out so
+     no two items can match the same text and the list matches in linear time. */
+  const ITEM = String.raw`\[data-glass-tint="[a-z-]+"\]|:where\(:root(?:\.dark)?\[data-glass-tint="[a-z-]+"\](?::not\(:where\(\.dark\)\))?\) \[data-mode="inverse"\]`;
+  const DAY_BLOCK = new RegExp(String.raw`^\[data-glass-tint="([a-z-]+)"\](?:,\s*(?:${ITEM}))*\s*\{([^}]*)\}`, "gm");
   for (const file of ["app/theme/presets.css", "app/theme/frescoes.css"]) {
-    for (const [, name, body] of strip(readFileSync(join(ROOT, file), "utf8")).matchAll(/^\[data-glass-tint="([a-z-]+)"\](?:,\s*\[data-glass-tint="[a-z-]+"\])*(?:,\s*:where\([^{]*?\[data-mode="inverse"\])*\s*\{([^}]*)\}/gm)) {
+    for (const [, name, body] of strip(readFileSync(join(ROOT, file), "utf8")).matchAll(DAY_BLOCK)) {
       const get = (k) => +(new RegExp(`--glass-${k}:\\s*([\\d.]+)`).exec(body)?.[1] ?? Number.NaN);
       const [h, c, washL] = [get("tint-h"), get("tint-c"), get("wash-l")];
       if (!(c > 0) || Number.isNaN(washL) || washL === HUE_CAPS["day-wash"].l) continue;

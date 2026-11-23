@@ -7,7 +7,7 @@
  * An opener that is not there throws: a check sliced at -1 would read one character and pass, measuring nothing.
  */
 export function openAt(source, selector) {
-  const escaped = selector.replace(/[.]/g, "\\.");
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const at = new RegExp(`(^|\\n)${escaped}(?:,\\s*\\[data-mode="inverse"\\][^{]*)?\\s*\\{`).exec(source);
   if (!at) throw new Error(`theme-openers: no "${selector}" rule opens in this source; if it moved, update scripts/lib/theme-openers.mjs.`);
   return at.index + at[1].length;
