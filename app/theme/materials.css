@@ -13,7 +13,8 @@
    other mode: a plain child inherits the material's surface pre-composed in the page's mode, which the inverse must
    not show. One that names its own material keeps that. */
 [data-material="glass"],
-[data-material="glass"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="glass"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="glass"] [data-mode="night"]:not(:where([data-material])) {
   /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
      AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
      PAGE remap can never leak its dropped layer into an explicit material. */
@@ -32,7 +33,8 @@
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
    background-color channel free for the veil floor. */
 [data-material="frosted"],
-[data-material="frosted"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="frosted"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="frosted"] [data-mode="night"]:not(:where([data-material])) {
   /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
      AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
      PAGE remap can never leak its dropped layer into an explicit material. */
@@ -51,7 +53,8 @@
    sparkle is a plain token swap; box-shadow transitions on the real property. No saturate(),
    matching the old variant. */
 [data-material="crystal"],
-[data-material="crystal"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="crystal"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="crystal"] [data-mode="night"]:not(:where([data-material])) {
   /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
      AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
      PAGE remap can never leak its dropped layer into an explicit material. */
@@ -81,7 +84,8 @@
 
 /* Lustre — the pricing-card polish, baked into the background for sticky/fixed surfaces too. */
 [data-material="lustre"],
-[data-material="lustre"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="lustre"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="lustre"] [data-mode="night"]:not(:where([data-material])) {
   --srf-solidify: initial;
   --srf-bg-image: var(--glass-lustre-stack-bg);
   --srf-fill-image: var(--glass-lustre-polish-bg);
@@ -114,7 +118,8 @@
    raises --dif into the blur below, and the --glass-opacity solidify floor composes under the stack
    exactly as it does for crystal. */
 [data-material="chakra"],
-[data-material="chakra"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="chakra"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="chakra"] [data-mode="night"]:not(:where([data-material])) {
   /* Solidify slot: `initial` = guaranteed-invalid, so `glass` falls back to composing --glass-solidify
      AT THE ELEMENT (never inherited pre-composed — the var-composition gotcha). Pinned so an opaque
      PAGE remap can never leak its dropped layer into an explicit material. */
@@ -149,7 +154,9 @@
 [data-material="lucite"],
 [data-material="opaque"],
 [data-material="lucite"] [data-mode="inverse"]:not(:where([data-material])),
-[data-material="opaque"] [data-mode="inverse"]:not(:where([data-material])) {
+[data-material="lucite"] [data-mode="night"]:not(:where([data-material])),
+[data-material="opaque"] [data-mode="inverse"]:not(:where([data-material])),
+[data-material="opaque"] [data-mode="night"]:not(:where([data-material])) {
   /* DROP the solidify layer: it is `--glass-opaque-bg` at --glass-opacity alpha painted directly over a
      background-COLOR of the same --glass-opaque-bg at alpha 1 — i.e. C over C, which composites to C for
      ANY alpha. Measured across tints and both modes it moves every channel by exactly 0. So the layer was

@@ -234,6 +234,28 @@ cascade model). How the rules name it, so a new rule keeps it working:
 - **The status Alert.** Its day surface (presets.css, THE STATUS ALERT BY DAY) is worn inside an inverse that draws the
   day, as on a day page, and not inside one that draws night.
 
+### The night on one element
+
+`data-mode="night"` on any element draws it in the page's theme at night, whatever the page's mode: it computes, token for
+token, what a plain element computes at night (`tests/mode-night.test.ts`, every page theme on a day page and a night
+page). On a night page it is the page's own glass, but re-composed on the element, so a tint scope between the page and
+it gives way to the page's theme there as it does by day. Wherever the day-page inverse is named, the night scope is
+named beside it, and on any page:
+
+- **The mode knobs.** The base rule (`:root`) and the night rule (`.dark`) both name `[data-mode="night"]`; the night rule
+  is later in source, so the night values win on it, on a day page and a night page alike. The day caps name it, the
+  night caps name `:root [data-mode="night"]` and `[data-mode="night"] [data-glass-tint]`, and so do the engine's blocks,
+  the page styles' remaps, each explicit material and the gloss cap's inherit.
+- **The page's theme.** Each preset restates itself on it in either page mode: its day block names
+  `:where(:root[data-glass-tint="x"]) [data-mode="night"]`, its night block `:root[data-glass-tint="x"] [data-mode="night"]`
+  and `[data-mode="night"] [data-glass-tint="x"]` (Onyx too: on an Onyx page it is Onyx at night). `check-theme`
+  [night-scope] holds every day-page inverse form to its night twin and every preset to these.
+- **Inside an inverse that draws the day** it still draws night, and **`dark:`** is on inside it on any page. A status
+  Alert inside it keeps its night surface.
+
+Frosted's inner glow is two knobs declared per mode, `--glass-frosted-glow-r` (20px) and `--glass-frosted-glow-a` (0.18 by
+day, 0.22 at night), so block D can keep it to the edge and a night scope inside that inverse restates them.
+
 ### Shared mode knobs
 
 The dials the engine composes: leaf values (never composing tint vars) on bare `:root`/`.dark` in `tokens.css`, so they inherit into tint scopes where the engine re-resolves the derived tokens. Retune a mode by touching a knob, not a gradient body.

@@ -504,7 +504,7 @@ export function themeTokenCss(): string {
   return rules()
     .map((r) => ({
       ...r,
-      selectors: r.selectors.map(withoutInverse).filter((s) => !s.includes('[data-mode="inverse"]')),
+      selectors: r.selectors.map(withoutInverse).filter((s) => !s.includes('[data-mode="inverse"]') && !s.includes('[data-mode="night"]')),
     }))
     .filter((r) => r.selectors.length > 0 && r.selectors.every((s) => SCOPE_SELECTOR.test(s)))
     .map((r) => `${r.selectors.join(",\n")} {\n${r.decls.map((d) => `  ${d.name}: ${d.value};`).join("\n")}\n}`)

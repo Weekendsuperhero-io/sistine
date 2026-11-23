@@ -131,7 +131,8 @@
 }
 
 :root,
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   --radius: 1.25rem;
   /* Shadow ink — the base black/white that every shadow, pressed-inset, and bevel highlight is built
      from. Mode-invariant (only the ALPHA changes per surface/mode), so apply alpha at the call site:
@@ -391,10 +392,14 @@
     0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset,
     0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
   --glass-frosted-border: oklch(100% 0 0 / 0.3);
+  /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
+     inverse draws on a dark page). */
+  --glass-frosted-glow-r: 20px;
+  --glass-frosted-glow-a: 0.18;
   --glass-frosted-shadow:
     0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
     0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
-    0 0 var(--glass-frosted-glow-r, 20px) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a, 0.18)) inset;
+    0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
   /* Base colors - Light mode with dark text */
@@ -681,7 +686,8 @@
    chroma to cap. */
 :root,
 [data-glass-tint],
-[data-mode="inverse"] {
+[data-mode="inverse"],
+[data-mode="night"] {
   --glass-wash-hue-hi: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572958);
   --glass-wash-hue-lo: calc(sin(atan2(sin(var(--glass-tint-h) * 1deg), cos(var(--glass-tint-h) * 1deg)) / 10000) * 572958 - var(--glass-wash-hue-hi));
   --glass-wash-hue: calc(var(--glass-wash-hue-hi) + var(--glass-wash-hue-lo));
@@ -958,7 +964,8 @@
 }
 
 .dark,
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) {
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),
+[data-mode="night"] {
   /* Base colors — light text on a dark ground */
   --background: transparent;
   /* Pressed/active shadow SCALE — dark overrides: primaries deepen +0.1, contact layers +0.05, so the
@@ -1086,9 +1093,12 @@
     0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset,
     0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
   --glass-frosted-border: oklch(100% 0 0 / 0.25);
+  /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
+     inverse draws on a dark page). */
+  --glass-frosted-glow-a: 0.22;
   --glass-frosted-shadow:
     0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
-    0 0 var(--glass-frosted-glow-r, 20px) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a, 0.22)) inset;
+    0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
   --foreground: oklch(
@@ -1280,7 +1290,9 @@
 .dark[data-glass-tint],
 .dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
 :root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {
+:root [data-mode="night"],
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint],
+[data-mode="night"] [data-glass-tint] {
   --glass-opaque-c-max: 0.12;
   --twin-c-max: 0.052; /* the twin's night cap: 92% of the lowest L88 ceiling across hues (see .dark's --twin-l) */
   --glass-solidify-c-scale: var(--glass-opaque-c-scale);
@@ -1352,7 +1364,8 @@
    a near-black page. The day cap above is declared at every tint scope, so without this the night rule's
    0.057 would replace that inherited value, and night would change. */
 .dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),
-[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {
+[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint],
+[data-mode="night"] [data-glass-tint] {
   --glass-gloss-c-max: inherit;
 }
 /* An inverse element on a night page draws the day, which never declares the field's night fill alpha (read only by

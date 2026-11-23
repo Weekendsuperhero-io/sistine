@@ -204,6 +204,17 @@ of the theme, kept to the edge, since near-white marks vanish on a light body an
 Onyx is dark in either mode, so on an Onyx page the inverse is Selenite by day. See
 [`docs/color-tokens.md`](./docs/color-tokens.md#the-other-mode-on-one-element).
 
+`data-mode="night"` draws an element in the page's theme at night, whatever the page's mode: on a day page the page's
+night glass (what the inverse draws there), on a night page the night glass again, re-composed on the element so it is
+the page's theme even inside a tint scope. It is for something that is the theme's night glass in both modes:
+
+```html
+<html data-glass-tint="sapphire" data-glass="lustre">
+  <!-- day or night page: this option is sapphire's night lustre -->
+  <button class="glass" data-mode="night" aria-pressed="true">Overview</button>
+</html>
+```
+
 ### Per-Component Customization
 
 Pass CSS-variable overrides through the `glassVars` helper (the successor to the old `glass={{…}}` prop; it emits `--glass-*` / `--srf-*` custom properties that route through the token system):

@@ -25,7 +25,8 @@
   [data-glass="frosted"],
   [data-glass="frosted"] [data-glass-tint],
   [data-glass="frosted"][data-glass-tint],
-  [data-glass="frosted"] [data-mode="inverse"]
+  [data-glass="frosted"] [data-mode="inverse"],
+  [data-glass="frosted"] [data-mode="night"]
 ) {
   --srf-bg-image: var(--frosted-stack-bg);
   --srf-fill-image: var(--srf-bg-image);
@@ -41,7 +42,8 @@
   [data-glass="crystal"],
   [data-glass="crystal"] [data-glass-tint],
   [data-glass="crystal"][data-glass-tint],
-  [data-glass="crystal"] [data-mode="inverse"]
+  [data-glass="crystal"] [data-mode="inverse"],
+  [data-glass="crystal"] [data-mode="night"]
 ) {
   /* Gloss rides inside --crystal-stack-bg (baked — sticky/fixed-safe). Shimmer stays the opt-in
      glass-sheen. No saturate(), matching the material. */
@@ -65,7 +67,8 @@
   [data-glass="lustre"],
   [data-glass="lustre"] [data-glass-tint],
   [data-glass="lustre"][data-glass-tint],
-  [data-glass="lustre"] [data-mode="inverse"]
+  [data-glass="lustre"] [data-mode="inverse"],
+  [data-glass="lustre"] [data-mode="night"]
 ) {
   --srf-bg-image: var(--glass-lustre-stack-bg);
   --srf-fill-image: var(--glass-lustre-polish-bg);
@@ -95,7 +98,8 @@
   [data-glass="chakra"],
   [data-glass="chakra"] [data-glass-tint],
   [data-glass="chakra"][data-glass-tint],
-  [data-glass="chakra"] [data-mode="inverse"]
+  [data-glass="chakra"] [data-mode="inverse"],
+  [data-glass="chakra"] [data-mode="night"]
 ) {
   --srf-bg-image: var(--glass-chakra-stack-bg);
   --srf-fill-image: var(--srf-bg-image);
@@ -120,6 +124,7 @@
   [data-glass="lucite"] [data-glass-tint],
   [data-glass="lucite"][data-glass-tint],
   [data-glass="lucite"] [data-mode="inverse"],
+  [data-glass="lucite"] [data-mode="night"],
   [data-glass="opaque"],
   [data-glass="opaque"] [data-glass-tint],
   [data-glass="opaque"][data-glass-tint]

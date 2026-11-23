@@ -293,9 +293,10 @@ console.log(`\n${profile.table} = ${JSON.stringify({ floor: FLOOR_C, cut: CUT, g
 function printPins() {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
   /* A preset's day block: its name, any old ids kept as aliases, and the inverse forms that restate it
-     (`:where(:root[.dark][data-glass-tint="x"][:not(:where(.dark))]) [data-mode="inverse"]`), each spelled out so
+     (`:where(:root[.dark][data-glass-tint="x"][:not(:where(.dark))]) [data-mode="inverse"]`, and the night scope's),
+     each spelled out so
      no two items can match the same text and the list matches in linear time. */
-  const ITEM = String.raw`\[data-glass-tint="[a-z-]+"\]|:where\(:root(?:\.dark)?\[data-glass-tint="[a-z-]+"\](?::not\(:where\(\.dark\)\))?\) \[data-mode="inverse"\]`;
+  const ITEM = String.raw`\[data-glass-tint="[a-z-]+"\]|:where\(:root(?:\.dark)?\[data-glass-tint="[a-z-]+"\](?::not\(:where\(\.dark\)\))?\) \[data-mode="(?:inverse|night)"\]`;
   const DAY_BLOCK = new RegExp(String.raw`^\[data-glass-tint="([a-z-]+)"\](?:,\s*(?:${ITEM}))*\s*\{([^}]*)\}`, "gm");
   for (const file of ["app/theme/presets.css", "app/theme/frescoes.css"]) {
     for (const [, name, body] of strip(readFileSync(join(ROOT, file), "utf8")).matchAll(DAY_BLOCK)) {

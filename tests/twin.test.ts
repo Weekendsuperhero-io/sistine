@@ -39,10 +39,14 @@ describe("the default Button's twin", () => {
   it("caps by day with the night wash's own L35 fit, copied as written", () => {
     const nightWash = declaration(
       tokens,
-      '.dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),\n:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),\n[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint] {',
+      '.dark,\n.dark[data-glass-tint],\n.dark [data-glass-tint]:not(:where([data-mode="inverse"], [data-mode="inverse"] *)),\n:root [data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)),\n:root [data-mode="night"],\n[data-mode="inverse"]:not(:where(.dark, .dark *, :root[data-glass-tint="onyx"] *)) [data-glass-tint],\n[data-mode="night"] [data-glass-tint] {',
       "--glass-wash-c-max",
     );
-    const twinDay = declaration(tokens, ':root,\n[data-glass-tint],\n[data-mode="inverse"] {\n  --glass-wash-hue-hi', "--twin-c-max");
+    const twinDay = declaration(
+      tokens,
+      ':root,\n[data-glass-tint],\n[data-mode="inverse"],\n[data-mode="night"] {\n  --glass-wash-hue-hi',
+      "--twin-c-max",
+    );
     expect(nightWash.length).toBeGreaterThan(400);
     expect(twinDay).toBe(nightWash);
   });
