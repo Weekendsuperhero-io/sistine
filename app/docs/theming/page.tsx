@@ -49,7 +49,8 @@ export default function ThemingPage() {
               <li>
                 <strong>Axes</strong> (orthogonal, so they compose freely on any material): <IC>border</IC> (and its colour, <IC>borderColor</IC>),{" "}
                 <IC>veil</IC> (a legible floor for menus / overlays), <IC>diffuse</IC> (a readability blur floor), <IC>gradient</IC> (brand wash),{" "}
-                <IC>glow</IC>, <IC>sheen</IC> (hover shimmer). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
+                <IC>glow</IC>, <IC>sheen</IC> (hover shimmer), <IC>flat</IC> (no drop shadow; the inset bevel stays) and <IC>blur</IC> (the backdrop
+                blur, on unless <IC>false</IC>). Each is a prop on a component, or a <IC>glass-*</IC> class on a bare element.
               </li>
             </ul>
             <p className="text-muted-foreground">The six materials. Pin one with the prop, or on a raw element with the attribute:</p>
@@ -182,6 +183,18 @@ export default function ThemingPage() {
                       "sheen",
                       "glass-sheen",
                       "opt-in hover shimmer",
+                    ],
+                    [
+                      "flat",
+                      "flat",
+                      "glass-flat",
+                      "no drop shadow of its own (the Badge's default), the material's inset bevel and Chakra's cut kept; the lit edge and the glow still draw, and data-flat-shadow raises it again",
+                    ],
+                    [
+                      "blur",
+                      "blur={false}",
+                      "glass-unblurred",
+                      "no backdrop blur, for a surface that only sits on another (the Badge's default; <Badge blur> over a bare scene)",
                     ],
                   ].map(([axis, prop, cls, what]) => (
                     <tr key={axis}>
@@ -834,6 +847,12 @@ const onAccent = useReadableForeground(accent, "large");
                 rim / frame = each material&apos;s own hairline / 2 / 4px). An element-level <IC>border=&quot;rim&quot;</IC> /{" "}
                 <IC>&quot;frame&quot;</IC> and <IC>borderColor=&quot;ink&quot;</IC> still win. The old opaque-only names,{" "}
                 <IC>--glass-opaque-outline</IC> / <IC>-w</IC>, are still read.
+              </li>
+              <li>
+                <IC>data-flat-shadow</IC>: <strong>raised pills</strong>. A <IC>flat</IC> surface (every glass Badge) sits on what it is on with no
+                drop shadow, its inset bevel kept; put <IC>data-flat-shadow</IC> on <IC>&lt;html&gt;</IC> (or any ancestor) and every flat surface
+                below it casts the page style&apos;s whole shadow again, hover included, and the primary Badge its small one (<IC>--pill-raise</IC>).
+                A Badge&apos;s own <IC>flat={"{false}"}</IC> is raised either way, and its own <IC>flat</IC> flat either way.
               </li>
               <li>
                 <IC>--glass-tint-a</IC>: the tint <strong>film</strong> alpha (per preset).

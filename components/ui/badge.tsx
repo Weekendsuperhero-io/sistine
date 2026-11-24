@@ -12,7 +12,9 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground shadow [a&]:hover:bg-primary/80",
+        /* Flat like the glass variants unless the page raises its pills: its small shadow is a page value,
+           --pill-raise (styles.css, THE FLAT SHADOW), so a shadow class a consumer passes still replaces it. */
+        default: "border-transparent bg-primary text-primary-foreground shadow-(--pill-raise) [a&]:hover:bg-primary/80",
         glass: "text-foreground",
         secondary: "text-muted-foreground",
         destructive: "border border-destructive/50 text-destructive",
@@ -28,16 +30,25 @@ const badgeVariants = cva(
 );
 
 /* Each semantic variant's surface role (null = no glass surface — the variant styles itself, e.g.
-   default/outline/ghost/link; destructive rides a borderless glass surface, its red border its own). */
+   default/outline/ghost/link; destructive rides a borderless glass surface, its red border its own).
+   A badge sits on something, a card, a row, a header, so its glass is flat (no drop shadow, unless the
+   page raises its pills: data-flat-shadow) and unblurred (what is behind it is blurred already). A badge
+   over a bare scene takes `blur` per instance. */
 const SURFACE_ROLE: Record<string, MaterialProps | null> = {
   glass: {
     border: true,
+    flat: true,
+    blur: false,
   },
   secondary: {
     border: true,
+    flat: true,
+    blur: false,
   },
   destructive: {
     size: "sm",
+    flat: true,
+    blur: false,
   },
   default: null,
   outline: null,
@@ -54,6 +65,8 @@ function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
 
   const [axes, rest] = splitAxisProps(props);
   const m = materialSurface(SURFACE_ROLE[variant ?? "glass"] ?? null, axes);
+  // The primary pill is not glass, so it reads the flat axis here: raised in code, flat in code, or as the page says.
+  const primaryLift = variant === "default" ? (axes.flat === false ? "shadow" : axes.flat === true ? "shadow-none" : undefined) : undefined;
 
   return (
     <Comp
@@ -66,6 +79,7 @@ function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
         badgeVariants({
           variant,
         }),
+        primaryLift,
         className,
       )}
       {...rest}

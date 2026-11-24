@@ -59,7 +59,10 @@ export function ComponentView({ component: componentName }: { component: string 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">{component.title || component.name}</h1>
-            <Badge className="w-fit">Component</Badge>
+            {/* Over the bare scene, not a surface: it keeps the blur and the shadow a Badge leaves off by default. */}
+            <Badge blur flat={false} className="w-fit">
+              Component
+            </Badge>
           </div>
           <Button size="sm" asChild>
             <a href={getStorybookUrl(component.name)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-fit">

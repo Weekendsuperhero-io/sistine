@@ -26,6 +26,8 @@
  *   6l.[outline-all] the page outline is resolved once per surface and reaches every material.
  *   6m.[night-knob] a --night-* knob is registered non-inheriting, read by the night rule with a fallback,
  *               and set only in an unscoped preset block.
+ *   6n.[flat-shadow] glass reads the element's own shadow and backdrop slots first; glass-flat / glass-unblurred
+ *               set only those; data-flat-shadow resets the shadow slot; both slots are non-inheriting.
  *   3. [preset] Every GlassTintSwitcher preset has a [data-glass-tint="x"] block.
  *   4. [status] Every status a component renders via data-glass-tint (or the Toaster's TOAST_TINT) has a block.
  *   4b.[vendor-free] No third-party component selectors (data-sonner) in the theme.
@@ -333,7 +335,7 @@ for (const p of frescoPresets) {
 //     explicit material can never leak an inherited [data-glass] page-remap channel. Opaque also remaps
 //     the foreground tiers; crystal swaps its shadow on :hover.
 const MATERIALS = ["glass", "frosted", "crystal", "lustre", "chakra", "lucite"];
-const PIN_SET = ["--srf-bg-image", "--srf-fill-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-solidify"];
+const PIN_SET = ["--srf-bg-image", "--srf-fill-image", "--srf-bg-color", "--srf-filter", "--srf-border-color", "--srf-border-w", "--srf-shadow", "--srf-inset", "--srf-solidify"];
 /* [fill-image] A filled control (the default button) paints --srf-fill-image over its own --primary fill,
    so no material's fill image may carry an opaque body: lustre's is its polish alone, without the tint
    wash and the dense --glass-lustre-bg that hid the fill and left the label on lustre's own floor. */
@@ -725,6 +727,58 @@ for (const r of rules) {
   for (const r of rules) {
     if (!/\[data-material=/.test(r.selector)) continue;
     if (/--glass-(?:opaque-)?outline/.test(r.body)) fail(`[outline-all] "${r.selector}" wires the outline into its own tokens — leave it to --srf-edge so every material gets it.`);
+  }
+}
+
+// 6n. [flat-shadow] a flat surface (glass-flat, the Badge's glass) casts no shadow and an unblurred one
+//     (glass-unblurred) draws no backdrop, through the element's OWN slots, which @utility glass reads
+//     ahead of the material's: --srf-lift before --srf-shadow, --srf-backdrop before --srf-filter. A page
+//     style re-sets the material's shadow on hover with a stronger selector than an axis carries, so the
+//     slots must lead, be set by nothing but their axis, and not inherit (a flat badge must not flatten a
+//     surface inside it). data-flat-shadow gives the shadow back by resetting the slot to initial.
+{
+  const glassUtil = rules.find((r) => r.selector === "@utility glass");
+  if (!glassUtil || !/box-shadow:\s*var\(--srf-lift,\s*var\(--srf-shadow/.test(glassUtil.body)) {
+    fail("[flat-shadow] @utility glass must read var(--srf-lift, …) ahead of --srf-shadow in its box-shadow.");
+  }
+  if (!glassUtil || !/backdrop-filter:\s*var\(--srf-backdrop,\s*var\(--srf-filter/.test(glassUtil.body)) {
+    fail("[flat-shadow] @utility glass must read var(--srf-backdrop, …) ahead of --srf-filter in its backdrop-filter.");
+  }
+  const flat = rules.find((r) => r.selector === "@utility glass-flat");
+  if (!flat || !/^\s*--srf-lift:\s*var\(--srf-inset,\s*var\(--srf-elev-inset,\s*var\(--glass-shadow-inset\)\)\);\s*$/.test(flat.body)) {
+    fail("[flat-shadow] @utility glass-flat must set only --srf-lift to the material's inset part: var(--srf-inset, var(--srf-elev-inset, var(--glass-shadow-inset))).");
+  }
+  // The inset part rides beside the whole shadow wherever one is set, hover and size tiers included, so a flat
+  // surface keeps the bevel (and Chakra's cut) of whatever style it is under, and nothing else.
+  for (const r of rules) {
+    if (/--srf-shadow:/.test(r.body) && !/--srf-inset:/.test(r.body)) fail(`[flat-shadow] "${r.selector}" sets --srf-shadow without its --srf-inset.`);
+    if (/--srf-elev:/.test(r.body) && !/--srf-elev-inset:/.test(r.body)) fail(`[flat-shadow] "${r.selector}" sets --srf-elev without its --srf-elev-inset.`);
+    for (const [, token] of r.body.matchAll(/--srf-(?:elev-)?inset:\s*var\((--glass-[a-z-]+-inset)/g)) {
+      if (!rules.some((d) => new RegExp(`(^|[;\\s])${token}:`).test(d.body))) fail(`[flat-shadow] "${r.selector}" reads ${token}, which no rule declares.`);
+    }
+  }
+  const unblurred = rules.find((r) => r.selector === "@utility glass-unblurred");
+  if (!unblurred || !/^\s*--srf-backdrop:\s*none;\s*$/.test(unblurred.body)) {
+    fail("[flat-shadow] @utility glass-unblurred must set only --srf-backdrop: none.");
+  }
+  if (!rules.some((r) => r.selector.startsWith("[data-flat-shadow]") && /--srf-lift:\s*initial/.test(r.body))) {
+    fail("[flat-shadow] no [data-flat-shadow] rule resets --srf-lift to initial.");
+  }
+  for (const r of rules) {
+    if (r.selector.startsWith("@utility glass-flat") || r.selector.startsWith("@utility glass-unblurred") || r.selector.startsWith("[data-flat-shadow]")) continue;
+    if (/--srf-(?:lift|backdrop):/.test(r.body)) fail(`[flat-shadow] "${r.selector}" sets an element's own shadow or backdrop slot — only its axis may.`);
+  }
+  for (const prop of ["--srf-lift", "--srf-backdrop"]) {
+    const reg = rules.find((r) => r.selector === `@property ${prop}`);
+    if (!reg || !/inherits:\s*false/.test(reg.body)) fail(`[flat-shadow] ${prop} must be registered with @property … inherits: false.`);
+  }
+  // The primary Badge is no glass surface: its shadow is the page value --pill-raise, none by default (a valid
+  // shadow, so a focus ring composed beside it still draws), raised under data-flat-shadow.
+  if (!rules.some((r) => r.selector === ":root" && /--pill-raise:\s*0 0 #0000;/.test(r.body))) {
+    fail("[flat-shadow] :root must declare --pill-raise: 0 0 #0000, the primary Badge's flat default.");
+  }
+  if (!rules.some((r) => r.selector === "[data-flat-shadow]" && /--pill-raise:/.test(r.body))) {
+    fail("[flat-shadow] no [data-flat-shadow] rule raises the primary Badge (--pill-raise).");
   }
 }
 

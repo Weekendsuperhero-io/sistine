@@ -88,10 +88,17 @@
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
-     The max() composes the diffuse FLOOR for adaptive surfaces. */
-  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
-  /* The lit edge (a lit Button's ring in --lit) and the glow layer ride after the material's shadow. */
-  box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--lit-layer, 0 0 0 0 transparent), var(--glow-layer, 0 0 0 0 transparent);
+     The max() composes the diffuse FLOOR for adaptive surfaces. --srf-backdrop leads it: the element's
+     OWN filter (glass-unblurred sets it to none), registered non-inheriting like --srf-film, so no
+     material or page style re-sets it and nothing nested inherits it. */
+  backdrop-filter: var(--srf-backdrop, var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,));
+  /* The lit edge (a lit Button's ring in --lit) and the glow layer ride after the material's shadow.
+     --srf-lift leads the shadow the same way: the element's OWN elevation (glass-flat sets it to the
+     material's inset part alone, data-flat-shadow gives the whole shadow back), ahead of the material's,
+     which a page style's hover re-sets with a stronger selector than any axis could carry. */
+  box-shadow:
+    var(--srf-lift, var(--srf-shadow, var(--srf-elev, var(--glass-shadow)))), var(--lit-layer, 0 0 0 0 transparent),
+    var(--glow-layer, 0 0 0 0 transparent);
   /* THE EDGE, resolved once per surface for everything that draws one (glass-border, the opaque page's
      uniform edge, the page outline). Precedence, strongest first: the element's own ink colour or
      rim/frame weight, then the PAGE OUTLINE (--glass-outline / --glass-outline-w, set on any ancestor;
@@ -100,6 +107,22 @@
      set on a subtree resolves where it is read. */
   --srf-edge: var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--srf-border-color, var(--glass-border)))));
   --srf-edge-w: var(--brd-w, var(--glass-outline-w, var(--glass-opaque-outline-w, var(--srf-border-w, 1px))));
+}
+
+/* Flat axis — the surface sits on what it is on, with no drop shadow of its own: a badge on a card or
+   a table row, where the style's elevation (Lustre's is a 32px blur) smudged every pill. It keeps the
+   material's INSET part, --srf-inset (set beside every --srf-shadow, hover included; the size tiers'
+   --srf-elev-inset beside --srf-elev): the bevel, Chakra's cut, Frosted's inner glow, Lustre's polish
+   rim. The lit edge and the glow still draw (they ride after the shadow). data-flat-shadow on an
+   ancestor gives a flat surface the style's whole shadow back (styles.css, THE FLAT SHADOW). */
+@utility glass-flat {
+  --srf-lift: var(--srf-inset, var(--srf-elev-inset, var(--glass-shadow-inset)));
+}
+
+/* Blur axis, off — the surface draws no backdrop blur: a badge only ever sits on a surface that is
+   blurred already, and every blur is redrawn each frame it moves. The stain goes with it. */
+@utility glass-unblurred {
+  --srf-backdrop: none;
 }
 
 /* Border axis — the material picks the color unless the element asks for ink (--brd-ink, the
@@ -181,14 +204,17 @@
 @utility glass-sm {
   --srf-blur: var(--blur-sm);
   --srf-elev: var(--glass-shadow-sm);
+  --srf-elev-inset: var(--glass-shadow-sm-inset);
 }
 @utility glass-lg {
   --srf-blur: var(--blur-lg);
   --srf-elev: var(--glass-shadow-lg);
+  --srf-elev-inset: var(--glass-shadow-lg-inset);
 }
 @utility glass-xl {
   --srf-blur: var(--blur-xl);
   --srf-elev: var(--glass-shadow-lg);
+  --srf-elev-inset: var(--glass-shadow-lg-inset);
 }
 
 /* ── Gradient ACCENT — a brand wash ON a material, not a material. Fills the no-op --acc-gradient

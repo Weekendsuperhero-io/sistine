@@ -51,6 +51,24 @@ const NEW_AT_NIGHT: Record<string, string> = {
      declares --glass-border-ink-a (the consumer's override, which --brd-ink reads first). 0.55 at every night
      scope, and the neon city fresco's knob (0.62) on its own scope: the alpha --brd-ink paints is as before. */
   "--glass-border-ink-default-a": "the ink border's alpha under its new name; 0.55, the neon city's 0.62, as before",
+  /* Each shadow's INSET part as its own token, which the whole shadow ends with (tokens.css, engine.css,
+     materials.css), so a flat surface (glass-flat, every glass Badge) keeps the bevel and Chakra's cut while it
+     drops the drop shadow. Every whole shadow they compose, pinned here, is what it was. */
+  "--glass-shadow-inset": "the glass shadow's inset part; --glass-shadow is what it was",
+  "--glass-shadow-sm-inset": "the small tier's inset part; --glass-shadow-sm is what it was",
+  "--glass-shadow-lg-inset": "the large tier's inset part; --glass-shadow-lg is what it was",
+  "--glass-frosted-shadow-inset": "Frosted's inset part, its inner glow; --glass-frosted-shadow is what it was",
+  "--glass-crystal-shadow-inset": "Crystal's inset part; --glass-crystal-shadow is what it was",
+  "--glass-crystal-shadow-hover-inset": "Crystal's hover inset part; --glass-crystal-shadow-hover is what it was",
+  "--glass-lustre-shadow-inset": "Lustre's inset rim and polish line; --glass-lustre-shadow is what it was",
+  "--glass-lustre-shadow-hover-inset": "Lustre's hover inset part; --glass-lustre-shadow-hover is what it was",
+  "--glass-chakra-shadow-inset": "Chakra's cut with the glass inset; --glass-chakra-shadow is what it was",
+  "--glass-chakra-shadow-hover-inset": "Chakra's hover cut; --glass-chakra-shadow-hover is what it was",
+  /* The slot that carries that inset part beside --srf-shadow in every material and page style, read only by
+     glass-flat; --srf-shadow, pinned here, is what it was. */
+  "--srf-inset": "the material's inset part beside --srf-shadow; read only by glass-flat",
+  /* The primary Badge's small shadow as a page value: none unless data-flat-shadow raises pills. */
+  "--pill-raise": "the primary Badge's shadow, none unless the page raises its pills",
 };
 
 const r9 = (x: number) => {

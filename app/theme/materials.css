@@ -28,6 +28,7 @@
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
+  --srf-inset: var(--srf-elev-inset, var(--glass-shadow-inset));
 }
 
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
@@ -46,6 +47,7 @@
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
+  --srf-inset: var(--glass-frosted-shadow-inset);
 }
 
 /* Crystal — gloss BAKED into the background stack (sticky/fixed-safe; no pseudo-elements, no
@@ -66,10 +68,12 @@
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
+  --srf-inset: var(--glass-crystal-shadow-inset);
   transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="crystal"]:hover {
   --srf-shadow: var(--glass-crystal-shadow-hover);
+  --srf-inset: var(--glass-crystal-shadow-hover-inset);
 }
 /* Crystal text tiers — the baked gloss locally LIGHTENS the title zone (worst in dark mode), so text
    inside crystal remaps to the -crystal set AutoForeground bands against the glossed crystal surface.
@@ -94,10 +98,12 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
+  --srf-inset: var(--glass-lustre-shadow-inset);
   transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-material="lustre"]:hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
+  --srf-inset: var(--glass-lustre-shadow-hover-inset);
 }
 [data-material="lustre"]:not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-lustre);
@@ -131,10 +137,12 @@
   --srf-border-color: var(--glass-chakra-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-chakra-shadow);
+  --srf-inset: var(--glass-chakra-shadow-inset);
   transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="chakra"]:hover {
   --srf-shadow: var(--glass-chakra-shadow-hover);
+  --srf-inset: var(--glass-chakra-shadow-hover-inset);
 }
 /* Chakra text tiers — content sits on the body, whose lightness (--glass-chakra-l) is its own dial and
    can sit well away from the page's. Same reasoning as opaque/crystal; veiled chakra is excluded
@@ -195,6 +203,7 @@
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-shadow);
+  --srf-inset: var(--glass-shadow-inset);
   /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
      PAGE style makes (menus/toasts must stay legible on a solid ground). */
   --glass-solid-a: 1;
@@ -258,4 +267,6 @@
      the swept hue. (The white floor is replaced in engine.css block C′.) */
   --glass-crystal-shadow: var(--glass-shadow);
   --glass-crystal-shadow-hover: var(--glass-shadow-lg);
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset);
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset);
 }

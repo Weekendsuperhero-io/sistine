@@ -37,6 +37,7 @@
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
+  --srf-inset: var(--glass-frosted-shadow-inset);
 }
 :where(
   [data-glass="crystal"],
@@ -53,6 +54,7 @@
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
+  --srf-inset: var(--glass-crystal-shadow-inset);
 }
 /* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
    as the material remap in materials.css — the baked gloss lightens title zones there too. */
@@ -77,12 +79,14 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
+  --srf-inset: var(--glass-lustre-shadow-inset);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
   transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
+  --srf-inset: var(--glass-lustre-shadow-hover-inset);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-lustre);
@@ -107,6 +111,7 @@
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
   --srf-border-color: var(--glass-chakra-border);
   --srf-shadow: var(--glass-chakra-shadow);
+  --srf-inset: var(--glass-chakra-shadow-inset);
 }
 /* Chakra page: adaptive glass (no explicit material, not veiled) takes the -chakra text tiers, same
    as the material remap in materials.css. */
@@ -137,6 +142,7 @@
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
+  --srf-inset: var(--glass-shadow-inset);
   /* Same provable no-op as [data-material="opaque"]: --glass-opaque-bg sits in the background-COLOR
      channel, so the solidify layer would paint that colour over itself. A TOKEN here (it used to be an
      element rule keyed on `.glass`), so it reaches an `@apply glass` surface too, which kept the light
@@ -186,6 +192,23 @@
    specificity and wins by coming after it. */
 [data-glass-outline] :is(.glass, [data-surface]) {
   border: var(--srf-edge-w, 1px) solid var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--glass-accent))));
+}
+
+/* ── THE FLAT SHADOW ─────────────────────────────────────────────────────────
+   data-flat-shadow on <html> (or any ancestor) raises every flat surface below it again (glass-flat,
+   the Badge's glass variants): its own elevation slot goes back to its initial, guaranteed-invalid
+   value, so `glass` falls through to the style's shadow, hover included. An app's "pill shadow" setting.
+   Unlayered, so it beats the glass-flat utility on the same element. */
+[data-flat-shadow] .glass-flat {
+  --srf-lift: initial;
+}
+/* The primary Badge is no glass surface: its small shadow is this page value, none unless data-flat-shadow
+   raises pills, the shadow it always had when it does. */
+:root {
+  --pill-raise: 0 0 #0000;
+}
+[data-flat-shadow] {
+  --pill-raise: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
 }
 /* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
    one --veil-solidify makes for the solidify layer on this page style. A veiled card does not paint
