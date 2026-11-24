@@ -164,6 +164,17 @@
   syntax: "*";
   inherits: false;
 }
+/* An element's own shadow and backdrop filter (glass-flat, glass-unblurred), which `glass` reads ahead of the
+   material's. Non-inheriting: a flat badge must not flatten a surface inside it, and a page that lifts flat
+   surfaces (data-flat-shadow, styles.css) resets them where they are set. */
+@property --srf-lift {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-backdrop {
+  syntax: "*";
+  inherits: false;
+}
 @property --srf-solidify-bg {
   syntax: "*";
   inherits: false;

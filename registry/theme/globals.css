@@ -178,6 +178,17 @@
   syntax: "*";
   inherits: false;
 }
+/* An element's own shadow and backdrop filter (glass-flat, glass-unblurred), which `glass` reads ahead of the
+   material's. Non-inheriting: a flat badge must not flatten a surface inside it, and a page that lifts flat
+   surfaces (data-flat-shadow, styles.css) resets them where they are set. */
+@property --srf-lift {
+  syntax: "*";
+  inherits: false;
+}
+@property --srf-backdrop {
+  syntax: "*";
+  inherits: false;
+}
 @property --srf-solidify-bg {
   syntax: "*";
   inherits: false;
@@ -635,29 +646,39 @@
      modes: milkiness IS that material.) The top bevel stays WHITE in both — it's a specular, not a
      shadow; grey speculars read as grime. Layer order: ambient drop, contact drop, hairline, top
      bevel, bottom shade, inner glow/vignette. */
+  /* Each shadow's INSET part (bevel, shade, vignette) is its own token, which the full shadow ends with: a flat
+     surface (glass-flat, every glass Badge) keeps it while it drops the outer drop and hairline. */
+  --glass-shadow-inset:
+    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset, 0 0 12px oklch(var(--shadow-ink) / 0.05) inset;
   --glass-shadow:
     0 4px 16px oklch(var(--shadow-ink) / 0.13), 0 1px 3px oklch(var(--shadow-ink) / 0.11), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
-    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset,
-    0 0 12px oklch(var(--shadow-ink) / 0.05) inset;
-  --glass-shadow-lg:
-    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-shadow-inset);
+  --glass-shadow-lg-inset:
     0 1px 0 oklch(var(--shadow-highlight) / 0.45) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 20px oklch(var(--shadow-ink) / 0.06) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-shadow-lg-inset);
+  --glass-shadow-sm-inset:
+    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset, 0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
   --glass-shadow-sm:
     0 2px 8px oklch(var(--shadow-ink) / 0.1), 0 1px 2px oklch(var(--shadow-ink) / 0.09), 0 0 0 1px oklch(var(--shadow-ink) / 0.04),
-    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset,
-    0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
+    var(--glass-shadow-sm-inset);
   --glass-frosted-border: oklch(100% 0 0 / 0.3);
   /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
      inverse draws on a dark page). */
   --glass-frosted-glow-r: 20px;
   --glass-frosted-glow-a: 0.18;
-  --glass-frosted-shadow:
-    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+  --glass-frosted-shadow-inset:
     0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
+  --glass-frosted-shadow:
+    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-frosted-shadow-inset);
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(
@@ -1339,24 +1360,24 @@
   --glass-chakra-facet-r-a: 0.143; /* right  — ink,        −4.0 L */
   --glass-chakra-facet-b-a: 0.286; /* bottom — ink,        −8.0 L */
   /* ── Glass shadows — dark twins (deeper drops, brighter bevels). */
-  --glass-shadow:
-    0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset,
-    0 0 12px oklch(var(--shadow-highlight) / 0.15) inset;
-  --glass-shadow-lg:
-    0 8px 32px oklch(var(--shadow-ink) / 0.4), 0 2px 8px oklch(var(--shadow-ink) / 0.2), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset,
-    0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
-  --glass-shadow-sm:
-    0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset,
-    0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
+  --glass-shadow-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset, 0 0 12px oklch(var(--shadow-highlight) / 0.15) inset;
+  --glass-shadow: 0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), var(--glass-shadow-inset);
+  --glass-shadow-lg-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset, 0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
+  --glass-shadow-lg: 0 8px 32px oklch(var(--shadow-ink) / 0.4), 0 2px 8px oklch(var(--shadow-ink) / 0.2), var(--glass-shadow-lg-inset);
+  --glass-shadow-sm-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset, 0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
+  --glass-shadow-sm: 0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), var(--glass-shadow-sm-inset);
   --glass-frosted-border: oklch(100% 0 0 / 0.25);
   /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
      inverse draws on a dark page). */
   --glass-frosted-glow-a: 0.22;
-  --glass-frosted-shadow:
-    0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
+  --glass-frosted-shadow-inset:
+    0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
     0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
+  --glass-frosted-shadow: 0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), var(--glass-frosted-shadow-inset);
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
   --foreground: oklch(
     0.95 0.03 var(--glass-fg-h)
   ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */
@@ -2075,6 +2096,9 @@
   --glass-chakra-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
   --glass-chakra-shadow: var(--glass-shadow), var(--glass-chakra-facets);
   --glass-chakra-shadow-hover: var(--glass-shadow-lg), var(--glass-chakra-facets);
+  /* Its inset part, the cut itself, which a flat surface keeps (glass-flat). */
+  --glass-chakra-shadow-inset: var(--glass-shadow-inset), var(--glass-chakra-facets);
+  --glass-chakra-shadow-hover-inset: var(--glass-shadow-lg-inset), var(--glass-chakra-facets);
   /* Precomposed background STACKS — the background-image compositions, single-sourced. The surface
      utilities consume them via --srf-* fallbacks (sheer utilities append the element-composed solidify
      layer underneath), and the [data-glass] style remaps below swap them wholesale. Live here so they
@@ -2253,13 +2277,14 @@
     var(--glass-lustre-polish-bg), linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)),
     linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
   --glass-lustre-border: oklch(calc(var(--glass-lustre-edge-l) * 1%) min(var(--glass-tint-c), 0.085) var(--glass-tint-h) / 0.38);
+  /* Its inset part, the polish rim and line, which a flat surface keeps (glass-flat); the halo is outer. */
+  --glass-lustre-shadow-inset: inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35);
   --glass-lustre-shadow:
-    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18),
-    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35),
+    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18), var(--glass-lustre-shadow-inset),
     0 0 28px -6px oklch(var(--glass-lustre-ink) / 0.28);
+  --glass-lustre-shadow-hover-inset: inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42);
   --glass-lustre-shadow-hover:
-    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2),
-    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42),
+    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2), var(--glass-lustre-shadow-hover-inset),
     0 0 36px -4px oklch(var(--glass-lustre-ink) / 0.4);
 }
 
@@ -2497,10 +2522,17 @@
   background-color: var(--veil-floor, var(--srf-bg-color, transparent));
   /* Author ONLY the standard backdrop-filter (no -webkit- twin: Lightning dedupes the pair keeping
      the PREFIXED one, which Chromium never aliased — the [no-webkit-twin] invariant guards this).
-     The max() composes the diffuse FLOOR for adaptive surfaces. */
-  backdrop-filter: var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,);
-  /* The lit edge (a lit Button's ring in --lit) and the glow layer ride after the material's shadow. */
-  box-shadow: var(--srf-shadow, var(--srf-elev, var(--glass-shadow))), var(--lit-layer, 0 0 0 0 transparent), var(--glow-layer, 0 0 0 0 transparent);
+     The max() composes the diffuse FLOOR for adaptive surfaces. --srf-backdrop leads it: the element's
+     OWN filter (glass-unblurred sets it to none), registered non-inheriting like --srf-film, so no
+     material or page style re-sets it and nothing nested inherits it. */
+  backdrop-filter: var(--srf-backdrop, var(--srf-filter, blur(max(var(--srf-blur, var(--blur)), var(--dif, 0px))) saturate(180%)) var(--srf-stain,));
+  /* The lit edge (a lit Button's ring in --lit) and the glow layer ride after the material's shadow.
+     --srf-lift leads the shadow the same way: the element's OWN elevation (glass-flat sets it to the
+     material's inset part alone, data-flat-shadow gives the whole shadow back), ahead of the material's,
+     which a page style's hover re-sets with a stronger selector than any axis could carry. */
+  box-shadow:
+    var(--srf-lift, var(--srf-shadow, var(--srf-elev, var(--glass-shadow)))), var(--lit-layer, 0 0 0 0 transparent),
+    var(--glow-layer, 0 0 0 0 transparent);
   /* THE EDGE, resolved once per surface for everything that draws one (glass-border, the opaque page's
      uniform edge, the page outline). Precedence, strongest first: the element's own ink colour or
      rim/frame weight, then the PAGE OUTLINE (--glass-outline / --glass-outline-w, set on any ancestor;
@@ -2509,6 +2541,22 @@
      set on a subtree resolves where it is read. */
   --srf-edge: var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--srf-border-color, var(--glass-border)))));
   --srf-edge-w: var(--brd-w, var(--glass-outline-w, var(--glass-opaque-outline-w, var(--srf-border-w, 1px))));
+}
+
+/* Flat axis — the surface sits on what it is on, with no drop shadow of its own: a badge on a card or
+   a table row, where the style's elevation (Lustre's is a 32px blur) smudged every pill. It keeps the
+   material's INSET part, --srf-inset (set beside every --srf-shadow, hover included; the size tiers'
+   --srf-elev-inset beside --srf-elev): the bevel, Chakra's cut, Frosted's inner glow, Lustre's polish
+   rim. The lit edge and the glow still draw (they ride after the shadow). data-flat-shadow on an
+   ancestor gives a flat surface the style's whole shadow back (styles.css, THE FLAT SHADOW). */
+@utility glass-flat {
+  --srf-lift: var(--srf-inset, var(--srf-elev-inset, var(--glass-shadow-inset)));
+}
+
+/* Blur axis, off — the surface draws no backdrop blur: a badge only ever sits on a surface that is
+   blurred already, and every blur is redrawn each frame it moves. The stain goes with it. */
+@utility glass-unblurred {
+  --srf-backdrop: none;
 }
 
 /* Border axis — the material picks the color unless the element asks for ink (--brd-ink, the
@@ -2590,14 +2638,17 @@
 @utility glass-sm {
   --srf-blur: var(--blur-sm);
   --srf-elev: var(--glass-shadow-sm);
+  --srf-elev-inset: var(--glass-shadow-sm-inset);
 }
 @utility glass-lg {
   --srf-blur: var(--blur-lg);
   --srf-elev: var(--glass-shadow-lg);
+  --srf-elev-inset: var(--glass-shadow-lg-inset);
 }
 @utility glass-xl {
   --srf-blur: var(--blur-xl);
   --srf-elev: var(--glass-shadow-lg);
+  --srf-elev-inset: var(--glass-shadow-lg-inset);
 }
 
 /* ── Gradient ACCENT — a brand wash ON a material, not a material. Fills the no-op --acc-gradient
@@ -2768,6 +2819,7 @@
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--srf-elev, var(--glass-shadow));
+  --srf-inset: var(--srf-elev-inset, var(--glass-shadow-inset));
 }
 
 /* Frosted — the tint wash rides the IMAGE stack (--frosted-stack-bg = sheet + wash), leaving the
@@ -2786,6 +2838,7 @@
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
+  --srf-inset: var(--glass-frosted-shadow-inset);
 }
 
 /* Crystal — gloss BAKED into the background stack (sticky/fixed-safe; no pseudo-elements, no
@@ -2806,10 +2859,12 @@
   --srf-border-color: var(--glass-crystal-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-crystal-shadow);
+  --srf-inset: var(--glass-crystal-shadow-inset);
   transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="crystal"]:hover {
   --srf-shadow: var(--glass-crystal-shadow-hover);
+  --srf-inset: var(--glass-crystal-shadow-hover-inset);
 }
 /* Crystal text tiers — the baked gloss locally LIGHTENS the title zone (worst in dark mode), so text
    inside crystal remaps to the -crystal set AutoForeground bands against the glossed crystal surface.
@@ -2834,10 +2889,12 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
+  --srf-inset: var(--glass-lustre-shadow-inset);
   transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-material="lustre"]:hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
+  --srf-inset: var(--glass-lustre-shadow-hover-inset);
 }
 [data-material="lustre"]:not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-lustre);
@@ -2871,10 +2928,12 @@
   --srf-border-color: var(--glass-chakra-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-chakra-shadow);
+  --srf-inset: var(--glass-chakra-shadow-inset);
   transition: box-shadow calc(0.3s * var(--motion-scale, 1)) var(--motion-ease-standard, ease);
 }
 [data-material="chakra"]:hover {
   --srf-shadow: var(--glass-chakra-shadow-hover);
+  --srf-inset: var(--glass-chakra-shadow-hover-inset);
 }
 /* Chakra text tiers — content sits on the body, whose lightness (--glass-chakra-l) is its own dial and
    can sit well away from the page's. Same reasoning as opaque/crystal; veiled chakra is excluded
@@ -2935,6 +2994,7 @@
   --srf-border-color: var(--glass-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-shadow);
+  --srf-inset: var(--glass-shadow-inset);
   /* Veiled overlays INSIDE an opaque element compute a fully solid floor — same guarantee the opaque
      PAGE style makes (menus/toasts must stay legible on a solid ground). */
   --glass-solid-a: 1;
@@ -2998,6 +3058,8 @@
      the swept hue. (The white floor is replaced in engine.css block C′.) */
   --glass-crystal-shadow: var(--glass-shadow);
   --glass-crystal-shadow-hover: var(--glass-shadow-lg);
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset);
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset);
 }
 /* ── Site-wide style remaps + vendor cascade fixes ──────────────────────────── */
 
@@ -3038,6 +3100,7 @@
   --srf-border-color: var(--glass-frosted-border);
   --srf-border-w: var(--brd-w, 0.5px);
   --srf-shadow: var(--glass-frosted-shadow);
+  --srf-inset: var(--glass-frosted-shadow-inset);
 }
 :where(
   [data-glass="crystal"],
@@ -3054,6 +3117,7 @@
   --srf-filter: blur(max(var(--blur-crystal), var(--dif, 0px)));
   --srf-border-color: var(--glass-crystal-border);
   --srf-shadow: var(--glass-crystal-shadow);
+  --srf-inset: var(--glass-crystal-shadow-inset);
 }
 /* Crystal page: ADAPTIVE glass (no explicit material, not veiled) gets the -crystal text tiers, same
    as the material remap in materials.css — the baked gloss lightens title zones there too. */
@@ -3078,12 +3142,14 @@
   --srf-border-color: var(--glass-lustre-border);
   --srf-border-w: var(--brd-w, 1px);
   --srf-shadow: var(--glass-lustre-shadow);
+  --srf-inset: var(--glass-lustre-shadow-inset);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]) {
   transition: box-shadow calc(0.2s * var(--motion-scale, 1)) var(--motion-ease-enter, ease-out);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):hover {
   --srf-shadow: var(--glass-lustre-shadow-hover);
+  --srf-inset: var(--glass-lustre-shadow-hover-inset);
 }
 [data-glass="lustre"] :where(.glass, [data-surface]):not([data-material]):not(.glass-veil, [data-surface="veil"]) {
   --foreground: var(--foreground-lustre);
@@ -3108,6 +3174,7 @@
   --srf-filter: blur(max(var(--blur-chakra), var(--dif, 0px)));
   --srf-border-color: var(--glass-chakra-border);
   --srf-shadow: var(--glass-chakra-shadow);
+  --srf-inset: var(--glass-chakra-shadow-inset);
 }
 /* Chakra page: adaptive glass (no explicit material, not veiled) takes the -chakra text tiers, same
    as the material remap in materials.css. */
@@ -3138,6 +3205,7 @@
   --srf-bg-color: var(--glass-opaque-bg);
   --srf-filter: none;
   --srf-shadow: var(--glass-shadow);
+  --srf-inset: var(--glass-shadow-inset);
   /* Same provable no-op as [data-material="opaque"]: --glass-opaque-bg sits in the background-COLOR
      channel, so the solidify layer would paint that colour over itself. A TOKEN here (it used to be an
      element rule keyed on `.glass`), so it reaches an `@apply glass` surface too, which kept the light
@@ -3187,6 +3255,23 @@
    specificity and wins by coming after it. */
 [data-glass-outline] :is(.glass, [data-surface]) {
   border: var(--srf-edge-w, 1px) solid var(--brd-ink, var(--glass-outline, var(--glass-opaque-outline, var(--glass-accent))));
+}
+
+/* ── THE FLAT SHADOW ─────────────────────────────────────────────────────────
+   data-flat-shadow on <html> (or any ancestor) raises every flat surface below it again (glass-flat,
+   the Badge's glass variants): its own elevation slot goes back to its initial, guaranteed-invalid
+   value, so `glass` falls through to the style's shadow, hover included. An app's "pill shadow" setting.
+   Unlayered, so it beats the glass-flat utility on the same element. */
+[data-flat-shadow] .glass-flat {
+  --srf-lift: initial;
+}
+/* The primary Badge is no glass surface: its small shadow is this page value, none unless data-flat-shadow
+   raises pills, the shadow it always had when it does. */
+:root {
+  --pill-raise: 0 0 #0000;
+}
+[data-flat-shadow] {
+  --pill-raise: 0 1px 3px 0 #0000001a, 0 1px 2px -1px #0000001a;
 }
 /* The FOREGROUND remap is :not(.glass-veil) — the same carve-out crystal and chakra make, and the same
    one --veil-solidify makes for the solidify layer on this page style. A veiled card does not paint

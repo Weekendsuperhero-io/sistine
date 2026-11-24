@@ -379,29 +379,39 @@
      modes: milkiness IS that material.) The top bevel stays WHITE in both — it's a specular, not a
      shadow; grey speculars read as grime. Layer order: ambient drop, contact drop, hairline, top
      bevel, bottom shade, inner glow/vignette. */
+  /* Each shadow's INSET part (bevel, shade, vignette) is its own token, which the full shadow ends with: a flat
+     surface (glass-flat, every glass Badge) keeps it while it drops the outer drop and hairline. */
+  --glass-shadow-inset:
+    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset, 0 0 12px oklch(var(--shadow-ink) / 0.05) inset;
   --glass-shadow:
     0 4px 16px oklch(var(--shadow-ink) / 0.13), 0 1px 3px oklch(var(--shadow-ink) / 0.11), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
-    0 1px 0 oklch(var(--shadow-highlight) / 0.4) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.08) inset,
-    0 0 12px oklch(var(--shadow-ink) / 0.05) inset;
-  --glass-shadow-lg:
-    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-shadow-inset);
+  --glass-shadow-lg-inset:
     0 1px 0 oklch(var(--shadow-highlight) / 0.45) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 20px oklch(var(--shadow-ink) / 0.06) inset;
+  --glass-shadow-lg:
+    0 8px 32px oklch(var(--shadow-ink) / 0.16), 0 2px 6px oklch(var(--shadow-ink) / 0.12), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-shadow-lg-inset);
+  --glass-shadow-sm-inset:
+    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset, 0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
   --glass-shadow-sm:
     0 2px 8px oklch(var(--shadow-ink) / 0.1), 0 1px 2px oklch(var(--shadow-ink) / 0.09), 0 0 0 1px oklch(var(--shadow-ink) / 0.04),
-    0 1px 0 oklch(var(--shadow-highlight) / 0.35) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.07) inset,
-    0 0 8px oklch(var(--shadow-ink) / 0.04) inset;
+    var(--glass-shadow-sm-inset);
   --glass-frosted-border: oklch(100% 0 0 / 0.3);
   /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
      inverse draws on a dark page). */
   --glass-frosted-glow-r: 20px;
   --glass-frosted-glow-a: 0.18;
-  --glass-frosted-shadow:
-    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+  --glass-frosted-shadow-inset:
     0 1px 0 oklch(var(--shadow-highlight) / 0.5) inset, 0 -1px 0 oklch(var(--shadow-ink) / 0.09) inset,
     0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
+  --glass-frosted-shadow:
+    0 8px 32px oklch(var(--shadow-ink) / 0.17), 0 2px 6px oklch(var(--shadow-ink) / 0.13), 0 0 0 1px oklch(var(--shadow-ink) / 0.05),
+    var(--glass-frosted-shadow-inset);
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.4) inset;
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.45) inset;
   /* Base colors - Light mode with dark text */
   --background: transparent;
   --foreground: oklch(
@@ -1083,24 +1093,24 @@
   --glass-chakra-facet-r-a: 0.143; /* right  — ink,        −4.0 L */
   --glass-chakra-facet-b-a: 0.286; /* bottom — ink,        −8.0 L */
   /* ── Glass shadows — dark twins (deeper drops, brighter bevels). */
-  --glass-shadow:
-    0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset,
-    0 0 12px oklch(var(--shadow-highlight) / 0.15) inset;
-  --glass-shadow-lg:
-    0 8px 32px oklch(var(--shadow-ink) / 0.4), 0 2px 8px oklch(var(--shadow-ink) / 0.2), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset,
-    0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
-  --glass-shadow-sm:
-    0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset,
-    0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
+  --glass-shadow-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.12) inset, 0 0 12px oklch(var(--shadow-highlight) / 0.15) inset;
+  --glass-shadow: 0 4px 16px oklch(var(--shadow-ink) / 0.3), 0 1px 4px oklch(var(--shadow-ink) / 0.15), var(--glass-shadow-inset);
+  --glass-shadow-lg-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.15) inset, 0 0 20px oklch(var(--shadow-highlight) / 0.18) inset;
+  --glass-shadow-lg: 0 8px 32px oklch(var(--shadow-ink) / 0.4), 0 2px 8px oklch(var(--shadow-ink) / 0.2), var(--glass-shadow-lg-inset);
+  --glass-shadow-sm-inset: 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.1) inset, 0 0 8px oklch(var(--shadow-highlight) / 0.12) inset;
+  --glass-shadow-sm: 0 2px 8px oklch(var(--shadow-ink) / 0.25), 0 1px 2px oklch(var(--shadow-ink) / 0.12), var(--glass-shadow-sm-inset);
   --glass-frosted-border: oklch(100% 0 0 / 0.25);
   /* Frosted's inner glow: its reach and its strength (engine.css's block D keeps it to the edge on the day an
      inverse draws on a dark page). */
   --glass-frosted-glow-a: 0.22;
-  --glass-frosted-shadow:
-    0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), 0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
+  --glass-frosted-shadow-inset:
+    0 0 0 0.5px oklch(var(--shadow-highlight) / 0.2) inset,
     0 0 var(--glass-frosted-glow-r) oklch(var(--shadow-highlight) / var(--glass-frosted-glow-a)) inset;
+  --glass-frosted-shadow: 0 8px 32px oklch(var(--shadow-ink) / 0.5), 0 2px 8px oklch(var(--shadow-ink) / 0.3), var(--glass-frosted-shadow-inset);
   --glass-crystal-shadow: var(--glass-shadow), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
   --glass-crystal-shadow-hover: var(--glass-shadow-lg), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
+  --glass-crystal-shadow-inset: var(--glass-shadow-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.2) inset;
+  --glass-crystal-shadow-hover-inset: var(--glass-shadow-lg-inset), 0 1px 1px oklch(var(--shadow-highlight) / 0.25) inset;
   --foreground: oklch(
     0.95 0.03 var(--glass-fg-h)
   ); /* CSS baseline (tinted, ~body target) so first paint has no gray→tint flash; AutoForeground refines to the exact APCA solve after */

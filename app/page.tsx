@@ -121,7 +121,8 @@ export default function Home() {
         {/* ───────────────────── Hero ───────────────────── */}
         <section className="container mx-auto px-4 pt-24 pb-32 md:pt-32 md:pb-40">
           <div className="max-w-3xl mx-auto text-center">
-            <Badge className="mb-8 px-4 py-1.5 text-sm">
+            {/* Over the bare scene, not a surface: it keeps the blur and the shadow a Badge leaves off by default. */}
+            <Badge blur flat={false} className="mb-8 px-4 py-1.5 text-sm">
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
               55 Glass Components
             </Badge>

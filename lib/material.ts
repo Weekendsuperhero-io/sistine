@@ -4,7 +4,8 @@ import type * as React from "react";
  * The Sistine material system — the single source of the material → markup mapping.
  *
  * SIX materials (glass, frosted, crystal, lustre, chakra, lucite), each a `[data-material]` token set in
- * app/theme/materials.css, composed with orthogonal AXES (border + its colour, veil, size, gradient, glow, sheen)
+ * app/theme/materials.css, composed with orthogonal AXES (border + its colour, veil, size, diffuse, gradient, glow,
+ * sheen, flat, blur)
  * over the one structural `glass` utility. Components call `glassMaterial()` instead of hardcoding
  * recipe class strings (check-theme bans the legacy `glass-bg`/`glass-surface`/… classes).
  *
@@ -54,6 +55,16 @@ export interface MaterialProps {
   glow?: boolean | "lg";
   /** Opt-in hover shimmer (pseudo-element based — avoid on sticky/fixed surfaces). */
   sheen?: boolean;
+  /** Sits flat on what it is on: no drop shadow of its own (`glass-flat`), while it keeps the material's inset
+   *  part (the bevel, Chakra's cut, Frosted's inner glow, Lustre's rim), the lit edge and the glow. A page that
+   *  wants its flat surfaces raised sets `data-flat-shadow` on an ancestor, and they cast the style's whole
+   *  shadow again (styles.css). The Badge's glass variants are flat, and its primary pill reads this axis too. */
+  flat?: boolean;
+  /** The backdrop blur, on unless `false` (`glass-unblurred`). A surface that only ever sits on another
+   *  surface, a badge on a card or a row, has nothing behind it that is not blurred already, and a blur is
+   *  redrawn every frame it moves. The Badge's glass variants are unblurred; `blur` puts it back for a badge
+   *  over a bare scene. */
+  blur?: boolean;
 }
 
 /** The PUBLIC per-instance axis props a component spreads onto its type. Excludes `size` (the material
@@ -74,7 +85,7 @@ export function splitAxisProps<P extends MaterialAxisProps>(
   MaterialAxisProps,
   SplitAxisRest<P>,
 ] {
-  const { material, border, borderColor, veil, diffuse, gradient, glow, sheen, ...rest } = props;
+  const { material, border, borderColor, veil, diffuse, gradient, glow, sheen, flat, blur, ...rest } = props;
   return [
     {
       material,
@@ -85,6 +96,8 @@ export function splitAxisProps<P extends MaterialAxisProps>(
       gradient,
       glow,
       sheen,
+      flat,
+      blur,
     },
     /* The conditional (distributive) rest type can't be proven for an unresolved P — safe by
      * construction: rest is exactly P minus the axis keys. */
@@ -100,7 +113,7 @@ export interface MaterialAttrs {
 }
 
 export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
-  const { material, border, borderColor, veil, size, diffuse, gradient, glow, sheen } = props;
+  const { material, border, borderColor, veil, size, diffuse, gradient, glow, sheen, flat, blur } = props;
   if (material === "none") {
     return {
       className: "",
@@ -123,6 +136,8 @@ export function glassMaterial(props: MaterialProps = {}): MaterialAttrs {
       gradient && "glass-gradient",
       glow === "lg" ? "glass-glow-lg" : glow ? "glass-glow" : false,
       sheen && "glass-sheen",
+      flat && "glass-flat",
+      blur === false && "glass-unblurred",
     ]
       .filter(Boolean)
       .join(" "),
@@ -150,6 +165,8 @@ export function materialSurface(role: MaterialProps | null, props: MaterialProps
     gradient: props.gradient ?? role.gradient,
     glow: props.glow ?? role.glow,
     sheen: props.sheen ?? role.sheen,
+    flat: props.flat ?? role.flat,
+    blur: props.blur ?? role.blur,
   });
 }
 

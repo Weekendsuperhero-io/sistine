@@ -379,6 +379,9 @@
   --glass-chakra-border: oklch(100% calc(var(--glass-tint-c-hi) * 0.5) var(--glass-tint-h) / var(--glass-border-a));
   --glass-chakra-shadow: var(--glass-shadow), var(--glass-chakra-facets);
   --glass-chakra-shadow-hover: var(--glass-shadow-lg), var(--glass-chakra-facets);
+  /* Its inset part, the cut itself, which a flat surface keeps (glass-flat). */
+  --glass-chakra-shadow-inset: var(--glass-shadow-inset), var(--glass-chakra-facets);
+  --glass-chakra-shadow-hover-inset: var(--glass-shadow-lg-inset), var(--glass-chakra-facets);
   /* Precomposed background STACKS — the background-image compositions, single-sourced. The surface
      utilities consume them via --srf-* fallbacks (sheer utilities append the element-composed solidify
      layer underneath), and the [data-glass] style remaps below swap them wholesale. Live here so they
@@ -557,13 +560,14 @@
     var(--glass-lustre-polish-bg), linear-gradient(var(--glass-lustre-tint-wash), var(--glass-lustre-tint-wash)),
     linear-gradient(var(--glass-lustre-bg), var(--glass-lustre-bg));
   --glass-lustre-border: oklch(calc(var(--glass-lustre-edge-l) * 1%) min(var(--glass-tint-c), 0.085) var(--glass-tint-h) / 0.38);
+  /* Its inset part, the polish rim and line, which a flat surface keeps (glass-flat); the halo is outer. */
+  --glass-lustre-shadow-inset: inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35);
   --glass-lustre-shadow:
-    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18),
-    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.18), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.35),
+    0 8px 32px oklch(0% 0 0 / 0.3), 0 2px 8px oklch(0% 0 0 / 0.18), var(--glass-lustre-shadow-inset),
     0 0 28px -6px oklch(var(--glass-lustre-ink) / 0.28);
+  --glass-lustre-shadow-hover-inset: inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42);
   --glass-lustre-shadow-hover:
-    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2),
-    inset 0 0 0 0.5px oklch(var(--glass-lustre-ink) / 0.28), inset 0 1px 1px oklch(var(--glass-lustre-ink) / 0.42),
+    0 12px 40px oklch(0% 0 0 / 0.35), 0 4px 12px oklch(0% 0 0 / 0.2), var(--glass-lustre-shadow-hover-inset),
     0 0 36px -4px oklch(var(--glass-lustre-ink) / 0.4);
 }
 
