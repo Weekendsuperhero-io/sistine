@@ -394,6 +394,12 @@ export default function ThemingPage() {
               where it fades, like a picture frame. The streak and the glow are the same in both. Crystal and chakra take it; lustre keeps its own
               polish, though under <IC>hue</IC>, whose top band it shares, it takes the frame&apos;s top and bottom.
             </p>
+            <p className="text-muted-foreground">
+              Under <IC>white</IC>, whose ink stays white at night, a <strong>small control</strong> keeps a rim and nothing more: on a button, a
+              badge, a segment or a select (under about 3rem tall) the streak, the glow and lustre&apos;s sheen go, and in the frame its top and
+              bottom band thins to <IC>--glass-gloss-reach-frame-small</IC> (0.25rem). The bevel&apos;s bands and lustre&apos;s top stay. A card or
+              panel is drawn as it always was, and <IC>tonal</IC> and <IC>hue</IC> are unchanged at every size.
+            </p>
             <Code>{`<html data-gloss-shape="frame">                <!-- a band around every crystal surface -->
 <section data-gloss-shape="bevel">…</section>   <!-- the top + side bevel, scoped -->`}</Code>
             <p className="text-muted-foreground">Tune the gloss with these tokens: all have safe defaults, so override only what you want:</p>

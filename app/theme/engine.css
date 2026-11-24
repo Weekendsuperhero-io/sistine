@@ -131,7 +131,29 @@
      5rem; the owner asked for a band that keeps to the edge, so anything over ~53px tall meets it). Leaves, in
      rem, so a consumer can widen or tighten them. Lustre's glow takes the same reach and its top its own,
      --glass-lustre-reach-top (5rem, the reach it had before the crystal bevel was narrowed); the hue
-     flavor's sweep is meant to cross the whole face and keeps its shares. */
+     flavor's sweep is meant to cross the whole face and keeps its shares.
+     A SMALL surface is the same fault the other way round: there every share binds before its length does.
+     On a control under 3rem tall (a button, a badge, a segment, a select, a dial) the streak and the glow
+     crossed its whole face, and with the bands about 80% of it sat under the ink, a mean 0.12–0.15 of it and
+     0.08–0.10 across the middle third, where its words are (a panel: 0.02–0.04); Lustre's polish, its glow
+     and the sheen across its middle over its top band, 75–91% at a mean 0.14–0.15 and 0.07–0.08. Under the
+     white flavor, whose ink stays L100 at night, that whited out every small control on night glass: the
+     night page, a lit pill by day, a lit card's buttons (HERO, 2026-11-23, measured in Chromium: the face 3–8
+     L lighter, its words 4–9 Lc lower). So under the white flavor (its -white variants, block C′) a small
+     control keeps a rim and nothing more: the streak fades out by the least of its share, its reach and a
+     ramp from nothing, gone along a diagonal under 10rem and whole past 15rem (a negative fade is a stop
+     before the first, which CSS moves up to it, so nothing is drawn); Lustre's sheen, whole on a diagonal
+     of 15rem as the streak is, goes at once under it (a band cannot narrow without moving a card's stops off
+     their plain 32% and 64%, and a stop's computed length lands a rounding away from its percentage, so a
+     card would differ by a level here and there: --glass-lustre-streak-cut); the glow's centre, Crystal's
+     and Lustre's, 20% of the height below a card, sinks ten times the shortfall further under a surface
+     less than 6rem tall, so it fades out from 6rem to 4.5rem and under that never reaches the surface,
+     however wide; and the frame's top and bottom band thins over the same heights (THE FRAME SHAPE, below).
+     The bevel's top and side bands and Lustre's top keep their reach: that light at the edge is the rim. A
+     card or panel (6rem tall or more, and 15rem or more along the streak's and the sheen's diagonals: every
+     one from 16rem × 6rem, a 15rem-wide panel from 7rem tall) draws what it did to the pixel, under every
+     flavor and shape, and the tonal and hue flavors are what they were at every size
+     (tests/gloss-snapshot.test.ts). */
   --glass-gloss-reach-top: 1rem;
   --glass-gloss-reach-streak: 16rem;
   --glass-gloss-reach-glow: 14rem;
@@ -146,9 +168,13 @@
      16rem wide) to --glass-gloss-reach-frame (2rem). Measured along each axis, the only size a gradient
      knows (100% of its line), so a button, chip, menu item or swatch is framed at 0.5rem all round and a
      card from about 14rem × 24rem at 2rem; past that, and on a tiny control, 30% of the height and 25% of
-     the width still cap it. */
+     the width still cap it. Under the white flavor a control's top and bottom band is thinner:
+     --glass-gloss-reach-frame-small (0.25rem) under 4.5rem tall, back to the 0.5rem at 6rem (half a 2rem
+     button's height in band was the rim that whited it out). Its sides keep 0.5rem: their band knows only
+     the width, which cannot tell a button from a narrow panel. */
   --glass-gloss-reach-frame: 2rem;
   --glass-gloss-reach-frame-min: 0.5rem;
+  --glass-gloss-reach-frame-small: 0.25rem;
   /* The fresco slot, reset at every tint scope. The four fresco presets (frescoes.css, later in source
      order) point it at their multi-hue sheet; every other preset leaves it at `none`. Without the reset a
      single-hue preset scoped inside a fresco page (<section data-glass-tint="lapis"> on a hero page)
@@ -455,10 +481,15 @@
      far edges' ink at the edge and at a third and two thirds of the band, and the colour each near band
      climbs from (transparent; under the hue flavor in the frame, the sweep's far end at alpha 0, block C′,
      so every edge fans the same sweep across its depth). --glass-gloss-edge-turn is the frame's switch as
-     a number, read with 0 (the bevel) as its fallback. */
+     a number, read with 0 (the bevel) as its fallback. The depth across the height starts from the thinner
+     band a control has in the frame under the white flavor (--glass-gloss-edge-min-white, block C′), and
+     elsewhere from the 0.5rem the width's does. */
   --glass-gloss-edge-a: calc(0.3 * var(--glass-gloss-is-frame));
   --glass-gloss-edge-turn: calc(1 * var(--glass-gloss-is-frame));
-  --glass-gloss-edge-depth-y: min(30%, clamp(var(--glass-gloss-reach-frame-min, 0.5rem), (100% - 6rem) / 4, var(--glass-gloss-reach-frame, 2rem)));
+  --glass-gloss-edge-depth-y: min(
+    30%,
+    clamp(var(--glass-gloss-edge-min-white, var(--glass-gloss-reach-frame-min, 0.5rem)), (100% - 6rem) / 4, var(--glass-gloss-reach-frame, 2rem))
+  );
   --glass-gloss-edge-depth-x: min(25%, clamp(var(--glass-gloss-reach-frame-min, 0.5rem), (100% - 16rem) / 4, var(--glass-gloss-reach-frame, 2rem)));
   --glass-gloss-edge-y: calc(var(--glass-gloss-edge-depth-y) * var(--glass-gloss-is-frame));
   --glass-gloss-edge-x: calc(var(--glass-gloss-edge-depth-x) * var(--glass-gloss-is-frame));
@@ -480,12 +511,24 @@
       oklch(var(--glass-gloss-ink, 100% 0 0) / var(--glass-gloss-edge-a, 0.4))
     )
   );
+  /* Where the streak and the glow fade out, and where the glow's centre sits (the reach comment in block A):
+     their share and their reach, and the glow's centre 20% of the height below the surface, as they always
+     were; under the white flavor, on a small surface, the streak gone by a ramp along its diagonal and the
+     glow's centre sunk below a surface under 6rem tall (the -white variants, block C′). Lustre's glow reads
+     the same two, and its sheen a cut (--glass-lustre-streak-cut: 0%, before the band, but on a small
+     surface under the white flavor). Registered lengths (registrations.css), so the stacks carry one token
+     for each rather than the whole expression (check-theme [token-budget]); a percentage stays one of the
+     gradient's own line or box, where it is read. */
+  --glass-gloss-streak-depth: var(--glass-gloss-streak-depth-white, min(50%, var(--glass-gloss-reach-streak, 16rem)));
+  --glass-gloss-glow-depth: min(70%, var(--glass-gloss-reach-glow, 14rem));
+  --glass-gloss-glow-y: var(--glass-gloss-glow-y-white, 120%);
+  --glass-lustre-streak-cut: var(--glass-lustre-streak-cut-white, 0%);
   --glass-gloss-streak: var(
     --glass-gloss-streak-hue,
     linear-gradient(
       calc(135deg * var(--glass-gloss-hue-dir, 1)),
       oklch(var(--glass-gloss-ink, 100% 0 0) / 0.15),
-      transparent min(50%, var(--glass-gloss-reach-streak, 16rem))
+      transparent var(--glass-gloss-streak-depth)
     )
   );
   --glass-gloss-side-depth: var(--glass-gloss-edge-x, min(25%, var(--glass-gloss-reach-side, 1rem)));
@@ -504,7 +547,7 @@
   );
   --glass-gloss-glow: var(
     --glass-gloss-glow-hue,
-    radial-gradient(circle at 50% 120%, oklch(var(--glass-gloss-ink, 100% 0 0) / 0.2), transparent min(70%, var(--glass-gloss-reach-glow, 14rem)))
+    radial-gradient(circle at 50% var(--glass-gloss-glow-y), oklch(var(--glass-gloss-ink, 100% 0 0) / 0.2), transparent var(--glass-gloss-glow-depth))
   );
   /* Crystal floor — clear glass; the alpha is the mode dial (--glass-crystal-bg-a).
      Crystal body. The lightness is a KNOB, not 100%, and that is the whole point: at L100 sRGB holds
@@ -545,13 +588,24 @@
     --glass-gloss-top-hue,
     linear-gradient(to bottom, oklch(var(--glass-lustre-ink) / 0.42), transparent min(32%, var(--glass-lustre-reach-top, 5rem)))
   );
+  /* The sheen: a band from 32% to 64% of its diagonal, brightest at 48%, and the CUT, a second transparent
+     stop at --glass-lustre-streak-cut. Before 32% (0%, or far below it on a card under the white flavor) CSS
+     moves it up to 32%, the same position to the bit, and the band is what it was. Past 64% (a small surface
+     under the white flavor) it moves every later stop up to itself, and the band has no width. The glow is
+     Crystal's, centre and fade alike. */
   --glass-lustre-streak: var(
     --glass-gloss-streak-hue,
-    linear-gradient(calc(125deg * var(--glass-gloss-hue-dir, 1)), transparent 32%, oklch(var(--glass-lustre-ink) / 0.16) 48%, transparent 64%)
+    linear-gradient(
+      calc(125deg * var(--glass-gloss-hue-dir, 1)),
+      transparent 32%,
+      transparent var(--glass-lustre-streak-cut),
+      oklch(var(--glass-lustre-ink) / 0.16) 48%,
+      transparent 64%
+    )
   );
   --glass-lustre-glow: var(
     --glass-gloss-glow-hue,
-    radial-gradient(circle at 50% 120%, oklch(var(--glass-lustre-ink) / 0.2), transparent min(70%, var(--glass-gloss-reach-glow, 14rem)))
+    radial-gradient(circle at 50% var(--glass-gloss-glow-y), oklch(var(--glass-lustre-ink) / 0.2), transparent var(--glass-gloss-glow-depth))
   );
   /* The POLISH (highlights and fresco) apart from the pigment (tint wash and dense body): a filled control
      wears only the polish over its own fill (--srf-fill-image), as its fill is the colour it must show. */
@@ -578,7 +632,14 @@
    hue: each highlight sweeps (tint hue − span) → tint hue → (+ span), interpolated IN OKLCH so the arc
    passes through the base hue. Top leans to the low end, glow to the high end, streak spans both. The
    floor is replaced by a hue-carrying one at the gloss lightness (so Light deepens it): the default
-   crystal floor sits near white, where chroma collapses, so the sweep would read over a white sheet. */
+   crystal floor sits near white, where chroma collapses, so the sweep would read over a white sheet.
+   white: the flat ink, and the shine sized to a small control (the reach comment in block A). Each is the
+   length block C reads at every size: a card's share or reach is the least (or, for the glow's centre, the
+   most) of its terms, and Lustre's cut lies far before its band, so on a card these draw block C's
+   fallbacks exactly, and only a small control loses its streak, its glow and Lustre's sheen (the cut, a
+   thousand times its diagonal's shortfall under 15rem, passes the band's far edge within a hundredth of a
+   rem), and, in the frame (its variant reads the frame's switch too), its top and bottom thin to
+   --glass-gloss-reach-frame-small, from 6rem tall down to 4.5rem (a sixth as fast as the height). */
 :root,
 .dark,
 [data-glass-tint],
@@ -587,6 +648,14 @@
 [data-mode="inverse"],
 [data-mode="night"] {
   --glass-gloss-ink-white: calc(var(--glass-gloss-is-white) * 100%) 0 0;
+  --glass-gloss-streak-depth-white: min((100% - 10rem) * 1.5 * var(--glass-gloss-is-white), 50%, var(--glass-gloss-reach-streak, 16rem));
+  --glass-gloss-glow-y-white: max(120%, 100% + (6rem - 100%) * 10 * var(--glass-gloss-is-white));
+  --glass-lustre-streak-cut-white: calc((15rem - 100%) * 1000 * var(--glass-gloss-is-white));
+  --glass-gloss-edge-min-white: clamp(
+    var(--glass-gloss-reach-frame-small, 0.25rem),
+    calc(var(--glass-gloss-reach-frame-min, 0.5rem) - (6rem - 100%) / 6 * var(--glass-gloss-is-white) * var(--glass-gloss-is-frame)),
+    var(--glass-gloss-reach-frame-min, 0.5rem)
+  );
   --glass-gloss-top-hue-depth: var(--glass-gloss-edge-y, min(35%, var(--glass-gloss-reach-top, 1rem)));
   --glass-gloss-top-hue: linear-gradient(
     to top in oklch,
@@ -705,6 +774,7 @@
   --glass-lustre-ink-tonal: 44% min(calc(var(--glass-tint-c) * 4.5), 0.071) var(--glass-tint-h);
   --glass-gloss-reach-frame-min: 0.3rem;
   --glass-gloss-reach-frame: 0.3rem;
+  --glass-gloss-reach-frame-small: 0.3rem;
   --glass-gloss-reach-top: 0.3rem;
   --glass-gloss-reach-side: 0.3rem;
   --glass-lustre-reach-top: 0.35rem;

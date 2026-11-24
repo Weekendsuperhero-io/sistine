@@ -130,6 +130,31 @@
   inherits: true;
   initial-value: 0px;
 }
+/* Where the streak and the glow fade out, the glow's centre, and Lustre's sheen's cut, for the same reason
+   (engine.css block C): each a share and a reach, and under the white flavor a min() or max() of them and a
+   small surface's ramp, one token in each stack. The streak's fade is negative on a small surface, and the cut
+   far before the sheen on a card, which colour stops allow: CSS moves a stop placed before an earlier one up
+   to it. */
+@property --glass-gloss-streak-depth {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-glow-depth {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --glass-gloss-glow-y {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 120%;
+}
+@property --glass-lustre-streak-cut {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
 
 /* The veil floor, NON-inheriting for the same reason as the glow: `glass-veil` sets it on the element
    and `glass` paints it as that element's background-color. Inherited, a plain glass surface nested in
